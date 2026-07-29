@@ -1,8 +1,168 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+inherit_from: .rubocop_todo.yml
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+plugins:
+  - rubocop-rspec
+  - rubocop-rails
+  - rubocop-rspec_rails
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "Gemfile"
+    - "Rakefile"
+    - "bin/**/*"
+    - "db/**/*"
+    - "config/**/*"
+    - "vendor/**/*"
+
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_fixed_indentation
+
+Lint/MissingSuper:
+  Enabled: false
+
+Layout/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/LineLength:
+  Enabled: false
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: space
+
+Style/HashSyntax:
+  EnforcedShorthandSyntax: always
+
+Lint/InheritException:
+  Enabled: false
+
+Lint/SuppressedException:
+  Exclude:
+    - "spec/**/*_spec.rb"
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - "spec/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/spec_helper.rb"
+    - "spec/support/shared_examples/*"
+    - "spec/factories/**/*"
+  AllowedMethods:
+    - "describe"
+    - "context"
+    - "namespace"
+    - "shared_examples"
+    - "let"
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/MethodLength:
+  Max: 15
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - "_"
+    - "id"
+
+Naming/PredicateMethod:
+  Enabled: false
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/BlockComments:
+  Exclude:
+    - "spec/spec_helper.rb"
+
+Style/BlockDelimiters:
+  EnforcedStyle: braces_for_chaining
+
+Style/SafeNavigationChainLength:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/MethodCalledOnDoEndBlock:
+  Enabled: false
+
+Style/MethodCallWithArgsParentheses:
+  Enabled: false
+
+Style/SignalException:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: single_quotes
+
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - development
+    - test
+
+RSpec/BeforeAfterAll:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Exclude:
+    - "spec/requests/**/*"
+    - "spec/config/**/*"
+
+RSpec/DescribeMethod:
+  Enabled: false
+
+RSpec/DescribedClass:
+  SkipBlocks: true
+
+RSpec/EmptyExampleGroup:
+  Exclude:
+    - "spec/requests/**/*"
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/LeakyConstantDeclaration:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
+RSpec/RepeatedDescription:
+  Enabled: false

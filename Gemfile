@@ -47,8 +47,10 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
+  gem "rubocop", require: false
+  gem "rubocop-rails", require: false
+  gem "rubocop-rspec", require: false
+  gem "rubocop-rspec_rails", require: false
 end
 
 group :development do
@@ -57,6 +59,18 @@ group :development do
 end
 
 group :test do
+  gem "rspec-rails"
+  gem "rspec-its"
+  gem "rspec-collection_matchers"
+  gem "rspec-json_expectations"
+  gem "shoulda-matchers"
+  gem "webmock"
+  gem "timecop"
+  gem "simplecov", require: false
+  gem "simplecov-cobertura"
+  gem "super_diff"
+  gem "rails-controller-testing"
+
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
