@@ -14,5 +14,11 @@ development:
 test:
   <<: *default
 
+sandbox:
+  <<: *default
+
+staging:
+  <<: *default
+
 production:
   <<: *default
