@@ -1,9 +1,283 @@
-<div class="fr-container fr-py-6w">
-  <h1>Bienvenue sur Simplifions</h1>
-  <p class="fr-text--lead">
-    Simplifiez les démarches et services des citoyens, entreprises et associations
-    en récupérant pour eux leurs informations administratives grâce aux API
-    et aux données de l'État.
-  </p>
-  <p class="fr-badge fr-badge--new">Site en construction</p>
-</div>
+<% content_for :title, "Simplifions.data.gouv.fr" %>
+
+<section class="banner">
+  <div class="fr-container fr-py-4w">
+    <h1 class="title fr-mb-2w fr-text--regular">
+      Le catalogue des données<br>accessibles aux acteurs publics<br>
+      <span class="fr-text--bold">pour simplifier les démarches de leurs usagers</span>
+    </h1>
+    <p class="fr-text--alt fr-mb-3w fr-text--lg" style="text-align: center">
+      <i>
+        Découvrez les API et bases de données utiles pour chaque démarche<br>
+        et les solutions raccordées à ces données</i>
+    </p>
+    <div class="fr-grid-row fr-grid-row--center">
+      <div class="fr-col-12 fr-col-lg-8">
+        <div class="card fr-pb-4w fr-px-3w fr-pt-2w">
+          <div class="fr-grid-row fr-grid-row--middle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="fr-artwork fr-mr-1w" aria-hidden="true" width="60" height="60" viewBox="0 0 80 80">
+              <use class="fr-artwork-decorative" href="<%= asset_path("artwork/pictograms/leisure/catalog.svg") %>#artwork-decorative"/>
+              <use class="fr-artwork-minor" href="<%= asset_path("artwork/pictograms/leisure/catalog.svg") %>#artwork-minor"/>
+              <use class="fr-artwork-major" href="<%= asset_path("artwork/pictograms/leisure/catalog.svg") %>#artwork-major"/>
+            </svg>
+            <p class="fr-text--bold fr-mb-0 fr-text--xl">
+              Explorer le catalogue :
+            </p>
+          </div>
+          <div class="fr-grid-row fr-grid-row--gutters fr-my-0 fr-mb-3w">
+            <div class="fr-col-12 fr-col-md-6">
+              <div class="fr-select-group">
+                <label class="fr-label" for="select-target-users">Démarches à destination des :</label>
+                <select class="fr-select" id="select-target-users" name="select-target-users">
+                  <option value="" selected>particuliers, entreprises, associations</option>
+                </select>
+              </div>
+            </div>
+            <div class="fr-col-12 fr-col-md-6">
+              <div class="fr-select-group">
+                <label class="fr-label" for="select-fournisseurs">Démarches gérées par :</label>
+                <select class="fr-select" id="select-fournisseurs" name="select-fournisseurs">
+                  <option value="" selected>tous les types d'acteurs publics</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="fr-grid-row fr-grid-row--center">
+            <a href="#" class="fr-btn fr-btn--icon-right fr-icon-search-line">
+              Explorer les démarches référencées
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="fr-grid-row">
+    <div class="fr-col-12 fr-col-md-6 double-section__col-left" style="background-color: var(--background-alt-beige-gris-galet)">
+      <div class="fr-py-6w fr-px-10w">
+        <h2 class="fr-h3 fr-mb-2w">
+          <i>Ne demandez plus aux usagers<br>ce que l'administration sait déjà.</i>
+        </h2>
+        <p class="fr-mb-3w">
+          Explorez les démarches référencées dans le catalogue à destination des :
+        </p>
+        <% [["👱", "Particuliers", "Toutes les démarches concernant les particuliers"],
+            ["💼", "Entreprises", "Toutes les démarches concernant les entreprises"],
+            ["🤝", "Associations", "Toutes les démarches concernant les associations"]].each do |emoji, title, description| %>
+          <div class="fr-mb-2w">
+            <div class="fr-tile fr-tile--horizontal fr-enlarge-link fr-tile--no-icon">
+              <div class="fr-tile__body">
+                <div class="fr-tile__content">
+                  <h3 class="fr-tile__title">
+                    <a href="#"><%= emoji %> <%= title %></a>
+                  </h3>
+                  <p class="fr-tile__desc"><%= description %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="fr-col-12 fr-col-md-6 double-section__col-right" style="background-color: var(--background-default-grey)">
+      <div class="fr-py-6w fr-px-10w double-section__col-right--intro">
+        <div>
+          <h2 class="fr-h3 fr-mb-3w font-light">
+            Qu'est-ce que Simplifions.data.gouv.fr&nbsp;?
+          </h2>
+          <p class="fr-text--lead fr-mb-2w">
+            Un catalogue des données accessibles aux acteurs publics organisé
+            par démarche usagers.
+          </p>
+          <p class="fr-mb-0">
+            Pour chaque démarche —<em>aides et subventions, marchés publics, petite enfance, cantine,
+            transport, etc.</em>—, le catalogue recense les
+            <strong>API et bases de données</strong> utiles, les
+            <strong>solutions publiques et privées</strong> raccordées à ces
+            données, et les sites de consultation de ces données disponibles
+            en ligne.
+          </p>
+        </div>
+        <div class="fr-mb-12w">
+          <div class="fr-mb-2w">
+            <a href="#redaction-contenu" class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-down-line fr-text--lg">
+              Comment est rédigé le contenu&nbsp;?
+            </a>
+          </div>
+          <div>
+            <a href="#" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line fr-text--lg">
+              A propos de simplifions.data
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="fr-py-6w">
+  <div class="fr-container fr-px-6w">
+    <h2 class="fr-h3 font-light fr-mb-4w">
+      Comment simplifions.data peut-il vous aider&nbsp;?
+    </h2>
+
+    <h3 class="fr-h4 fr-mb-3w"><em>Découvrir</em></h3>
+    <div class="fr-grid-row fr-grid-row--gutters">
+      <% [["innovation", "Découvrir les démarches que vous pourriez simplifier",
+           "Inspirez-vous des démarches référencées pour en mettre en oeuvre de nouvelles ou simplifier celles que vous avez déjà."],
+          ["self-training", "Identifier les logiciels éditeurs raccordés aux données",
+           "Par démarche, Simplifions indique les logiciels métiers raccordés aux API et bases de données utiles."],
+          ["decouverte-donnees", "Découvrir les données disponibles par démarche",
+           "Savoir quelles API ou bases de données utiliser pour chaque démarche afin de récupérer les justificatifs des usagers."],
+          ["search", "Identifier les sites permettant aux agents de consulter les données",
+           "Simplifions référence les sites interconnectés aux API de l'État et conçus pour permettre aux agents de consulter les données."]].each do |picto, title, description| %>
+        <div class="fr-col-12 fr-col-md-6">
+          <div class="fr-grid-row fr-grid-row--gutters fr-my-0">
+            <div class="fr-col-auto">
+              <%= image_tag "simplifions/accueil-picto-#{picto}.svg", width: 80, height: 80, "aria-hidden": true, alt: "" %>
+            </div>
+            <div class="fr-col">
+              <p class="fr-text--bold fr-text--lg fr-mb-1v"><%= title %></p>
+              <p class="fr-mb-0"><%= description %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="fr-grid-row fr-grid-row--gutters fr-mt-4w">
+      <div class="fr-col-12 fr-col-md-6">
+        <h3 class="fr-h4 fr-mb-3w"><em>S'informer</em></h3>
+        <div class="fr-grid-row fr-grid-row--gutters fr-my-0">
+          <div class="fr-col-auto">
+            <%= image_tag "simplifions/accueil-picto-information.svg", width: 80, height: 80, "aria-hidden": true, alt: "" %>
+          </div>
+          <div class="fr-col">
+            <p class="fr-text--bold fr-text--lg fr-mb-1v">
+              Consulter le cadre d'utilisation des données pour chaque démarche
+            </p>
+            <p class="fr-mb-0">
+              Une synthèse du contexte et du cadre juridique est proposée pour chaque démarche.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="fr-col-12 fr-col-md-6">
+        <h3 class="fr-h4 fr-mb-3w"><em>Comparer</em></h3>
+        <div class="fr-grid-row fr-grid-row--gutters fr-my-0">
+          <div class="fr-col-auto">
+            <%= image_tag "simplifions/accueil-picto-justice-scales.svg", width: 80, height: 80, "aria-hidden": true, alt: "" %>
+          </div>
+          <div class="fr-col">
+            <p class="fr-text--bold fr-text--lg fr-mb-1v">
+              Comparer les différentes solutions en termes d'intégration de données
+            </p>
+            <p class="fr-mb-0">
+              Pour chaque solution, retrouvez la liste des données qu'ils ont intégré.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="redaction-contenu">
+  <div class="fr-grid-row">
+    <div class="fr-col-12 fr-col-md-6 double-section__col-left" style="background-color: var(--background-alt-blue-france)">
+      <div class="fr-py-6w fr-px-10w">
+        <h2 class="fr-h3 fr-mb-3w">
+          Comment est rédigé le contenu sur <i>Simplifions.data</i> ?
+        </h2>
+
+        <div class="fr-grid-row fr-grid-row--gutters fr-my-0 fr-mb-3w">
+          <div class="fr-col">
+            <p class="fr-text--bold fr-text--lg fr-mb-1v">
+              Ligne éditoriale <i>DLNUF/proactivité</i>
+            </p>
+            <p class="fr-mb-0">
+              Un contenu rédigé au sein du Pôle Data de la DINUM, focalisé sur
+              la mise en œuvre d'une simplification par la donnée,
+              synthétisant les retours et lisible pour les usagers.
+            </p>
+          </div>
+          <div class="fr-col-auto">
+            <%= image_tag "simplifions/accueil-picto-conclusion.svg", width: 80, height: 80, "aria-hidden": true, alt: "" %>
+          </div>
+        </div>
+
+        <div class="fr-grid-row fr-grid-row--gutters fr-my-0">
+          <div class="fr-col">
+            <p class="fr-text--bold fr-text--lg fr-mb-1v">
+              Contenu collaboratif
+            </p>
+            <p class="fr-mb-0">
+              De nombreux espaces sont disponibles pour permettre aux usagers
+              de proposer des modifications et construire une base de
+              connaissance élaborée sur des expériences concrètes, exhaustive
+              et mise à jour régulièrement.
+            </p>
+          </div>
+          <div class="fr-col-auto">
+            <%= image_tag "simplifions/accueil-picto-community.svg", width: 80, height: 80, "aria-hidden": true, alt: "" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fr-col-12 fr-col-md-6 double-section__col-right">
+      <div>
+        <div class="fr-py-6w fr-px-10w" style="background-color: var(--background-alt-beige-gris-galet)">
+          <h3 class="fr-h4 fr-mb-3w">📝 Proposer une modification</h3>
+          <p class="fr-text--lead fr-mb-3w">
+            Proposez l'ajout d'une démarche, d'une solution ou la correction
+            d'un contenu directement depuis le formulaire en ligne.
+          </p>
+          <a href="#" class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-right-line">
+            Formulaire pour proposer un contenu
+          </a>
+        </div>
+
+        <div class="fr-py-6w fr-px-10w" style="background-color: var(--background-default-grey)">
+          <h3 class="fr-h4 fr-mb-3w">Règles de référencement</h3>
+          <p class="fr-text--lead fr-mb-3w">
+            Les règles utilisées par le pôle Data pour identifier les contenus
+            référencés dans <i>Simplifions.data</i> :
+          </p>
+          <div class="fr-mb-2w">
+            <a href="#" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+              Doctrine de référencement des démarches
+            </a>
+          </div>
+          <div>
+            <a href="#" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+              Doctrine de référencement des solutions
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="home-cta fr-py-8w">
+  <div class="fr-container">
+    <div class="fr-grid-row fr-grid-row--center">
+      <div class="fr-col-12 fr-col-md-8">
+        <h2 class="fr-h2 fr-mb-2w">
+          Prêts à simplifier vos démarches usagers<br>
+          en récupérant à la source la donnée&nbsp;?
+        </h2>
+        <p class="fr-text--alt fr-text--lead fr-mb-4w">
+          <em>Rejoignez les administrations qui utilisent déjà Simplifions.data
+          pour connaître les données et les solutions disponibles.</em>
+        </p>
+        <a href="#" class="fr-btn fr-btn--lg fr-btn--icon-right fr-icon-search-line">
+          Explorer le catalogue des démarches
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

@@ -8,3 +8,70 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+:root {
+  --simplifions-h2-highlight: rgb(167, 212, 205);
+  --simplifions-homebanner-gradient: linear-gradient(0.25turn, #f6f6f6, #e3e3fd, #bfdcb7);
+}
+
+.fr-artwork-minor,
+.fr-artwork-major {
+  fill: var(--text-default-grey);
+}
+
+.fr-artwork-decorative {
+  fill: var(--text-active-blue-france);
+}
+
+.banner {
+  min-height: calc(100dvh - 220px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--simplifions-homebanner-gradient);
+}
+
+.banner .title {
+  font-size: clamp(1.375rem, 4vw, 2rem);
+  line-height: 1.25;
+  text-align: center;
+}
+
+.banner .card {
+  background-color: var(--background-default-grey);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.double-section__col-left {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.double-section__col-right {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.double-section__col-left > div,
+.double-section__col-right > div {
+  max-width: 39rem;
+  width: 100%;
+}
+
+.double-section__col-right--intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.font-light {
+  font-weight: 400 !important;
+}
+
+.home-cta {
+  text-align: center;
+  background: var(--simplifions-homebanner-gradient);
+}
