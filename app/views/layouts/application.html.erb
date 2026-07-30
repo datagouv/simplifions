@@ -28,6 +28,10 @@
   </head>
 
   <body>
-    <%= yield %>
+    <%= render "layouts/header" %>
+    <main role="main" id="content">
+      <%= yield %>
+    </main>
+    <%= render "layouts/footer" %>
   </body>
 </html>
