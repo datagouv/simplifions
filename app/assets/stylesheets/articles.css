@@ -1,0 +1,526 @@
+/* Pages articles : hero, sommaire, sections et composants éditoriaux. */
+
+.article-page {
+  --article-content-max: 68ch;
+  --simplifions-h2-highlight: rgb(167, 212, 205);
+}
+
+.article-hero {
+  color: var(--text-inverted-grey);
+  position: relative;
+  min-height: clamp(16rem, 24vw, 21rem);
+  overflow: hidden;
+}
+
+.article-hero__backdrop,
+.article-hero__media {
+  position: absolute;
+  inset: 0 0 60px 0;
+  background: center / cover no-repeat;
+}
+
+.article-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  min-height: 0;
+  margin-top: clamp(5.5rem, 9vw, 8rem);
+}
+
+.article-hero__breadcrumb {
+  position: relative;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+.article-hero__panel {
+  position: relative;
+  z-index: 1;
+  width: min(75%, 64rem);
+  color: var(--text-title-grey);
+  background-color: var(--background-alt-beige-gris-galet);
+}
+
+.article-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.article-hero__audience::before {
+  margin-right: 0.375rem;
+}
+
+.article-hero__tag-list,
+.article-hero__badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.article-hero__tag-list > li,
+.article-hero__badge-list > li {
+  display: flex;
+}
+
+.article-hero__title {
+  font-size: clamp(2rem, 3.8vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.article-hero__lead {
+  font-size: clamp(1.08rem, 1.2vw, 1.28rem);
+  line-height: 1.65;
+  color: var(--text-default-grey);
+}
+
+.article-grid {
+  align-items: stretch;
+}
+
+.article-toc-col {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  height: calc(100vh - 2rem);
+}
+
+.article-toc {
+  width: 100%;
+}
+
+.article-content-col {
+  display: flex;
+  justify-content: center;
+}
+
+.article-content {
+  width: 100%;
+  max-width: var(--article-content-max);
+}
+
+.article-section__title {
+  margin-top: 4rem;
+  color: var(--text-default-grey);
+  background-color: var(--simplifions-h2-highlight);
+  padding: 2px 4px;
+  display: inline-block;
+}
+
+.article-section:first-of-type .article-section__title {
+  margin-top: 0;
+}
+
+/* Listes du guide petites collectivités */
+
+.guide-list,
+.guide-bullets {
+  padding-left: 1.25rem;
+  max-width: 72ch;
+}
+
+.guide-list li + li {
+  margin-top: 0.5rem;
+}
+
+.guide-bullets li + li {
+  margin-top: 1rem;
+}
+
+/* Checklist à puces vertes */
+
+.checklist {
+  list-style: none;
+}
+
+.checklist li {
+  position: relative;
+  padding: 0.875rem 1.25rem 0.875rem 3.25rem;
+  margin-bottom: 0.5rem;
+  background: var(--background-alt-beige-gris-galet);
+  border-left: 4px solid var(--border-action-high-green-tilleul-verveine);
+  border-radius: 0 4px 4px 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-default-grey);
+}
+
+.checklist li::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 0.9rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: var(--text-default-success);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-.997-4L6.76 11.757l1.414-1.414 2.829 2.829 5.656-5.657 1.415 1.414L11.003 16z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-.997-4L6.76 11.757l1.414-1.414 2.829 2.829 5.656-5.657 1.415 1.414L11.003 16z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+/* Figures */
+
+.article-screenshot {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--border-default-grey);
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.caption-grey {
+  color: var(--text-mention-grey);
+}
+
+/* Spotlight : commentaire + cartes */
+
+.spotlight {
+  display: grid;
+  background: var(--background-alt-beige-gris-galet);
+}
+
+.spotlight--single {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  grid-template-areas: "cards comment";
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.spotlight--multi {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "comment"
+    "cards";
+  gap: 1.25rem;
+}
+
+.spotlight__comment {
+  grid-area: comment;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.spotlight__comment p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.spotlight__cards {
+  grid-area: cards;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.spotlight--single .spotlight__cards {
+  flex-direction: column;
+}
+
+.spotlight--multi .spotlight__cards > * {
+  flex: 1 1 200px;
+}
+
+@media (max-width: 48rem) {
+  .spotlight--single {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "cards"
+      "comment";
+  }
+}
+
+/* Article parcours usager */
+
+.fr-highlight--grey-border {
+  background-image: linear-gradient(0deg, var(--border-default-grey), var(--border-default-grey));
+}
+
+.user-example {
+  background-color: var(--background-alt-beige-gris-galet);
+}
+
+/* Article API FranceConnectées */
+
+.api-img {
+  width: auto;
+  height: auto;
+  max-height: 8.625rem;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+
+.api-comparison-table th:not(:first-child) {
+  width: 40%;
+}
+
+.list-none {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Cartes dataservice (liste des API FranceConnectées) */
+
+.dataservice-card {
+  position: relative;
+  border: 1px solid var(--border-default-grey);
+  background: var(--background-default-grey);
+}
+
+.dataservice-card__restricted {
+  position: absolute;
+  top: -0.75rem;
+  left: 0.75rem;
+}
+
+.dataservice-card__logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+}
+
+.dataservice-card__org {
+  color: var(--text-action-high-blue-france);
+}
+
+.dataservice-card__desc {
+  color: var(--text-mention-grey);
+}
+
+
+/* Cartes solutions et cas d'usage (iso front-kit) */
+
+.icon-green {
+  color: var(--text-default-success);
+}
+
+.topic-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.topic-card .fr-card__title {
+  color: var(--text-action-high-blue-france);
+}
+
+.topic-card .fr-card__desc {
+  color: var(--text-default-grey);
+  font-size: 1rem;
+}
+
+.topic-image-container {
+  position: relative;
+}
+
+.topic-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.badge-absolute {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+}
+
+.card-arrow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  color: var(--text-action-high-blue-france);
+}
+
+.font-weight-normal {
+  font-weight: 400;
+}
+
+.demarche-card {
+  border: 1px solid var(--border-default-grey);
+  background-color: var(--background-default-grey);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+}
+
+.demarche-card:hover {
+  background-color: var(--background-alt-grey);
+}
+
+.header-topic {
+  background-color: rgba(209, 221, 244, 0.5);
+  color: #465f9d;
+  padding: 16px;
+  gap: 10px;
+  min-height: 60px;
+}
+
+.demarche-card:hover .header-topic {
+  background-color: rgba(188, 199, 219, 0.5);
+}
+
+.title-topic {
+  color: #465f9d;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 27px;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.description-topic {
+  padding: 16px;
+  min-height: 80px;
+}
+
+.description-topic .card-arrow {
+  padding: 0.5rem 0 0;
+}
+
+/* Bloc "Sont mentionnés dans cet article" */
+
+.topics-carousel {
+  background-color: var(--background-action-low-blue-ecume);
+  background-size: cover;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  list-style: none;
+  padding-bottom: 0.5rem;
+}
+
+.carousel__item {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel__item > * {
+  flex: 1;
+}
+
+
+/* Démonstrateur API Sirene */
+
+.sirene-demo__label {
+  color: var(--text-mention-grey);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sirene-demo__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-mention-grey);
+}
+
+.sirene-demo__loading[hidden],
+.sirene-demo .fr-error-text[hidden] {
+  display: none;
+}
+
+.sirene-demo__spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border-default-grey);
+  border-top-color: var(--border-action-high-blue-france);
+  border-radius: 50%;
+  animation: sirene-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes sirene-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sirene-demo__result {
+  background: var(--background-default-grey);
+  border-radius: 4px;
+}
+
+.sirene-demo__company-name {
+  color: var(--text-title-blue-france);
+}
+
+.sirene-demo__siret-display {
+  color: var(--text-mention-grey);
+}
+
+.sirene-demo__field {
+  background: var(--background-alt-grey);
+  border-radius: 4px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Cartes de la liste d'articles */
+
+.card-image,
+.card-image-fallback {
+  max-height: 250px;
+}
+
+.card-image-fallback {
+  background-position: center;
+  background-size: cover;
+}
+
+.badge-group-break {
+  flex-basis: 100%;
+  height: 0;
+}
+
+@media (max-width: 48em) {
+  .article-hero {
+    min-height: 16rem;
+  }
+
+  .article-hero__inner {
+    margin-top: 4.5rem;
+  }
+
+  .article-hero__panel {
+    width: 100%;
+  }
+
+  .article-hero__title {
+    max-width: none;
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+  }
+
+  .article-toc-col {
+    position: static;
+    height: auto;
+  }
+
+  .article-content {
+    max-width: none;
+  }
+}

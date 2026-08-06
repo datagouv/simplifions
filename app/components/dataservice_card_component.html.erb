@@ -1,0 +1,30 @@
+<%# api: { title:, url:, org: nil, logo: nil, restricted: false, description: nil } -%>
+<div class="fr-my-2w fr-p-2w dataservice-card fr-enlarge-link">
+  <% if @api[:restricted] %>
+    <p class="fr-badge fr-badge--sm fr-badge--info dataservice-card__restricted">
+      <span class="fr-icon-lock-line fr-icon--sm" aria-hidden="true"></span>
+      API restreinte
+    </p>
+  <% end %>
+  <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
+    <% if @api[:logo] %>
+      <div class="fr-col-auto">
+        <img src="<%= @api[:logo] %>" alt="" class="dataservice-card__logo">
+      </div>
+    <% end %>
+    <div class="fr-col-12 fr-col-sm">
+      <h3 class="fr-text--md fr-mb-0">
+        <%= link_to @api[:title], @api[:url], target: "_blank", rel: "noopener noreferrer" %>
+      </h3>
+      <% if @api[:org] %>
+        <p class="fr-text--sm fr-mb-1v dataservice-card__org">
+          <span class="fr-icon-bank-line fr-icon--sm" aria-hidden="true"></span>
+          <%= @api[:org] %>
+        </p>
+      <% end %>
+      <% if @api[:description].present? %>
+        <p class="fr-text--sm fr-mb-0 dataservice-card__desc"><%= @api[:description] %></p>
+      <% end %>
+    </div>
+  </div>
+</div>

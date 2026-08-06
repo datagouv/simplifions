@@ -1,0 +1,62 @@
+<div class="fr-callout fr-p-6v fr-my-6v sirene-demo" data-controller="sirene-demo">
+  <p class="fr-text--sm fr-mb-2w sirene-demo__label">
+    <span class="fr-icon-code-s-slash-line fr-mr-1v" aria-hidden="true"></span>
+    Démonstrateur avec l'API Sirene
+  </p>
+
+  <form data-action="submit->sirene-demo#search">
+    <div class="fr-input-group">
+      <label class="fr-label" for="siret-demo-input">Numéro de SIRET d'un établissement :</label>
+      <input id="siret-demo-input" class="fr-input" type="text" inputmode="numeric" maxlength="14"
+             placeholder="35600000000048" autocomplete="off"
+             data-sirene-demo-target="input" data-action="input->sirene-demo#reset">
+      <p class="fr-error-text" hidden data-sirene-demo-target="error"></p>
+    </div>
+    <button type="submit" class="fr-btn fr-btn--secondary fr-icon-search-line fr-btn--icon-left" data-sirene-demo-target="button">
+      Interroger l'API
+    </button>
+  </form>
+
+  <div class="fr-mt-3w sirene-demo__loading" aria-live="polite" hidden data-sirene-demo-target="loading">
+    <div class="sirene-demo__spinner" aria-hidden="true"></div>
+    <p class="fr-text--sm fr-mb-0">Interrogation de l'API en cours…</p>
+  </div>
+
+  <div class="fr-mt-3w fr-p-5v sirene-demo__result" hidden data-sirene-demo-target="result">
+    <p class="fr-text--bold fr-text--lg fr-mb-1v sirene-demo__company-name" data-sirene-demo-target="name"></p>
+    <p class="fr-text--sm fr-mb-2w sirene-demo__siret-display" data-sirene-demo-target="siret"></p>
+
+    <dl class="fr-grid-row fr-grid-row--gutters">
+      <div class="fr-col-12 fr-col-sm-6" data-sirene-demo-target="adresseWrapper">
+        <div class="sirene-demo__field fr-p-3v">
+          <dt class="fr-mb-1v fr-text--xs">Adresse</dt>
+          <dd data-sirene-demo-target="adresse"></dd>
+        </div>
+      </div>
+      <div class="fr-col-12 fr-col-sm-6" data-sirene-demo-target="nafWrapper">
+        <div class="sirene-demo__field fr-p-3v">
+          <dt class="fr-mb-1v fr-text--xs">Activité principale (Code NAF)</dt>
+          <dd data-sirene-demo-target="naf"></dd>
+        </div>
+      </div>
+      <div class="fr-col-12 fr-col-sm-6" data-sirene-demo-target="formeWrapper">
+        <div class="sirene-demo__field fr-p-3v">
+          <dt class="fr-mb-1v fr-text--xs">Forme juridique (code)</dt>
+          <dd data-sirene-demo-target="forme"></dd>
+        </div>
+      </div>
+      <div class="fr-col-12 fr-col-sm-6">
+        <div class="sirene-demo__field fr-p-3v">
+          <dt class="fr-mb-1v fr-text--xs">État administratif</dt>
+          <dd class="fr-m-0 fr-text--sm">
+            <span class="fr-badge fr-badge--sm" data-sirene-demo-target="etat"></span>
+          </dd>
+        </div>
+      </div>
+    </dl>
+
+    <p class="fr-text--xs fr-mt-2w fr-pt-3v fr-mb-0">
+      <i>Ces données ont été récupérées en temps réel auprès de l'API SIRENE, sans que vous ayez eu à les saisir manuellement.</i>
+    </p>
+  </div>
+</div>

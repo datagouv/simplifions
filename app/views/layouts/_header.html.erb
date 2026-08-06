@@ -50,6 +50,9 @@
             <a class="fr-nav__link" href="#" target="_self">Cas d'usages</a>
           </li>
           <li class="fr-nav__item">
+            <a class="fr-nav__link" href="<%= articles_path %>" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/articles") %>>Articles</a>
+          </li>
+          <li class="fr-nav__item">
             <a class="fr-nav__link" href="<%= about_path %>" target="_self" <%= 'aria-current="page"'.html_safe if current_page?(about_path) %>>À propos</a>
           </li>
         </ul>

@@ -1,0 +1,97 @@
+<div class="article-page">
+  <div class="fr-container article-hero__breadcrumb fr-pt-3v fr-pt-md-0">
+    <nav role="navigation" class="fr-breadcrumb fr-mb-4v" aria-label="vous êtes ici :">
+      <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-article">Voir le fil d'Ariane</button>
+      <div class="fr-collapse" id="breadcrumb-article">
+        <ol class="fr-breadcrumb__list">
+          <li><%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %></li>
+          <li><%= link_to "Articles", articles_path, class: "fr-breadcrumb__link" %></li>
+          <li><a class="fr-breadcrumb__link" aria-current="page"><%= @article.h1 %></a></li>
+        </ol>
+      </div>
+    </nav>
+  </div>
+
+  <header class="article-hero fr-pb-3v fr-pb-md-4v">
+    <% if @article.image %>
+      <div class="article-hero__media" style="background-image: linear-gradient(135deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.18)), url('<%= image_path(@article.image) %>')" aria-hidden="true"></div>
+    <% else %>
+      <div class="article-hero__backdrop" style="background-image: <%= @article.hero_backdrop_gradient %>" aria-hidden="true"></div>
+    <% end %>
+
+    <div class="fr-container article-hero__inner fr-mb-4v fr-mb-md-8v">
+      <div class="article-hero__panel fr-pt-4v fr-px-4v fr-pb-5v fr-pt-md-6v fr-px-md-7v fr-pb-md-7v">
+        <div class="article-hero__meta fr-mb-3v fr-mb-md-4v">
+          <ul class="article-hero__badge-list fr-p-0 fr-m-0">
+            <% @article.keywords_in("Type d'article").each do |keyword| %>
+              <li><p class="fr-badge fr-badge--sm fr-m-0"><%= keyword %></p></li>
+            <% end %>
+            <% @article.keywords_in("Type de données").each do |keyword| %>
+              <li><p class="fr-badge fr-badge--sm fr-badge--blue-ecume fr-m-0"><%= keyword %></p></li>
+            <% end %>
+          </ul>
+          <% other = @article.keywords_in("Thématique") %>
+          <% if other.any? %>
+            <ul class="article-hero__tag-list fr-p-0 fr-m-0">
+              <% other.each do |keyword| %>
+                <li><p class="fr-tag fr-tag--sm fr-m-0"><%= keyword %></p></li>
+              <% end %>
+            </ul>
+          <% end %>
+        </div>
+        <h1 class="article-hero__title fr-m-0"><%= @article.h1 %></h1>
+        <p class="article-hero__lead fr-mt-4v"><%= @article.description %></p>
+        <% if @article.audience.any? %>
+          <p class="article-hero__audience fr-text--sm fr-text-mention--grey fr-icon-user-line fr-icon--sm fr-m-0">
+            Cet article s'adresse principalement à : <%= @article.audience.join(" · ") %>
+          </p>
+        <% end %>
+      </div>
+    </div>
+  </header>
+
+  <div class="fr-container article-shell fr-py-8v" data-controller="toc">
+    <div class="fr-grid-row fr-grid-row--gutters article-grid">
+      <aside class="fr-col-12 fr-col-lg-3 article-toc-col fr-mb-4v fr-mb-md-0">
+        <nav class="fr-sidemenu article-toc" role="navigation" aria-labelledby="article-sidemenu-title">
+          <div class="fr-sidemenu__inner">
+            <button class="fr-sidemenu__btn" type="button" aria-expanded="false" aria-controls="article-sidemenu-collapse">
+              Dans cet article
+            </button>
+            <div id="article-sidemenu-collapse" class="fr-collapse">
+              <p id="article-sidemenu-title" class="fr-sidemenu__title">Sommaire</p>
+              <ul class="fr-sidemenu__list">
+                <% @article.sections.each do |id, label| %>
+                  <li class="fr-sidemenu__item">
+                    <a class="fr-sidemenu__link" href="#<%= id %>" data-toc-target="link" data-action="toc#select"><%= label %></a>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="fr-col-12 fr-col-lg-9 article-content-col">
+        <div class="article-content">
+          <%= content %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if @mentions.any? %>
+    <section class="topics-carousel fr-mt-6w fr-py-5w" style="background-image: <%= @article.hero_backdrop_gradient %>">
+      <div class="fr-container">
+        <h2 class="fr-h5 fr-mb-3w">Sont mentionnés dans cet article :</h2>
+        <ul class="carousel-track fr-p-0 fr-m-0" role="list">
+          <% @mentions.each do |mention| %>
+            <li class="carousel__item">
+              <%= render CatalogCardComponent.new(card: mention) %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </section>
+  <% end %>
+</div>

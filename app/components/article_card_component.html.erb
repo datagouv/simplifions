@@ -1,0 +1,49 @@
+<div class="fr-card fr-enlarge-link fr-card--shadow">
+  <div class="fr-card__body">
+    <div class="fr-card__content fr-px-2w fr-pt-3w">
+      <% if @article.audience.any? %>
+        <div class="fr-card__start">
+          <p class="fr-card__detail fr-icon-user-line"><%= @article.audience.join(" · ") %></p>
+        </div>
+      <% end %>
+      <h3 class="fr-card__title fr-text--lead fr-mb-0">
+        <%= link_to @article.h1, article_path(@article.slug) %>
+      </h3>
+      <p class="fr-card__desc fr-text--md"><%= @article.description %></p>
+      <% tags = @article.keywords_in("Thématique") %>
+      <% if tags.any? %>
+        <div class="fr-card__end">
+          <ul class="fr-tags-group">
+            <% tags.each do |tag| %>
+              <li><p class="fr-tag fr-tag--sm"><%= tag %></p></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <div class="fr-card__header">
+    <div class="fr-card__img fr-mx-0">
+      <% if @article.image %>
+        <%= image_tag @article.image, alt: @article.h1, class: "card-image fr-responsive-img fr-ratio-16x9" %>
+      <% else %>
+        <div class="card-image-fallback fr-ratio-16x9" style="background-image: <%= @article.hero_backdrop_gradient %>"></div>
+      <% end %>
+    </div>
+    <% badges = @article.keywords_in("Type d'article") %>
+    <% data_badges = @article.keywords_in("Type de données") %>
+    <% if badges.any? || data_badges.any? %>
+      <div class="fr-badges-group">
+        <% badges.each do |badge| %>
+          <p class="fr-badge fr-badge--sm"><%= badge %></p>
+        <% end %>
+        <% if badges.any? && data_badges.any? %>
+          <span class="badge-group-break" aria-hidden="true"></span>
+        <% end %>
+        <% data_badges.each do |badge| %>
+          <p class="fr-badge fr-badge--sm fr-badge--blue-ecume"><%= badge %></p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

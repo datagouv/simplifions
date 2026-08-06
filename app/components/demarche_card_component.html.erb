@@ -1,0 +1,28 @@
+<div class="demarche-card fr-enlarge-link">
+  <div class="header-topic">
+    <h3 class="title-topic fr-text--lead">
+      <%= link_to @card[:title], @card[:href] %>
+    </h3>
+  </div>
+  <div class="description-topic">
+    <% if @card[:usagers].present? %>
+      <div class="fr-card__detail">
+        <p class="fr-mb-1w">
+          Pour simplifier les démarches des
+          <%= liste_humaine(@card[:usagers]) %>
+        </p>
+      </div>
+    <% end %>
+    <% if @card[:acteurs].present? %>
+      <div class="fr-card__detail">
+        <p class="fr-mb-1w">
+          À destination <%= @card[:acteurs].first.start_with?("Tou") ? "de" : "des" %>
+          <%= liste_humaine(@card[:acteurs]) %>
+        </p>
+      </div>
+    <% end %>
+    <% if @arrow %>
+      <div class="card-arrow" aria-hidden="true"><span class="fr-icon-arrow-right-line"></span></div>
+    <% end %>
+  </div>
+</div>

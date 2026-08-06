@@ -1,0 +1,10 @@
+<div class="spotlight fr-p-6v fr-mb-6v <%= @cards.many? ? 'spotlight--multi' : 'spotlight--single' %>">
+  <div class="spotlight__comment">
+    <%= content %>
+  </div>
+  <div class="spotlight__cards">
+    <% @cards.each do |card| %>
+      <%= render CatalogCardComponent.new(card: card, arrow: true) %>
+    <% end %>
+  </div>
+</div>
