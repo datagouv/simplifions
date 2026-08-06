@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-    <title><%= content_for(:title) || "Simplifions" %></title>
+    <title><%= content_for(:title) || @article&.title || "Simplifions" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Simplifions">
@@ -10,6 +10,9 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <% if @article %>
+      <meta name="description" content="<%= @article.description %>">
+    <% end %>
     <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
@@ -20,8 +23,8 @@
     <%= stylesheet_link_tag "dsfr", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "dsfr-utility", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "articles", "data-turbo-track": "reload" %>
 
-    <%= javascript_include_tag "dsfr.module", type: "module", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 

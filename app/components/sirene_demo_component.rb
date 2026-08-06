@@ -1,0 +1,2 @@
+class SireneDemoComponent < ApplicationComponent
+end

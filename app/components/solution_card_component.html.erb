@@ -1,0 +1,39 @@
+<div class="fr-card fr-card--no-icon fr-enlarge-link fr-card--shadow topic-card">
+  <div class="fr-card__body">
+    <div class="fr-card__content fr-px-2w fr-pt-3w">
+      <% if @card[:badge] && !@card[:image] %>
+        <div class="fr-grid-row"><%= badge %></div>
+      <% end %>
+      <h3 class="fr-card__title fr-text--lead fr-mb-0">
+        <%= link_to @card[:title], @card[:href] %>
+      </h3>
+      <div class="fr-card__end">
+        <% if @card[:usagers].present? %>
+          <div class="fr-card__detail">
+            <p class="fr-mb-1w">
+              Pour simplifier les démarches des
+              <%= liste_humaine(@card[:usagers]) %>
+            </p>
+          </div>
+        <% end %>
+        <% if @card[:tag] %>
+          <ul class="fr-tags-group fr-mb-0">
+            <li><p class="fr-tag fr-tag--sm fr-m-0"><%= @card[:tag] %></p></li>
+          </ul>
+        <% end %>
+        <% if @arrow %>
+          <div class="card-arrow" aria-hidden="true"><span class="fr-icon-arrow-right-line"></span></div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <% if @card[:image] %>
+    <div class="fr-card__header">
+      <div class="fr-card__img topic-image-container fr-mx-0">
+        <%= image_tag @card[:image], alt: "", class: "card-image fr-responsive-img fr-ratio-16x9" %>
+        <div class="topic-image-overlay"></div>
+        <%= tag.div(badge, class: "badge-absolute") if @card[:badge] %>
+      </div>
+    </div>
+  <% end %>
+</div>

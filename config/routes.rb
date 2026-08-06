@@ -11,4 +11,19 @@ Rails.application.routes.draw do
 
   root "pages#home"
   get "about" => "pages#about"
+
+  get "articles" => "articles#index", as: :articles
+  get "articles/:slug" => "articles#show", as: :article
+
+  # Anciennes URLs à plat des articles, conservées pour ne pas casser les liens externes
+  %w[
+    qu-est-ce-qu-une-api
+    apis-franceconnectees
+    guide-base-petites-collectivites
+    prerequis-et-etapes-integration-api
+    vos-interlocuteurs-selon-le-type-d-api
+    anticiper-le-parcours-usager-avant-d-integrer-vos-api
+  ].each do |slug|
+    get slug, to: redirect("/articles/#{slug}", status: 301)
+  end
 end
