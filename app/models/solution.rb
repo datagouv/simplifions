@@ -1,12 +1,4 @@
 class Solution < ApplicationRecord
-  CATEGORIES = {
-    brique_logicielle: 'brique_logicielle',
-    api: 'api',
-    base_de_donnees: 'base_de_donnees',
-    site_de_consultation: 'site_de_consultation',
-    logiciel_metier_cle_en_main: 'logiciel_metier_cle_en_main'
-  }.freeze
-
   has_one_attached :image
 
   has_and_belongs_to_many :organisations
@@ -23,7 +15,9 @@ class Solution < ApplicationRecord
   has_many :integratrices, through: :integrations_comme_integree
   has_many :exposees, -> { merge(Integration.expose) }, through: :integrations_comme_integratrice, source: :integree
 
-  enum :categorie, CATEGORIES, prefix: true
+  enum :categorie,
+    %w[brique_logicielle api base_de_donnees site_de_consultation logiciel_metier_cle_en_main].index_with(&:itself),
+    prefix: true
 
   scope :visibles, -> { where(visible: true) }
 end

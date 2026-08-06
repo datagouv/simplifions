@@ -10,7 +10,7 @@ namespace :grist do
       puts "Import Grist terminé — #{Demarche.count} démarches, #{Solution.count} solutions, " \
            "#{Integration.count} intégrations, #{Recommandation.count} recommandations, #{Utilite.count} utilités"
     else
-      puts "Import Grist échoué : #{Array(result.errors).join(' ; ')}"
+      puts "Import Grist échoué : #{result.error}"
       exit 1
     end
   end

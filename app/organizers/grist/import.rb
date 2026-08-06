@@ -1,10 +1,5 @@
 class Grist::Import < ApplicationOrganizer
-  organize Grist::FetchTables, Grist::ImportEntites, Grist::ImportIntegrations,
-    Grist::ImportRecommandations, Grist::ImportUtilites, Grist::AttachImages
-
-  around do |organizer|
-    ActiveRecord::Base.transaction { organizer.call }
-  end
+  organize Grist::FetchTables, Grist::PersistCatalogue, Grist::AttachImages
 
   before do
     context.report = { quarantine: [], notes: [] }

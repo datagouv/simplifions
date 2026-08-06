@@ -25,7 +25,7 @@ RSpec.describe Grist::FetchTables do
     it { is_expected.to be_a_failure }
 
     it 'reports the failing table' do
-      expect(result.errors.join).to include('Solutions')
+      expect(result.error).to include('Solutions')
     end
   end
 end

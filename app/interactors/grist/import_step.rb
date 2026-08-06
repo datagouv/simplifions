@@ -1,18 +1,26 @@
+require 'net/http'
+
 class Grist::ImportStep < ApplicationInteractor
+  DOC_URL = 'https://grist.numerique.gouv.fr/api/docs/ofSVjCSAnMb6'.freeze
   SNAPSHOT = JSON.parse(Rails.root.join('db/grist/topics_snapshot.json').read).freeze
 
   private
+
+  def grist_get(path)
+    Net::HTTP.get_response(URI("#{DOC_URL}/#{path}"))
+  end
 
   def each_record(table)
     context.tables.fetch(table).each { |record| yield "#{table}:#{record['id']}", record['fields'] }
   end
 
-  def synchronise(model, gid, attributes)
-    row = model.find_or_initialize_by(grist_id: gid)
+  def synchronise(model, gid, attributes, also_by: nil)
+    row = model.find_by(grist_id: gid) || (also_by && model.find_by(also_by)) || model.new
+    row.grist_id = gid
     row.assign_attributes(attributes)
     assign_slug(row, gid) if row.respond_to?(:slug) && row.slug.blank?
     row.save!
-    remember(gid, row)
+    context.index[gid] = row
     row
   end
 
@@ -20,10 +28,6 @@ class Grist::ImportStep < ApplicationInteractor
     slug = SNAPSHOT[gid] || row.nom.parameterize
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug
-  end
-
-  def remember(gid, row)
-    context.index[gid] = row
   end
 
   def find(table, ref, gid)

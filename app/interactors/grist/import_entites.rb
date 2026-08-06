@@ -36,11 +36,10 @@ class Grist::ImportEntites < Grist::ImportStep
   end
 
   def import_vocabulaires
-    each_record('Usagers') do |gid, fields|
-      synchronise(Vocabulaire, gid, { nom: fields['Label'], slug: fields['slug'], categorie: 'usager' })
-    end
-    each_record('Types_de_simplification') do |gid, fields|
-      synchronise(Vocabulaire, gid, { nom: fields['Label'], slug: fields['slug'], categorie: 'type_simplification' })
+    { 'Usagers' => 'usager', 'Types_de_simplification' => 'type_simplification' }.each do |table, categorie|
+      each_record(table) do |gid, fields|
+        synchronise(Vocabulaire, gid, { nom: fields['Label'], slug: fields['slug'], categorie: })
+      end
     end
   end
 
