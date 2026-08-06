@@ -1,7 +1,4 @@
-require 'net/http'
-
-class Grist::FetchTables < ApplicationInteractor
-  DOC_URL = 'https://grist.numerique.gouv.fr/api/docs/ofSVjCSAnMb6'.freeze
+class Grist::FetchTables < Grist::ImportStep
   TABLES = %w[
     Cas_d_usages Solutions APIs_et_datasets Operateurs Fournisseurs_de_services Usagers
     Types_de_simplification Categories_de_solution Recommandations API_et_datasets_fournis
@@ -15,9 +12,14 @@ class Grist::FetchTables < ApplicationInteractor
   private
 
   def fetch_records(table)
-    response = Net::HTTP.get_response(URI("#{DOC_URL}/tables/#{table}/records"))
-    fail_with!("Grist #{table}: HTTP #{response.code}") unless response.is_a?(Net::HTTPSuccess)
+    response = grist_get("tables/#{table}/records")
+    context.fail!(error: "Grist #{table}: HTTP #{response.code}") unless response.is_a?(Net::HTTPSuccess)
 
-    JSON.parse(response.body).fetch('records')
+    records = JSON.parse(response.body).fetch('records')
+    context.fail!(error: "Grist #{table}: table vide, import interrompu par sécurité") if records.empty?
+
+    records
+  rescue *NETWORK_ERRORS, JSON::ParserError, KeyError => e
+    context.fail!(error: "Grist #{table}: #{e.class} — #{e.message}")
   end
 end

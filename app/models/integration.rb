@@ -5,7 +5,7 @@ class Integration < ApplicationRecord
   belongs_to :integree, class_name: 'Solution'
   has_and_belongs_to_many :demarches
 
-  enum :type_integration, { expose: 'expose', consomme: 'consomme', authentifie: 'authentifie' }
+  enum :type_integration, %w[expose consomme authentifie].index_with(&:itself)
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
