@@ -3,7 +3,7 @@ require 'net/http'
 class Grist::ImportStep < ApplicationInteractor
   DOC_URL = 'https://grist.numerique.gouv.fr/api/docs/ofSVjCSAnMb6'.freeze
   SNAPSHOT = JSON.parse(Rails.root.join('db/grist/topics_snapshot.json').read).freeze
-  NETWORK_ERRORS = [SocketError, SystemCallError, Timeout::Error, OpenSSL::SSL::SSLError].freeze
+  NETWORK_ERRORS = [SocketError, SystemCallError, Timeout::Error, OpenSSL::SSL::SSLError, EOFError].freeze
 
   private
 
@@ -19,7 +19,7 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def synchronise(model, gid, attributes, also_by: nil)
-    row = model.find_by(grist_id: gid) || (also_by && model.find_by(also_by)) || model.new
+    row = resolve_row(model, gid, also_by)
     row.grist_id = gid
     row.assign_attributes(attributes)
     assign_slug(row, gid) if row.respond_to?(:slug) && row.slug.blank?
@@ -27,6 +27,13 @@ class Grist::ImportStep < ApplicationInteractor
     context.index[gid] = row
     seen(row)
     row
+  rescue ActiveRecord::RecordInvalid => e
+    quarantine(gid, e.message)
+    nil
+  end
+
+  def resolve_row(model, gid, also_by)
+    model.find_by(grist_id: gid) || (also_by && model.find_by(also_by)) || model.new
   end
 
   def seen(row)
@@ -34,7 +41,7 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def assign_slug(row, gid)
-    slug = SNAPSHOT[gid] || row.nom.parameterize
+    slug = SNAPSHOT[gid] || row.nom.to_s.parameterize
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug
   end
@@ -50,10 +57,10 @@ class Grist::ImportStep < ApplicationInteractor
     row
   end
 
-  def ids(table, reflist)
+  def ids(table, reflist, gid)
     list(reflist).filter_map do |ref|
       row = context.index["#{table}:#{ref}"]
-      note("référence #{table}:#{ref} ignorée") unless row
+      note("#{gid} — référence #{table}:#{ref} ignorée") unless row
       row&.id
     end
   end

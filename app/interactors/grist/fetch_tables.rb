@@ -15,7 +15,10 @@ class Grist::FetchTables < Grist::ImportStep
     response = grist_get("tables/#{table}/records")
     context.fail!(error: "Grist #{table}: HTTP #{response.code}") unless response.is_a?(Net::HTTPSuccess)
 
-    JSON.parse(response.body).fetch('records')
+    records = JSON.parse(response.body).fetch('records')
+    context.fail!(error: "Grist #{table}: table vide, import interrompu par sécurité") if records.empty?
+
+    records
   rescue *NETWORK_ERRORS => e
     context.fail!(error: "Grist #{table}: #{e.class} — #{e.message}")
   end

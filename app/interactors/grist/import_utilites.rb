@@ -18,9 +18,9 @@ class Grist::ImportUtilites < Grist::ImportStep
   end
 
   def import_scoping_des_fournis
-    each_record('API_et_datasets_fournis') do |_gid, fields|
+    each_record('API_et_datasets_fournis') do |gid, fields|
       solution = context.index["APIs_et_datasets:#{fields['API_ou_dataset_fourni']}"] || next
-      Demarche.where(id: ids('Cas_d_usages', fields['Utile_pour_les_cas_d_usages'])).find_each do |demarche|
+      Demarche.where(id: ids('Cas_d_usages', fields['Utile_pour_les_cas_d_usages'], gid)).find_each do |demarche|
         seen(Utilite.find_or_create_by!(demarche:, solution:))
       end
     end

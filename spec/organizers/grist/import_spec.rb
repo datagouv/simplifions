@@ -136,6 +136,38 @@ RSpec.describe Grist::Import do
     expect(result.error).to include('Solutions')
   end
 
+  it 'quarantines rows with blank required values instead of crashing' do
+    operateurs = JSON.parse(Rails.root.join('spec/fixtures/grist/Operateurs.json').read)
+    operateurs['records'] << { 'id' => 999, 'fields' => { 'Nom' => '' } }
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Operateurs/records")
+      .to_return(status: 200, body: operateurs.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    expect(result).to be_a_success
+    expect(result.report[:quarantine].join).to include('Operateurs:999')
+    expect(Organisation.count).to eq(4)
+  end
+
+  it 'adopts a scoping-born utilite when a real utiles row appears for the same pair' do
+    result
+    eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
+    api9 = Solution.find_by!(grist_id: 'APIs_et_datasets:9')
+    nee_du_scoping = Utilite.find_by!(demarche: eau, solution: api9)
+
+    utiles = JSON.parse(Rails.root.join('spec/fixtures/grist/API_et_datasets_utiles.json').read)
+    utiles['records'] << { 'id' => 900, 'fields' => {
+      'Cas_d_usage' => 6, 'Api_ou_dataset_utile_fourni_par_une_recommandation' => 9,
+      'En_quoi_cette_API_ou_dataset_est_utile_pour_ce_cas_d_usage' => 'Nouvelle description', 'Ordre' => 2
+    } }
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/API_et_datasets_utiles/records")
+      .to_return(status: 200, body: utiles.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    described_class.call
+
+    expect(nee_du_scoping.reload).to have_attributes(
+      grist_id: 'API_et_datasets_utiles:900', description: 'Nouvelle description', ordre: 2
+    )
+  end
+
   it 'converges when replayed against a locally modified database, without touching slugs' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')

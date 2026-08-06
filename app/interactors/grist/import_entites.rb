@@ -45,9 +45,9 @@ class Grist::ImportEntites < Grist::ImportStep
 
   def import_demarches
     each_record('Cas_d_usages') do |gid, fields|
-      demarche = synchronise(Demarche, gid, demarche_attributes(fields))
-      demarche.vocabulaire_ids = ids('Usagers', fields['Pour_simplifier_les_demarches_de'])
-      demarche.type_acteur_ids = ids('Fournisseurs_de_services', fields['A_destination_de'])
+      demarche = synchronise(Demarche, gid, demarche_attributes(fields)) || next
+      demarche.vocabulaire_ids = ids('Usagers', fields['Pour_simplifier_les_demarches_de'], gid)
+      demarche.type_acteur_ids = ids('Fournisseurs_de_services', fields['A_destination_de'], gid)
     end
   end
 
@@ -62,11 +62,11 @@ class Grist::ImportEntites < Grist::ImportStep
 
   def import_solutions
     each_record('Solutions') do |gid, fields|
-      solution = synchronise(Solution, gid, solution_attributes(gid, fields))
-      solution.organisation_ids = ids('Operateurs', fields['Operateur'])
-      solution.vocabulaire_ids = ids('Usagers', fields['Pour_simplifier_les_demarches_de']) +
-                                 ids('Types_de_simplification', fields['Types_de_simplification'])
-      solution.type_acteur_ids = ids('Fournisseurs_de_services', fields['A_destination_de'])
+      solution = synchronise(Solution, gid, solution_attributes(gid, fields)) || next
+      solution.organisation_ids = ids('Operateurs', fields['Operateur'], gid)
+      solution.vocabulaire_ids = ids('Usagers', fields['Pour_simplifier_les_demarches_de'], gid) +
+                                 ids('Types_de_simplification', fields['Types_de_simplification'], gid)
+      solution.type_acteur_ids = ids('Fournisseurs_de_services', fields['A_destination_de'], gid)
     end
   end
 

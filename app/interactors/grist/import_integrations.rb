@@ -23,8 +23,8 @@ class Grist::ImportIntegrations < Grist::ImportStep
       integration = synchronise(Integration, gid, {
         integratrice:, integree:, type_integration: type_integration(integree),
         statut: fields['Status_de_l_integration']
-      })
-      integration.demarche_ids = ids('Cas_d_usages', fields['Integre_pour_les_cas_d_usages'])
+      }) || next
+      integration.demarche_ids = ids('Cas_d_usages', fields['Integre_pour_les_cas_d_usages'], gid)
     end
   end
 

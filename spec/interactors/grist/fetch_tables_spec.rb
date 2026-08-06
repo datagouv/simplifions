@@ -16,6 +16,19 @@ RSpec.describe Grist::FetchTables do
     end
   end
 
+  context 'when a table comes back empty' do
+    before do
+      stub_grist_tables
+      stub_request(:get, "#{described_class::DOC_URL}/tables/Operateurs/records")
+        .to_return(status: 200, body: '{"records": []}', headers: { 'Content-Type' => 'application/json' })
+    end
+
+    it 'fails instead of letting the pruning wipe the model' do
+      expect(result).to be_a_failure
+      expect(result.error).to include('Operateurs')
+    end
+  end
+
   context 'when the Grist API fails' do
     before do
       stub_grist_tables

@@ -1,4 +1,6 @@
 class Demarche < ApplicationRecord
+  validates :nom, presence: true
+
   has_many :recommandations, dependent: :destroy
   has_many :utilites, dependent: :destroy
   has_and_belongs_to_many :vocabulaires
