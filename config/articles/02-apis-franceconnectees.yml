@@ -1,0 +1,16 @@
+slug: apis-franceconnectees
+h1: Les API FranceConnectées
+title: Administrations, pré-remplissez les démarches FranceConnectées
+description: >-
+  Les API FranceConnectées donnent accès à diverses données administratives
+  des particuliers en proposant FranceConnect comme modalité d'appel. Elles
+  permettent de simplifier les démarches d'un particulier utilisant
+  FranceConnect en récupérant automatiquement d'autres informations
+  administratives le concernant.
+keywords: [API, Guide métier, API FranceConnectées, DSI, MOA, Éditeur de logiciels, Définition]
+hero_backdrop_gradient: "linear-gradient(135deg, #a19237 0%, #fddede 100%)"
+sections:
+  definition: Définition
+  acteurs: Acteurs
+  possibilite-de-simplification: Possibilités de simplification
+  liste-des-api-franceconnectees: Liste des API FranceConnectées

@@ -1,0 +1,13 @@
+slug: anticiper-le-parcours-usager-avant-d-integrer-vos-api
+h1: Anticiper le parcours usager avant d'intégrer vos API
+title: Anticiper le parcours usager avant d'intégrer vos API
+description: >-
+  API délivrant des données publiques ou protégées : ce guide détaille les
+  parcours usager possibles pour intégrer une API.
+keywords: [API, Parcours usager, Guide métier, DSI, MOA, Éditeur de logiciels]
+hero_backdrop_gradient: "linear-gradient(135deg, #decdbd 0%, #cfe0ef 100%)"
+sections:
+  parcours-donnees-publiques: Parcours avec données publiques
+  parcours-donnees-protegees: Parcours avec données protégées
+  parcours-alternatifs: Parcours alternatifs
+  recapitulatif: Pour résumer
