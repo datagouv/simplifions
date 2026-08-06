@@ -1,0 +1,261 @@
+{
+ "records": [
+  {
+   "id": 1,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1785854142.008286,
+    "Description_courte": "API distribuant les données des particuliers détenues par différentes administrations.",
+    "URL_demande_d_acces": "https://datapass.api.gouv.fr/api-particulier",
+    "Nom": "Bouquet API Particulier",
+    "Operateur": [
+     "L",
+     4
+    ],
+    "Site_internet": "https://particulier.api.gouv.fr/",
+    "Types_de_simplification": [
+     "L",
+     2
+    ],
+    "A_destination_de": [
+     "L"
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     1
+    ],
+    "Cette_solution_permet": "L'API Particulier permet : \n- d'accéder aux données des particuliers issues de nombreuses administrations (CAF, MSA, FranceTravail, Éducation national",
+    "Cette_solution_ne_permet_pas": "L'API Particulier ne permet pas d'obtenir le revenu fiscal de référence des particuliers. Pour accéder à cette donnée, veuillez utiliser l'[API impôt ",
+    "Image": null,
+    "Legende_de_l_image": "Swagger API Particulier",
+    "Categorie_de_solution": [
+     "L",
+     1
+    ],
+    "UID_datagouv": "672cf668fcc8065be6e66f52"
+   }
+  },
+  {
+   "id": 4,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1772032743.502868,
+    "Description_courte": "Cette solution permet aux collectivités sans solution technique de pouvoir collecter le quotient familial des usagers via l'API quotient familial CAF ",
+    "URL_demande_d_acces": "https://datapass.api.gouv.fr/formulaires/formulaire-qf/demande/nouveau",
+    "Nom": "Formulaire de collecte du quotient familial",
+    "Operateur": [
+     "L",
+     4
+    ],
+    "Site_internet": "https://quotient-familial.numerique.gouv.fr/",
+    "Types_de_simplification": [
+     "L",
+     3
+    ],
+    "A_destination_de": [
+     "L",
+     1
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     1
+    ],
+    "Cette_solution_permet": "- Si la commune a un portail famille, l'usager peut en quelques clics transmettre à sa collectivité ses données d'identité et son quotient familial vi",
+    "Cette_solution_ne_permet_pas": "Le formulaire de collecte du quotient familial ne permet pas :\n- de transmettre le quotient familial d'un usager qui n'utilise pas FranceConnect ;\n- d",
+    "Image": null,
+    "Legende_de_l_image": "Interface d'accueil du formulaire en ligne",
+    "Categorie_de_solution": [
+     "L",
+     1
+    ],
+    "UID_datagouv": ""
+   }
+  },
+  {
+   "id": 8,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1785854221.080799,
+    "Description_courte": "FranceConnect est une solution d’identification et d’authentification numérique des particuliers. Il s'agit d'un pont entre un bouton de connexion, le",
+    "URL_demande_d_acces": "https://datapass.api.gouv.fr/franceconnect",
+    "Nom": "FranceConnect",
+    "Operateur": [
+     "L",
+     4
+    ],
+    "Site_internet": "https://docs.partenaires.franceconnect.gouv.fr/fs/",
+    "Types_de_simplification": [
+     "L",
+     2,
+     3,
+     1
+    ],
+    "A_destination_de": [
+     "L"
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     1
+    ],
+    "Cette_solution_permet": "- **FranceConnect permet à un usager d’accéder à son compte personnel sur votre service en ligne**, en s'identifiant via un compte ou une identité num",
+    "Cette_solution_ne_permet_pas": "Le périmètre de la modalité d’appel FranceConnect est étendu à plus 40 millions d’usagers uniques actifs.\n\n**Les particuliers suivants ne peuvent pas ",
+    "Image": null,
+    "Legende_de_l_image": "Après avoir cliqué sur le bouton \"Se connecter via FranceConnect\", l'usager se trouve sur cette page, où il choisit le service avec lequel il souhaite",
+    "Categorie_de_solution": [
+     "L",
+     1
+    ],
+    "UID_datagouv": "672cf6944a683b4496789e92"
+   }
+  },
+  {
+   "id": 10,
+   "fields": {
+    "Visible_sur_simplifions": false,
+    "Modifie_le": 1784647595.387348,
+    "Description_courte": "Solution de candidature simplifiée aux marchés publics récupèrant automatiquement à la source les données et justificatifs administratifs du candidat ",
+    "URL_demande_d_acces": "",
+    "Nom": "Passe Marché",
+    "Operateur": [
+     "L",
+     4,
+     5
+    ],
+    "Site_internet": "https://guides.data.gouv.fr/passe-marche",
+    "Types_de_simplification": [
+     "L",
+     2
+    ],
+    "A_destination_de": [
+     "L"
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     2,
+     3
+    ],
+    "Cette_solution_permet": "Concrètement, une fois Passe marché intégré à la plateforme de marchés publics, la phase de candidature est simplifiée pour le candidat et l'acheteur.",
+    "Cette_solution_ne_permet_pas": "- Passe marché n'est pas et ne remplace pas un profil acheteur : il s'y intègre et lui transmet les dossiers.\n\n- Passe marché prend en charge uniqueme",
+    "Image": null,
+    "Legende_de_l_image": "Dossier de candidature côté candidat : les justificatifs sont récupérés automatiquement.",
+    "Categorie_de_solution": [
+     "L",
+     1
+    ],
+    "UID_datagouv": ""
+   }
+  },
+  {
+   "id": 32,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1772087363.019064,
+    "Description_courte": "Portail famille permettant aux collectivités de centraliser la gestion et la facturation des activités scolaires, périscolaires et de loisirs. Les col",
+    "URL_demande_d_acces": "",
+    "Nom": "Acheteza",
+    "Operateur": [
+     "L",
+     76
+    ],
+    "Site_internet": "https://www.acheteza.com/",
+    "Types_de_simplification": [
+     "L",
+     2
+    ],
+    "A_destination_de": [
+     "L",
+     1
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     1
+    ],
+    "Cette_solution_permet": "Les familles peuvent utiliser ce logiciel via un portail famille. Il peut également être utilisé par les agents en mairie pour accompagner les famille",
+    "Cette_solution_ne_permet_pas": "- à l'usager de s'authentifier via FranceConnect\n- de récupérer l'adresse du foyer\n- de récupérer la composition familiale (identité conjoint et des e",
+    "Image": null,
+    "Legende_de_l_image": null,
+    "Categorie_de_solution": [
+     "L",
+     2
+    ],
+    "UID_datagouv": ""
+   }
+  },
+  {
+   "id": 124,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1772007655.582499,
+    "Description_courte": "",
+    "URL_demande_d_acces": "",
+    "Nom": "Safe tender",
+    "Operateur": [
+     "L",
+     96
+    ],
+    "Site_internet": "https://www.omnikles.com/solutions/collectivite/safetender-collectivite/",
+    "Types_de_simplification": [
+     "L",
+     3
+    ],
+    "A_destination_de": [
+     "L"
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     2,
+     3
+    ],
+    "Cette_solution_permet": "",
+    "Cette_solution_ne_permet_pas": "Les acheteurs publics sont containts de demander aux opérateurs économiques, les informations telles que :  \n- Les informations d'identité \n- Les atte",
+    "Image": null,
+    "Legende_de_l_image": "",
+    "Categorie_de_solution": [
+     "L",
+     2
+    ],
+    "UID_datagouv": ""
+   }
+  },
+  {
+   "id": 133,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1781875837.932555,
+    "Description_courte": "Ce dispositif permet d'obtenir un fichier de contact des particuliers, identifiés comme éligibles à une aide sur un territoire choisi, pour les inform",
+    "URL_demande_d_acces": "mailto:api-particulier@api.gouv.fr",
+    "Nom": "Générateur de fichiers de contact pour la proactivité",
+    "Operateur": [
+     "L",
+     4
+    ],
+    "Site_internet": "",
+    "Types_de_simplification": [
+     "L",
+     1
+    ],
+    "A_destination_de": [
+     "L",
+     1,
+     2,
+     4,
+     3
+    ],
+    "Pour_simplifier_les_demarches_de": [
+     "L",
+     1
+    ],
+    "Cette_solution_permet": "Ce dispositif permet d'identifier les particuliers éligibles à une prestation ou un avantage sur un territoire donné et de **générer un fichier de leu",
+    "Cette_solution_ne_permet_pas": "- **Ce dispositif ne transmet pas l'information à l'usager**. Cette action est à la charge de l'administration en charge de la démarche proactive. Ce ",
+    "Image": null,
+    "Legende_de_l_image": "",
+    "Categorie_de_solution": [
+     "L",
+     1,
+     3
+    ],
+    "UID_datagouv": ""
+   }
+  }
+ ]
+}

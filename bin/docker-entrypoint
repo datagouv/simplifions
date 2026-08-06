@@ -3,6 +3,8 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+  # Refresh the catalogue from Grist; a failed import must not block the boot
+  ./bin/rails grist:import || echo "grist:import a échoué (non bloquant)"
 fi
 
 exec "${@}"

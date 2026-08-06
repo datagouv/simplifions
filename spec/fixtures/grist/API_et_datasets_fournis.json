@@ -1,0 +1,201 @@
+{
+ "records": [
+  {
+   "id": 5,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 1,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6,
+     8
+    ],
+    "Modifie_le": 1771918724.909748
+   }
+  },
+  {
+   "id": 26,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 9,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1765884591.443465
+   }
+  },
+  {
+   "id": 27,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 10,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1759143425.590692
+   }
+  },
+  {
+   "id": 28,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 11,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1759143425.590732
+   }
+  },
+  {
+   "id": 29,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 5,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1759143425.590773
+   }
+  },
+  {
+   "id": 30,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 4,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1771921470.574018
+   }
+  },
+  {
+   "id": 31,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 2,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1765891136.225553
+   }
+  },
+  {
+   "id": 32,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 3,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1771921616.706553
+   }
+  },
+  {
+   "id": 33,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 8,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1765891197.38586
+   }
+  },
+  {
+   "id": 34,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 7,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1759143425.590974
+   }
+  },
+  {
+   "id": 35,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 6,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     6
+    ],
+    "Modifie_le": 1759143425.591014
+   }
+  },
+  {
+   "id": 44,
+   "fields": {
+    "Solution_fournisseur": 8,
+    "API_ou_dataset_fourni": 59,
+    "Utile_pour_les_cas_d_usages": [
+     "L",
+     8
+    ],
+    "Modifie_le": 1759143425.591374
+   }
+  },
+  {
+   "id": 53,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 12,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1759143425.591755
+   }
+  },
+  {
+   "id": 55,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 14,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1759143425.59184
+   }
+  },
+  {
+   "id": 57,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 13,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1762247202.907826
+   }
+  },
+  {
+   "id": 60,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 99,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1760099357.786732
+   }
+  },
+  {
+   "id": 66,
+   "fields": {
+    "Solution_fournisseur": 1,
+    "API_ou_dataset_fourni": 109,
+    "Utile_pour_les_cas_d_usages": [
+     "L"
+    ],
+    "Modifie_le": 1773158093.691102
+   }
+  }
+ ]
+}

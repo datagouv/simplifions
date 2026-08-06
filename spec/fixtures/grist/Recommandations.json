@@ -1,0 +1,43 @@
+{
+ "records": [
+  {
+   "id": 44,
+   "fields": {
+    "Cas_d_usage": 8,
+    "Solution_recommandee": 1,
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1770832402.072299,
+    "API_ou_datasets_recommandes": 0,
+    "Parametres_a_saisir_pour_recuperer_les_donnees": "- État civil\n- **ou** connexion FranceConnect via identifiant + mot de passe\n",
+    "Donnees_utiles_disponibles": "- quotient familial CAF ou MSA",
+    "URL_demande_d_acces_cas_usage": "https://datapass.api.gouv.fr/demandes/api_particulier/nouveau?use_case=tarification_municipale_enfance"
+   }
+  },
+  {
+   "id": 73,
+   "fields": {
+    "Cas_d_usage": 8,
+    "Solution_recommandee": 8,
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1770832501.588503,
+    "API_ou_datasets_recommandes": 0,
+    "Parametres_a_saisir_pour_recuperer_les_donnees": "Connexion FranceConnect via identifiant + mot de passe",
+    "Donnees_utiles_disponibles": "Données fiables d'état civil : \n  - nom de naissance\n  - tous les prénoms de l’état civil \n  - date et lieu (ville/pays) de naissance \n   - sexe tel q",
+    "URL_demande_d_acces_cas_usage": ""
+   }
+  },
+  {
+   "id": 195,
+   "fields": {
+    "Cas_d_usage": 22,
+    "Solution_recommandee": 0,
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1784881696.808071,
+    "API_ou_datasets_recommandes": 0,
+    "Parametres_a_saisir_pour_recuperer_les_donnees": "",
+    "Donnees_utiles_disponibles": "",
+    "URL_demande_d_acces_cas_usage": ""
+   }
+  }
+ ]
+}

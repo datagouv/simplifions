@@ -1,0 +1,53 @@
+{
+ "records": [
+  {
+   "id": 2,
+   "fields": {
+    "Solution_integratrice": 4,
+    "API_ou_dataset_integre": 1,
+    "Status_de_l_integration": "✅ en production",
+    "Integre_pour_les_cas_d_usages": [
+     "L",
+     8
+    ],
+    "Modifie_le": 1770221831.761151
+   }
+  },
+  {
+   "id": 101,
+   "fields": {
+    "Solution_integratrice": 4,
+    "API_ou_dataset_integre": 59,
+    "Status_de_l_integration": "✅ en production",
+    "Integre_pour_les_cas_d_usages": [
+     "L",
+     8
+    ],
+    "Modifie_le": 1770221850.79853
+   }
+  },
+  {
+   "id": 333,
+   "fields": {
+    "Solution_integratrice": 32,
+    "API_ou_dataset_integre": 1,
+    "Status_de_l_integration": "✅ en production",
+    "Integre_pour_les_cas_d_usages": [
+     "L",
+     8
+    ],
+    "Modifie_le": 1769018145.408181
+   }
+  },
+  {
+   "id": 496,
+   "fields": {
+    "Solution_integratrice": 124,
+    "API_ou_dataset_integre": 0,
+    "Status_de_l_integration": "",
+    "Integre_pour_les_cas_d_usages": null,
+    "Modifie_le": 1785915570.565489
+   }
+  }
+ ]
+}
