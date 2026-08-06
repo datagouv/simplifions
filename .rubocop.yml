@@ -166,3 +166,6 @@ RSpec/NamedSubject:
 
 RSpec/RepeatedDescription:
   Enabled: false
+
+Rails/HasAndBelongsToMany:
+  Enabled: false
