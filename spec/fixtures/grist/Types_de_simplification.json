@@ -1,0 +1,25 @@
+{
+ "records": [
+  {
+   "id": 1,
+   "fields": {
+    "Label": "💠💠💠 Proactivité",
+    "slug": "proactivite"
+   }
+  },
+  {
+   "id": 2,
+   "fields": {
+    "Label": "💠💠 DLNUF",
+    "slug": "dlnuf"
+   }
+  },
+  {
+   "id": 3,
+   "fields": {
+    "Label": "💠 Accès facile",
+    "slug": "acces-facile"
+   }
+  }
+ ]
+}

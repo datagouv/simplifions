@@ -23,7 +23,7 @@ RSpec.describe Recommandation do
       Integration.create!(integratrice: hors_demarche, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [autre_demarche])
 
-      reco = Recommandation.create!(demarche: cantine, solution: bouquet)
+      reco = described_class.create!(demarche: cantine, solution: bouquet)
 
       expect(reco.moyens_acces).to eq(
         'logiciel_metier_cle_en_main' => [logiciel],
@@ -36,10 +36,10 @@ RSpec.describe Recommandation do
     it 'returns only visible recommandations' do
       demarche = Demarche.create!(nom: 'Démarche')
       solution = Solution.create!(nom: 'Solution')
-      visible = Recommandation.create!(demarche:, solution:, visible: true)
-      Recommandation.create!(demarche:, solution:, visible: false)
+      visible = described_class.create!(demarche:, solution:, visible: true)
+      described_class.create!(demarche:, solution:, visible: false)
 
-      expect(Recommandation.visibles).to contain_exactly(visible)
+      expect(described_class.visibles).to contain_exactly(visible)
     end
   end
 end

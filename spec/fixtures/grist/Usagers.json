@@ -1,0 +1,25 @@
+{
+ "records": [
+  {
+   "id": 1,
+   "fields": {
+    "Label": "Particuliers",
+    "slug": "particuliers"
+   }
+  },
+  {
+   "id": 2,
+   "fields": {
+    "Label": "Entreprises",
+    "slug": "entreprises"
+   }
+  },
+  {
+   "id": 3,
+   "fields": {
+    "Label": "Associations",
+    "slug": "associations"
+   }
+  }
+ ]
+}
