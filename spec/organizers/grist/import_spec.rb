@@ -117,6 +117,25 @@ RSpec.describe Grist::Import do
     expect(Integration.find_by(grist_id: 'API_et_datasets_integres:496')).to be_nil
   end
 
+  it 'prunes rows that disappeared from Grist' do
+    result
+    cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
+    fantome = Solution.create!(nom: 'Solution disparue', grist_id: 'Solutions:999')
+    paire_fantome = Utilite.create!(demarche: cantine, solution: Solution.find_by!(grist_id: 'APIs_et_datasets:45'))
+
+    relance = described_class.call
+
+    expect(Solution.exists?(fantome.id)).to be(false)
+    expect(Utilite.exists?(paire_fantome.id)).to be(false)
+    expect(relance.report[:notes].join).to include('Solution')
+  end
+
+  it 'fails with a report instead of crashing when Grist is unreachable' do
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_raise(SocketError)
+    expect(result).to be_a_failure
+    expect(result.error).to include('Solutions')
+  end
+
   it 'converges when replayed against a locally modified database, without touching slugs' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')

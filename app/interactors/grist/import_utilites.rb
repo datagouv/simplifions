@@ -21,7 +21,7 @@ class Grist::ImportUtilites < Grist::ImportStep
     each_record('API_et_datasets_fournis') do |_gid, fields|
       solution = context.index["APIs_et_datasets:#{fields['API_ou_dataset_fourni']}"] || next
       Demarche.where(id: ids('Cas_d_usages', fields['Utile_pour_les_cas_d_usages'])).find_each do |demarche|
-        Utilite.find_or_create_by!(demarche:, solution:)
+        seen(Utilite.find_or_create_by!(demarche:, solution:))
       end
     end
   end

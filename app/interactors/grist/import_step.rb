@@ -3,11 +3,15 @@ require 'net/http'
 class Grist::ImportStep < ApplicationInteractor
   DOC_URL = 'https://grist.numerique.gouv.fr/api/docs/ofSVjCSAnMb6'.freeze
   SNAPSHOT = JSON.parse(Rails.root.join('db/grist/topics_snapshot.json').read).freeze
+  NETWORK_ERRORS = [SocketError, SystemCallError, Timeout::Error, OpenSSL::SSL::SSLError].freeze
 
   private
 
   def grist_get(path)
-    Net::HTTP.get_response(URI("#{DOC_URL}/#{path}"))
+    uri = URI("#{DOC_URL}/#{path}")
+    Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 30) do |http|
+      http.get(uri.request_uri)
+    end
   end
 
   def each_record(table)
@@ -21,7 +25,12 @@ class Grist::ImportStep < ApplicationInteractor
     assign_slug(row, gid) if row.respond_to?(:slug) && row.slug.blank?
     row.save!
     context.index[gid] = row
+    seen(row)
     row
+  end
+
+  def seen(row)
+    context.seen[row.class.name] << row.id
   end
 
   def assign_slug(row, gid)
@@ -31,11 +40,14 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def find(table, ref, gid)
-    row = ref.to_i.positive? && context.index["#{table}:#{ref}"]
-    return row if row
+    unless ref.to_i.positive?
+      quarantine(gid, "référence #{table} vide")
+      return
+    end
 
-    quarantine(gid, "référence #{table}:#{ref} introuvable")
-    nil
+    row = context.index["#{table}:#{ref}"]
+    quarantine(gid, "référence #{table}:#{ref} introuvable") unless row
+    row
   end
 
   def ids(table, reflist)

@@ -16,5 +16,7 @@ class Grist::FetchTables < Grist::ImportStep
     context.fail!(error: "Grist #{table}: HTTP #{response.code}") unless response.is_a?(Net::HTTPSuccess)
 
     JSON.parse(response.body).fetch('records')
+  rescue *NETWORK_ERRORS => e
+    context.fail!(error: "Grist #{table}: #{e.class} — #{e.message}")
   end
 end

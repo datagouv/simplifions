@@ -34,6 +34,25 @@ RSpec.describe Grist::AttachImages do
     expect(a_request(:get, download_url)).to have_been_made.once
   end
 
+  it 'refreshes the image when the Grist attachment changed' do
+    call_interactor
+    tables['Solutions'].first['fields']['Image'] = ['L', 9]
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/attachments/9/download").to_return(
+      status: 200, body: 'NEWBYTES',
+      headers: { 'Content-Type' => 'image/png', 'Content-Disposition' => 'attachment; filename="nouveau.png"' }
+    )
+
+    call_interactor
+
+    expect(solution.reload.image.filename.to_s).to eq('nouveau.png')
+  end
+
+  it 'quarantines network errors without crashing' do
+    stub_request(:get, download_url).to_raise(Timeout::Error)
+    expect(result.report[:quarantine].join).to include('Solutions:1')
+    expect(solution.reload.image).not_to be_attached
+  end
+
   it 'quarantines download failures without crashing' do
     stub_request(:get, download_url).to_return(status: 404)
     expect(result.report[:quarantine].join).to include('Solutions:1')
