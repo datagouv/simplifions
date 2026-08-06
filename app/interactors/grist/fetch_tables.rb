@@ -19,7 +19,7 @@ class Grist::FetchTables < Grist::ImportStep
     context.fail!(error: "Grist #{table}: table vide, import interrompu par sécurité") if records.empty?
 
     records
-  rescue *NETWORK_ERRORS => e
+  rescue *NETWORK_ERRORS, JSON::ParserError, KeyError => e
     context.fail!(error: "Grist #{table}: #{e.class} — #{e.message}")
   end
 end

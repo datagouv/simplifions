@@ -3,9 +3,18 @@ class Grist::PruneDisparus < Grist::ImportStep
              Integration, Recommandation, Utilite].freeze
 
   def call
-    MODELES.each do |model|
-      disparus = model.where.not(id: context.seen[model.name]).destroy_all
-      note("#{model.name} : #{disparus.size} ligne(s) disparue(s) de Grist supprimée(s)") if disparus.any?
-    end
+    MODELES.each { |model| prune(model) }
+  end
+
+  private
+
+  def prune(model)
+    vus = context.seen[model.name]
+    context.fail!(error: "#{model.name} : aucune ligne importée ce run, purge refusée") if vus.empty?
+
+    disparus = model.where.not(id: vus).destroy_all
+    return if disparus.empty?
+
+    note("#{model.name} : #{disparus.size} ligne(s) absente(s) du run (disparues ou en quarantaine) supprimée(s)")
   end
 end

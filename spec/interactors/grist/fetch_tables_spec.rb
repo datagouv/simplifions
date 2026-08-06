@@ -29,6 +29,19 @@ RSpec.describe Grist::FetchTables do
     end
   end
 
+  context 'when the API answers 200 with a non-JSON body' do
+    before do
+      stub_grist_tables
+      stub_request(:get, "#{described_class::DOC_URL}/tables/Operateurs/records")
+        .to_return(status: 200, body: '<html>maintenance</html>', headers: { 'Content-Type' => 'text/html' })
+    end
+
+    it 'fails cleanly instead of raising' do
+      expect(result).to be_a_failure
+      expect(result.error).to include('Operateurs')
+    end
+  end
+
   context 'when the Grist API fails' do
     before do
       stub_grist_tables

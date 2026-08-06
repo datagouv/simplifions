@@ -136,6 +136,20 @@ RSpec.describe Grist::Import do
     expect(result.error).to include('Solutions')
   end
 
+  it 'refuses to prune a model whose rows were all quarantined this run' do
+    result
+    operateurs = JSON.parse(Rails.root.join('spec/fixtures/grist/Operateurs.json').read)
+    operateurs['records'].each { |record| record['fields']['Name'] = record['fields'].delete('Nom') }
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Operateurs/records")
+      .to_return(status: 200, body: operateurs.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    relance = described_class.call
+
+    expect(relance).to be_a_failure
+    expect(relance.error).to include('Organisation')
+    expect(Organisation.count).to eq(4)
+  end
+
   it 'quarantines rows with blank required values instead of crashing' do
     operateurs = JSON.parse(Rails.root.join('spec/fixtures/grist/Operateurs.json').read)
     operateurs['records'] << { 'id' => 999, 'fields' => { 'Nom' => '' } }
