@@ -1,0 +1,34 @@
+{
+ "records": [
+  {
+   "id": 31,
+   "fields": {
+    "Api_ou_dataset_utile_fourni_par_une_recommandation": 1,
+    "Cas_d_usage": 8,
+    "En_quoi_cette_API_ou_dataset_est_utile_pour_ce_cas_d_usage": "Récupérer le quotient familial CAF ou MSA du ménage pour déterminer la tarification.",
+    "Modifie_le": 1763743082.948746,
+    "Ordre": 1
+   }
+  },
+  {
+   "id": 60,
+   "fields": {
+    "Api_ou_dataset_utile_fourni_par_une_recommandation": 0,
+    "Cas_d_usage": 1,
+    "En_quoi_cette_API_ou_dataset_est_utile_pour_ce_cas_d_usage": "",
+    "Modifie_le": 1784710010.963558,
+    "Ordre": 5
+   }
+  },
+  {
+   "id": 64,
+   "fields": {
+    "Api_ou_dataset_utile_fourni_par_une_recommandation": 0,
+    "Cas_d_usage": 3,
+    "En_quoi_cette_API_ou_dataset_est_utile_pour_ce_cas_d_usage": "",
+    "Modifie_le": 1784881883.416869,
+    "Ordre": 0
+   }
+  }
+ ]
+}
