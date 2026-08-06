@@ -169,3 +169,7 @@ RSpec/RepeatedDescription:
 
 Rails/HasAndBelongsToMany:
   Enabled: false
+
+RSpec/DescribeClass:
+  Exclude:
+    - spec/tasks/**/*
