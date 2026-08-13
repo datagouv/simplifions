@@ -22,6 +22,21 @@ RSpec.describe Solution do
     end
   end
 
+  describe 'absence of fiche-only fields outside fiches' do
+    it 'rejects fiche content, slug or image on an api, accepts them on a fiche' do
+      expect(described_class.new(nom: 'API', categorie: 'api', description_courte: 'texte')).not_to be_valid
+      expect(described_class.new(nom: 'API', categorie: 'api', slug: 'api-qf')).not_to be_valid
+
+      api = described_class.new(nom: 'API', categorie: 'api')
+      api.image.attach(io: StringIO.new('img'), filename: 'i.png', content_type: 'image/png')
+      expect(api).not_to be_valid
+
+      fiche = described_class.new(nom: 'Brique', categorie: 'brique_logicielle',
+        description_courte: 'texte', slug: 'brique')
+      expect(fiche).to be_valid
+    end
+  end
+
   describe '.visibles' do
     it 'returns only visible solutions' do
       visible = described_class.create!(nom: 'Publiée', visible: true)

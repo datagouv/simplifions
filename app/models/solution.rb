@@ -1,5 +1,7 @@
 class Solution < ApplicationRecord
   validates :nom, presence: true
+  validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
+    :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
 
   has_one_attached :image
 
