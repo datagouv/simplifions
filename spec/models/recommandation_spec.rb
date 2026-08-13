@@ -35,9 +35,8 @@ RSpec.describe Recommandation do
   describe '.visibles' do
     it 'returns only visible recommandations' do
       demarche = Demarche.create!(nom: 'Démarche')
-      solution = Solution.create!(nom: 'Solution')
-      visible = described_class.create!(demarche:, solution:, visible: true)
-      described_class.create!(demarche:, solution:, visible: false)
+      visible = described_class.create!(demarche:, solution: Solution.create!(nom: 'Publiée'), visible: true)
+      described_class.create!(demarche:, solution: Solution.create!(nom: 'Brouillon'), visible: false)
 
       expect(described_class.visibles).to contain_exactly(visible)
     end

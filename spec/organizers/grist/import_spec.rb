@@ -14,7 +14,7 @@ RSpec.describe Grist::Import do
     expect(Vocabulaire.count).to eq(6)
     expect(TypeActeur.count).to eq(5)
     expect(Organisation.count).to eq(4)
-    expect(Recommandation.count).to eq(2)
+    expect(Recommandation.count).to eq(12)
     expect(Integration.count).to eq(20)
   end
 
@@ -79,10 +79,10 @@ RSpec.describe Grist::Import do
     expect(fc.integree.nom).to eq('API FranceConnect')
   end
 
-  it 'resolves the single recommandation target from either Grist column' do
+  it 'resolves the single recommandation target from either Grist column, at niveau 2' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
-    cibles = cantine.recommandations.map { |reco| reco.solution.grist_id }
+    cibles = cantine.recommandations.niveau_2.map { |reco| reco.solution.grist_id }
     expect(cibles).to contain_exactly('Solutions:1', 'Solutions:8')
   end
 
@@ -95,16 +95,16 @@ RSpec.describe Grist::Import do
     )
   end
 
-  it 'creates utilites from the utiles table and blank ones from fournis scoping, utiles winning' do
+  it 'merges the utiles table into niveau 1 recommandations, blank ones born from fournis scoping' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
     api_qf = Solution.find_by!(grist_id: 'APIs_et_datasets:1')
-    utilite = Utilite.find_by!(demarche: cantine, solution: api_qf)
-    expect(utilite.description).to start_with('Récupérer le quotient familial')
-    expect(utilite.ordre).to eq(1)
+    reco = Recommandation.find_by!(demarche: cantine, solution: api_qf)
+    expect(reco).to have_attributes(niveau: 'niveau_1', ordre: 1)
+    expect(reco.description).to start_with('Récupérer le quotient familial')
 
     eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
-    expect(Utilite.where(demarche: eau, description: [nil, ''])).to be_present
+    expect(eau.recommandations.niveau_1.where(description: [nil, ''])).to be_present
   end
 
   it 'quarantines orphan rows with a report instead of crashing' do
@@ -121,12 +121,12 @@ RSpec.describe Grist::Import do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
     fantome = Solution.create!(nom: 'Solution disparue', grist_id: 'Solutions:999')
-    paire_fantome = Utilite.create!(demarche: cantine, solution: Solution.find_by!(grist_id: 'APIs_et_datasets:45'))
+    paire_fantome = Recommandation.create!(demarche: cantine, solution: Solution.find_by!(grist_id: 'APIs_et_datasets:45'))
 
     relance = described_class.call
 
     expect(Solution.exists?(fantome.id)).to be(false)
-    expect(Utilite.exists?(paire_fantome.id)).to be(false)
+    expect(Recommandation.exists?(paire_fantome.id)).to be(false)
     expect(relance.report[:notes].join).to include('Solution')
   end
 
@@ -161,11 +161,59 @@ RSpec.describe Grist::Import do
     expect(Organisation.count).to eq(4)
   end
 
-  it 'adopts a scoping-born utilite when a real utiles row appears for the same pair' do
+  it 'quarantines a second Grist source claiming an already imported (demarche, solution) pair' do
+    recos = JSON.parse(Rails.root.join('spec/fixtures/grist/Recommandations.json').read)
+    recos['records'] << { 'id' => 901, 'fields' => {
+      'Cas_d_usage' => 8, 'API_ou_datasets_recommandes' => 1, 'Visible_sur_simplifions' => true
+    } }
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Recommandations/records")
+      .to_return(status: 200, body: recos.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    expect(result).to be_a_success
+    expect(result.report[:quarantine].join).to include('API_et_datasets_utiles:31')
+
+    cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
+    api_qf = Solution.find_by!(grist_id: 'APIs_et_datasets:1')
+    paire = Recommandation.find_by!(demarche: cantine, solution: api_qf)
+    expect(paire).to have_attributes(grist_id: 'Recommandations:901', niveau: 'niveau_2', description: nil)
+  end
+
+  it 'quarantines a recommandation retargeted onto an occupied pair instead of wedging the import' do
+    result
+    recos = JSON.parse(Rails.root.join('spec/fixtures/grist/Recommandations.json').read)
+    reco44 = recos['records'].find { |record| record['id'] == 44 }
+    reco44['fields']['Solution_recommandee'] = 0
+    reco44['fields']['API_ou_datasets_recommandes'] = 59
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Recommandations/records")
+      .to_return(status: 200, body: recos.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    relance = described_class.call
+
+    expect(relance).to be_a_success
+    expect(relance.report[:quarantine].join).to include('Recommandations:44')
+  end
+
+  it 'converges in one run when an api with an unmapped type gets its type fixed in Grist' do
+    result
+    api51 = Solution.find_by!(grist_id: 'APIs_et_datasets:51')
+    expect(api51.slug).to be_present
+
+    apis = JSON.parse(Rails.root.join('spec/fixtures/grist/APIs_et_datasets.json').read)
+    apis['records'].find { |record| record['id'] == 51 }['fields']['Type'] = 'API'
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/APIs_et_datasets/records")
+      .to_return(status: 200, body: apis.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    relance = described_class.call
+
+    expect(relance).to be_a_success
+    expect(api51.reload).to have_attributes(categorie: 'api', slug: nil)
+  end
+
+  it 'adopts a scoping-born recommandation when a real utiles row appears for the same pair' do
     result
     eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
     api9 = Solution.find_by!(grist_id: 'APIs_et_datasets:9')
-    nee_du_scoping = Utilite.find_by!(demarche: eau, solution: api9)
+    nee_du_scoping = Recommandation.find_by!(demarche: eau, solution: api9)
 
     utiles = JSON.parse(Rails.root.join('spec/fixtures/grist/API_et_datasets_utiles.json').read)
     utiles['records'] << { 'id' => 900, 'fields' => {
@@ -178,7 +226,7 @@ RSpec.describe Grist::Import do
     described_class.call
 
     expect(nee_du_scoping.reload).to have_attributes(
-      grist_id: 'API_et_datasets_utiles:900', description: 'Nouvelle description', ordre: 2
+      grist_id: 'API_et_datasets_utiles:900', description: 'Nouvelle description', ordre: 2, niveau: 'niveau_1'
     )
   end
 
@@ -188,7 +236,7 @@ RSpec.describe Grist::Import do
     cantine.update!(nom: 'Renommée à la main', slug: 'slug-custom')
 
     expect { described_class.call }.not_to(change do
-      [Demarche.count, Solution.count, Integration.count, Recommandation.count, Utilite.count, Vocabulaire.count]
+      [Demarche.count, Solution.count, Integration.count, Recommandation.count, Vocabulaire.count]
     end)
 
     expect(cantine.reload).to have_attributes(nom: 'Tarification cantine scolaire à 1€', slug: 'slug-custom')

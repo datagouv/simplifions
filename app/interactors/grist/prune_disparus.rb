@@ -1,6 +1,6 @@
 class Grist::PruneDisparus < Grist::ImportStep
   MODELES = [Organisation, TypeActeur, Vocabulaire, Demarche, Solution,
-             Integration, Recommandation, Utilite].freeze
+             Integration, Recommandation].freeze
 
   def call
     MODELES.each { |model| prune(model) }

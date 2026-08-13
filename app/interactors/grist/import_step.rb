@@ -20,9 +20,14 @@ class Grist::ImportStep < ApplicationInteractor
 
   def synchronise(model, gid, attributes, also_by: nil)
     row = resolve_row(model, gid, also_by)
+    if conflit_de_paire?(row, gid)
+      quarantine(gid, "en conflit avec #{row.grist_id}, déjà importée ce run")
+      return nil
+    end
+
     row.grist_id = gid
     row.assign_attributes(attributes)
-    assign_slug(row, gid) if row.respond_to?(:slug) && row.slug.blank?
+    normalise_slug(row, gid)
     row.save!
     context.index[gid] = row
     seen(row)
@@ -36,13 +41,23 @@ class Grist::ImportStep < ApplicationInteractor
     model.find_by(grist_id: gid) || (also_by && model.find_by(also_by)) || model.new
   end
 
+  def conflit_de_paire?(row, gid)
+    row.grist_id != gid && context.seen[row.class.name].include?(row.id)
+  end
+
   def seen(row)
     context.seen[row.class.name] << row.id
   end
 
-  def assign_slug(row, gid)
-    return if row.is_a?(Solution) && !row.fiche?
+  def normalise_slug(row, gid)
+    if row.respond_to?(:fiche?) && !row.fiche?
+      row.slug = nil
+    elsif row.respond_to?(:slug) && row.slug.blank?
+      assign_slug(row, gid)
+    end
+  end
 
+  def assign_slug(row, gid)
     slug = SNAPSHOT[gid] || row.nom.to_s.parameterize
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug

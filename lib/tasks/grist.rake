@@ -8,7 +8,7 @@ namespace :grist do
 
     if result.success?
       puts "Import Grist terminé — #{Demarche.count} démarches, #{Solution.count} solutions, " \
-           "#{Integration.count} intégrations, #{Recommandation.count} recommandations, #{Utilite.count} utilités"
+           "#{Integration.count} intégrations, #{Recommandation.count} recommandations"
     else
       puts "Import Grist échoué : #{result.error}"
       exit 1

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_194434) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -119,14 +119,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_194434) do
   create_table "recommandations", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "demarche_id", null: false
+    t.text "description"
     t.text "donnees_utiles"
     t.string "grist_id"
     t.datetime "modifie_le"
+    t.integer "niveau"
+    t.integer "ordre"
     t.text "parametres_a_saisir"
     t.bigint "solution_id", null: false
     t.datetime "updated_at", null: false
     t.string "url_demande_acces"
     t.boolean "visible", default: false, null: false
+    t.index ["demarche_id", "solution_id"], name: "index_recommandations_on_demarche_id_and_solution_id", unique: true
     t.index ["demarche_id"], name: "index_recommandations_on_demarche_id"
     t.index ["grist_id"], name: "index_recommandations_on_grist_id", unique: true
     t.index ["solution_id"], name: "index_recommandations_on_solution_id"
@@ -176,20 +180,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_194434) do
     t.index ["grist_id"], name: "index_types_acteurs_on_grist_id", unique: true
   end
 
-  create_table "utilites", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "demarche_id", null: false
-    t.text "description"
-    t.string "grist_id"
-    t.integer "ordre"
-    t.bigint "solution_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["demarche_id", "solution_id"], name: "index_utilites_on_demarche_id_and_solution_id", unique: true
-    t.index ["demarche_id"], name: "index_utilites_on_demarche_id"
-    t.index ["grist_id"], name: "index_utilites_on_grist_id", unique: true
-    t.index ["solution_id"], name: "index_utilites_on_solution_id"
-  end
-
   create_table "vocabulaires", force: :cascade do |t|
     t.string "categorie", null: false
     t.datetime "created_at", null: false
@@ -206,6 +196,4 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_194434) do
   add_foreign_key "integrations", "solutions", column: "integree_id"
   add_foreign_key "recommandations", "demarches"
   add_foreign_key "recommandations", "solutions"
-  add_foreign_key "utilites", "demarches"
-  add_foreign_key "utilites", "solutions"
 end
