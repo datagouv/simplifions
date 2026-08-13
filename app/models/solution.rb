@@ -22,4 +22,6 @@ class Solution < ApplicationRecord
     prefix: true
 
   scope :visibles, -> { where(visible: true) }
+
+  def fiche? = !categorie_api? && !categorie_base_de_donnees?
 end

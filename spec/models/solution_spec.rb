@@ -13,6 +13,15 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#fiche?' do
+    it 'is false for the categories that come from APIs_et_datasets, true otherwise' do
+      expect(described_class.new(categorie: 'api')).not_to be_fiche
+      expect(described_class.new(categorie: 'base_de_donnees')).not_to be_fiche
+      expect(described_class.new(categorie: 'brique_logicielle')).to be_fiche
+      expect(described_class.new(categorie: nil)).to be_fiche
+    end
+  end
+
   describe '.visibles' do
     it 'returns only visible solutions' do
       visible = described_class.create!(nom: 'Publiée', visible: true)

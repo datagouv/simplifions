@@ -41,6 +41,8 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def assign_slug(row, gid)
+    return if row.is_a?(Solution) && !row.fiche?
+
     slug = SNAPSHOT[gid] || row.nom.to_s.parameterize
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug
