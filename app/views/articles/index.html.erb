@@ -1,0 +1,49 @@
+<% content_for :title, "Articles - Simplifions.data.gouv.fr" %>
+<% content_for :head do %>
+  <meta name="description" content="Guides et explications pour comprendre et intégrer les API utiles à la simplification de vos démarches.">
+<% end %>
+
+<div class="fr-container fr-py-8v">
+  <h1>Articles</h1>
+
+  <div class="fr-grid-row fr-grid-row--gutters">
+    <aside class="fr-col-12 fr-col-lg-3">
+      <% Article::KEYWORD_CATEGORIES.each do |category, category_keywords| %>
+        <div class="fr-mb-3w">
+          <p class="fr-text--bold fr-mb-1w"><%= category %></p>
+          <ul class="fr-tags-group fr-mb-0">
+            <% category_keywords.each do |keyword| %>
+              <%
+                selected = @selected_keywords.include?(keyword)
+                toggled = selected ? @selected_keywords - [ keyword ] : @selected_keywords + [ keyword ]
+                count = Article.all.count { |a| a.matches?(@selected_keywords, except_category: category) && a.keywords.include?(keyword) }
+              %>
+              <li>
+                <% if count.zero? && !selected %>
+                  <p class="fr-tag" aria-disabled="true"><%= keyword %> (0)</p>
+                <% else %>
+                  <%= link_to articles_path(keywords: toggled.any? ? toggled.join(",") : nil),
+                        class: "fr-tag", "aria-pressed": selected.to_s do %><%= keyword %> (<%= count %>)<% end %>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </aside>
+
+    <div class="fr-col-12 fr-col-lg-9">
+      <% if @articles.empty? %>
+        <p class="fr-text--lg">Aucun article ne correspond aux tags sélectionnés.</p>
+      <% else %>
+        <div class="fr-grid-row fr-grid-row--gutters">
+          <% @articles.each do |article| %>
+            <div class="fr-col-12 fr-col-md-6 fr-col-lg-4">
+              <%= render ArticleCardComponent.new(article: article) %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

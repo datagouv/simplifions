@@ -1,0 +1,15 @@
+slug: prerequis-et-etapes-integration-api
+h1: Prérequis et étapes d'intégration d'une API
+title: Prérequis et étapes d'intégration d'une API
+description: >-
+  Prérequis techniques, juridiques et d'usage, étapes d'intégration, limites à
+  connaître : Acteurs publics, ce guide vous aide à comprendre ce qui vous
+  attend lorsque vous vous engagez dans la simplification de vos démarches
+  grâce aux API.
+keywords: [API, Guide technique, Guide métier, Intégration technique, DSI, MOA, Éditeur de logiciels]
+hero_backdrop_gradient: "linear-gradient(135deg, #decdbd 0%, #a3afce 100%)"
+sections:
+  prerequis: Prérequis
+  etapes-integration: Étapes d'intégration
+  limites: Limites des API
+  recapitulatif: Pour résumer

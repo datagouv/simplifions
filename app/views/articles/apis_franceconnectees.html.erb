@@ -1,0 +1,271 @@
+<%
+  mentions = [
+    solution_card("franceconnect-2"),
+    solution_card("bouquet-api-particulier")
+  ]
+%>
+<%= render ArticleLayoutComponent.new(article: @article, mentions: mentions) do %>
+
+  <%= render ArticleSectionComponent.new(id: "definition", label: "Définition") do %>
+    <p class="fr-text--lead fr-text--center">
+      Dans l'administration, on parle d'<i>«&nbsp;API FranceConnectée&nbsp;»</i> :
+    </p>
+
+    <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
+      <div class="fr-col-12 fr-col-md-6">
+        <p class="fr-text--lead fr-text--bold fr-text--center">
+          Lorsqu'une API est interrogée via le bouton FranceConnect ...
+        </p>
+        <figure role="group" class="fr-content-media fr-content-media--sm">
+          <div class="fr-content-media__img">
+            <%= image_tag "articles/api-franceconnectees-bouton-france-connect.png", alt: "", class: "fr-responsive-img api-img" %>
+          </div>
+        </figure>
+        <p class="fr-text--lg">
+          Les API FranceConnectées permettent d'<b>utiliser l'identité pivot fournie par
+          <a target="_blank" href="https://franceconnect.gouv.fr/partenaires" rel="noopener noreferrer">FranceConnect</a>
+          comme modalité d'appel.</b>
+        </p>
+      </div>
+
+      <div class="fr-col-12 fr-col-md-6">
+        <p class="fr-text--lead fr-text--bold fr-text--center">
+          ... et lorsqu'elle délivre des données administratives des particuliers.
+        </p>
+        <figure role="group" class="fr-content-media fr-content-media--sm">
+          <div class="fr-content-media__img">
+            <%= image_tag "articles/api-franceconnectees-donnees-personnelles.png", alt: "", class: "fr-responsive-img api-img" %>
+          </div>
+        </figure>
+        <p class="fr-text--lg">
+          Elles permettent de
+          <b>transmettre des données administratives personnelles du citoyen</b>.
+        </p>
+      </div>
+
+      <div class="fr-col-12">
+        <p class="fr-text--lg">
+          Selon le cadre d'utilisation, elles proposent également de
+          <b>récupérer l'identité pivot utilisée et fournie par FranceConnect</b>.
+        </p>
+      </div>
+    </div>
+  <% end %>
+
+  <%= render ArticleSectionComponent.new(id: "acteurs", label: "Acteurs", heading: "Les acteurs des API FranceConnectées") do %>
+    <h3 class="fr-h4">FranceConnect et les fournisseurs d'identité :</h3>
+
+    <p>
+      Lors de l'intégration d'une API FranceConnectée dans votre service, il
+      est pré-requis d'intégrer la solution FranceConnect car le bouton
+      "FranceConnect" sera la modalité d'appel utilisée par l'API pour
+      renvoyer les données à l'usager.
+    </p>
+
+    <p>
+      En proposant le bouton FranceConnect sur votre service, vous permettez à
+      vos usagers d'utiliser le <i>fournisseur d'identité</i> qu'il souhaitent
+      pour s'authentifier (impots.gouv.fr, ameli.fr, l'Identité Numérique La
+      Poste, etc.).
+    </p>
+
+    <%= render ArticleSpotlightComponent.new(cards: [
+          solution_card("franceconnect-2")
+        ]) do %>
+      <p>
+        <strong>FranceConnect, votre interlocuteur pour l'ajout du bouton FranceConnect :</strong><br>
+        FranceConnect est votre interlocuteur pour intégrer le bouton
+        FranceConnect, de l'habilitation à l'homologation, en passant par
+        l'intégration. Par contre FranceConnect n'est pas en mesure de
+        répondre à vos questions sur les données distribuées via les API
+        FranceConnectées.
+      </p>
+      <p>
+        <strong>Les fournisseurs d'identité, par défaut proposés à vos usagers :</strong><br>
+        Les fournisseurs d'identité ne seront jamais vos interlocuteurs. En
+        intégrant FranceConnect, tous les fournisseurs d'identité seront
+        proposés à vos usagers quand ils cliqueront sur le bouton
+        FranceConnect.
+      </p>
+    <% end %>
+
+    <h3 class="fr-h4">
+      Les fournisseurs de données, vos interlocuteurs pour l'accès aux données :
+    </h3>
+    <p>
+      Différentes administrations mettent à disposition, après habilitation et
+      via des API FranceConnectées, les données administratives des
+      particuliers dont elles ont la charge. Dans l'univers des API
+      FranceConnectées, ces administrations sont nommées
+      <i>fournisseurs de données</i>.
+    </p>
+
+    <p>
+      <b>En voici la liste :</b> Caisse nationale des allocations familiales
+      (CNAF), Direction de la Sécurité sociale, Direction générale des
+      finances publiques (DGFIP), France Travail, Ministère de l'Enseignement
+      supérieur et de la Recherche, Ministère de l'Éducation nationale et
+      Cnous.
+    </p>
+
+    <blockquote class="fr-highlight">
+      <p>
+        💬 <strong>Rôle des fournisseurs de données :</strong><br>
+        Les fournisseurs de données sont vos interlocuteurs concernant la
+        délivrance des accès, l'intégration et la maintenance des API
+        FranceConnectées. C'est eux qui sont en mesure de répondre à vos
+        questions concernant les données distribuées et le fonctionnement des
+        API qu'ils opèrent.
+        <br>
+        <i>Si vous utilisez l'API Particulier</i>, ce service sera votre
+        interlocuteur unique.
+      </p>
+    </blockquote>
+
+    <p>
+      <b>Afin de simplifier l'intégration des API FranceConnectées</b>, la
+      solution API Particulier regroupe dans un même bouquet d'API une grande
+      partie des API FranceConnectées.
+    </p>
+
+    <%= render ArticleSpotlightComponent.new(cards: [
+          solution_card("bouquet-api-particulier")
+        ]) do %>
+      <p>
+        <strong>API Particulier, un seul interlocuteur pour les données de différents fournisseurs :</strong><br>
+        Si vous accédez aux API FranceConnectées via ce bouquet d'API, API
+        Particulier est votre interlocuteur unique pour l'habilitation,
+        l'intégration et la maintenance des API FranceConnectées du bouquet.
+        API Particulier est en mesure de répondre à vos questions concernant
+        les données distribuées et le fonctionnement des API qu'il propose. En
+        cas de difficulté, API Particulier se charge des échanges avec les
+        fournisseurs de données.
+      </p>
+    <% end %>
+  <% end %>
+
+  <%= render ArticleSectionComponent.new(id: "possibilite-de-simplification", label: "Possibilités de simplification") do %>
+    <p class="fr-text--lead">
+      Voici un comparatif entre une API appelée via une modalité d'appel
+      classique <i>identifiant ou état civil</i> et une API appelée en mode
+      "FranceConnectée", c'est-à-dire via l'identité pivot FranceConnect :
+    </p>
+
+    <div class="fr-table api-comparison-table">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Modalité d'appel<br>Identité pivot ou Identifiant</th>
+            <th>Modalité d'appel<br>FranceConnect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Étapes du parcours de l'usager</strong></td>
+            <td>
+              <ol>
+                <li>
+                  L'usager se connecte via son compte personnel authentifié ou
+                  via FranceConnect ;
+                </li>
+                <li>
+                  Au cours de sa démarche, il recherche les informations
+                  nécessaires pour permettre l'appel aux API ne proposant pas
+                  la modalité d'appel FranceConnect ; comme par exemple son
+                  numéro fiscal, son état civil ou son identifiant
+                  FranceTravail ;
+                </li>
+                <li>Il saisit ces informations ;</li>
+                <li>
+                  Sa démarche est complétée des données récupérées via les
+                  API.
+                </li>
+              </ol>
+            </td>
+            <td>
+              <ol>
+                <li>L'usager se connecte via FranceConnect ;</li>
+                <li>
+                  La démarche est déjà pré-remplie des informations récupérées
+                  via les API.
+                </li>
+              </ol>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Authentification de l'usager</strong></td>
+            <td>❌ À vérifier par vos agents</td>
+            <td>✅ Comprise avec la connexion</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Délivrance instantanée de données administratives
+              complémentaires issues des API FranceConnectées</strong>
+            </td>
+            <td>
+              ❌ Uniquement après vérification de l'identité de l'internaute
+              par vos agents
+            </td>
+            <td>✅ Oui</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Moins de données personnelles dans votre système
+              d'information</strong>
+            </td>
+            <td>
+              ❌ Les données personnelles renseignées par l'usager pour
+              appeler l'API transitent par votre système d'information
+            </td>
+            <td>
+              ✅ Il est possible de choisir que l'identité pivot ne transite
+              pas par votre système d'information
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Périmètre des usagers couverts</strong></td>
+            <td>✅ La totalité</td>
+            <td>⚠️ Seulement les usagers ayant FranceConnect</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <%= render ArticleSectionComponent.new(id: "liste-des-api-franceconnectees", label: "Liste des API FranceConnectées") do %>
+    <p class="fr-text--lead">
+      Voici la liste des API pouvant être requêtées via un token FranceConnect :
+    </p>
+
+    <%
+      apis_franceconnectees = [
+        { title: "API Quotient familial MSA & CAF | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Quotient familial CAF & MSA | Bouquet API Particulier permet de récupérer le quotient familial CAF ou MSA d'un particulier et d'obtenir les données d'identité de l'allocataire et de…" },
+        { title: "API Statut étudiant | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf667c3488a0c533f7092", org: "Ministère de l'Enseignement supérieur, de la Recherche et de l'Espace", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a9/d7c102fb7e40e4a7506fb1274170ce-100.png", restricted: true, description: "L'API Statut étudiant | Bouquet API Particulier permet de savoir si un particulier est étudiant, de récupérer la liste des inscriptions et admissions d’un étudiant, en précisant les dates…" },
+        { title: "API Statut étudiant boursier | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf6900a2a1df94c9cc37c", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Statut étudiant boursier | Bouquet API Particulier permet notamment de savoir si un étudiant est boursier(bourses d'État et quelques bourses régionales) et de connaître son échelon de…" },
+        { title: "API Statut revenu de solidarité active (RSA) | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf6acf1ebb86a67488d05", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Statut revenu de solidarité active (RSA) | Bouquet API Particulier permet de savoir si un particulier est bénéficiaire du revenu de solidarité active (RSA), majoré ou non." },
+        { title: "API Statut prime d'activité | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf6acc34230c996aab5a5", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Statut prime d'activité | Bouquet API Particulier permet de savoir si un particulier est bénéficiaire de la prime d'activité, majorée ou non." },
+        { title: "API Statut allocation adulte handicapé (AAH) | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf6ada37a79f6ff3e3254", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Statut allocation adulte handicapé (AAH) | Bouquet API Particulier permet de savoir si un particulier est bénéficiaire de l'allocation adulte handicapé." },
+        { title: "API Statut allocation de soutien familial (ASF) | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf6adce89cb14e31f0fb9", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Statut allocation de soutien familial (ASF) | Bouquet API Particulier permet de savoir si un particulier est bénéficiaire d'allocation de soutien familial." },
+        { title: "API Complémentaire santé solidaire | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf65bd5e4c56502e38b6b", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Complémentaire santé solidaire | Bouquet API Particulier permet de savoir si un particulier est bénéficiaire de la complémentaire santé solidaire (C2S)." },
+        { title: "API Service national - DSNJ | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/688c7cbf284f92bdeff43a73", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Statut prime d'activité | Bouquet API Particulier permet de savoir si le jeune est en règle vis à vis de ses obligations de Service national." },
+        { title: "API Participation familiale EAJE | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/688c833e18a96f3fcd04d82e", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L'API Participation familiale EAJE | Bouquet API Particulier permet de connaître pour un particulier les différents paramètres entant dans le calcul de la participation familiale." },
+        { title: "API Impôt particulier", url: "https://www.data.gouv.fr/fr/dataservices/672cf984cbc098058850c092", org: "Ministères économiques et financiers", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/3b/06ce9c1027460a87364418789747b6-100.jpg", restricted: true, description: "L'API Impôt particulier simplifie les démarches des usagers et le processus de gestion de vos téléservices. Elle permet l’échange d’informations fiscales entre la DGFiP et une entité…" },
+        { title: "Extrait d'immatriculation véhicule | Bouquet API Particulier", url: "https://www.data.gouv.fr/fr/dataservices/6941379e0923b854aa9bf30d", org: "Direction interministérielle du numérique", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/a0/16eb04d7754b989b7dcd21d77699bd-100.png", restricted: true, description: "L''API Extrait d'immatriculation du véhicule délivre, à destination exclusive des collectivités dans le cadre de la tarification du stationnement résidentiel, l'extrait d'immatriculation du…" },
+        { title: "API de droits à l'Assurance Maladie", url: "https://www.data.gouv.fr/fr/dataservices/672cf6605e554cca4a916025", org: "Caisse nationale de l'Assurance Maladie", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/8d/8730ab0848453191079b61525da588-100.png", restricted: true, description: "Cette API présente les droits, d’un individu ou d’une famille (enfants rattachés), gérés par le régime général de l’Assurance Maladie." },
+        { title: "API Indemnités Journalières de la CNAM", url: "https://www.data.gouv.fr/fr/dataservices/672cf6776d09c75cace6a624", org: "Caisse nationale de l'Assurance Maladie", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/8d/8730ab0848453191079b61525da588-100.png", restricted: true, description: "Cette API présente les montants d'indemnités journalières auxquels ont droit les assurés, grâce au régime général de l’Assurance Maladie." },
+        { title: "API Statut demandeur d'emploi", url: "https://www.data.gouv.fr/fr/dataservices/672cfc48f92a8fae20ccf3eb", org: "France Travail", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/f7/1ee271e92c4eedbdc15a62ee437a69-100.jpg", restricted: true, description: "Cette API permet de vérifier si un individu est inscrit comme demandeur d’emploi. Cette API s'adresse aux administrations et aux collectivités pour les aider à simplifier les démarches en…" },
+        { title: "API Liste des paiements", url: "https://www.data.gouv.fr/fr/dataservices/672cf647fcc8065be6e66f51", org: "France Travail", logo: "https://udata-avatars.s3.rbx.io.cloud.ovh.net/f7/1ee271e92c4eedbdc15a62ee437a69-100.jpg", restricted: true, description: "Cette API permet à une administration de connaitre les paiements versés par France Travail à un individu inscrit comme demandeur d’emploi depuis sa dernière inscription et qui effectue une…" }
+      ]
+    %>
+
+    <ul class="fr-mt-2w fr-p-0 list-none">
+      <% apis_franceconnectees.each do |api| %>
+        <li class="fr-mb-3w">
+          <%= render DataserviceCardComponent.new(api: api) %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+<% end %>
