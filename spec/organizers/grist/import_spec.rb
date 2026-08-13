@@ -72,10 +72,10 @@ RSpec.describe Grist::Import do
     expect(consommation.demarches).to contain_exactly(cantine)
   end
 
-  it 'reclassifies FranceConnect integrations as authentifie' do
+  it 'imports FranceConnect integrations as ordinary consomme rows' do
     result
     fc = Integration.find_by!(grist_id: 'API_et_datasets_integres:101')
-    expect(fc.type_integration).to eq('authentifie')
+    expect(fc.type_integration).to eq('consomme')
     expect(fc.integree.nom).to eq('API FranceConnect')
   end
 

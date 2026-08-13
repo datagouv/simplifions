@@ -7,7 +7,7 @@ RSpec.describe Solution do
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       france_connect = described_class.create!(nom: 'FranceConnect', categorie: 'api')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
-      Integration.create!(integratrice: bouquet, integree: france_connect, type_integration: 'authentifie')
+      Integration.create!(integratrice: bouquet, integree: france_connect, type_integration: 'consomme')
 
       expect(bouquet.exposees).to contain_exactly(api_qf)
     end
