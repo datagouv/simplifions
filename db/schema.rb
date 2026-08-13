@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,7 +89,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
     t.string "grist_id"
     t.bigint "integratrice_id", null: false
     t.bigint "integree_id", null: false
-    t.text "notes"
     t.string "statut"
     t.string "type_integration", null: false
     t.datetime "updated_at", null: false
