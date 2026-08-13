@@ -30,4 +30,16 @@ RSpec.describe Solution do
       expect(described_class.visibles).to contain_exactly(visible)
     end
   end
+
+  describe '#privee?' do
+    it 'derives from the operators, false when no operator says so' do
+      expect(described_class.create!(nom: 'Acheteza',
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])).to be_privee
+      expect(described_class.create!(nom: 'Bouquet',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])).not_to be_privee
+      expect(described_class.create!(nom: 'Sans opérateur')).not_to be_privee
+      expect(described_class.create!(nom: 'Indéterminée',
+        organisations: [Organisation.create!(nom: 'Mystère')])).not_to be_privee
+    end
+  end
 end

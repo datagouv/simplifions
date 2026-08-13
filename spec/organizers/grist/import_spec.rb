@@ -209,6 +209,19 @@ RSpec.describe Grist::Import do
     expect(api51.reload).to have_attributes(categorie: 'api', slug: nil)
   end
 
+  it 'quarantines a recommandation putting a privately-operated solution forward' do
+    recos = JSON.parse(Rails.root.join('spec/fixtures/grist/Recommandations.json').read)
+    recos['records'] << { 'id' => 902, 'fields' => {
+      'Cas_d_usage' => 8, 'Solution_recommandee' => 32, 'Visible_sur_simplifions' => true
+    } }
+    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Recommandations/records")
+      .to_return(status: 200, body: recos.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    expect(result).to be_a_success
+    expect(result.report[:quarantine].join).to include('Recommandations:902')
+    expect(Recommandation.find_by(grist_id: 'Recommandations:902')).to be_nil
+  end
+
   it 'adopts a scoping-born recommandation when a real utiles row appears for the same pair' do
     result
     eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')

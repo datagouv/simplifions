@@ -32,6 +32,21 @@ RSpec.describe Recommandation do
     end
   end
 
+  describe 'contrainte politique' do
+    it 'refuses a recommandation putting a privately-operated solution forward, when deducible' do
+      demarche = Demarche.create!(nom: 'Démarche')
+      privee = Solution.create!(nom: 'Acheteza',
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])
+      publique = Solution.create!(nom: 'Bouquet API Particulier',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      sans_operateur = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+
+      expect(described_class.new(demarche:, solution: privee)).not_to be_valid
+      expect(described_class.new(demarche:, solution: publique)).to be_valid
+      expect(described_class.new(demarche:, solution: sans_operateur, niveau: :niveau_1)).to be_valid
+    end
+  end
+
   describe '.visibles' do
     it 'returns only visible recommandations' do
       demarche = Demarche.create!(nom: 'Démarche')

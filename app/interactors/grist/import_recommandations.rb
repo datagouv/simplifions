@@ -37,6 +37,8 @@ class Grist::ImportRecommandations < Grist::ImportStep
       solution = context.index["APIs_et_datasets:#{fields['API_ou_dataset_fourni']}"] || next
       Demarche.where(id: ids('Cas_d_usages', fields['Utile_pour_les_cas_d_usages'], gid)).find_each do |demarche|
         seen(Recommandation.find_or_create_by!(demarche:, solution:) { |reco| reco.niveau = :niveau_1 })
+      rescue ActiveRecord::RecordInvalid => e
+        quarantine(gid, e.message)
       end
     end
   end

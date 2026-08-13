@@ -23,4 +23,6 @@ class Solution < ApplicationRecord
   scope :visibles, -> { where(visible: true) }
 
   def fiche? = !categorie_api? && !categorie_base_de_donnees?
+
+  def privee? = organisations.any? { |organisation| organisation.public_ou_prive == 'Privé' }
 end

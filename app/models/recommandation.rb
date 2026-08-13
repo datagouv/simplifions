@@ -8,6 +8,8 @@ class Recommandation < ApplicationRecord
 
   scope :visibles, -> { where(visible: true) }
 
+  validate :ne_recommande_pas_de_solution_privee
+
   def solutions_integratrices
     Solution.where(
       id: Integration.en_production.pour_demarche(demarche)
@@ -18,5 +20,11 @@ class Recommandation < ApplicationRecord
 
   def moyens_acces
     solutions_integratrices.group_by(&:categorie)
+  end
+
+  private
+
+  def ne_recommande_pas_de_solution_privee
+    errors.add(:solution, 'une solution privée ne peut pas être mise en avant') if solution&.privee?
   end
 end
