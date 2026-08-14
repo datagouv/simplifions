@@ -13,6 +13,8 @@ help: ## Affiche cette aide
 install: check ## Prépare tout (images docker + base de données)
 	@echo "→ Construction de l'image de l'application (quelques minutes la première fois)..."
 	@$(COMPOSE) build
+	@echo "→ Installation des dépendances..."
+	@$(COMPOSE) run --rm web bundle install
 	@echo "→ Préparation de la base de données..."
 	@$(COMPOSE) run --rm web bin/rails db:prepare
 	@echo ""
