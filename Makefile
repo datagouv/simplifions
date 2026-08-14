@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help install start stop restart logs console check
+.PHONY: help install import start stop restart logs console check
 
 COMPOSE = docker compose
 
@@ -17,8 +17,17 @@ install: check ## Prépare tout (images docker + base de données)
 	@$(COMPOSE) run --rm web bundle install
 	@echo "→ Préparation de la base de données..."
 	@$(COMPOSE) run --rm web bin/rails db:prepare
+	@$(MAKE) --no-print-directory import || { \
+		echo ""; \
+		echo "⚠ Le catalogue n'a pas pu être récupéré depuis Grist."; \
+		echo "  Le site fonctionnera mais sera vide : relancez « make import » plus tard."; }
 	@echo ""
 	@echo "✓ Installation terminée. Lancez « make start » pour démarrer le site."
+
+import: check ## Récupère le catalogue depuis Grist (rejouable à volonté)
+	@echo "→ Récupération du catalogue depuis Grist..."
+	@$(COMPOSE) run --rm web bin/rails grist:import
+	@echo "✓ Catalogue à jour."
 
 start: check ## Démarre le site sur http://localhost:3000
 	@$(COMPOSE) up --detach
