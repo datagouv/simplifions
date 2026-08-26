@@ -17,6 +17,11 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 gem "view_component"
+# Chain-of-command pipelines (Grist import)
+gem "interactor"
+
+# Store Active Storage blobs in PostgreSQL, shared by every host [https://github.com/blocknotes/active_storage_db]
+gem "active_storage_db"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"

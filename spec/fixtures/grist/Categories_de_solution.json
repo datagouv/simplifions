@@ -1,0 +1,25 @@
+{
+ "records": [
+  {
+   "id": 1,
+   "fields": {
+    "Nom": "Brique technique",
+    "slug": "brique-technique"
+   }
+  },
+  {
+   "id": 2,
+   "fields": {
+    "Nom": "Logiciel métier",
+    "slug": "logiciel-metier"
+   }
+  },
+  {
+   "id": 3,
+   "fields": {
+    "Nom": "Portail de consultation",
+    "slug": "portail-consultation"
+   }
+  }
+ ]
+}

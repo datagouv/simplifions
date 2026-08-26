@@ -1,0 +1,213 @@
+{
+ "records": [
+  {
+   "id": 1,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762417690.788151,
+    "Nom": "API Quotient familial MSA & CAF | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf982fcc8065be6e66f54",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 2,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762417739.460681,
+    "Nom": "API Statut étudiant | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf667c3488a0c533f7092",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 3,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531015.860345,
+    "Nom": "API Statut étudiant boursier | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6900a2a1df94c9cc37c",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 4,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762533160.665688,
+    "Nom": "API Statut élève scolarisé et boursier | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6aa26b31834a945cf00",
+    "API_FranceConnectee": false
+   }
+  },
+  {
+   "id": 5,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531050.561675,
+    "Nom": "API Statut demandeur d'emploi | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6aba316ad54c9a7f19a",
+    "API_FranceConnectee": false
+   }
+  },
+  {
+   "id": 6,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531042.448469,
+    "Nom": "API Paiements versés par France Travail | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6ab6d09c75cace6a62a",
+    "API_FranceConnectee": false
+   }
+  },
+  {
+   "id": 7,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531074.761935,
+    "Nom": "API Statut revenu de solidarité active (RSA) | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6acf1ebb86a67488d05",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 8,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531082.809023,
+    "Nom": "API Statut prime d'activité | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6acc34230c996aab5a5",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 9,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531067.664199,
+    "Nom": "API Statut allocation adulte handicapé (AAH) | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6ada37a79f6ff3e3254",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 10,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531069.611603,
+    "Nom": "API Statut allocation de soutien familial (ASF) | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf6adce89cb14e31f0fb9",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 11,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762531070.046069,
+    "Nom": "API Statut complémentaire santé solidaire (C2S) | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "672cf65bd5e4c56502e38b6b",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 12,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762530965.430157,
+    "Nom": "API Service national | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "688c7cbf284f92bdeff43a73",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 13,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1756998859.66675,
+    "Nom": "API Statut sportif de haut niveau et sur liste ministérielle | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "688c7ea9e4a690abc0d3aeec",
+    "API_FranceConnectee": false
+   }
+  },
+  {
+   "id": 14,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1762530980.388472,
+    "Nom": "API Participation familiale EAJE | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "688c833e18a96f3fcd04d82e",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 51,
+   "fields": {
+    "Visible_sur_simplifions": false,
+    "Modifie_le": 1756998859.671622,
+    "Nom": "Mention actes d'État civil",
+    "Type": "Schéma de données",
+    "UID_datagouv": "",
+    "API_FranceConnectee": false
+   }
+  },
+  {
+   "id": 59,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1756998859.671998,
+    "Nom": "API FranceConnect",
+    "Type": "API",
+    "UID_datagouv": "672cf6944a683b4496789e92",
+    "API_FranceConnectee": false
+   }
+  },
+  {
+   "id": 99,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1765881841.06521,
+    "Nom": "API Extrait d'immatriculation véhicule | Bouquet API Particulier",
+    "Type": "API",
+    "UID_datagouv": "6941379e0923b854aa9bf30d",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 109,
+   "fields": {
+    "Visible_sur_simplifions": false,
+    "Modifie_le": 1773158059.692582,
+    "Nom": "API Statut allocation d'éducation de l'enfant handicapé (AEEH)",
+    "Type": "API",
+    "UID_datagouv": "69b03e90b9b9fcfa5cd686b7",
+    "API_FranceConnectee": true
+   }
+  },
+  {
+   "id": 45,
+   "fields": {
+    "Visible_sur_simplifions": true,
+    "Modifie_le": 1756998859.671107,
+    "Nom": "Répertoire des entreprises - Polynésie Française",
+    "Type": "Jeu de données",
+    "UID_datagouv": "6111ca4eceb85a1af39e9f47",
+    "API_FranceConnectee": false
+   }
+  }
+ ]
+}

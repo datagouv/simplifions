@@ -1,0 +1,44 @@
+{
+ "records": [
+  {
+   "id": 4,
+   "fields": {
+    "Nom": "DINUM",
+    "Nom_long": "Direction interministérielle du numérique",
+    "Public_ou_prive": "Public",
+    "Type_d_organisation_privee": "",
+    "Site_internet": null
+   }
+  },
+  {
+   "id": 5,
+   "fields": {
+    "Nom": "DAJ",
+    "Nom_long": "Direction des affaires juridiques",
+    "Public_ou_prive": "Public",
+    "Type_d_organisation_privee": "",
+    "Site_internet": null
+   }
+  },
+  {
+   "id": 76,
+   "fields": {
+    "Nom": "Acheteza",
+    "Nom_long": null,
+    "Public_ou_prive": "Privé",
+    "Type_d_organisation_privee": "",
+    "Site_internet": ""
+   }
+  },
+  {
+   "id": 96,
+   "fields": {
+    "Nom": "Omnikles",
+    "Nom_long": "",
+    "Public_ou_prive": "Privé",
+    "Type_d_organisation_privee": "Entreprise privée",
+    "Site_internet": "https://www.omnikles.com/"
+   }
+  }
+ ]
+}

@@ -1,0 +1,72 @@
+{
+ "records": [
+  {
+   "id": 1,
+   "fields": {
+    "Label": "Communes et groupements de communes",
+    "Ce_que_cela_inclut": "Inclut : \n- les régies communales (exemple régie communale d'électricité)\n- les villes\n\nInclut les EPCI :\n- Communauté de communes (CC),\n- Communauté ",
+    "Codes_juridiques": "7210, 7358 une partie de 4150\n\nEPCI : 7343, 7344, 7345, 7346, 7347, 7348\n\nSyndicat mixte fermé : 7354, 7353 (SIVU)",
+    "slugs": [
+     "L",
+     "communes",
+     "tout-collectivites-territoires",
+     "tout-acteurs-publics"
+    ]
+   }
+  },
+  {
+   "id": 2,
+   "fields": {
+    "Label": "Départements",
+    "Ce_que_cela_inclut": "Inclut les services spécifiques tels que services incendie",
+    "Codes_juridiques": "7220, 7372 (service incendie et secours -  SDIS)",
+    "slugs": [
+     "L",
+     "departements",
+     "tout-collectivites-territoires",
+     "tout-acteurs-publics"
+    ]
+   }
+  },
+  {
+   "id": 3,
+   "fields": {
+    "Label": "Régions",
+    "Ce_que_cela_inclut": "",
+    "Codes_juridiques": "7230",
+    "slugs": [
+     "L",
+     "regions",
+     "tout-collectivites-territoires",
+     "tout-acteurs-publics"
+    ]
+   }
+  },
+  {
+   "id": 4,
+   "fields": {
+    "Label": "Ministères, services centraux et déconcentrés",
+    "Ce_que_cela_inclut": "",
+    "Codes_juridiques": "7113, 7120, 7150, 7160, 7171, 7172, 7179",
+    "slugs": [
+     "L",
+     "etat",
+     "tout-acteurs-publics"
+    ]
+   }
+  },
+  {
+   "id": 5,
+   "fields": {
+    "Label": "Agences, centres, caisses et offices publics nationaux",
+    "Ce_que_cela_inclut": "EPA : Agence nationale de…, Centre national de…, Office…, Caisse nationale, France Travail\n\nEntretien Miryad : doute sur cette section qui aurait été ",
+    "Codes_juridiques": "",
+    "slugs": [
+     "L",
+     "etat",
+     "tout-acteurs-publics"
+    ]
+   }
+  }
+ ]
+}
