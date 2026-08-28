@@ -25,9 +25,9 @@ class Grist::ImportStep < ApplicationInteractor
       return nil
     end
 
-    row.grist_id = gid
-    row.assign_attributes(attributes)
+    row.assign_attributes(attributes.merge(grist_id: gid))
     normalise_slug(row, gid)
+    assign_cree_le(row, gid)
     row.save!
     context.index[gid] = row
     seen(row)
@@ -58,9 +58,15 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def assign_slug(row, gid)
-    slug = SNAPSHOT[gid] || row.nom.to_s.parameterize
+    slug = SNAPSHOT.dig(gid, 'slug') || row.nom.to_s.parameterize
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug
+  end
+
+  def assign_cree_le(row, gid)
+    return unless row.respond_to?(:cree_le) && row.cree_le.blank?
+
+    row.cree_le = SNAPSHOT.dig(gid, 'cree_le')
   end
 
   def find(table, ref, gid)

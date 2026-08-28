@@ -1,105 +1,422 @@
 {
-  "Cas_d_usages:1": "marches-publics-depot-et-instruction-des-candidatures",
-  "Cas_d_usages:10": "tarification-sociale-des-services-municipaux-a-lenfance",
-  "Cas_d_usages:11": "tarification-cantine-au-college-et-lycee",
-  "Cas_d_usages:12": "aides-facultatives-regionales-et-departementales-aux-particuliers",
-  "Cas_d_usages:13": "aides-sociales-des-ccas",
-  "Cas_d_usages:14": "gestion-rh-secteur-public",
-  "Cas_d_usages:2": "aides-publiques-entreprises-sourcage",
-  "Cas_d_usages:22": "detection-de-la-fraude-des-entreprises",
-  "Cas_d_usages:24": "tarification-du-stationnement-residentiel-attribution-1",
-  "Cas_d_usages:25": "inscription-administrative-dun-etudiant-dans-un-etablissement-denseignement-superieur",
-  "Cas_d_usages:26": "identification-dune-entreprise-ou-dune-association",
-  "Cas_d_usages:29": "subventions-des-associations-compte-rendu-financier",
-  "Cas_d_usages:3": "aides-publiques-entreprises-depot-et-instruction-des-demandes",
-  "Cas_d_usages:30": "formation-professionnelle-financee",
-  "Cas_d_usages:32": "tarification-daccueil-du-jeune-enfant-par-un-eaje-beneficiant-de-la-psu",
-  "Cas_d_usages:33": "authentification-dun-particulier",
-  "Cas_d_usages:35": "authentification-dun-professionnel",
-  "Cas_d_usages:36": "auto-completion-ou-pre-remplissage-dune-adresse",
-  "Cas_d_usages:37": "facturation-des-particuliers-fiabilisation-des-tiers",
-  "Cas_d_usages:4": "marches-publics-sourcing",
-  "Cas_d_usages:41": "demarches-proactives-pour-les-etudiants-boursiers",
-  "Cas_d_usages:42": "tarification-cantine-et-restauration-scolaire",
-  "Cas_d_usages:43": "actes-detat-civil",
-  "Cas_d_usages:45": "aides-publiques-personnes-morales-et-entreprises-individuelles-suivi-des-tiers-aides",
-  "Cas_d_usages:5": "marches-publics-suivi-des-contrats",
-  "Cas_d_usages:7": "subventions-des-associations-attribution",
-  "Cas_d_usages:8": "tarification-cantine-scolaire-a-1eur",
-  "Cas_d_usages:9": "tarification-sociale-solidaire-des-transports-publics-attribution",
-  "Solutions:1": "bouquet-api-particulier",
-  "Solutions:102": "ykidz",
-  "Solutions:103": "marches-securises-fr",
-  "Solutions:106": "proxima-enf",
-  "Solutions:107": "keolis",
-  "Solutions:108": "malice-1",
-  "Solutions:109": "xmarches-1",
-  "Solutions:110": "actradis-fr",
-  "Solutions:120": "logiciel-enfance-2",
-  "Solutions:121": "proconnect",
-  "Solutions:124": "safe-tender",
-  "Solutions:126": "nc-connect",
-  "Solutions:128": "api-impot-particulier",
-  "Solutions:129": "api-service-finances-publiques-sfip",
-  "Solutions:130": "babicarte",
-  "Solutions:131": "eovia",
-  "Solutions:132": "webresto",
-  "Solutions:133": "generateur-de-fichiers-de-contact-pour-la-proactivite",
-  "Solutions:14": "le-compteasso-osiris",
-  "Solutions:140": "agora-baby",
-  "Solutions:151": "mon-guichet",
-  "Solutions:152": "hoptis",
-  "Solutions:153": "bouquet-de-services-aux-mairies-service-public-fr",
-  "Solutions:154": "babily",
-  "Solutions:155": "mikado",
-  "Solutions:156": "opticreche",
-  "Solutions:16": "document-unique-de-marche-europeen",
-  "Solutions:18": "place",
-  "Solutions:2": "bouquet-api-entreprise",
-  "Solutions:22": "local-trust-marches-publics",
-  "Solutions:23": "achat-solution",
-  "Solutions:25": "approval",
-  "Solutions:27": "provigis-plateforme",
-  "Solutions:28": "diabolo",
-  "Solutions:29": "concerto",
-  "Solutions:3": "annuaire-des-entreprises",
-  "Solutions:31": "achat-public-com",
-  "Solutions:32": "acheteza",
-  "Solutions:34": "agora-famille",
-  "Solutions:35": "airweb",
-  "Solutions:36": "millesime-1",
-  "Solutions:37": "sonate-1",
-  "Solutions:38": "duonet-1",
-  "Solutions:4": "formulaire-de-collecte-du-quotient-familial",
-  "Solutions:41": "aws-achat",
-  "Solutions:45": "bl-enfance",
-  "Solutions:48": "carte",
-  "Solutions:50": "civil-enfance-1",
-  "Solutions:52": "capdemat-evolution-1",
-  "Solutions:55": "e-marchespublics-com",
-  "Solutions:57": "fast",
-  "Solutions:59": "loyfeey-1",
-  "Solutions:6": "data-subvention",
-  "Solutions:62": "publik-1",
-  "Solutions:63": "publik-famille-1",
-  "Solutions:65": "extenso-cloud",
-  "Solutions:68": "familyclic-1",
-  "Solutions:69": "cantine-de-france-1",
-  "Solutions:7": "demarches-simplifiees",
-  "Solutions:70": "mairistem-1",
-  "Solutions:71": "klekoon-com",
-  "Solutions:76": "maximilien-1",
-  "Solutions:78": "portail-des-aides-entreprises-1",
-  "Solutions:79": "aiden-1",
-  "Solutions:8": "franceconnect-2",
-  "Solutions:81": "city-family-1",
-  "Solutions:83": "nfi-1",
-  "Solutions:84": "noethys",
-  "Solutions:86": "pandore-1",
-  "Solutions:88": "paxtel-1",
-  "Solutions:90": "eticket-1",
-  "Solutions:92": "maelis-1",
-  "Solutions:95": "smart-public-1",
-  "Solutions:97": "axel-1",
-  "Solutions:99": "myperischool-1"
+ "Cas_d_usages:1": {
+  "cree_le": "2025-09-29T12:14:24.666000+00:00",
+  "slug": "marches-publics-depot-et-instruction-des-candidatures"
+ },
+ "Cas_d_usages:10": {
+  "cree_le": "2025-09-29T12:14:27.357000+00:00",
+  "slug": "tarification-sociale-des-services-municipaux-a-lenfance"
+ },
+ "Cas_d_usages:11": {
+  "cree_le": "2025-09-29T12:14:27.570000+00:00",
+  "slug": "tarification-cantine-au-college-et-lycee"
+ },
+ "Cas_d_usages:12": {
+  "cree_le": "2025-09-29T12:14:27.792000+00:00",
+  "slug": "aides-facultatives-regionales-et-departementales-aux-particuliers"
+ },
+ "Cas_d_usages:13": {
+  "cree_le": "2025-09-29T12:14:28.035000+00:00",
+  "slug": "aides-sociales-des-ccas"
+ },
+ "Cas_d_usages:14": {
+  "cree_le": "2025-09-29T12:14:28.247000+00:00",
+  "slug": "gestion-rh-secteur-public"
+ },
+ "Cas_d_usages:2": {
+  "cree_le": "2025-09-29T12:14:24.956000+00:00",
+  "slug": "aides-publiques-entreprises-sourcage"
+ },
+ "Cas_d_usages:22": {
+  "cree_le": "2025-09-29T12:14:30.506000+00:00",
+  "slug": "detection-de-la-fraude-des-entreprises"
+ },
+ "Cas_d_usages:24": {
+  "cree_le": "2025-09-29T12:14:30.949000+00:00",
+  "slug": "tarification-du-stationnement-residentiel-attribution-1"
+ },
+ "Cas_d_usages:25": {
+  "cree_le": "2025-09-29T12:14:31.214000+00:00",
+  "slug": "inscription-administrative-dun-etudiant-dans-un-etablissement-denseignement-superieur"
+ },
+ "Cas_d_usages:26": {
+  "cree_le": "2025-09-29T12:14:31.467000+00:00",
+  "slug": "identification-dune-entreprise-ou-dune-association"
+ },
+ "Cas_d_usages:29": {
+  "cree_le": "2025-09-29T12:14:32.173000+00:00",
+  "slug": "subventions-des-associations-compte-rendu-financier"
+ },
+ "Cas_d_usages:3": {
+  "cree_le": "2025-09-29T12:14:25.162000+00:00",
+  "slug": "aides-publiques-entreprises-depot-et-instruction-des-demandes"
+ },
+ "Cas_d_usages:30": {
+  "cree_le": "2025-09-29T12:14:32.428000+00:00",
+  "slug": "formation-professionnelle-financee"
+ },
+ "Cas_d_usages:32": {
+  "cree_le": "2025-09-29T12:14:32.876000+00:00",
+  "slug": "tarification-daccueil-du-jeune-enfant-par-un-eaje-beneficiant-de-la-psu"
+ },
+ "Cas_d_usages:33": {
+  "cree_le": "2025-09-29T12:14:33.152000+00:00",
+  "slug": "authentification-dun-particulier"
+ },
+ "Cas_d_usages:35": {
+  "cree_le": "2025-10-08T23:00:32.755000+00:00",
+  "slug": "authentification-dun-professionnel"
+ },
+ "Cas_d_usages:36": {
+  "cree_le": "2025-10-18T00:00:31.253000+00:00",
+  "slug": "auto-completion-ou-pre-remplissage-dune-adresse"
+ },
+ "Cas_d_usages:37": {
+  "cree_le": "2026-01-22T08:42:34.320000+00:00",
+  "slug": "facturation-des-particuliers-fiabilisation-des-tiers"
+ },
+ "Cas_d_usages:4": {
+  "cree_le": "2025-09-29T12:14:25.422000+00:00",
+  "slug": "marches-publics-sourcing"
+ },
+ "Cas_d_usages:41": {
+  "cree_le": "2026-07-18T00:02:02.304000+00:00",
+  "slug": "demarches-proactives-pour-les-etudiants-boursiers"
+ },
+ "Cas_d_usages:42": {
+  "cree_le": "2026-07-22T00:02:48.416000+00:00",
+  "slug": "tarification-cantine-et-restauration-scolaire"
+ },
+ "Cas_d_usages:43": {
+  "cree_le": "2026-07-22T00:02:48.603000+00:00",
+  "slug": "actes-detat-civil"
+ },
+ "Cas_d_usages:45": {
+  "cree_le": "2026-07-29T00:02:40.209000+00:00",
+  "slug": "aides-publiques-entreprises-et-associations-suivi-des-tiers-aides"
+ },
+ "Cas_d_usages:5": {
+  "cree_le": "2025-09-29T12:14:25.668000+00:00",
+  "slug": "marches-publics-suivi-des-contrats"
+ },
+ "Cas_d_usages:7": {
+  "cree_le": "2025-09-29T12:14:26.291000+00:00",
+  "slug": "subventions-des-associations-attribution"
+ },
+ "Cas_d_usages:8": {
+  "cree_le": "2025-09-29T12:14:26.813000+00:00",
+  "slug": "tarification-cantine-scolaire-a-1eur"
+ },
+ "Cas_d_usages:9": {
+  "cree_le": "2025-09-29T12:14:27.058000+00:00",
+  "slug": "tarification-sociale-solidaire-des-transports-publics-attribution"
+ },
+ "Solutions:1": {
+  "cree_le": "2025-09-29T12:14:33.730000+00:00",
+  "slug": "bouquet-api-particulier"
+ },
+ "Solutions:10": {
+  "cree_le": "2025-09-29T12:14:35.820000+00:00",
+  "slug": "passe-marche"
+ },
+ "Solutions:102": {
+  "cree_le": "2025-09-29T12:14:58.135000+00:00",
+  "slug": "ykidz"
+ },
+ "Solutions:103": {
+  "cree_le": "2025-09-29T12:14:58.343000+00:00",
+  "slug": "marches-securises-fr"
+ },
+ "Solutions:106": {
+  "cree_le": "2025-09-29T12:14:58.938000+00:00",
+  "slug": "proxima-enf"
+ },
+ "Solutions:107": {
+  "cree_le": "2025-09-29T12:14:59.181000+00:00",
+  "slug": "keolis"
+ },
+ "Solutions:108": {
+  "cree_le": "2025-09-29T12:14:59.343000+00:00",
+  "slug": "malice-1"
+ },
+ "Solutions:109": {
+  "cree_le": "2025-09-29T12:14:59.567000+00:00",
+  "slug": "xmarches-1"
+ },
+ "Solutions:110": {
+  "cree_le": "2025-09-29T12:14:59.907000+00:00",
+  "slug": "actradis-fr"
+ },
+ "Solutions:120": {
+  "cree_le": "2025-10-10T23:00:50.735000+00:00",
+  "slug": "logiciel-enfance-2"
+ },
+ "Solutions:121": {
+  "cree_le": "2025-10-10T23:00:51.098000+00:00",
+  "slug": "proconnect"
+ },
+ "Solutions:124": {
+  "cree_le": "2025-10-14T23:00:34.459000+00:00",
+  "slug": "safe-tender"
+ },
+ "Solutions:126": {
+  "cree_le": "2025-10-22T00:00:35.003000+00:00",
+  "slug": "nc-connect"
+ },
+ "Solutions:128": {
+  "cree_le": "2026-01-22T08:42:49.900000+00:00",
+  "slug": "api-impot-particulier"
+ },
+ "Solutions:129": {
+  "cree_le": "2026-01-22T08:42:50.154000+00:00",
+  "slug": "api-service-finances-publiques-sfip"
+ },
+ "Solutions:130": {
+  "cree_le": "2026-02-28T01:01:17.740000+00:00",
+  "slug": "babicarte"
+ },
+ "Solutions:131": {
+  "cree_le": "2026-04-07T00:01:16.584000+00:00",
+  "slug": "eovia"
+ },
+ "Solutions:132": {
+  "cree_le": "2026-04-23T00:01:06.844000+00:00",
+  "slug": "webresto"
+ },
+ "Solutions:133": {
+  "cree_le": "2026-05-30T00:01:44.070000+00:00",
+  "slug": "generateur-de-fichiers-de-contact-pour-la-proactivite"
+ },
+ "Solutions:14": {
+  "cree_le": "2025-09-29T12:14:36.828000+00:00",
+  "slug": "le-compteasso-osiris"
+ },
+ "Solutions:140": {
+  "cree_le": "2026-07-16T00:02:24.547000+00:00",
+  "slug": "agora-baby"
+ },
+ "Solutions:151": {
+  "cree_le": "2026-07-16T00:02:24.995000+00:00",
+  "slug": "mon-guichet"
+ },
+ "Solutions:152": {
+  "cree_le": "2026-07-17T00:02:17.871000+00:00",
+  "slug": "hoptis"
+ },
+ "Solutions:153": {
+  "cree_le": "2026-07-22T00:02:41.114000+00:00",
+  "slug": "bouquet-de-services-aux-mairies-service-public-fr"
+ },
+ "Solutions:154": {
+  "cree_le": "2026-07-22T00:02:41.345000+00:00",
+  "slug": "babily"
+ },
+ "Solutions:155": {
+  "cree_le": "2026-07-24T00:02:05.880000+00:00",
+  "slug": "mikado"
+ },
+ "Solutions:156": {
+  "cree_le": "2026-07-28T00:02:28.402000+00:00",
+  "slug": "opticreche"
+ },
+ "Solutions:157": {
+  "cree_le": "2026-08-13T00:02:20.314000+00:00",
+  "slug": "opc"
+ },
+ "Solutions:16": {
+  "cree_le": "2025-09-29T12:14:37.329000+00:00",
+  "slug": "document-unique-de-marche-europeen"
+ },
+ "Solutions:18": {
+  "cree_le": "2025-09-29T12:14:37.826000+00:00",
+  "slug": "place"
+ },
+ "Solutions:2": {
+  "cree_le": "2025-09-29T12:14:33.970000+00:00",
+  "slug": "bouquet-api-entreprise"
+ },
+ "Solutions:22": {
+  "cree_le": "2025-09-29T12:14:38.772000+00:00",
+  "slug": "local-trust-marches-publics"
+ },
+ "Solutions:23": {
+  "cree_le": "2025-09-29T12:14:39.017000+00:00",
+  "slug": "achat-solution"
+ },
+ "Solutions:25": {
+  "cree_le": "2025-09-29T12:14:39.480000+00:00",
+  "slug": "approval"
+ },
+ "Solutions:27": {
+  "cree_le": "2025-09-29T12:14:39.984000+00:00",
+  "slug": "provigis-plateforme"
+ },
+ "Solutions:28": {
+  "cree_le": "2025-09-29T12:14:40.210000+00:00",
+  "slug": "diabolo"
+ },
+ "Solutions:29": {
+  "cree_le": "2025-09-29T12:14:40.510000+00:00",
+  "slug": "concerto"
+ },
+ "Solutions:3": {
+  "cree_le": "2025-09-29T12:14:34.208000+00:00",
+  "slug": "annuaire-des-entreprises"
+ },
+ "Solutions:31": {
+  "cree_le": "2025-09-29T12:14:41.037000+00:00",
+  "slug": "achat-public-com"
+ },
+ "Solutions:32": {
+  "cree_le": "2025-09-29T12:14:41.478000+00:00",
+  "slug": "acheteza"
+ },
+ "Solutions:34": {
+  "cree_le": "2025-09-29T12:14:41.961000+00:00",
+  "slug": "agora-famille"
+ },
+ "Solutions:35": {
+  "cree_le": "2025-09-29T12:14:42.192000+00:00",
+  "slug": "airweb"
+ },
+ "Solutions:36": {
+  "cree_le": "2025-09-29T12:14:42.418000+00:00",
+  "slug": "millesime-1"
+ },
+ "Solutions:37": {
+  "cree_le": "2025-09-29T12:14:42.654000+00:00",
+  "slug": "sonate-1"
+ },
+ "Solutions:38": {
+  "cree_le": "2025-09-29T12:14:42.917000+00:00",
+  "slug": "duonet-1"
+ },
+ "Solutions:4": {
+  "cree_le": "2025-09-29T12:14:34.435000+00:00",
+  "slug": "formulaire-de-collecte-du-quotient-familial"
+ },
+ "Solutions:41": {
+  "cree_le": "2025-09-29T12:14:43.586000+00:00",
+  "slug": "aws-achat"
+ },
+ "Solutions:45": {
+  "cree_le": "2025-09-29T12:14:44.597000+00:00",
+  "slug": "bl-enfance"
+ },
+ "Solutions:48": {
+  "cree_le": "2025-09-29T12:14:45.349000+00:00",
+  "slug": "carte"
+ },
+ "Solutions:50": {
+  "cree_le": "2025-09-29T12:14:45.869000+00:00",
+  "slug": "civil-enfance-1"
+ },
+ "Solutions:52": {
+  "cree_le": "2025-09-29T12:14:46.393000+00:00",
+  "slug": "capdemat-evolution-1"
+ },
+ "Solutions:55": {
+  "cree_le": "2025-09-29T12:14:47.194000+00:00",
+  "slug": "e-marchespublics-com"
+ },
+ "Solutions:57": {
+  "cree_le": "2025-09-29T12:14:47.627000+00:00",
+  "slug": "fast"
+ },
+ "Solutions:59": {
+  "cree_le": "2025-09-29T12:14:48.116000+00:00",
+  "slug": "loyfeey-1"
+ },
+ "Solutions:6": {
+  "cree_le": "2025-09-29T12:14:34.892000+00:00",
+  "slug": "data-subvention"
+ },
+ "Solutions:62": {
+  "cree_le": "2025-09-29T12:14:48.862000+00:00",
+  "slug": "publik-1"
+ },
+ "Solutions:63": {
+  "cree_le": "2025-09-29T12:14:49.138000+00:00",
+  "slug": "publik-famille-1"
+ },
+ "Solutions:65": {
+  "cree_le": "2025-09-29T12:14:49.502000+00:00",
+  "slug": "extenso-cloud"
+ },
+ "Solutions:68": {
+  "cree_le": "2025-09-29T12:14:50.119000+00:00",
+  "slug": "familyclic-1"
+ },
+ "Solutions:69": {
+  "cree_le": "2025-09-29T12:14:50.365000+00:00",
+  "slug": "cantine-de-france-1"
+ },
+ "Solutions:7": {
+  "cree_le": "2025-09-29T12:14:35.138000+00:00",
+  "slug": "demarches-simplifiees"
+ },
+ "Solutions:70": {
+  "cree_le": "2025-09-29T12:14:50.574000+00:00",
+  "slug": "mairistem-1"
+ },
+ "Solutions:71": {
+  "cree_le": "2025-09-29T12:14:50.752000+00:00",
+  "slug": "klekoon-com"
+ },
+ "Solutions:76": {
+  "cree_le": "2025-09-29T12:14:51.938000+00:00",
+  "slug": "maximilien-1"
+ },
+ "Solutions:78": {
+  "cree_le": "2025-09-29T12:14:52.464000+00:00",
+  "slug": "portail-des-aides-entreprises-1"
+ },
+ "Solutions:79": {
+  "cree_le": "2025-09-29T12:14:52.726000+00:00",
+  "slug": "aiden-1"
+ },
+ "Solutions:8": {
+  "cree_le": "2025-09-29T12:14:35.394000+00:00",
+  "slug": "franceconnect-2"
+ },
+ "Solutions:81": {
+  "cree_le": "2025-09-29T12:14:53.226000+00:00",
+  "slug": "city-family-1"
+ },
+ "Solutions:83": {
+  "cree_le": "2025-09-29T12:14:53.752000+00:00",
+  "slug": "nfi-1"
+ },
+ "Solutions:84": {
+  "cree_le": "2025-09-29T12:14:54.022000+00:00",
+  "slug": "noethys"
+ },
+ "Solutions:86": {
+  "cree_le": "2025-09-29T12:14:54.423000+00:00",
+  "slug": "pandore-1"
+ },
+ "Solutions:88": {
+  "cree_le": "2025-09-29T12:14:54.850000+00:00",
+  "slug": "paxtel-1"
+ },
+ "Solutions:90": {
+  "cree_le": "2025-09-29T12:14:55.312000+00:00",
+  "slug": "eticket-1"
+ },
+ "Solutions:92": {
+  "cree_le": "2025-09-29T12:14:55.816000+00:00",
+  "slug": "maelis-1"
+ },
+ "Solutions:95": {
+  "cree_le": "2025-09-29T12:14:56.578000+00:00",
+  "slug": "smart-public-1"
+ },
+ "Solutions:97": {
+  "cree_le": "2025-09-29T12:14:57.042000+00:00",
+  "slug": "axel-1"
+ },
+ "Solutions:99": {
+  "cree_le": "2025-09-29T12:14:57.455000+00:00",
+  "slug": "myperischool-1"
+ }
 }
