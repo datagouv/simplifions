@@ -17,6 +17,14 @@ Rails.application.routes.draw do
   get "articles" => "articles#index", as: :articles
   get "articles/:slug" => "articles#show", as: :article
 
+  get "demarches/:slug" => "demarches#show", as: :demarche
+  # Anciennes URLs des cas d'usage, conservées pour ne pas casser les 28 liens publiés.
+  # Le topic suivi-des-tiers-aides a été renommé côté data.gouv : son ancien slug publié
+  # doit rediriger vers le nouveau, avant la règle générique qui préserve le slug.
+  get "cas-d-usages/aides-publiques-personnes-morales-et-entreprises-individuelles-suivi-des-tiers-aides",
+    to: redirect("/demarches/aides-publiques-entreprises-et-associations-suivi-des-tiers-aides", status: 301)
+  get "cas-d-usages/:slug", to: redirect("/demarches/%{slug}", status: 301)
+
   # Anciennes URLs à plat des articles, conservées pour ne pas casser les liens externes
   %w[
     qu-est-ce-qu-une-api
