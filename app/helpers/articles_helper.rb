@@ -26,15 +26,4 @@ module ArticlesHelper
   def demarche_card(slug)
     DEMARCHE_CARDS.fetch(slug)
   end
-
-  def liste_humaine(items)
-    parts = []
-    items.each_with_index do |item, index|
-      if index.positive?
-        parts << (index == items.size - 1 ? ' et ' : ', ')
-      end
-      parts << tag.b(item)
-    end
-    safe_join(parts)
-  end
 end

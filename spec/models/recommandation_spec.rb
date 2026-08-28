@@ -1,6 +1,54 @@
 require 'rails_helper'
 
 RSpec.describe Recommandation do
+  describe '#lien_demande_acces' do
+    it 'préfère l’URL de la recommandation à celle de la solution et scope la démarche' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+        url_demande_acces: 'https://datapass.example/bouquet')
+      reco = described_class.create!(demarche:, solution:,
+        url_demande_acces: 'https://datapass.example/specifique?habilitation=42')
+
+      expect(reco.lien_demande_acces).to eq('https://datapass.example/specifique?habilitation=42&use_case=cantine')
+    end
+
+    it 'refuse toute URL qui n’est pas http(s), le contenu Grist étant semi-confiance' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+        url_demande_acces: 'javascript:alert(1)')
+      reco = described_class.create!(demarche:, solution:)
+
+      expect(reco.lien_demande_acces).to be_nil
+    end
+
+    it 'refuse une URL imparsable' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+        url_demande_acces: 'https://exa mple.com')
+      reco = described_class.create!(demarche:, solution:)
+
+      expect(reco.lien_demande_acces).to be_nil
+    end
+
+    it 'place la query avant le fragment' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+        url_demande_acces: 'https://datapass.example/bouquet#formulaire')
+      reco = described_class.create!(demarche:, solution:)
+
+      expect(reco.lien_demande_acces).to eq('https://datapass.example/bouquet?use_case=cantine#formulaire')
+    end
+
+    it 'retombe sur l’URL de la solution, en ajoutant la query' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+        url_demande_acces: 'https://datapass.example/bouquet')
+      reco = described_class.create!(demarche:, solution:)
+
+      expect(reco.lien_demande_acces).to eq('https://datapass.example/bouquet?use_case=cantine')
+    end
+  end
+
   describe '#moyens_acces' do
     it 'groups by categorie the in-production integrators of the target and its exposed solutions, scoped to the demarche' do
       cantine = Demarche.create!(nom: 'Cantine à 1€')

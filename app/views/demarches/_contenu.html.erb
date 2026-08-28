@@ -1,0 +1,8 @@
+<% if texte.present? %>
+  <%= markdown(texte) %>
+<% else %>
+  <p class="fr-text--sm">
+    <i>Aucun contenu actuellement.</i>
+    <a href="#modification-contenu">✒️ Proposer un contenu</a>.
+  </p>
+<% end %>

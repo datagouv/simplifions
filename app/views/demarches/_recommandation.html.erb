@@ -1,0 +1,209 @@
+<% cible = recommandation.solution
+   moyens = recommandation.moyens_acces
+   utiles = recommandation.apis_utiles.to_a
+   lien_demande_acces = recommandation.lien_demande_acces
+   nom_demarche = "#{recommandation.demarche.icone} #{recommandation.demarche.nom}".strip
+   accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
+                 ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
+                 ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites']] %>
+<div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>">
+  <h3 class="fr-h4 fr-mb-2w">
+    <span class="fr-text--alt"><em>Via «</em></span>
+    <%= cible.nom %>
+    <span class="fr-text--alt"><em>»</em></span>
+  </h3>
+
+  <div class="fr-grid-row fr-grid-row--top fr-mx-2w">
+    <div class="fr-mt-2w fr-mb-2w fr-col-12 fr-col-md-6">
+      <h4 class="fr-text--lg"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Données disponibles :</h4>
+      <% if recommandation.donnees_utiles.present? %>
+        <div class="fr-ml-3w"><%= markdown(recommandation.donnees_utiles) %></div>
+      <% else %>
+        <p class="fr-ml-3w fr-text--sm fr-text-mention--grey"><i>Information non renseignée.</i></p>
+      <% end %>
+    </div>
+
+    <div class="fr-px-2w fr-mt-2w fr-mb-2w fr-col-12 fr-col-md-6">
+      <h4 class="fr-text--lg"><span aria-hidden="true">✍️</span> Informations à saisir pour récupérer la donnée :</h4>
+      <% if recommandation.parametres_a_saisir.present? %>
+        <div class="fr-ml-3w"><%= markdown(recommandation.parametres_a_saisir) %></div>
+      <% else %>
+        <p class="fr-ml-3w fr-text--sm fr-text-mention--grey"><i>Information non renseignée.</i></p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="fr-mt-2w fr-mx-2w">
+    <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
+
+    <div class="fr-accordions-group">
+      <% if lien_demande_acces || utiles.any? %>
+        <section class="fr-accordion">
+          <h5 class="fr-accordion__title">
+            <button type="button" class="fr-accordion__btn" aria-expanded="false"
+              aria-controls="<%= dom_id(recommandation, :api_directe) %>">Par l'API directement</button>
+          </h5>
+          <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
+            <% if lien_demande_acces %>
+              <div class="fr-btns-group fr-btns-group--inline fr-btns-group--right fr-my-2w">
+                <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
+                      rel: 'noopener external', target: '_blank' %>
+              </div>
+            <% end %>
+            <% if cible.uid_datagouv.present? %>
+              <%= render DataserviceCardComponent.new(api: {
+                    title: cible.nom,
+                    url: "https://www.data.gouv.fr/fr/dataservices/#{cible.uid_datagouv}",
+                    org: cible.organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
+                  }) %>
+            <% end %>
+            <% if utiles.any? %>
+              <p class="fr-mt-4w">
+                <b>
+                  <span title="Un endpoint est une sous-partie d'une API, un point d'accès spécifique à l'intérieur de l'API." class="endpoint-term">Endpoints</span>
+                  de l'API utiles pour ce cas d'usage :
+                </b>
+              </p>
+              <div class="fr-table fr-table--multiline fr-table--no-caption fr-table--sm" data-controller="endpoints">
+                <div class="fr-table__header">
+                  <div class="fr-search-bar" role="search">
+                    <label class="fr-label" for="<%= dom_id(recommandation, :filtre_endpoints) %>">Filtrer les endpoints</label>
+                    <input id="<%= dom_id(recommandation, :filtre_endpoints) %>" class="fr-input" type="search"
+                      placeholder="Rechercher les endpoints utiles par mots-clés..."
+                      data-endpoints-target="input" data-action="input->endpoints#filter">
+                    <button type="button" class="fr-btn" data-action="endpoints#filter">Filtrer</button>
+                  </div>
+                </div>
+                <div class="fr-table__wrapper">
+                  <div class="fr-table__container">
+                    <div class="fr-table__content">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th class="fr-col--md fr-py-2w" scope="col">Endpoints utiles de l'API</th>
+                            <th class="fr-col--lg fr-py-2w" scope="col">Description de l'utilité pour le cas d'usage «&nbsp;<%= nom_demarche %>&nbsp;»</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr hidden data-endpoints-target="empty">
+                            <td colspan="2"><i>Aucun endpoint ne correspond à votre recherche.</i></td>
+                          </tr>
+                          <% utiles.each do |utile| %>
+                            <tr data-endpoints-target="row">
+                              <td>
+                                <b><%= utile.solution.nom %></b>
+                                <% if utile.solution.uid_datagouv.present? %>
+                                  <br>
+                                  <a href="https://www.data.gouv.fr/fr/dataservices/<%= utile.solution.uid_datagouv %>" class="fr-link fr-link--xs"
+                                    rel="noopener external" target="_blank">Documentation</a>
+                                <% end %>
+                              </td>
+                              <% if utile.description.present? %>
+                                <td class="fr-text--sm fr-py-1w"><%= markdown(utile.description) %></td>
+                              <% else %>
+                                <td><i class="fr-text--xs">Cet endpoint est identifié comme utile pour ce cas d'usage.</i></td>
+                              <% end %>
+                            </tr>
+                          <% end %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="fr-table__footer" hidden data-endpoints-target="footer">
+                  <div class="fr-table__footer--start">
+                    <p class="fr-table__detail" data-endpoints-target="count"></p>
+                  </div>
+                  <div class="fr-table__footer--middle">
+                    <nav role="navigation" class="fr-pagination" aria-label="Pagination" data-endpoints-target="pagination"></nav>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </section>
+      <% else %>
+        <section class="fr-accordion">
+          <h5 class="fr-accordion__title">
+            <span class="fr-accordion__btn fr-accordion__btn--empty">
+              <span class="fr-mr-auto">Par l'API directement</span>
+              <span aria-hidden="true" class="fr-icon-subtract-line fr-icon--sm"></span>
+              <span class="fr-sr-only">(Aucune solution référencée)</span>
+            </span>
+          </h5>
+        </section>
+      <% end %>
+
+      <% accordeons.each do |categorie, titre, icone, vide, singulier, pluriel| %>
+        <% solutions = moyens.fetch(categorie, []) %>
+        <% if solutions.empty? %>
+          <section class="fr-accordion">
+            <h5 class="fr-accordion__title">
+              <span class="fr-accordion__btn fr-accordion__btn--empty">
+                <span class="fr-mr-auto">
+                  <%= titre %>
+                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-text-mention--grey fr-ml-1w <%= icone %>"><%= vide %></span>
+                </span>
+                <span aria-hidden="true" class="fr-icon-subtract-line fr-icon--sm"></span>
+                <span class="fr-sr-only">(Aucune solution référencée)</span>
+              </span>
+            </h5>
+          </section>
+        <% else %>
+          <section class="fr-accordion">
+            <h5 class="fr-accordion__title">
+              <button type="button" class="fr-accordion__btn" aria-expanded="false"
+                aria-controls="<%= dom_id(recommandation, categorie) %>">
+                <span class="fr-mr-auto">
+                  <%= titre %>
+                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-background-contrast--info fr-text-default--info fr-ml-1w <%= icone %>">
+                    <%= solutions.size %> <%= solutions.size > 1 ? pluriel : singulier %>
+                  </span>
+                  <% unless categorie == 'brique_logicielle' %>
+                    <span class="fr-badge fr-badge--sm fr-badge--new fr-ml-1w">Sans développement</span>
+                  <% end %>
+                </span>
+              </button>
+            </h5>
+            <div class="fr-collapse" id="<%= dom_id(recommandation, categorie) %>">
+              <% case categorie %>
+              <% when 'brique_logicielle' %>
+                <p><strong>Briques techniques logicielles</strong> destinées à être intégrées dans un système informatique existant et conçues pour le cas d'usage «<i>&nbsp;<%= nom_demarche %>&nbsp;</i>» :</p>
+              <% when 'logiciel_metier_cle_en_main' %>
+                <p><strong>Liste des logiciels métier, sur étagère</strong> conçus pour le cas d'usage «<i>&nbsp;<%= nom_demarche %>&nbsp;</i>» :</p>
+              <% when 'site_de_consultation' %>
+                <p><b>Ces sites vous permettent de consulter certaines des données utiles pour ce cas d'usage :</b></p>
+                <div class="fr-m-2w fr-highlight--orange-terre-battue fr-highlight">
+                  <p class="fr-mb-0">💡 Pour vraiment simplifier la vie des usagers, l'intégration directe de cette API ou de jeu de données dans vos logiciels métiers est à privilégier car elle permet de mettre en oeuvre le <i>dites-le-nous une fois</i> et la proactivité !</p>
+                </div>
+              <% end %>
+
+              <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
+                <% solutions.each do |solution| %>
+                  <div class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
+                    <%= render 'solution_integratrice', solution: solution %>
+                  </div>
+                <% end %>
+              </div>
+
+              <% if categorie == 'logiciel_metier_cle_en_main' && lien_demande_acces %>
+                <div class="fr-mt-2w">
+                  <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
+                    <p class="fr-col fr-mb-0">Vous êtes déjà client d'un de ces éditeurs ? Demandez un accès à «&nbsp;<%= cible.nom %>&nbsp;» pour votre logiciel :</p>
+                    <%= link_to 'Demander un accès', lien_demande_acces, class: 'fr-btn', rel: 'noopener external', target: '_blank' %>
+                  </div>
+                  <p class="fr-text--sm fr-mb-0 fr-mt-1w">Si vous n'êtes pas déjà client, contactez d'abord l'éditeur avant de demander un accès à «&nbsp;<%= cible.nom %>&nbsp;».</p>
+                </div>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+      <% end %>
+    </div>
+
+    <p class="fr-text--sm fr-mx-2w fr-mt-2w">
+      <i>Une solution intégrant «&nbsp;<%= cible.nom %>&nbsp;», n'est pas listée ? </i>
+      <a href="#modification-contenu">✒️ Proposez-nous de l'ajouter</a>.
+    </p>
+  </div>
+</div>
