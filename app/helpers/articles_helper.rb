@@ -15,8 +15,8 @@ module ArticlesHelper
   DEMARCHE_CARDS = {
     'marches-publics-depot-et-instruction-des-candidatures' => { title: '💼 Marchés publics | Dépôt et instruction des candidatures', href: '/cas-d-usages/marches-publics-depot-et-instruction-des-candidatures', usagers: %w[Associations Entreprises], acteurs: ['Tous les acteurs publics'] },
     'subventions-des-associations-attribution' => { title: '🎟️ Subventions des associations | Attribution', href: '/cas-d-usages/subventions-des-associations-attribution', usagers: ['Associations'], acteurs: ['Tous les acteurs publics'] },
-    'tarification-cantine-scolaire-a-1-eur' => { title: '🥣 Tarification cantine scolaire à 1€', href: '/cas-d-usages/tarification-cantine-scolaire-a-1-eur', usagers: ['Particuliers'], acteurs: ['Communes et groupements de communes'] },
-    'tarification-sociale-municipale-a-lenfance' => { title: "👶 Tarification sociale des services municipaux à l'enfance", href: '/cas-d-usages/tarification-sociale-municipale-a-lenfance', usagers: ['Particuliers'], acteurs: ['Communes et groupements de communes'] }
+    'tarification-cantine-scolaire-a-1-eur' => { title: '🥣 Tarification cantine scolaire à 1€', href: '/cas-d-usages/tarification-cantine-scolaire-a-1eur', usagers: ['Particuliers'], acteurs: ['Communes et groupements de communes'] },
+    'tarification-sociale-municipale-a-lenfance' => { title: "👶 Tarification sociale des services municipaux à l'enfance", href: '/cas-d-usages/tarification-sociale-des-services-municipaux-a-lenfance', usagers: ['Particuliers'], acteurs: ['Communes et groupements de communes'] }
   }.freeze
 
   def solution_card(slug)
