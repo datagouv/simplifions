@@ -19,7 +19,7 @@
           <div class="fr-header__operator">
             <a href="/" title="Accueil — Simplifions.data.gouv.fr" style="display: flex; align-items: center; gap: 0.75rem;">
               <%= image_tag "simplifions/simplifions-logo.svg", class: "fr-responsive-img", style: "max-width: 12rem;", alt: "Simplifions.data" %>
-              <span class="fr-badge fr-badge--sm fr-badge--green-emeraude">BETA</span>
+              <span class="fr-badge fr-badge--sm fr-badge--blue-cumulus">BETA</span>
             </a>
           </div>
         </div>
@@ -47,7 +47,7 @@
             <a class="fr-nav__link" href="/" target="_self" <%= 'aria-current="page"'.html_safe if current_page?(root_path) %>>Accueil</a>
           </li>
           <li class="fr-nav__item">
-            <a class="fr-nav__link" href="#" target="_self">Cas d'usages</a>
+            <a class="fr-nav__link" href="/demarches" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/demarches") %>>Cas d'usages</a>
           </li>
           <li class="fr-nav__item">
             <a class="fr-nav__link" href="<%= articles_path %>" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/articles") %>>Articles</a>
