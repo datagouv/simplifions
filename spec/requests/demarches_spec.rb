@@ -89,8 +89,8 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('Aucune solution référencée').size).to eq(2)
     end
 
-    it 'ne pointe vers aucune page solution tant qu’elles n’existent pas' do
-      expect(response.body).not_to include('href="/solutions/')
+    it 'fait pointer les intégratrices de la matrice vers leur page solution' do
+      expect(response.body).to include('href="/solutions/acheteza"')
     end
 
     it 'affiche les dates de création et de modification en français' do
