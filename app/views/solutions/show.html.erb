@@ -19,7 +19,7 @@
    sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
    sections << ['donnees-api-fournies', 'Données et API fournies'] if fournies.any?
    sections << ['donnees-api', 'Données et API'] if utilisees.empty? && fournies.empty?
-   sections << ['solutions-integratices', 'Solutions intégratrices'] if integratrices.any? %>
+   sections << ['solutions-integratices', 'Solutions intégratrices'] if onglets.any? %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-solution",
         liens: [["Accueil", root_path], ["Solutions", "/solutions"], [@solution.nom, nil]] %>
@@ -149,7 +149,7 @@
     </div>
   <% end %>
 
-  <% if integratrices.any? %>
+  <% if onglets.any? %>
     <div id="solutions-integratices" class="solutions-integratices-container fr-p-3w fr-mt-8w" data-controller="integratrices">
       <h2 class="colored-title fr-h2">Solutions intégrant "<%= @solution.nom %>"</h2>
 

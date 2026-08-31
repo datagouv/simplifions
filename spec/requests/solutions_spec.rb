@@ -152,6 +152,21 @@ RSpec.describe 'Solutions' do
       expect(response.body).not_to include('id="donnees-api"')
     end
 
+    it 'n’affiche pas la section intégratrices quand aucune n’a de catégorie mappée' do
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
+        slug: 'bouquet-api-particulier')
+      api = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      hub = Solution.create!(nom: 'Hub sans catégorie', visible: true, slug: 'hub-sans-categorie')
+      Integration.create!(integratrice: hub, integree: api, type_integration: 'consomme',
+        statut: '✅ en production')
+
+      get solution_path('bouquet-api-particulier')
+
+      expect(response.body).not_to include('Solutions intégrant')
+      expect(response.body).not_to include('#solutions-integratices')
+    end
+
     it 'renvoie 404 pour une solution non visible' do
       Solution.create!(nom: 'Brouillon', categorie: 'brique_logicielle', slug: 'brouillon', visible: false)
 
