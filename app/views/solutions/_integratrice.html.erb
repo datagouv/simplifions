@@ -1,0 +1,38 @@
+<div class="solution-integratrice-card fr-enlarge-link">
+  <div class="fr-mb-2w">
+    <h3 class="fr-h5 fr-mb-1w solution-integratrice-card__title"><%= link_to_if integratrice.slug.present?, integratrice.nom, solution_path(integratrice.slug) %></h3>
+    <%= render "badge_operateur", solution: integratrice %>
+  </div>
+  <div class="fr-grid-row fr-grid-row--gutters">
+    <div class="fr-col-12 fr-col-md-4">
+      <% tags = integratrice.vocabulaires.select(&:categorie_type_simplification?) %>
+      <% if tags.any? %>
+        <ul class="fr-tags-group fr-mt-2v">
+          <% tags.each do |tag| %>
+            <li><p class="fr-tag fr-tag--sm"><%= tag.libelle %></p></li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+    <% if couverture.any? %>
+      <div class="fr-col-12 fr-col-md-8">
+        <p class="fr-text--sm fr-text--bold fr-mb-1v">Cas d'usages :</p>
+        <div class="cas-usages-grid">
+          <% couverture.each do |demarche, (integrees, utiles)| %>
+            <% pourcentage = integrees * 100 / utiles %>
+            <div class="cas-usage-card fr-p-2v">
+              <span class="fr-text--xs fr-text--bold fr-mb-1v"><%= "#{demarche.icone} #{demarche.nom}".strip %></span>
+              <div class="integration-indicator fr-p-1w">
+                <span class="fr-text--sm fr-text--bold integration-indicator__count <%= pourcentage >= 75 ? 'indicator--green' : pourcentage >= 50 ? 'indicator--yellow' : pourcentage >= 25 ? 'indicator--orange' : 'indicator--red' %>"><%= integrees %>/<%= utiles %></span>
+                <span class="fr-text--xs integration-indicator__label">API ou jeux de données intégrés</span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <div class="solution-integratrice-card__arrow">
+    <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
+  </div>
+</div>

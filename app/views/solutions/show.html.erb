@@ -3,7 +3,7 @@
    acteurs = @solution.types_acteurs.map(&:nom).sort
    utilisees = @solution.consommees.visibles.sur_datagouv.load
    fournies = @solution.exposees.visibles.sur_datagouv.load
-   demarches = @solution.demarches_simplifiables.order(:nom).load
+   demarches = @solution.demarches_simplifiables
    integratrices = @solution.integratrices_visibles.includes(:organisations, :vocabulaires)
    couvertures = @solution.couvertures
    nb_apis = @solution.nb_donnees_integrees
@@ -28,10 +28,10 @@
 <div class="fr-container fr-mt-1w fr-mb-8w solution-page fiche-page">
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <div class="fr-col-12 fr-col-md-8">
-      <div class="topic__header fr-mb-4v">
+      <div class="topic__header">
         <h1 class="fr-mb-1v fr-mr-2v"><%= @solution.nom %></h1>
-        <%= render "badge_operateur", solution: @solution %>
       </div>
+      <div class="fr-mb-4v"><%= render "badge_operateur", solution: @solution %></div>
       <p class="fr-text--lead"><%= @solution.description_courte %></p>
 
       <%= render "public_vise", usagers:, acteurs: %>
@@ -57,22 +57,7 @@
     </div>
 
     <div class="fr-col-12 fr-col-md-4">
-      <nav role="navigation" aria-labelledby="fr-summary-title" class="fr-summary">
-        <h2 id="fr-summary-title" class="fr-summary__title fr-text--md">Sommaire</h2>
-        <ol>
-          <% sections.each do |id, label| %>
-            <li><a href="#<%= id %>" class="fr-summary__link"><%= label %></a></li>
-          <% end %>
-        </ol>
-        <hr class="fr-hr fr-my-2w">
-        <p class="fr-text--sm">
-          <span class="subtitle">Contenu rédigé par :</span><br>
-          <a href="https://www.data.gouv.fr/organizations/direction-interministerielle-du-numerique" rel="noopener external" target="_blank">Direction interministérielle du numérique</a>
-          <% if @solution.cree_le %><br>le <time datetime="<%= @solution.cree_le.iso8601 %>"><%= l @solution.cree_le.to_date, format: :long %>.</time><% end %>
-          <% if @solution.modifie_le %><br><span class="fr-text--xs">Modifié le <time datetime="<%= @solution.modifie_le.iso8601 %>"><%= l @solution.modifie_le.to_date, format: :long %>.</time></span><% end %>
-        </p>
-        <a href="#modification-contenu">✒️ Proposer une modification</a>
-      </nav>
+      <%= render "sommaire", sections:, record: @solution %>
     </div>
   </div>
 
@@ -90,68 +75,67 @@
   <% end %>
 
   <div class="fr-col-12 fr-col-md-8 fr-mb-4w">
-    <h2 id="possibilites-simplification" class="colored-title fr-h2 fr-my-5w">Possibilités de simplification</h2>
+    <%= render ArticleSectionComponent.new(id: 'possibilites-simplification', label: 'Possibilités de simplification') do %>
+      <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Simplification par la donnée grâce à cette solution :</h3>
+      <%= render 'contenu', texte: @solution.permet %>
 
-    <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Simplification par la donnée grâce à cette solution :</h3>
-    <%= render 'contenu', texte: @solution.permet %>
+      <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill icon-gray"></span> Périmètre de simplification non couvert :</h3>
+      <%= render 'contenu', texte: @solution.ne_permet_pas %>
 
-    <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill icon-gray"></span> Périmètre de simplification non couvert :</h3>
-    <%= render 'contenu', texte: @solution.ne_permet_pas %>
-
-    <p class="fr-text--sm fr-mt-4w">
-      <i>Une remarque concernant les possibilités de simplification de cette solution ? </i>
-      <a href="#modification-contenu">✒️ Proposer un contenu</a>.
-    </p>
+      <p class="fr-text--sm fr-mt-4w">
+        <i>Une remarque concernant les possibilités de simplification de cette solution ? </i>
+        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
+      </p>
+    <% end %>
   </div>
 
-  <h2 id="cas-usages-simplifiables" class="colored-title fr-h2 fr-my-5w">Cas d'usages simplifiables</h2>
-  <% if demarches.any? %>
-    <div class="fr-grid-row fr-grid-row--gutters">
-      <% demarches.each do |demarche| %>
-        <div class="fr-col-12 fr-col-md-6 fr-col-lg-4 fr-mb-3w">
-          <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
-            <div class="fr-tile__body">
-              <div class="fr-tile__content">
-                <h3 class="fr-tile__title"><%= link_to "#{demarche.icone} #{demarche.nom}".strip, demarche_path(demarche.slug) %></h3>
-                <p class="fr-tile__detail"><%= demarche.description_courte %></p>
+  <%= render ArticleSectionComponent.new(id: 'cas-usages-simplifiables', label: "Cas d'usages simplifiables") do %>
+    <% if demarches.any? %>
+      <div class="fr-grid-row fr-grid-row--gutters">
+        <% demarches.each do |demarche| %>
+          <div class="fr-col-12 fr-col-md-6 fr-col-lg-4 fr-mb-3w">
+            <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
+              <div class="fr-tile__body">
+                <div class="fr-tile__content">
+                  <h3 class="fr-tile__title"><%= link_to "#{demarche.icone} #{demarche.nom}".strip, demarche_path(demarche.slug) %></h3>
+                  <p class="fr-tile__detail"><%= demarche.description_courte %></p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      <% end %>
-    </div>
-  <% else %>
-    <p class="fr-text--sm">
-      <i>Aucun cas d'usage n'est référencé pour cette solution actuellement.</i>
-      <a href="#modification-contenu">✒️ Proposer des cas d'usages</a>
-    </p>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="fr-text--sm">
+        <i>Aucun cas d'usage n'est référencé pour cette solution actuellement.</i>
+        <a href="#modification-contenu">✒️ Proposer des cas d'usages</a>
+      </p>
+    <% end %>
   <% end %>
 
   <% [['donnees-api-utilisees', 'Données et API utilisées', utilisees],
       ['donnees-api-fournies', 'Données et API fournies', fournies]].each do |id, titre, donnees| %>
     <% next if donnees.empty? %>
-    <div id="<%= id %>">
-      <h2 class="colored-title fr-h2 fr-mt-8w"><%= titre %></h2>
+    <%= render ArticleSectionComponent.new(id:, label: titre) do %>
       <ul class="fr-grid-row fr-grid-row--gutters list-none fr-pt-2w">
         <% donnees.each do |donnee| %>
           <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.new(api: { title: donnee.nom, url: donnee.lien_datagouv }) %></li>
         <% end %>
       </ul>
-    </div>
+    <% end %>
   <% end %>
   <% if utilisees.empty? && fournies.empty? %>
-    <div id="donnees-api">
-      <h2 class="colored-title fr-h2 fr-mt-8w">Données et API</h2>
+    <%= render ArticleSectionComponent.new(id: 'donnees-api', label: 'Données et API') do %>
       <p class="fr-text--sm">
         <i>Aucun jeu de données ou API utilisé ou fourni par cette solution actuellement.</i>
         <a href="#modification-contenu">✒️ Proposer un contenu</a>.
       </p>
-    </div>
+    <% end %>
   <% end %>
 
   <% if onglets.any? %>
     <div id="solutions-integratices" class="solutions-integratices-container fr-p-3w fr-mt-8w" data-controller="integratrices">
-      <h2 class="colored-title fr-h2">Solutions intégrant "<%= @solution.nom %>"</h2>
+      <h2 class="fr-h2 article-section__title fr-mb-4w">Solutions intégrant "<%= @solution.nom %>"</h2>
 
       <% if integratrices.size > 1 %>
         <div class="fr-py-3w fr-mb-2w">
@@ -220,7 +204,7 @@
                 <li class="fr-col-12 fr-mb-2w" data-integratrices-target="carte"
                   data-demarches="<%= couverture.keys.map(&:id).join(' ') %>"
                   data-apis="<%= nb_apis[integratrice.id] || 0 %>" data-nom="<%= integratrice.nom %>">
-                  <%= render 'solution_integratrice', solution: integratrice, couverture: %>
+                  <%= render "integratrice", integratrice:, couverture: %>
                 </li>
               <% end %>
             </ul>
@@ -230,11 +214,5 @@
     </div>
   <% end %>
 
-  <div id="modification-contenu" class="bloc-modifications fr-mt-10w">
-    <h2 class="fr-h6">✒️ Proposer une modification du contenu</h2>
-    <p class="fr-mb-0">
-      Pour proposer une modification du contenu de cette solution, vous pouvez compléter
-      <a href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions" rel="noopener external" target="_blank">ce formulaire</a>.
-    </p>
-  </div>
+  <%= render "bloc_modification", sujet: "cette solution" %>
 </div>

@@ -30,17 +30,9 @@
   padding-left: 2rem;
 }
 
-.font-weight-normal {
-  font-weight: normal;
-}
-
 .reco-card {
   background-color: var(--background-alt-beige-gris-galet);
   border-left: 4px solid var(--border-action-high-grey);
-}
-
-.reco-card .icon-green {
-  color: var(--text-default-success);
 }
 
 .reco-card .endpoint-term {
@@ -118,13 +110,6 @@
 }
 
 /* Page solution */
-
-.solution-page .colored-title {
-  color: black;
-  background-color: var(--simplifions-h2-highlight);
-  padding: 2px 4px;
-  display: inline-block;
-}
 
 .solution-page .icon-gray {
   color: #8b8b8b;

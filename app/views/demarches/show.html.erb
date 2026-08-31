@@ -20,22 +20,7 @@
     </div>
 
     <div class="fr-col-12 fr-col-md-4">
-      <nav role="navigation" aria-labelledby="fr-summary-title" class="fr-summary">
-        <h2 id="fr-summary-title" class="fr-summary__title fr-text--md">Sommaire</h2>
-        <ol>
-          <% sections.each do |id, label| %>
-            <li><a href="#<%= id %>" class="fr-summary__link"><%= label %></a></li>
-          <% end %>
-        </ol>
-        <hr class="fr-hr fr-my-2w">
-        <p class="fr-text--sm">
-          <span class="subtitle">Contenu rédigé par :</span><br>
-          <a href="https://www.data.gouv.fr/organizations/direction-interministerielle-du-numerique" rel="noopener external" target="_blank">Direction interministérielle du numérique</a>
-          <% if @demarche.cree_le %><br>le <time datetime="<%= @demarche.cree_le.iso8601 %>"><%= l @demarche.cree_le.to_date, format: :long %>.</time><% end %>
-          <% if @demarche.modifie_le %><br><span class="fr-text--xs">Modifié le <time datetime="<%= @demarche.modifie_le.iso8601 %>"><%= l @demarche.modifie_le.to_date, format: :long %>.</time></span><% end %>
-        </p>
-        <a href="#modification-contenu">✒️ Proposer une modification</a>
-      </nav>
+      <%= render "sommaire", sections:, record: @demarche %>
     </div>
   </div>
 
@@ -57,11 +42,5 @@
     <% end %>
   </div>
 
-  <div id="modification-contenu" class="bloc-modifications fr-mt-10w">
-    <h2 class="fr-h6">✒️ Proposer une modification du contenu</h2>
-    <p class="fr-mb-0">
-      Pour proposer une modification du contenu de ce cas d'usage, vous pouvez compléter
-      <a href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions" rel="noopener external" target="_blank">ce formulaire</a>.
-    </p>
-  </div>
+  <%= render "bloc_modification", sujet: "ce cas d'usage" %>
 </div>

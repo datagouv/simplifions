@@ -61,11 +61,12 @@ class Solution < ApplicationRecord
     end
   end
 
-  # Même règle que le site actuel (formule Grist Recommande_pour_les_cas_d_usages) : démarches
-  # recommandant la solution, plus celles où elle intègre en production une donnée d'une reco visible.
+  # Même règle et même ordre que le site actuel (formule Grist Recommande_pour_les_cas_d_usages) :
+  # démarches recommandant la solution, dans l'ordre de saisie des recommandations, puis celles
+  # où elle intègre en production une donnée d'une reco visible.
   def demarches_simplifiables
-    Demarche.visibles.where(id: recommandations.visibles.select(:demarche_id))
-      .or(Demarche.visibles.where(id: demarche_ids_integres))
+    ordre = recommandations.visibles.order(:id).pluck(:demarche_id) + demarche_ids_integres
+    Demarche.visibles.where(id: ordre).sort_by { |demarche| ordre.index(demarche.id) }
   end
 
   private

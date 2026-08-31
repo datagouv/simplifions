@@ -38,6 +38,16 @@ RSpec.describe Solution do
       expect(portail.demarches_simplifiables).to be_empty
     end
 
+    it 'suit l’ordre de saisie des recommandations, comme le site actuel' do
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      zoo = Demarche.create!(nom: 'Zoo', visible: true)
+      autre = Demarche.create!(nom: 'Autre', visible: true)
+      Recommandation.create!(demarche: zoo, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche: autre, solution: bouquet, niveau: :niveau_2, visible: true)
+
+      expect(bouquet.demarches_simplifiables).to eq([zoo, autre])
+    end
+
     it 'compte l’intégration de la cible elle-même quand la reco vise une API en direct' do
       api = described_class.create!(nom: 'API FranceConnect', categorie: 'api')
       portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
