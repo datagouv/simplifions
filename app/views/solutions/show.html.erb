@@ -172,7 +172,7 @@
                 <label for="filtre-nb-apis" class="fr-label">API ou jeux de données intégrés :</label>
                 <select id="filtre-nb-apis" class="fr-select" data-integratrices-target="nbApis" data-action="integratrices#filter">
                   <option value="0">Tous</option>
-                  <% (1..nb_apis.values.max.to_i).each do |nombre| %>
+                  <% (1..onglets.flat_map(&:last).filter_map { |sol| nb_apis[sol.id] }.max.to_i).each do |nombre| %>
                     <option value="<%= nombre %>">Au moins <%= nombre %></option>
                   <% end %>
                 </select>
