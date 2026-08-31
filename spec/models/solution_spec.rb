@@ -118,6 +118,16 @@ RSpec.describe Solution do
     end
   end
 
+  describe 'normalisation des URLs' do
+    it 'neutralise les URLs Grist qui ne sont pas http(s), le contenu étant semi-confiance' do
+      solution = described_class.new(nom: 'Louche', categorie: 'brique_logicielle',
+        site_internet: 'javascript:alert(1)', url_demande_acces: ' https://datapass.example/ok ')
+
+      expect(solution.site_internet).to be_nil
+      expect(solution.url_demande_acces).to eq('https://datapass.example/ok')
+    end
+  end
+
   describe '#fiche?' do
     it 'is false for the categories that come from APIs_et_datasets, true otherwise' do
       expect(described_class.new(categorie: 'api')).not_to be_fiche
