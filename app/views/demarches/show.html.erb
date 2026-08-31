@@ -4,19 +4,11 @@
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                ['donnees-disponibles', 'Données disponibles']] %>
 <div class="fr-container fr-mt-1v">
-  <nav role="navigation" class="fr-breadcrumb fr-mb-1v" aria-label="vous êtes ici :">
-    <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-demarche">Voir le fil d'Ariane</button>
-    <div class="fr-collapse" id="breadcrumb-demarche">
-      <ol class="fr-breadcrumb__list">
-        <li><%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %></li>
-        <li><a class="fr-breadcrumb__link" href="/demarches">Cas d'usages</a></li>
-        <li><a class="fr-breadcrumb__link" aria-current="page"><%= "#{@demarche.icone} #{@demarche.nom}".strip %></a></li>
-      </ol>
-    </div>
-  </nav>
+  <%= render "breadcrumb", id: "breadcrumb-demarche",
+        liens: [["Accueil", root_path], ["Cas d'usages", "/demarches"], ["#{@demarche.icone} #{@demarche.nom}".strip, nil]] %>
 </div>
 
-<div class="fr-container fr-mt-1w fr-mb-8w demarche-page">
+<div class="fr-container fr-mt-1w fr-mb-8w fiche-page">
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <div class="fr-col-12 fr-col-md-8">
       <div class="topic__header fr-mb-4v">
@@ -24,16 +16,7 @@
       </div>
       <p class="fr-text--lead"><%= @demarche.description_courte %></p>
 
-      <% if usagers.any? %>
-        <div class="fr-card__detail">
-          <p class="fr-mb-1w white-space-normal">Pour simplifier les démarches des <%= liste_humaine(usagers) %></p>
-        </div>
-      <% end %>
-      <% if acteurs.any? %>
-        <div class="fr-card__detail">
-          <p class="fr-mb-1w white-space-normal">À destination <%= acteurs.first.start_with?("Tou") ? "de" : "des" %> <%= liste_humaine(acteurs) %></p>
-        </div>
-      <% end %>
+      <%= render "public_vise", usagers:, acteurs: %>
     </div>
 
     <div class="fr-col-12 fr-col-md-4">

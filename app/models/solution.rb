@@ -29,6 +29,7 @@ class Solution < ApplicationRecord
     prefix: true
 
   scope :visibles, -> { where(visible: true) }
+  scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
 
   def fiche? = !categorie_api? && !categorie_base_de_donnees?
 
@@ -41,19 +42,22 @@ class Solution < ApplicationRecord
     Solution.visibles.where(id: Integration.en_production.where(integree: fournies).select(:integratrice_id))
   end
 
-  # { integratrice_id => { demarche visible => [intégrées, utiles] } } : pour chaque démarche où
-  # l'intégratrice consomme en production une donnée fournie, x données marquées utiles sur y attendues.
-  def couvertures
-    utiles = Recommandation.niveau_1.where(solution: fournies).pluck(:demarche_id, :solution_id)
-    y_par_demarche = utiles.map(&:first).tally
+  # Nombre de données intégrées en production par chaque intégratrice visible, tous fournisseurs confondus.
+  def nb_donnees_integrees
+    Integration.consomme.en_production.where(integratrice: integratrices_visibles).group(:integratrice_id).count
+  end
 
-    Integration.en_production.where(integree: fournies).preload(:demarches)
-      .each_with_object(Hash.new { |couvertures, id| couvertures[id] = {} }) do |integration, couvertures|
-      integration.demarches.select(&:visible?).each do |demarche|
-        y = y_par_demarche[demarche.id] || next
-        cellule = couvertures[integration.integratrice_id][demarche] ||= [0, y]
-        cellule[0] += 1 if utiles.include?([demarche.id, integration.integree_id])
-      end
+  def lien_datagouv
+    "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
+  end
+
+  # { integratrice_id => { demarche visible => [intégrées, utiles] } } : pour chaque démarche où
+  # l'intégratrice visible consomme en production une donnée fournie, x données marquées utiles sur y attendues.
+  def couvertures
+    paires_integrees.each_with_object({}) do |(integratrice_id, demarche, integree_id), couvertures|
+      y = y_par_demarche[demarche.id] || next
+      cellule = (couvertures[integratrice_id] ||= {})[demarche] ||= [0, y]
+      cellule[0] += 1 if paires_utiles.include?([demarche.id, integree_id])
     end
   end
 
@@ -66,11 +70,32 @@ class Solution < ApplicationRecord
 
   private
 
+  # [demarche_id, solution_id] des données fournies marquées utiles pour une démarche (le « y » attendu)
+  def paires_utiles
+    @paires_utiles ||= Recommandation.niveau_1.where(solution: fournies).pluck(:demarche_id, :solution_id).to_set
+  end
+
+  def y_par_demarche
+    @y_par_demarche ||= paires_utiles.map(&:first).tally
+  end
+
+  # [integratrice_id, demarche visible, integree_id] des intégrations en production des données fournies
+  def paires_integrees
+    Integration.en_production.where(integree: fournies, integratrice: Solution.visibles)
+      .preload(:demarches).flat_map do |integration|
+        integration.demarches.select(&:visible?)
+          .map { |demarche| [integration.integratrice_id, demarche, integration.integree_id] }
+      end
+  end
+
   def demarche_ids_integres
-    paires = integrations_comme_integratrice.en_production.joins(:demarches)
-      .pluck(Arel.sql('demarches.id'), :integree_id)
-    Recommandation.visibles.where(demarche_id: paires.map(&:first)).preload(solution: :exposees)
-      .select { |reco| reco.solution.fournies.any? { |donnee| paires.include?([reco.demarche_id, donnee.id]) } }
-      .map(&:demarche_id)
+    integrees = integrations_comme_integratrice.en_production.joins(:demarches)
+      .pluck(Arel.sql('demarches.id'), :integree_id).to_set
+    Recommandation.visibles.preload(solution: :exposees)
+      .filter_map { |reco| reco.demarche_id if integre_pour?(reco, integrees) }
+  end
+
+  def integre_pour?(reco, integrees)
+    reco.solution.fournies.any? { |donnee| integrees.include?([reco.demarche_id, donnee.id]) }
   end
 end

@@ -5,22 +5,7 @@
     </h3>
   </div>
   <div class="description-topic">
-    <% if @card[:usagers].present? %>
-      <div class="fr-card__detail">
-        <p class="fr-mb-1w">
-          Pour simplifier les démarches des
-          <%= liste_humaine(@card[:usagers]) %>
-        </p>
-      </div>
-    <% end %>
-    <% if @card[:acteurs].present? %>
-      <div class="fr-card__detail">
-        <p class="fr-mb-1w">
-          À destination <%= @card[:acteurs].first.start_with?("Tou") ? "de" : "des" %>
-          <%= liste_humaine(@card[:acteurs]) %>
-        </p>
-      </div>
-    <% end %>
+    <%= render "application/public_vise", usagers: @card[:usagers], acteurs: @card[:acteurs] %>
     <% if @arrow %>
       <div class="card-arrow" aria-hidden="true"><span class="fr-icon-arrow-right-line"></span></div>
     <% end %>

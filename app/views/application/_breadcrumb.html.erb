@@ -1,0 +1,11 @@
+<nav role="navigation" class="fr-breadcrumb fr-mb-1v" aria-label="vous êtes ici :">
+  <button type="button" class="fr-breadcrumb__button" aria-expanded="false" aria-controls="<%= id %>">Voir le fil d'Ariane</button>
+  <div class="fr-collapse" id="<%= id %>">
+    <ol class="fr-breadcrumb__list">
+      <% liens[0..-2].each do |label, href| %>
+        <li><%= link_to label, href, class: "fr-breadcrumb__link" %></li>
+      <% end %>
+      <li><a class="fr-breadcrumb__link" aria-current="page"><%= liens.last.first %></a></li>
+    </ol>
+  </div>
+</nav>

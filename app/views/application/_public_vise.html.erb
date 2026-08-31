@@ -1,0 +1,10 @@
+<% if usagers.present? %>
+  <div class="fr-card__detail">
+    <p class="fr-mb-1w white-space-normal">Pour simplifier les démarches des <%= liste_humaine(usagers) %></p>
+  </div>
+<% end %>
+<% if acteurs.present? %>
+  <div class="fr-card__detail">
+    <p class="fr-mb-1w white-space-normal">À destination <%= acteurs.first.start_with?("Tou") ? "de" : "des" %> <%= liste_humaine(acteurs) %></p>
+  </div>
+<% end %>

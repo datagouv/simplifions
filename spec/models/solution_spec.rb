@@ -128,6 +128,31 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#nb_donnees_integrees' do
+    it 'compte les intégrations en production de chaque intégratrice visible, tous fournisseurs confondus' do
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
+      api_autre = described_class.create!(nom: 'API d’un autre fournisseur', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
+      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production')
+      Integration.create!(integratrice: logiciel, integree: api_autre, type_integration: 'consomme',
+        statut: '✅ en production')
+
+      expect(bouquet.nb_donnees_integrees).to eq(logiciel.id => 2)
+    end
+  end
+
+  describe '#lien_datagouv' do
+    it 'pointe vers la fiche dataservice ou dataset selon la catégorie' do
+      expect(described_class.new(categorie: 'api', uid_datagouv: 'abc').lien_datagouv)
+        .to eq('https://www.data.gouv.fr/fr/dataservices/abc')
+      expect(described_class.new(categorie: 'base_de_donnees', uid_datagouv: 'def').lien_datagouv)
+        .to eq('https://www.data.gouv.fr/fr/datasets/def')
+    end
+  end
+
   describe '#fiche?' do
     it 'is false for the categories that come from APIs_et_datasets, true otherwise' do
       expect(described_class.new(categorie: 'api')).not_to be_fiche

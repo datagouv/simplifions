@@ -15,26 +15,22 @@ export default class extends Controller {
 
     this.panneauTargets.forEach((panneau, index) => {
       this.trier(panneau)
-      const visibles = this.cartesVisibles(panneau).length
+      const visibles = this.carteTargets.filter((carte) => panneau.contains(carte) && !carte.hidden).length
       const onglet = this.ongletTargets[index]
       onglet.textContent = `${onglet.dataset.libelle} (${visibles})`
     })
 
-    const total = this.cartesVisibles(this.element).length
+    const total = this.carteTargets.filter((carte) => !carte.hidden).length
     this.compteurTarget.textContent = `${total} solution${total > 1 ? "s" : ""} disponible${total > 1 ? "s" : ""}`
     this.videTarget.hidden = total > 0
   }
 
   trier(panneau) {
     const parNom = this.triTarget.value === "titre"
-    const cartes = [...panneau.querySelectorAll("[data-integratrices-target='carte']")]
+    const cartes = this.carteTargets.filter((carte) => panneau.contains(carte))
     cartes.sort((a, b) => parNom ?
       a.dataset.nom.localeCompare(b.dataset.nom, "fr") :
       Number(b.dataset.apis) - Number(a.dataset.apis))
     panneau.append(...cartes)
-  }
-
-  cartesVisibles(racine) {
-    return [...racine.querySelectorAll("[data-integratrices-target='carte']")].filter((carte) => !carte.hidden)
   }
 }

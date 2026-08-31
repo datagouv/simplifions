@@ -1,43 +1,36 @@
-/* Pages démarche et solution : rendu repris de udata-front-kit (src/custom/simplifions). */
+/* Pages démarche et solution (.fiche-page) : rendu repris de udata-front-kit (src/custom/simplifions). */
 
-.demarche-page .topic__header,
-.solution-page .topic__header {
+.fiche-page .topic__header {
   display: flex;
   align-items: center;
   flex-flow: wrap;
 }
 
-.demarche-page .white-space-normal,
-.solution-page .white-space-normal {
+.white-space-normal {
   white-space: normal;
 }
 
 /* Le sommaire DSFR est en 12px par défaut */
-.demarche-page .fr-summary li a,
-.solution-page .fr-summary li a {
+.fiche-page .fr-summary li a {
   font-size: 1rem;
 }
 
-.demarche-page .subtitle,
-.solution-page .subtitle {
+.fiche-page .subtitle {
   font-weight: 700;
 }
 
-.demarche-page .bloc-modifications,
-.solution-page .bloc-modifications {
+.fiche-page .bloc-modifications {
   background-color: #f1f1f1;
   padding: 1rem;
 }
 
-.demarche-page blockquote,
-.solution-page blockquote {
+.fiche-page blockquote {
   border-left: 4px solid var(--border-default-grey);
   margin-left: 2rem;
   padding-left: 2rem;
 }
 
-.demarche-page .font-weight-normal,
-.solution-page .font-weight-normal {
+.font-weight-normal {
   font-weight: normal;
 }
 
@@ -161,10 +154,6 @@
 
 .solutions-integratices-container .fr-tabs__panel--white {
   background-color: white;
-}
-
-.solutions-integratices-container [hidden] {
-  display: none;
 }
 
 .cas-usages-grid {

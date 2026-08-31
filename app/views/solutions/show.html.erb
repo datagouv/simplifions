@@ -1,13 +1,12 @@
 <% fournisseurs = @solution.organisations.map(&:nom)
-   operateur = fournisseurs.first
    usagers = @solution.vocabulaires.categorie_usager.map(&:nom)
    acteurs = @solution.types_acteurs.map(&:nom).sort
-   utilisees = @solution.consommees.visibles.where.not(uid_datagouv: [nil, ''])
-   fournies = @solution.exposees.visibles.where.not(uid_datagouv: [nil, ''])
-   demarches = @solution.demarches_simplifiables.order(:nom)
+   utilisees = @solution.consommees.visibles.sur_datagouv.load
+   fournies = @solution.exposees.visibles.sur_datagouv.load
+   demarches = @solution.demarches_simplifiables.order(:nom).load
    integratrices = @solution.integratrices_visibles.includes(:organisations, :vocabulaires)
    couvertures = @solution.couvertures
-   nb_apis = Integration.consomme.en_production.where(integratrice: integratrices).group(:integratrice_id).count
+   nb_apis = @solution.nb_donnees_integrees
    onglets = { 'logiciel_metier_cle_en_main' => 'Logiciels métiers',
                'brique_logicielle' => 'API, jeu de données ou brique logicielle',
                'site_de_consultation' => 'Sites de consultation' }
@@ -15,51 +14,26 @@
        solutions = integratrices.select { |integratrice| integratrice.categorie == categorie }
        [categorie, label, solutions.sort_by { |sol| [-(nb_apis[sol.id] || 0), sol.nom] }] if solutions.any?
      end
-   demarches_filtrables = couvertures.slice(*integratrices.map(&:id)).values.flat_map(&:keys).uniq.sort_by(&:nom)
-   lien_datagouv = ->(donnee) {
-     "https://www.data.gouv.fr/fr/#{donnee.categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{donnee.uid_datagouv}"
-   }
    sections = [['possibilites-simplification', 'Possibilités de simplification'],
                ['cas-usages-simplifiables', "Cas d'usages simplifiables"]]
    sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
    sections << (fournies.any? ? ['donnees-api-fournies', 'Données et API fournies'] : ['donnees-api', 'Données et API'])
    sections << ['solutions-integratices', 'Solutions intégratrices'] if integratrices.any? %>
 <div class="fr-container fr-mt-1v">
-  <nav role="navigation" class="fr-breadcrumb fr-mb-1v" aria-label="vous êtes ici :">
-    <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-solution">Voir le fil d'Ariane</button>
-    <div class="fr-collapse" id="breadcrumb-solution">
-      <ol class="fr-breadcrumb__list">
-        <li><%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %></li>
-        <li><a class="fr-breadcrumb__link" href="/solutions">Solutions</a></li>
-        <li><a class="fr-breadcrumb__link" aria-current="page"><%= @solution.nom %></a></li>
-      </ol>
-    </div>
-  </nav>
+  <%= render "breadcrumb", id: "breadcrumb-solution",
+        liens: [["Accueil", root_path], ["Solutions", "/solutions"], [@solution.nom, nil]] %>
 </div>
 
-<div class="fr-container fr-mt-1w fr-mb-8w solution-page">
+<div class="fr-container fr-mt-1w fr-mb-8w solution-page fiche-page">
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <div class="fr-col-12 fr-col-md-8">
       <div class="topic__header fr-mb-4v">
         <h1 class="fr-mb-1v fr-mr-2v"><%= @solution.nom %></h1>
-        <% if operateur %>
-          <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= @solution.privee? ? 'fr-badge--green-tilleul-verveine' : 'fr-badge--blue-ecume' %>">
-            <span class="font-weight-normal"><%= @solution.privee? ? 'Solution privée' : 'Solution publique' %> | <b><%= operateur %></b></span>
-          </p>
-        <% end %>
+        <%= render "badge_operateur", solution: @solution %>
       </div>
       <p class="fr-text--lead"><%= @solution.description_courte %></p>
 
-      <% if usagers.any? %>
-        <div class="fr-card__detail">
-          <p class="fr-mb-1w white-space-normal">Pour simplifier les démarches des <%= liste_humaine(usagers) %></p>
-        </div>
-      <% end %>
-      <% if acteurs.any? %>
-        <div class="fr-card__detail">
-          <p class="fr-mb-1w white-space-normal">À destination <%= acteurs.first.start_with?("Tou") ? "de" : "des" %> <%= liste_humaine(acteurs) %></p>
-        </div>
-      <% end %>
+      <%= render "public_vise", usagers:, acteurs: %>
 
       <ul class="fr-mt-4w">
         <li>
@@ -152,27 +126,19 @@
     </p>
   <% end %>
 
-  <% if utilisees.any? %>
-    <div id="donnees-api-utilisees">
-      <h2 class="colored-title fr-h2 fr-mt-8w">Données et API utilisées</h2>
+  <% [['donnees-api-utilisees', 'Données et API utilisées', utilisees],
+      ['donnees-api-fournies', 'Données et API fournies', fournies]].each do |id, titre, donnees| %>
+    <% next if donnees.empty? %>
+    <div id="<%= id %>">
+      <h2 class="colored-title fr-h2 fr-mt-8w"><%= titre %></h2>
       <ul class="fr-grid-row fr-grid-row--gutters list-none fr-pt-2w">
-        <% utilisees.each do |donnee| %>
-          <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.new(api: { title: donnee.nom, url: lien_datagouv.call(donnee) }) %></li>
+        <% donnees.each do |donnee| %>
+          <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.new(api: { title: donnee.nom, url: donnee.lien_datagouv }) %></li>
         <% end %>
       </ul>
     </div>
   <% end %>
-
-  <% if fournies.any? %>
-    <div id="donnees-api-fournies">
-      <h2 class="colored-title fr-h2 fr-mt-8w">Données et API fournies</h2>
-      <ul class="fr-grid-row fr-grid-row--gutters list-none fr-pt-2w">
-        <% fournies.each do |donnee| %>
-          <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.new(api: { title: donnee.nom, url: lien_datagouv.call(donnee) }) %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% else %>
+  <% if fournies.empty? %>
     <div id="donnees-api">
       <h2 class="colored-title fr-h2 fr-mt-8w">Données et API</h2>
       <p class="fr-text--sm">
@@ -194,7 +160,7 @@
                 <label for="filtre-cas-usage" class="fr-label">Cas d'usage :</label>
                 <select id="filtre-cas-usage" class="fr-select" data-integratrices-target="casUsage" data-action="integratrices#filter">
                   <option value="">Tous les cas d'usages</option>
-                  <% demarches_filtrables.each do |demarche| %>
+                  <% couvertures.values.flat_map(&:keys).uniq.sort_by(&:nom).each do |demarche| %>
                     <option value="<%= demarche.id %>"><%= demarche.nom %></option>
                   <% end %>
                 </select>
@@ -227,11 +193,11 @@
             </div>
           </div>
         </div>
-      <% end %>
 
-      <p hidden class="fr-text--sm fr-text--center" data-integratrices-target="vide">
-        <i>Aucune solution ne correspond aux filtres sélectionnés.</i>
-      </p>
+        <p hidden class="fr-text--sm fr-text--center" data-integratrices-target="vide">
+          <i>Aucune solution ne correspond aux filtres sélectionnés.</i>
+        </p>
+      <% end %>
 
       <div class="fr-tabs fr-mt-4w">
         <ul class="fr-tabs__list" role="tablist" aria-label="Catégories de solutions intégratrices">
@@ -248,10 +214,11 @@
             role="tabpanel" aria-labelledby="tab-<%= categorie.dasherize %>" tabindex="0">
             <ul class="fr-grid-row fr-grid-row--gutters list-none" data-integratrices-target="panneau">
               <% solutions.each do |integratrice| %>
+                <% couverture = couvertures[integratrice.id] || {} %>
                 <li class="fr-col-12 fr-mb-2w" data-integratrices-target="carte"
-                  data-demarches="<%= couvertures[integratrice.id].keys.map(&:id).join(' ') %>"
+                  data-demarches="<%= couverture.keys.map(&:id).join(' ') %>"
                   data-apis="<%= nb_apis[integratrice.id] || 0 %>" data-nom="<%= integratrice.nom %>">
-                  <%= render 'solution_integratrice', solution: integratrice, couverture: couvertures[integratrice.id] %>
+                  <%= render 'solution_integratrice', solution: integratrice, couverture: %>
                 </li>
               <% end %>
             </ul>

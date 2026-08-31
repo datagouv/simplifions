@@ -1,15 +1,10 @@
-<% operateur = solution.organisations.first %>
 <div class="solution-integratrice-card fr-enlarge-link">
   <div class="solution-integratrice-card__header">
     <p class="solution-integratrice-card__title fr-text--lg"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
-    <% if operateur %>
-      <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= solution.privee? ? 'fr-badge--green-tilleul-verveine' : 'fr-badge--blue-ecume' %>">
-        <span class="font-weight-normal"><%= solution.privee? ? 'Solution privée' : 'Solution publique' %> | <b><%= operateur.nom %></b></span>
-      </p>
-    <% end %>
+    <%= render "badge_operateur", solution: solution %>
   </div>
   <% if local_assigns[:couverture] %>
-    <% tags = solution.vocabulaires.categorie_type_simplification.map(&:nom) %>
+    <% tags = solution.vocabulaires.select(&:categorie_type_simplification?).map(&:nom) %>
     <% if tags.any? %>
       <ul class="fr-tags-group fr-mt-2v">
         <% tags.each do |tag| %>

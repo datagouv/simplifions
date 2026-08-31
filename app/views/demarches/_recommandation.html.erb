@@ -53,7 +53,7 @@
             <% if cible.uid_datagouv.present? %>
               <%= render DataserviceCardComponent.new(api: {
                     title: cible.nom,
-                    url: "https://www.data.gouv.fr/fr/dataservices/#{cible.uid_datagouv}",
+                    url: cible.lien_datagouv,
                     org: cible.organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
                   }) %>
             <% end %>
@@ -94,7 +94,7 @@
                                 <b><%= utile.solution.nom %></b>
                                 <% if utile.solution.uid_datagouv.present? %>
                                   <br>
-                                  <a href="https://www.data.gouv.fr/fr/dataservices/<%= utile.solution.uid_datagouv %>" class="fr-link fr-link--xs"
+                                  <a href="<%= utile.solution.lien_datagouv %>" class="fr-link fr-link--xs"
                                     rel="noopener external" target="_blank">Documentation</a>
                                 <% end %>
                               </td>
