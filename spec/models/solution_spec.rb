@@ -13,6 +13,43 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#demarches_simplifiables' do
+    it 'liste les démarches visibles recommandant la solution, ou qu’elle intègre en production via une reco visible' do
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
+      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main')
+      portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
+      Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
+
+      cantine = Demarche.create!(nom: 'Cantine', visible: true)
+      brouillon = Demarche.create!(nom: 'Brouillon', visible: false)
+      autre = Demarche.create!(nom: 'Autre', visible: true)
+      Recommandation.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche: brouillon, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche: autre, solution: bouquet, niveau: :niveau_2, visible: false)
+
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine, autre])
+      Integration.create!(integratrice: portail, integree: api_qf, type_integration: 'consomme',
+        demarches: [cantine])
+
+      expect(bouquet.demarches_simplifiables).to contain_exactly(cantine)
+      expect(logiciel.demarches_simplifiables).to contain_exactly(cantine)
+      expect(portail.demarches_simplifiables).to be_empty
+    end
+
+    it 'compte l’intégration de la cible elle-même quand la reco vise une API en direct' do
+      api = described_class.create!(nom: 'API FranceConnect', categorie: 'api')
+      portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
+      demarche = Demarche.create!(nom: 'Cantine', visible: true)
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, visible: true)
+      Integration.create!(integratrice: portail, integree: api, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      expect(portail.demarches_simplifiables).to contain_exactly(demarche)
+    end
+  end
+
   describe '#fiche?' do
     it 'is false for the categories that come from APIs_et_datasets, true otherwise' do
       expect(described_class.new(categorie: 'api')).not_to be_fiche
