@@ -42,7 +42,8 @@ RSpec.describe Grist::Import do
   it 'unifies Grist Solutions and APIs_et_datasets into solutions with mapped categories' do
     result
     bouquet = Solution.find_by!(grist_id: 'Solutions:1')
-    expect(bouquet).to have_attributes(categorie: 'brique_logicielle', slug: 'bouquet-api-particulier', visible: true)
+    expect(bouquet).to have_attributes(categorie: 'brique_logicielle', slug: 'bouquet-api-particulier', visible: true,
+      cree_le: Time.zone.parse('2025-09-29T12:14:33.730Z'))
     expect(bouquet.organisations.pluck(:nom)).to contain_exactly('DINUM')
     expect(bouquet.vocabulaires.categorie_type_simplification).to be_present
 
