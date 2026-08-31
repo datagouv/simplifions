@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get "articles/:slug" => "articles#show", as: :article
 
   get "demarches/:slug" => "demarches#show", as: :demarche
+  get "solutions/:slug" => "solutions#show", as: :solution
   # Anciennes URLs des cas d'usage, conservées pour ne pas casser les 28 liens publiés.
   # Le topic suivi-des-tiers-aides a été renommé côté data.gouv : son ancien slug publié
   # doit rediriger vers le nouveau, avant la règle générique qui préserve le slug.
