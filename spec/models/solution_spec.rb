@@ -50,6 +50,74 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#consommees' do
+    it 'liste les données intégrées en production, pas les exposées ni les intégrations en cours' do
+      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main')
+      api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
+      api_statut = described_class.create!(nom: 'API Statut étudiant', categorie: 'api')
+      api_fc = described_class.create!(nom: 'API FranceConnect', categorie: 'api')
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production')
+      Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
+        statut: '🚧 en cours')
+      Integration.create!(integratrice: logiciel, integree: api_fc, type_integration: 'expose')
+
+      expect(logiciel.consommees).to contain_exactly(api_qf)
+    end
+  end
+
+  describe '#integratrices_visibles' do
+    it 'liste les solutions visibles intégrant en production une donnée fournie, cible comprise' do
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
+
+      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      brouillon = described_class.create!(nom: 'Portail brouillon', categorie: 'site_de_consultation')
+      en_cours = described_class.create!(nom: 'Portail en cours', categorie: 'site_de_consultation', visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production')
+      Integration.create!(integratrice: brouillon, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production')
+      Integration.create!(integratrice: en_cours, integree: api_qf, type_integration: 'consomme',
+        statut: '🚧 en cours')
+
+      expect(bouquet.integratrices_visibles).to contain_exactly(logiciel)
+      expect(api_qf.integratrices_visibles).to contain_exactly(logiciel)
+    end
+  end
+
+  describe '#couvertures' do
+    it 'compte par intégratrice et démarche visible les données utiles intégrées (x) sur attendues (y)' do
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
+      api_statut = described_class.create!(nom: 'API Statut étudiant', categorie: 'api')
+      api_extra = described_class.create!(nom: 'API Extra', categorie: 'api')
+      [api_qf, api_statut, api_extra].each do |api|
+        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      end
+
+      cantine = Demarche.create!(nom: 'Cantine', visible: true)
+      autre = Demarche.create!(nom: 'Autre', visible: true)
+      brouillon = Demarche.create!(nom: 'Brouillon', visible: false)
+      Recommandation.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
+      Recommandation.create!(demarche: cantine, solution: api_statut, niveau: :niveau_1)
+      Recommandation.create!(demarche: autre, solution: api_qf, niveau: :niveau_1)
+
+      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine, autre, brouillon])
+      Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
+        statut: '🚧 en cours', demarches: [cantine])
+      Integration.create!(integratrice: portail, integree: api_extra, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
+
+      expect(bouquet.couvertures[logiciel.id]).to eq(cantine => [1, 2], autre => [1, 1])
+      expect(bouquet.couvertures[portail.id]).to eq(cantine => [0, 2])
+    end
+  end
+
   describe '#fiche?' do
     it 'is false for the categories that come from APIs_et_datasets, true otherwise' do
       expect(described_class.new(categorie: 'api')).not_to be_fiche
