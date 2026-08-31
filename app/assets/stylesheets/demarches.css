@@ -1,0 +1,118 @@
+/* Page démarche : rendu repris de udata-front-kit (src/custom/simplifions). */
+
+.demarche-page .topic__header {
+  display: flex;
+  align-items: center;
+  flex-flow: wrap;
+}
+
+.demarche-page .white-space-normal {
+  white-space: normal;
+}
+
+/* Le sommaire DSFR est en 12px par défaut */
+.demarche-page .fr-summary li a {
+  font-size: 1rem;
+}
+
+.demarche-page .subtitle {
+  font-weight: 700;
+}
+
+.demarche-page .bloc-modifications {
+  background-color: #f1f1f1;
+  padding: 1rem;
+}
+
+.demarche-page blockquote {
+  border-left: 4px solid var(--border-default-grey);
+  margin-left: 2rem;
+  padding-left: 2rem;
+}
+
+.demarche-page .font-weight-normal {
+  font-weight: normal;
+}
+
+.reco-card {
+  background-color: var(--background-alt-beige-gris-galet);
+  border-left: 4px solid var(--border-action-high-grey);
+}
+
+.reco-card .icon-green {
+  color: var(--text-default-success);
+}
+
+.reco-card .endpoint-term {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.reco-card .fr-table .fr-table__wrapper {
+  border: 1px solid var(--border-default-grey);
+}
+
+.reco-card .fr-table__footer[hidden] {
+  display: none;
+}
+
+@media (min-width: 48em) {
+  .reco-card .fr-table__header .fr-search-bar {
+    min-width: 28rem;
+  }
+}
+
+.reco-card .fr-text--sm p {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.reco-card .fr-accordion__btn[aria-expanded="true"] {
+  background-color: var(--background-alt-blue-france);
+  color: var(--text-action-high-blue-france);
+}
+
+.reco-card .fr-accordion__btn--empty {
+  color: var(--text-disabled-grey);
+  cursor: text;
+}
+
+.reco-card .fr-accordion__btn--empty::after {
+  display: none;
+}
+
+.solution-integratrice-card {
+  background-color: white;
+  border-bottom: 4px solid var(--blue-france-sun-113-625);
+  padding: 1.5rem 1.5rem 4rem;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.solution-integratrice-card__header {
+  margin-bottom: 1rem;
+}
+
+.solution-integratrice-card__title {
+  color: var(--text-action-high-blue-france);
+  margin: 0 0 0.5rem;
+}
+
+.solution-integratrice-card__arrow {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+}
+
+.solution-integratrice-card__arrow .fr-icon-arrow-right-line {
+  color: var(--blue-france-sun-113-625);
+}
+
+@media (max-width: 767px) {
+  .solution-integratrice-card__arrow {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+}

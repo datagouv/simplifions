@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_142000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -53,6 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.text "cadre_juridique"
     t.text "contexte"
     t.datetime "created_at", null: false
+    t.datetime "cree_le"
     t.text "description_courte"
     t.string "grist_id"
     t.string "icone"

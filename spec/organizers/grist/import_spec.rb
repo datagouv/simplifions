@@ -24,7 +24,8 @@ RSpec.describe Grist::Import do
     expect(cantine).to have_attributes(
       nom: 'Tarification cantine scolaire à 1€',
       visible: true,
-      slug: 'tarification-cantine-scolaire-a-1eur'
+      slug: 'tarification-cantine-scolaire-a-1eur',
+      cree_le: Time.zone.parse('2025-09-29T12:14:26.813Z')
     )
     expect(cantine.mots_clefs).to include('cantine', 'repas')
     expect(cantine.vocabulaires.categorie_usager.pluck(:nom)).to contain_exactly('Particuliers')
@@ -35,7 +36,7 @@ RSpec.describe Grist::Import do
   it 'falls back to a parameterized slug for records outside the topics snapshot' do
     result
     eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
-    expect(eau).to have_attributes(visible: false, slug: 'tarification-sociale-de-l-eau-potable')
+    expect(eau).to have_attributes(visible: false, slug: 'tarification-sociale-de-l-eau-potable', cree_le: nil)
   end
 
   it 'unifies Grist Solutions and APIs_et_datasets into solutions with mapped categories' do
@@ -246,12 +247,13 @@ RSpec.describe Grist::Import do
   it 'converges when replayed against a locally modified database, without touching slugs' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
-    cantine.update!(nom: 'Renommée à la main', slug: 'slug-custom')
+    cantine.update!(nom: 'Renommée à la main', slug: 'slug-custom', cree_le: Time.zone.parse('2020-01-01'))
 
     expect { described_class.call }.not_to(change do
       [Demarche.count, Solution.count, Integration.count, Recommandation.count, Vocabulaire.count]
     end)
 
-    expect(cantine.reload).to have_attributes(nom: 'Tarification cantine scolaire à 1€', slug: 'slug-custom')
+    expect(cantine.reload).to have_attributes(nom: 'Tarification cantine scolaire à 1€', slug: 'slug-custom',
+      cree_le: Time.zone.parse('2020-01-01'))
   end
 end

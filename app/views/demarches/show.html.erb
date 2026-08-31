@@ -1,0 +1,84 @@
+<% vocabulaires = @demarche.vocabulaires.group_by(&:categorie)
+   usagers = vocabulaires.fetch('usager', []).map(&:nom)
+   acteurs = @demarche.types_acteurs.map(&:nom)
+   sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
+               ['donnees-disponibles', 'Données disponibles']] %>
+<div class="fr-container fr-mt-1v">
+  <nav role="navigation" class="fr-breadcrumb fr-mb-1v" aria-label="vous êtes ici :">
+    <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-demarche">Voir le fil d'Ariane</button>
+    <div class="fr-collapse" id="breadcrumb-demarche">
+      <ol class="fr-breadcrumb__list">
+        <li><%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %></li>
+        <li><a class="fr-breadcrumb__link" href="/demarches">Cas d'usages</a></li>
+        <li><a class="fr-breadcrumb__link" aria-current="page"><%= "#{@demarche.icone} #{@demarche.nom}".strip %></a></li>
+      </ol>
+    </div>
+  </nav>
+</div>
+
+<div class="fr-container fr-mt-1w fr-mb-8w demarche-page">
+  <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
+    <div class="fr-col-12 fr-col-md-8">
+      <div class="topic__header fr-mb-4v">
+        <h1 class="fr-mb-1v fr-mr-2v"><%= "#{@demarche.icone} #{@demarche.nom}".strip %></h1>
+      </div>
+      <p class="fr-text--lead"><%= @demarche.description_courte %></p>
+
+      <% if usagers.any? %>
+        <div class="fr-card__detail">
+          <p class="fr-mb-1w white-space-normal">Pour simplifier les démarches des <%= liste_humaine(usagers) %></p>
+        </div>
+      <% end %>
+      <% if acteurs.any? %>
+        <div class="fr-card__detail">
+          <p class="fr-mb-1w white-space-normal">À destination <%= acteurs.first.start_with?("Tou") ? "de" : "des" %> <%= liste_humaine(acteurs) %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="fr-col-12 fr-col-md-4">
+      <nav role="navigation" aria-labelledby="fr-summary-title" class="fr-summary">
+        <h2 id="fr-summary-title" class="fr-summary__title fr-text--md">Sommaire</h2>
+        <ol>
+          <% sections.each do |id, label| %>
+            <li><a href="#<%= id %>" class="fr-summary__link"><%= label %></a></li>
+          <% end %>
+        </ol>
+        <hr class="fr-hr fr-my-2w">
+        <p class="fr-text--sm">
+          <span class="subtitle">Contenu rédigé par :</span><br>
+          <a href="https://www.data.gouv.fr/organizations/direction-interministerielle-du-numerique" rel="noopener external" target="_blank">Direction interministérielle du numérique</a>
+          <% if @demarche.cree_le %><br>le <time datetime="<%= @demarche.cree_le.iso8601 %>"><%= l @demarche.cree_le.to_date, format: :long %>.</time><% end %>
+          <% if @demarche.modifie_le %><br><span class="fr-text--xs">Modifié le <time datetime="<%= @demarche.modifie_le.iso8601 %>"><%= l @demarche.modifie_le.to_date, format: :long %>.</time></span><% end %>
+        </p>
+        <a href="#modification-contenu">✒️ Proposer une modification</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="fr-col-12 fr-col-md-8 fr-mt-5w">
+    <%= render ArticleSectionComponent.new(id: sections[0][0], label: sections[0][1]) do %>
+      <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-map-pin-2-fill"></span> Contexte</h3>
+      <%= render 'contenu', texte: @demarche.contexte %>
+
+      <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-newspaper-fill"></span> Cadre juridique</h3>
+      <%= render 'contenu', texte: @demarche.cadre_juridique %>
+    <% end %>
+  </div>
+
+  <div class="fr-mt-5w">
+    <%= render ArticleSectionComponent.new(id: sections[1][0], label: sections[1][1]) do %>
+      <%= render partial: 'recommandation',
+            collection: @demarche.recommandations.visibles.niveau_2.includes(solution: [:exposees, :organisations]).order(:ordre),
+            as: :recommandation %>
+    <% end %>
+  </div>
+
+  <div id="modification-contenu" class="bloc-modifications fr-mt-10w">
+    <h2 class="fr-h6">✒️ Proposer une modification du contenu</h2>
+    <p class="fr-mb-0">
+      Pour proposer une modification du contenu de ce cas d'usage, vous pouvez compléter
+      <a href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions" rel="noopener external" target="_blank">ce formulaire</a>.
+    </p>
+  </div>
+</div>

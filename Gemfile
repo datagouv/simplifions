@@ -20,6 +20,9 @@ gem "view_component"
 # Chain-of-command pipelines (Grist import)
 gem "interactor"
 
+# Rend le markdown du catalogue Grist (safe par défaut : HTML brut et URLs dangereuses neutralisés)
+gem "commonmarker"
+
 # Store Active Storage blobs in PostgreSQL, shared by every host [https://github.com/blocknotes/active_storage_db]
 gem "active_storage_db"
 
