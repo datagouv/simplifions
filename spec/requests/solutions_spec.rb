@@ -38,6 +38,9 @@ RSpec.describe 'Solutions' do
         vocabulaires: [Vocabulaire.create!(nom: 'Dites-le-nous une fois', categorie: 'type_simplification')])
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
+      sans_categorie = Solution.create!(nom: 'Hub sans catégorie', visible: true, slug: 'hub-sans-categorie')
+      Integration.create!(integratrice: sans_categorie, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
       en_cours = Solution.create!(nom: 'Portail en cours', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: en_cours, integree: api_qf, type_integration: 'consomme',
         statut: '🚧 en cours', demarches: [cantine])
@@ -96,6 +99,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/fc789')
       expect(response.body).not_to include('API cachée')
       expect(response.body).not_to include('API sans fiche data.gouv')
+      expect(response.body).not_to include('Aucun jeu de données ou API utilisé ou fourni')
     end
 
     it 'rend les solutions intégratrices en onglets, avec lien, badge, tags et indicateur' do
@@ -108,6 +112,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Dites-le-nous une fois')
       expect(response.body).to include('1/1')
       expect(response.body).not_to include('Portail en cours')
+      expect(response.body).not_to include('Hub sans catégorie')
       expect(response.body).to include('2 solutions disponibles')
       expect(response.body).to include('Trier par')
     end
@@ -119,7 +124,7 @@ RSpec.describe 'Solutions' do
   end
 
   describe 'GET /solutions/:slug' do
-    it 'rend la solution visible' do
+    it 'rend la solution visible, avec les fallbacks des contenus absents' do
       Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle',
         slug: 'bouquet-api-particulier', visible: true)
 
@@ -127,6 +132,24 @@ RSpec.describe 'Solutions' do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Bouquet API Particulier')
+      expect(response.body).to include('Non renseigné')
+      expect(response.body).to include('Aucun lien vers un site officiel actuellement.')
+      expect(response.body).to include("Aucun cas d'usage n'est référencé pour cette solution actuellement.")
+      expect(response.body).to include('Aucun jeu de données ou API utilisé ou fourni')
+    end
+
+    it 'n’affiche pas le bloc « Données et API » vide quand des API sont utilisées mais aucune fournie' do
+      logiciel = Solution.create!(nom: 'Logiciel RH', categorie: 'logiciel_metier_cle_en_main', visible: true,
+        slug: 'logiciel-rh')
+      api = Solution.create!(nom: 'API Quotient familial', categorie: 'api', visible: true, uid_datagouv: 'qf1')
+      Integration.create!(integratrice: logiciel, integree: api, type_integration: 'consomme',
+        statut: '✅ en production')
+
+      get solution_path('logiciel-rh')
+
+      expect(response.body).to include('Données et API utilisées')
+      expect(response.body).not_to include('Aucun jeu de données ou API utilisé ou fourni')
+      expect(response.body).not_to include('id="donnees-api"')
     end
 
     it 'renvoie 404 pour une solution non visible' do

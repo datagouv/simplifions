@@ -17,7 +17,8 @@
    sections = [['possibilites-simplification', 'Possibilités de simplification'],
                ['cas-usages-simplifiables', "Cas d'usages simplifiables"]]
    sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
-   sections << (fournies.any? ? ['donnees-api-fournies', 'Données et API fournies'] : ['donnees-api', 'Données et API'])
+   sections << ['donnees-api-fournies', 'Données et API fournies'] if fournies.any?
+   sections << ['donnees-api', 'Données et API'] if utilisees.empty? && fournies.empty?
    sections << ['solutions-integratices', 'Solutions intégratrices'] if integratrices.any? %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-solution",
@@ -76,7 +77,7 @@
   </div>
 
   <% if @solution.image.attached? %>
-    <figure aria-label="© Légende de l'image" role="group" class="fr-content-media">
+    <figure role="group" class="fr-content-media">
       <div class="example-image fr-content-media__img">
         <%= image_tag url_for(@solution.image), alt: @solution.legende_image.to_s, class: "fr-responsive-img fr-ratio-16x9" %>
       </div>
@@ -138,7 +139,7 @@
       </ul>
     </div>
   <% end %>
-  <% if fournies.empty? %>
+  <% if utilisees.empty? && fournies.empty? %>
     <div id="donnees-api">
       <h2 class="colored-title fr-h2 fr-mt-8w">Données et API</h2>
       <p class="fr-text--sm">
@@ -181,7 +182,8 @@
         </div>
         <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
           <div class="fr-col-12 fr-col-md-6">
-            <p class="fr-text--bold fr-mb-0 fr-ml-2w" data-integratrices-target="compteur"><%= integratrices.size %> solutions disponibles</p>
+            <% affichees = onglets.sum { |_, _, solutions| solutions.size } %>
+            <p class="fr-text--bold fr-mb-0 fr-ml-2w" data-integratrices-target="compteur"><%= affichees %> solution<%= 's' if affichees > 1 %> disponible<%= 's' if affichees > 1 %></p>
           </div>
           <div class="fr-col-auto fr-grid-row fr-grid-row--middle fr-ml-auto">
             <div class="fr-select-group fr-grid-row fr-grid-row--middle">
