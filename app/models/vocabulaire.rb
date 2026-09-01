@@ -3,7 +3,10 @@ class Vocabulaire < ApplicationRecord
   LIBELLES = {
     'acces-facile' => 'Accès facile',
     'dlnuf' => 'Dites-le nous une fois',
-    'proactivite' => 'Proactivité'
+    'proactivite' => 'Proactivité',
+    'brique-technique' => 'API, jeu de données ou brique logicielle',
+    'logiciel-metier' => 'Logiciel métier "clé en main"',
+    'portail-consultation' => 'Site de consultation'
   }.freeze
 
   validates :nom, presence: true
@@ -11,7 +14,9 @@ class Vocabulaire < ApplicationRecord
   has_and_belongs_to_many :demarches
   has_and_belongs_to_many :solutions
 
-  enum :categorie, %w[usager type_simplification].index_with(&:itself), prefix: true
+  enum :categorie, %w[usager type_simplification solution].index_with(&:itself), prefix: true
+
+  def self.choix = order(:id).map { |vocabulaire| [vocabulaire.libelle, vocabulaire.slug] }
 
   def libelle = LIBELLES[slug] || nom
 end

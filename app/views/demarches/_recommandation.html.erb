@@ -2,7 +2,7 @@
    moyens = recommandation.moyens_acces
    utiles = recommandation.apis_utiles.to_a
    lien_demande_acces = recommandation.lien_demande_acces
-   nom_demarche = "#{recommandation.demarche.icone} #{recommandation.demarche.nom}".strip
+   nom_demarche = recommandation.demarche.titre
    accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
                  ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
                  ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites']] %>

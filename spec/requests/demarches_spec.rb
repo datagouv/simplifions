@@ -1,6 +1,107 @@
 require 'rails_helper'
 
 RSpec.describe 'Demarches' do
+  describe 'GET /demarches' do
+    before do
+      21.times { |i| Demarche.create!(nom: "Démarche #{i}", slug: "demarche-#{i}", visible: true) }
+      Demarche.create!(nom: 'Brouillon invisible', slug: 'brouillon')
+    end
+
+    it 'liste les démarches visibles par pages de 20, avec compteur et pagination' do
+      get demarches_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('<h1 class="fr-mb-0">Cas d&#39;usages</h1>')
+      expect(response.body.scan('class="demarche-card').size).to eq(20)
+      expect(response.body).to include('href="/demarches/demarche-0"')
+      expect(response.body).to include('role="status">21 résultats')
+      expect(response.body).to include('fr-pagination')
+      expect(response.body).to include('href="/demarches?page=2"')
+      expect(response.body).not_to include('Brouillon invisible')
+    end
+
+    it 'rend chaque carte comme le site : titre, chapo, usagers et acteurs triés' do
+      Demarche.create!(nom: 'Cantine à 1€', icone: '🥣', slug: 'cantine', visible: true,
+        description_courte: "Communes, simplifiez.\nDeuxième ligne ignorée.",
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
+        types_acteurs: [TypeActeur.create!(nom: 'Départements'), TypeActeur.create!(nom: 'Communes')])
+
+      get demarches_path(q: 'cantine')
+
+      expect(response.body).to include('🥣 Cantine à 1€')
+      expect(response.body).to include('Communes, simplifiez.')
+      expect(response.body).not_to include('Deuxième ligne')
+      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
+      expect(response.body).to include('fr-text--right')
+      expect(response.body).to include('À destination des <b>Communes</b> et <b>Départements</b>')
+    end
+
+    it 'propose les facettes du site préremplies et le passage aux solutions avec la même requête' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      Vocabulaire.create!(nom: '💠💠 DLNUF', slug: 'dlnuf', categorie: 'type_simplification')
+      Vocabulaire.create!(nom: 'Brique technique', slug: 'brique-technique', categorie: 'solution')
+      Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true,
+        description_courte: 'Démarches des communes', types_acteurs: [communes])
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
+
+      get demarches_path('fournisseurs-de-service' => 'communes', 'sort' => '-created', 'q' => 'Démarche')
+
+      expect(response.body).to include('<option selected="selected" value="communes">Communes et groupements de communes</option>')
+      expect(response.body).to include('<option value="particuliers">Particuliers</option>')
+      expect(response.body).to include('<option value="dlnuf">Dites-le nous une fois</option>')
+      expect(response.body).to include('<option value="brique-technique">API, jeu de données ou brique logicielle</option>')
+      expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
+      expect(response.body).to include('role="status">1 résultat<')
+      expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
+      expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
+      expect(response.body).to include('data-controller="form"')
+      expect(response.body).to include('data-action="change-&gt;form#submit"')
+    end
+
+    it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do
+      get demarches_path(page: 2, q: 'Démarche 20')
+
+      expect(response.body.scan('class="demarche-card').size).to eq(1)
+      expect(response.body).to include('role="status">1 résultat<')
+      expect(response.body).not_to include('fr-pagination')
+    end
+
+    it 'garde les liens de pagination sur /demarches quels que soient les paramètres reçus' do
+      get '/demarches?host=evil.com&protocol=ftp&controller=articles&action=show&script_name=/x&page=1'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('href="/demarches?page=2"')
+      expect(response.body).not_to include('evil.com')
+      expect(response.body).to match(/fr-pagination__link--first[^>]*aria-disabled="true"/)
+      expect(response.body).not_to match(/fr-pagination__link--first[^>]*aria-current/)
+      expect(response.body).to match(/aria-current="page"[^>]*title="Page 1"|title="Page 1"[^>]*aria-current="page"/)
+    end
+
+    it 'remplace la liste vide par l’invitation à réinitialiser les filtres, comme le site' do
+      get demarches_path(q: 'zzzz', 'target-users' => 'particuliers')
+
+      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(response.body).to include('Essayez de réinitialiser les filtres pour élargir votre recherche.')
+      expect(response.body).to include('href="/demarches"')
+      expect(response.body).to include('Réinitialiser les filtres')
+      expect(response.body).to include('magnifying_glass')
+      expect(response.body).not_to include('role="status"')
+      expect(response.body).not_to include('Trier par')
+      expect(response.body).not_to include('class="demarche-card')
+    end
+
+    it 'ignore les paramètres non scalaires ou hors plage' do
+      get '/demarches?page[]=1&target-users[a]=b&q[]=x&sort[]=y'
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('role="status">21 résultats')
+
+      get '/demarches?page=99999999999999999999999'
+      expect(response).to have_http_status(:ok)
+      expect(response.body.scan('class="demarche-card').size).to eq(1)
+    end
+  end
+
   describe 'GET /demarches/:slug' do
     it 'rend la démarche visible' do
       Demarche.create!(nom: 'Tarification cantine scolaire à 1€', slug: 'tarification-cantine-scolaire-a-1eur',
@@ -110,6 +211,13 @@ RSpec.describe 'Demarches' do
   end
 
   describe 'anciennes URLs /cas-d-usages' do
+    it 'redirige la liste en 301 vers /demarches en conservant les filtres' do
+      get '/cas-d-usages?target-users=particuliers'
+
+      expect(response).to redirect_to('/demarches?target-users=particuliers')
+      expect(response).to have_http_status(:moved_permanently)
+    end
+
     it 'redirige en 301 vers /demarches/:slug' do
       get '/cas-d-usages/tarification-cantine-scolaire-a-1eur'
 

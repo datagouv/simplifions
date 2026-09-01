@@ -30,15 +30,16 @@ class Grist::ImportEntites < Grist::ImportStep
     each_record('Fournisseurs_de_services') do |gid, fields|
       synchronise(TypeActeur, gid, {
         nom: fields['Label'], description: fields['Ce_que_cela_inclut'],
-        codes_juridiques: fields['Codes_juridiques'], slug: list(fields['slugs']).first
+        codes_juridiques: fields['Codes_juridiques'], slugs: list(fields['slugs'])
       })
     end
   end
 
   def import_vocabulaires
-    { 'Usagers' => 'usager', 'Types_de_simplification' => 'type_simplification' }.each do |table, categorie|
+    { 'Usagers' => 'usager', 'Types_de_simplification' => 'type_simplification',
+      'Categories_de_solution' => 'solution' }.each do |table, categorie|
       each_record(table) do |gid, fields|
-        synchronise(Vocabulaire, gid, { nom: fields['Label'], slug: fields['slug'], categorie: })
+        synchronise(Vocabulaire, gid, { nom: fields['Label'] || fields['Nom'], slug: fields['slug'], categorie: })
       end
     end
   end
@@ -46,9 +47,15 @@ class Grist::ImportEntites < Grist::ImportStep
   def import_demarches
     each_record('Cas_d_usages') do |gid, fields|
       demarche = synchronise(Demarche, gid, demarche_attributes(fields)) || next
-      demarche.vocabulaire_ids = ids('Usagers', fields['Pour_simplifier_les_demarches_de'], gid)
+      demarche.vocabulaire_ids = vocabulaire_ids(fields, gid)
       demarche.type_acteur_ids = ids('Fournisseurs_de_services', fields['A_destination_de'], gid)
     end
+  end
+
+  def vocabulaire_ids(fields, gid)
+    ids('Usagers', fields['Pour_simplifier_les_demarches_de'], gid) +
+      ids('Types_de_simplification', fields['Types_de_simplification'], gid) +
+      ids('Categories_de_solution', fields['Categorie_de_solution'], gid)
   end
 
   def demarche_attributes(fields)
@@ -64,8 +71,7 @@ class Grist::ImportEntites < Grist::ImportStep
     each_record('Solutions') do |gid, fields|
       solution = synchronise(Solution, gid, solution_attributes(gid, fields)) || next
       solution.organisation_ids = ids('Operateurs', fields['Operateur'], gid)
-      solution.vocabulaire_ids = ids('Usagers', fields['Pour_simplifier_les_demarches_de'], gid) +
-                                 ids('Types_de_simplification', fields['Types_de_simplification'], gid)
+      solution.vocabulaire_ids = vocabulaire_ids(fields, gid)
       solution.type_acteur_ids = ids('Fournisseurs_de_services', fields['A_destination_de'], gid)
     end
   end

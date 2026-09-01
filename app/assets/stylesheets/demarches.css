@@ -203,3 +203,28 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Listes du catalogue (iso GlobalSearch de components-next) */
+
+.catalogue-types a {
+  background-image: none;
+  border-radius: 0.25rem;
+}
+
+.catalogue-types a:hover {
+  background-color: var(--background-alt-grey);
+}
+
+.catalogue-types__actif a {
+  background-color: var(--background-contrast-grey);
+}
+
+.catalogue-vide {
+  background-color: var(--background-alt-blue-france);
+  color: var(--text-title-blue-france);
+  border-radius: 0.25rem;
+}
+
+.catalogue-vide__loupe {
+  width: 5rem;
+}

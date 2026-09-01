@@ -1,7 +1,21 @@
 class SolutionCardComponent < ApplicationComponent
+  def self.pour(solution, arrow: false)
+    new(arrow:, card: {
+      title: solution.nom, href: "/solutions/#{solution.slug}", badge: badge_operateur(solution),
+      description: solution.description_courte.to_s.lines.first&.strip,
+      usagers: solution.usagers, acteurs: solution.acteurs,
+      image: (solution.image if solution.image.attached?)
+    })
+  end
+
   def initialize(card:, arrow: false)
     @card = card
     @arrow = arrow
+  end
+
+  def self.badge_operateur(solution)
+    operateur = solution.organisations.first
+    "#{solution.privee? ? 'Solution privée' : 'Solution publique'} | #{operateur.nom}" if operateur
   end
 
   private

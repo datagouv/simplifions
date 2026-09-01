@@ -18,7 +18,9 @@
      "L",
      1
     ],
-    "Mots_clefs": null
+    "Mots_clefs": null,
+    "Types_de_simplification": null,
+    "Categorie_de_solution": null
    }
   },
   {
@@ -47,6 +49,15 @@
      "école",
      "repas",
      "enfant"
+    ],
+    "Types_de_simplification": [
+     "L",
+     2
+    ],
+    "Categorie_de_solution": [
+     "L",
+     1,
+     2
     ]
    }
   }

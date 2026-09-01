@@ -3,6 +3,9 @@
     <h3 class="title-topic fr-text--lead">
       <%= link_to @card[:title], @card[:href] %>
     </h3>
+    <% if @card[:description].present? %>
+      <p class="fr-mb-1w"><%= @card[:description] %></p>
+    <% end %>
   </div>
   <div class="description-topic">
     <%= render "application/public_vise", usagers: @card[:usagers], acteurs: @card[:acteurs] %>

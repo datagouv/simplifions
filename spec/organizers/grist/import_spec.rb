@@ -11,7 +11,7 @@ RSpec.describe Grist::Import do
     result
     expect(Demarche.count).to eq(2)
     expect(Solution.count).to eq(26)
-    expect(Vocabulaire.count).to eq(6)
+    expect(Vocabulaire.count).to eq(9)
     expect(TypeActeur.count).to eq(5)
     expect(Organisation.count).to eq(4)
     expect(Recommandation.count).to eq(12)
@@ -30,6 +30,9 @@ RSpec.describe Grist::Import do
     expect(cantine.mots_clefs).to include('cantine', 'repas')
     expect(cantine.vocabulaires.categorie_usager.pluck(:nom)).to contain_exactly('Particuliers')
     expect(cantine.types_acteurs.pluck(:nom)).to contain_exactly('Communes et groupements de communes')
+    expect(cantine.types_acteurs.first.slugs).to eq(%w[communes tout-collectivites-territoires tout-acteurs-publics])
+    expect(cantine.vocabulaires.categorie_type_simplification.pluck(:slug)).to contain_exactly('dlnuf')
+    expect(cantine.vocabulaires.categorie_solution.pluck(:slug)).to contain_exactly('brique-technique', 'logiciel-metier')
     expect(cantine.modifie_le).to be_present
   end
 
@@ -46,6 +49,7 @@ RSpec.describe Grist::Import do
       cree_le: Time.zone.parse('2025-09-29T12:14:33.730Z'))
     expect(bouquet.organisations.pluck(:nom)).to contain_exactly('DINUM')
     expect(bouquet.vocabulaires.categorie_type_simplification).to be_present
+    expect(bouquet.vocabulaires.categorie_solution.pluck(:slug)).to eq(['brique-technique'])
 
     api_qf = Solution.find_by!(grist_id: 'APIs_et_datasets:1')
     expect(api_qf).to have_attributes(categorie: 'api', france_connectee: true, slug: nil)

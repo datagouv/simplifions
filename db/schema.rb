@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_31_165000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_01_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "unaccent"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -176,7 +177,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_31_165000) do
     t.text "description"
     t.string "grist_id"
     t.string "nom", null: false
-    t.string "slug"
+    t.string "slugs", default: [], null: false, array: true
     t.datetime "updated_at", null: false
     t.index ["grist_id"], name: "index_types_acteurs_on_grist_id", unique: true
   end

@@ -1,6 +1,52 @@
 require 'rails_helper'
 
 RSpec.describe 'Solutions' do
+  describe 'GET /solutions' do
+    it 'liste les fiches visibles, API et jeux de données exclus' do
+      Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true)
+      Solution.create!(nom: 'Eovia sans catégorie', slug: 'eovia', visible: true)
+      Solution.create!(nom: 'API Quotient familial', categorie: 'api', visible: true, uid_datagouv: 'qf')
+      Solution.create!(nom: 'Brouillon', categorie: 'brique_logicielle', slug: 'brouillon')
+
+      get solutions_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('<h1 class="fr-mb-0">Solutions</h1>')
+      expect(response.body).to include('<title>Solutions — Simplifions.data.gouv.fr</title>')
+      expect(response.body.scan('class="fr-card fr-card--no-icon').size).to eq(2)
+      expect(response.body).to include('href="/solutions/acheteza"')
+      expect(response.body).to include('role="status">2 résultats')
+      expect(response.body).not_to include('API Quotient familial')
+      expect(response.body).not_to include('Brouillon')
+      expect(response.body).not_to include('fr-pagination')
+    end
+
+    it 'remplace la liste vide par l’invitation à réinitialiser les filtres' do
+      get solutions_path(q: 'zzzz')
+
+      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(response.body).to include('href="/solutions"')
+      expect(response.body).not_to include('role="status"')
+    end
+
+    it 'rend chaque carte comme le site : badge opérateur, chapo, usagers, acteurs et image' do
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', slug: 'bouquet',
+        visible: true, description_courte: 'Les données des particuliers.', organisations: [dinum],
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
+        types_acteurs: [TypeActeur.create!(nom: 'Communes')])
+      bouquet.image.attach(io: StringIO.new('img'), filename: 'swagger.png', content_type: 'image/png')
+
+      get solutions_path
+
+      expect(response.body).to include('Solution publique | <b>DINUM</b>')
+      expect(response.body).to include('Les données des particuliers.')
+      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
+      expect(response.body).to include('À destination des <b>Communes</b>')
+      expect(response.body).to include('swagger.png')
+    end
+  end
+
   describe 'contenu de la page' do
     before do
       dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
