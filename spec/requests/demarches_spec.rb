@@ -43,6 +43,7 @@ RSpec.describe 'Demarches' do
       Vocabulaire.create!(nom: 'Brique technique', slug: 'brique-technique', categorie: 'solution')
       Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true,
         description_courte: 'Démarches des communes', types_acteurs: [communes])
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
 
       get demarches_path('fournisseurs-de-service' => 'communes', 'sort' => '-created', 'q' => 'Démarche')
 
@@ -51,7 +52,7 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('<option value="dlnuf">Dites-le nous une fois</option>')
       expect(response.body).to include('<option value="brique-technique">API, jeu de données ou brique logicielle</option>')
       expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
-      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(response.body).to include('role="status">1 résultat<')
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
       expect(response.body).to include('data-controller="form"')
