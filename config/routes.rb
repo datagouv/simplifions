@@ -13,6 +13,12 @@ Rails.application.routes.draw do
 
   root "pages#home"
   get "about" => "pages#about"
+  get "doctrine-referencement-cas-usages" => "pages#doctrine_cas_usages"
+  get "doctrine-referencement-solutions" => "pages#doctrine_solutions"
+  get "niveaux-simplification" => "pages#niveaux_simplification"
+  get "terms" => "pages#terms"
+  get "accessibility" => "pages#accessibility"
+  get "sitemap" => "pages#sitemap"
 
   get "articles" => "articles#index", as: :articles
   get "articles/:slug" => "articles#show", as: :article

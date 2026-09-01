@@ -48,6 +48,33 @@ RSpec.describe 'Pages' do
     end
   end
 
+  describe 'pages statiques' do
+    { '/doctrine-referencement-cas-usages' => "Doctrine de référencement des cas d'usages",
+      '/doctrine-referencement-solutions' => 'Doctrine de référencement des solutions',
+      '/niveaux-simplification' => 'Guide pour la simplification',
+      '/terms' => "Conditions générales d'utilisation",
+      '/accessibility' => 'Accessibilité' }.each do |chemin, titre|
+      it "rend #{chemin} avec son titre" do
+        get chemin
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("<h1>#{titre}</h1>")
+        expect(response.body).to include("#{ERB::Util.html_escape(titre)} — Simplifions.data.gouv.fr</title>")
+        expect(response.body).to include('fr-breadcrumb')
+        expect(response.body).not_to include('href="/cas-d-usages"')
+      end
+    end
+
+    it 'relie les doctrines et l’about au catalogue et aux niveaux' do
+      get '/doctrine-referencement-cas-usages'
+      expect(response.body).to include('href="/demarches"')
+
+      get about_path
+      expect(response.body).to include('href="/niveaux-simplification"')
+      expect(response.body).to include('href="/demarches"')
+    end
+  end
+
   describe 'GET /about' do
     it 'renders the about page mirroring simplifions.data.gouv.fr/about' do
       get about_path
