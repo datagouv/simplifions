@@ -65,6 +65,22 @@ RSpec.describe 'Pages' do
       end
     end
 
+    it 'répare les sommaires copiés : ancres, ids uniques, nav étiquetée' do
+      get '/doctrine-referencement-solutions'
+      expect(response.body).to include('href="#referencement-solution"')
+      expect(response.body).to include('id="referencement-solution"')
+      expect(response.body).not_to include('aria-labelledby="fr-summary-title"')
+      expect(response.body).to include('aria-label="Sommaire"')
+
+      get '/niveaux-simplification'
+      expect(response.body.scan(/id="summary-link-\d+"/).uniq.size).to eq(3)
+    end
+
+    it 'signale la nouvelle fenêtre du formulaire de contenu' do
+      get root_path
+      expect(response.body).to include('title="Formulaire pour proposer un contenu - nouvelle fenêtre"')
+    end
+
     it 'relie les doctrines et l’about au catalogue et aux niveaux' do
       get '/doctrine-referencement-cas-usages'
       expect(response.body).to include('href="/demarches"')

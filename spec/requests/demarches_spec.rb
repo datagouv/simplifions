@@ -15,6 +15,7 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('class="demarche-card').size).to eq(20)
       expect(response.body).to include('href="/demarches/demarche-0"')
       expect(response.body).to include('role="status">21 résultats')
+      expect(response.body).to include('<section id="list"')
       expect(response.body).to include('fr-pagination')
       expect(response.body).to include('href="/demarches?page=2"')
       expect(response.body).not_to include('Brouillon invisible')
