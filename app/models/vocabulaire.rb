@@ -11,7 +11,7 @@ class Vocabulaire < ApplicationRecord
   has_and_belongs_to_many :demarches
   has_and_belongs_to_many :solutions
 
-  enum :categorie, %w[usager type_simplification].index_with(&:itself), prefix: true
+  enum :categorie, %w[usager type_simplification solution].index_with(&:itself), prefix: true
 
   def libelle = LIBELLES[slug] || nom
 end
