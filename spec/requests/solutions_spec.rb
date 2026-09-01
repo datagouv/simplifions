@@ -21,6 +21,14 @@ RSpec.describe 'Solutions' do
       expect(response.body).not_to include('fr-pagination')
     end
 
+    it 'remplace la liste vide par l’invitation à réinitialiser les filtres' do
+      get solutions_path(q: 'zzzz')
+
+      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(response.body).to include('href="/solutions"')
+      expect(response.body).not_to include('role="status"')
+    end
+
     it 'rend chaque carte comme le site : badge opérateur, chapo, usagers, acteurs et image' do
       dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', slug: 'bouquet',

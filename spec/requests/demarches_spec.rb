@@ -51,7 +51,7 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('<option value="dlnuf">Dites-le nous une fois</option>')
       expect(response.body).to include('<option value="brique-technique">API, jeu de données ou brique logicielle</option>')
       expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
-      expect(response.body).to include('role="status">0 résultat<')
+      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
       expect(response.body).to include('data-controller="form"')
@@ -75,6 +75,19 @@ RSpec.describe 'Demarches' do
       expect(response.body).to match(/fr-pagination__link--first[^>]*aria-disabled="true"/)
       expect(response.body).not_to match(/fr-pagination__link--first[^>]*aria-current/)
       expect(response.body).to match(/aria-current="page"[^>]*title="Page 1"|title="Page 1"[^>]*aria-current="page"/)
+    end
+
+    it 'remplace la liste vide par l’invitation à réinitialiser les filtres, comme le site' do
+      get demarches_path(q: 'zzzz', 'target-users' => 'particuliers')
+
+      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(response.body).to include('Essayez de réinitialiser les filtres pour élargir votre recherche.')
+      expect(response.body).to include('href="/demarches"')
+      expect(response.body).to include('Réinitialiser les filtres')
+      expect(response.body).to include('magnifying_glass')
+      expect(response.body).not_to include('role="status"')
+      expect(response.body).not_to include('Trier par')
+      expect(response.body).not_to include('class="demarche-card')
     end
 
     it 'ignore les paramètres non scalaires ou hors plage' do

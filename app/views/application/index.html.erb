@@ -56,21 +56,32 @@
       </div>
 
       <section class="fr-col-12 fr-col-md-8 fr-col-lg-9">
-        <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters" style="justify-content: space-between">
-          <p class="fr-col-auto fr-my-0" role="status"><%= total %> résultat<%= 's' if total > 1 %></p>
-          <div class="fr-col-auto fr-grid-row fr-grid-row--middle">
-            <%= f.label :sort, "Trier par :", class: "fr-col-auto fr-text--sm fr-m-0 fr-mr-1w" %>
-            <%= f.select :sort, [["Pertinence", ""], ["Date de création", "-created"], ["Dernière mise à jour", "-last_modified"]],
-                  { selected: @filtres[:sort] }, class: "fr-select fr-col", data: { action: "change->form#submit" } %>
+        <% if total.zero? %>
+          <div class="catalogue-vide fr-grid-row fr-grid-row--gutters fr-p-3w fr-mt-2w">
+            <div class="fr-col-auto"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
+            <div class="fr-col">
+              <p class="fr-text--bold fr-mb-1w">Vous n'avez pas trouvé ce que vous cherchez ?</p>
+              <p class="fr-mb-2w">Essayez de réinitialiser les filtres pour élargir votre recherche.</p>
+              <%= link_to "Réinitialiser les filtres", send(chemin), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
+            </div>
           </div>
-        </div>
+        <% else %>
+          <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters" style="justify-content: space-between">
+            <p class="fr-col-auto fr-my-0" role="status"><%= total %> résultat<%= 's' if total > 1 %></p>
+            <div class="fr-col-auto fr-grid-row fr-grid-row--middle">
+              <%= f.label :sort, "Trier par :", class: "fr-col-auto fr-text--sm fr-m-0 fr-mr-1w" %>
+              <%= f.select :sort, [["Pertinence", ""], ["Date de création", "-created"], ["Dernière mise à jour", "-last_modified"]],
+                    { selected: @filtres[:sort] }, class: "fr-select fr-col", data: { action: "change->form#submit" } %>
+            </div>
+          </div>
 
-        <ul class="list-none fr-p-0 fr-mt-1w">
-          <% resultats.each do |resultat| %>
-            <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
-          <% end %>
-        </ul>
-        <%= render "pagination", page:, pages:, chemin:, requete: %>
+          <ul class="list-none fr-p-0 fr-mt-1w">
+            <% resultats.each do |resultat| %>
+              <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
+            <% end %>
+          </ul>
+          <%= render "pagination", page:, pages:, chemin:, requete: %>
+        <% end %>
       </section>
     </div>
   <% end %>
