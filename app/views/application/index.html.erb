@@ -3,7 +3,7 @@
    total = @catalogue.count
    pages = (total / 20.0).ceil
    resultats = @catalogue.offset((@page - 1) * 20).limit(20)
-   requete = request.query_parameters.except('page')
+   requete = request.query_parameters.except('page').compact_blank
    facettes = [['fournisseurs-de-service', 'Démarches gérées par :', "Tous les types d'acteurs", TypeActeur::FILTRES.to_a],
                ['target-users', 'Démarches à destination des :', 'Tous les usagers', Vocabulaire.categorie_usager.order(:id).map { |v| [v.slug, v.libelle] }],
                ['categorie-de-solution', 'Catégorie de solution :', 'Toutes les catégories', Vocabulaire.categorie_solution.order(:id).map { |v| [v.slug, v.libelle] }],

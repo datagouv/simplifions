@@ -1,6 +1,6 @@
 <% fournisseurs = @solution.organisations.map(&:nom)
-   usagers = @solution.vocabulaires.categorie_usager.map(&:nom)
-   acteurs = @solution.types_acteurs.map(&:nom).sort
+   usagers = @solution.usagers
+   acteurs = @solution.acteurs
    utilisees = @solution.consommees.visibles.sur_datagouv.load
    fournies = @solution.exposees.visibles.sur_datagouv.load
    demarches = @solution.demarches_simplifiables
