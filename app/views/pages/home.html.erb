@@ -63,15 +63,15 @@
         <p class="fr-mb-3w">
           Explorez les démarches référencées dans le catalogue à destination des :
         </p>
-        <% [["👱", "Particuliers", "Toutes les démarches concernant les particuliers"],
-            ["💼", "Entreprises", "Toutes les démarches concernant les entreprises"],
-            ["🤝", "Associations", "Toutes les démarches concernant les associations"]].each do |emoji, title, description| %>
+        <% [["👱", "Particuliers", "particuliers", "Toutes les démarches concernant les particuliers"],
+            ["💼", "Entreprises", "entreprises", "Toutes les démarches concernant les entreprises"],
+            ["🤝", "Associations", "associations", "Toutes les démarches concernant les associations"]].each do |emoji, title, slug, description| %>
           <div class="fr-mb-2w">
             <div class="fr-tile fr-tile--horizontal fr-enlarge-link fr-tile--no-icon">
               <div class="fr-tile__body">
                 <div class="fr-tile__content">
                   <h3 class="fr-tile__title">
-                    <a href="<%= demarches_path('target-users' => title.parameterize) %>"><%= emoji %> <%= title %></a>
+                    <a href="<%= demarches_path('target-users' => slug) %>"><%= emoji %> <%= title %></a>
                   </h3>
                   <p class="fr-tile__desc"><%= description %></p>
                 </div>
@@ -248,12 +248,12 @@
             référencés dans <i>Simplifions.data</i> :
           </p>
           <div class="fr-mb-2w">
-            <a href="/doctrine-referencement-cas-usages" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+            <a href="<%= doctrine_referencement_cas_usages_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
               Doctrine de référencement des démarches
             </a>
           </div>
           <div>
-            <a href="/doctrine-referencement-solutions" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+            <a href="<%= doctrine_referencement_solutions_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
               Doctrine de référencement des solutions
             </a>
           </div>

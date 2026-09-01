@@ -1,7 +1,8 @@
 class ApplicationController < ActionController::Base
   # Mêmes paramètres que les listes du site actuel ; tout le reste (tableaux, hashes, options de route) est ignoré.
-  FILTRES_CATALOGUE = [:q, :sort, :page, 'fournisseurs-de-service', 'target-users', 'categorie-de-solution',
-                       'types-de-simplification'].freeze
+  FACETTES_CATALOGUE = %w[fournisseurs-de-service target-users categorie-de-solution
+                          types-de-simplification].freeze
+  FILTRES_CATALOGUE = [:q, :sort, :page, *FACETTES_CATALOGUE].freeze
 
   private
 
@@ -9,7 +10,9 @@ class ApplicationController < ActionController::Base
   # ces liens doivent continuer à filtrer.
   def filtres_catalogue
     params.permit(*FILTRES_CATALOGUE).tap do |filtres|
-      FILTRES_CATALOGUE.drop(3).each { |facette| filtres[facette] = filtres[facette]&.delete_prefix("simplifions-v2-#{facette}-") }
+      FACETTES_CATALOGUE.each do |facette|
+        filtres[facette] = filtres[facette].delete_prefix("simplifions-v2-#{facette}-") if filtres[facette]
+      end
     end
   end
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.

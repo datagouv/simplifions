@@ -1,15 +1,11 @@
-<% content_for :title, "Plan du site — Simplifions.data.gouv.fr" %>
-
-<div class="fr-container">
-  <%= render "breadcrumb", id: "breadcrumb-sitemap", liens: [["Accueil", root_path], ["Plan du site", nil]] %>
-</div>
+<%= render "entete_page", titre: "Plan du site" %>
 
 <div class="fr-container fr-mb-4w">
   <h1>Plan du site</h1>
   <ul class="fr-mt-5w fr-p-0 list-none" role="list">
     <% [["Accueil", root_path], ["Cas d'usages", demarches_path], ["Articles", articles_path],
         ["Solutions", solutions_path], ["À propos", about_path],
-        ["Conditions générales d'utilisation", "/terms"], ["Accessibilité", "/accessibility"]].each do |nom, chemin| %>
+        ["Conditions générales d'utilisation", terms_path], ["Accessibilité", accessibility_path]].each do |nom, chemin| %>
       <li class="fr-mt-5v"><h2><a href="<%= chemin %>"><%= nom %></a></h2></li>
     <% end %>
   </ul>
