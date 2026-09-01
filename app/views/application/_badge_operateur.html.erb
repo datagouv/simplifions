@@ -1,0 +1,6 @@
+<% operateur = solution.organisations.first %>
+<% if operateur %>
+  <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= solution.privee? ? 'fr-badge--green-tilleul-verveine' : 'fr-badge--blue-ecume' %>">
+    <span class="font-weight-normal"><%= solution.privee? ? 'Solution privée' : 'Solution publique' %> | <b><%= operateur.nom %></b></span>
+  </p>
+<% end %>

@@ -1,0 +1,9 @@
+<div class="solution-integratrice-card fr-enlarge-link">
+  <div class="solution-integratrice-card__header">
+    <p class="solution-integratrice-card__title fr-text--lg"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
+    <%= render "badge_operateur", solution: solution %>
+  </div>
+  <div class="solution-integratrice-card__arrow">
+    <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
+  </div>
+</div>

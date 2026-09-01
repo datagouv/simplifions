@@ -269,18 +269,21 @@
   margin: 0;
 }
 
-/* Cartes dataservice (liste des API FranceConnectées) */
+/* Cartes API / jeu de données (iso SimplifionsDatasetDataserviceCard du front-kit) */
 
 .dataservice-card {
-  position: relative;
   border: 1px solid var(--border-default-grey);
   background: var(--background-default-grey);
 }
 
-.dataservice-card__restricted {
-  position: absolute;
-  top: -0.75rem;
-  left: 0.75rem;
+@media (hover: hover) and (pointer: fine) {
+  .dataservice-card:hover {
+    background: var(--hover);
+  }
+}
+
+.dataservice-card a[target="_blank"]::after {
+  content: none;
 }
 
 .dataservice-card__logo {
@@ -290,7 +293,7 @@
 }
 
 .dataservice-card__org {
-  color: var(--text-action-high-blue-france);
+  color: var(--text-title-grey);
 }
 
 .dataservice-card__desc {

@@ -40,7 +40,8 @@ RSpec.describe 'Demarches' do
         types_acteurs: [TypeActeur.create!(nom: 'Communes et groupements de communes')])
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
-        slug: 'bouquet-api-particulier', url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier')
+        slug: 'bouquet-api-particulier', uid_datagouv: 'bouquet1',
+        url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api', uid_datagouv: '672cf982fcc8065be6e66f54')
       logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
         slug: 'acheteza')
@@ -89,8 +90,8 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('Aucune solution référencée').size).to eq(2)
     end
 
-    it 'ne pointe vers aucune page solution tant qu’elles n’existent pas' do
-      expect(response.body).not_to include('href="/solutions/')
+    it 'fait pointer les intégratrices de la matrice vers leur page solution' do
+      expect(response.body).to include('href="/solutions/acheteza"')
     end
 
     it 'affiche les dates de création et de modification en français' do
@@ -101,6 +102,8 @@ RSpec.describe 'Demarches' do
     it 'liste les API et données utiles du niveau 1 avec leurs descriptions, filtrables' do
       expect(response.body).to include('API Quotient familial')
       expect(response.body).to include('Le quotient familial du mois courant.')
+      expect(response.body).to match(%r{<h6[^>]*>\s*<a[^>]*dataservices/bouquet1})
+      expect(response.body).to include('À définir')
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('Filtrer les endpoints')
     end

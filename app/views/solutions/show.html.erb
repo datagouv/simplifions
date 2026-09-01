@@ -1,0 +1,218 @@
+<% fournisseurs = @solution.organisations.map(&:nom)
+   usagers = @solution.vocabulaires.categorie_usager.map(&:nom)
+   acteurs = @solution.types_acteurs.map(&:nom).sort
+   utilisees = @solution.consommees.visibles.sur_datagouv.load
+   fournies = @solution.exposees.visibles.sur_datagouv.load
+   demarches = @solution.demarches_simplifiables
+   integratrices = @solution.integratrices_visibles.includes(:organisations, :vocabulaires)
+   couvertures = @solution.couvertures
+   nb_apis = @solution.nb_donnees_integrees
+   onglets = { 'logiciel_metier_cle_en_main' => 'Logiciels métiers',
+               'brique_logicielle' => 'API, jeu de données ou brique logicielle',
+               'site_de_consultation' => 'Sites de consultation' }
+     .filter_map do |categorie, label|
+       solutions = integratrices.select { |integratrice| integratrice.categorie == categorie }
+       [categorie, label, solutions.sort_by { |sol| [-(nb_apis[sol.id] || 0), sol.nom] }] if solutions.any?
+     end
+   sections = [['possibilites-simplification', 'Possibilités de simplification'],
+               ['cas-usages-simplifiables', "Cas d'usages simplifiables"]]
+   sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
+   sections << ['donnees-api-fournies', 'Données et API fournies'] if fournies.any?
+   sections << ['donnees-api', 'Données et API'] if utilisees.empty? && fournies.empty?
+   sections << ['solutions-integratices', 'Solutions intégratrices'] if onglets.any? %>
+<div class="fr-container fr-mt-1v">
+  <%= render "breadcrumb", id: "breadcrumb-solution",
+        liens: [["Accueil", root_path], ["Solutions", "/solutions"], [@solution.nom, nil]] %>
+</div>
+
+<div class="fr-container fr-mt-1w fr-mb-8w solution-page fiche-page">
+  <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
+    <div class="fr-col-12 fr-col-md-8">
+      <div class="topic__header">
+        <h1 class="fr-mb-1v fr-mr-2v"><%= @solution.nom %></h1>
+      </div>
+      <div class="fr-mb-4v"><%= render "badge_operateur", solution: @solution %></div>
+      <p class="fr-text--lead"><%= @solution.description_courte %></p>
+
+      <%= render "public_vise", usagers:, acteurs: %>
+
+      <ul class="fr-mt-4w">
+        <li>
+          <strong>Fournisseur : </strong>
+          <%= fournisseurs.any? ? fournisseurs.to_sentence(two_words_connector: ' et ', last_word_connector: ' et ') : 'Non renseigné' %>
+        </li>
+      </ul>
+
+      <ul class="solution-links fr-btns-group fr-btns-group--inline fr-my-4w">
+        <% if @solution.site_internet %>
+          <li><%= link_to "Site de la solution", @solution.site_internet, class: "fr-btn fr-btn--secondary", rel: "noopener noreferrer", target: "_blank" %></li>
+        <% end %>
+        <% if @solution.url_demande_acces %>
+          <li><%= link_to "Demande d’accès", @solution.url_demande_acces, class: "fr-btn", rel: "noopener noreferrer", target: "_blank" %></li>
+        <% end %>
+      </ul>
+      <% unless @solution.site_internet %>
+        <p class="fr-text--sm"><i>Aucun lien vers un site officiel actuellement.</i></p>
+      <% end %>
+    </div>
+
+    <div class="fr-col-12 fr-col-md-4">
+      <%= render "sommaire", sections:, record: @solution %>
+    </div>
+  </div>
+
+  <% if @solution.image.attached? %>
+    <figure role="group" class="fr-content-media">
+      <div class="example-image fr-content-media__img">
+        <%= image_tag url_for(@solution.image), alt: @solution.legende_image.to_s, class: "fr-responsive-img fr-ratio-16x9" %>
+      </div>
+      <% if @solution.legende_image.present? %>
+        <figcaption class="fr-content-media__caption"><%= @solution.legende_image %></figcaption>
+      <% end %>
+    </figure>
+  <% else %>
+    <hr class="fr-hr fr-my-2w">
+  <% end %>
+
+  <div class="fr-col-12 fr-col-md-8 fr-mb-4w">
+    <%= render ArticleSectionComponent.new(id: 'possibilites-simplification', label: 'Possibilités de simplification') do %>
+      <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Simplification par la donnée grâce à cette solution :</h3>
+      <%= render 'contenu', texte: @solution.permet %>
+
+      <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill icon-gray"></span> Périmètre de simplification non couvert :</h3>
+      <%= render 'contenu', texte: @solution.ne_permet_pas %>
+
+      <p class="fr-text--sm fr-mt-4w">
+        <i>Une remarque concernant les possibilités de simplification de cette solution ? </i>
+        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
+      </p>
+    <% end %>
+  </div>
+
+  <%= render ArticleSectionComponent.new(id: 'cas-usages-simplifiables', label: "Cas d'usages simplifiables") do %>
+    <% if demarches.any? %>
+      <div class="fr-grid-row fr-grid-row--gutters">
+        <% demarches.each do |demarche| %>
+          <div class="fr-col-12 fr-col-md-6 fr-col-lg-4 fr-mb-3w">
+            <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
+              <div class="fr-tile__body">
+                <div class="fr-tile__content">
+                  <h3 class="fr-tile__title"><%= link_to "#{demarche.icone} #{demarche.nom}".strip, demarche_path(demarche.slug) %></h3>
+                  <p class="fr-tile__detail"><%= demarche.description_courte %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="fr-text--sm">
+        <i>Aucun cas d'usage n'est référencé pour cette solution actuellement.</i>
+        <a href="#modification-contenu">✒️ Proposer des cas d'usages</a>
+      </p>
+    <% end %>
+  <% end %>
+
+  <% [['donnees-api-utilisees', 'Données et API utilisées', utilisees],
+      ['donnees-api-fournies', 'Données et API fournies', fournies]].each do |id, titre, donnees| %>
+    <% next if donnees.empty? %>
+    <%= render ArticleSectionComponent.new(id:, label: titre) do %>
+      <ul class="fr-grid-row fr-grid-row--gutters list-none fr-pt-2w">
+        <% donnees.each do |donnee| %>
+          <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.pour(donnee) %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+  <% if utilisees.empty? && fournies.empty? %>
+    <%= render ArticleSectionComponent.new(id: 'donnees-api', label: 'Données et API') do %>
+      <p class="fr-text--sm">
+        <i>Aucun jeu de données ou API utilisé ou fourni par cette solution actuellement.</i>
+        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
+      </p>
+    <% end %>
+  <% end %>
+
+  <% if onglets.any? %>
+    <div id="solutions-integratices" class="solutions-integratices-container fr-p-3w fr-mt-8w" data-controller="integratrices">
+      <h2 class="fr-h2 article-section__title fr-mb-4w">Solutions intégrant "<%= @solution.nom %>"</h2>
+
+      <% if integratrices.size > 1 %>
+        <div class="fr-py-3w fr-mb-2w">
+          <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12 fr-col-md-6">
+              <div class="fr-select-group">
+                <label for="filtre-cas-usage" class="fr-label">Cas d'usage :</label>
+                <select id="filtre-cas-usage" class="fr-select" data-integratrices-target="casUsage" data-action="integratrices#filter">
+                  <option value="">Tous les cas d'usages</option>
+                  <% couvertures.values.flat_map(&:keys).uniq.sort_by(&:nom).each do |demarche| %>
+                    <option value="<%= demarche.id %>"><%= demarche.nom %></option>
+                  <% end %>
+                </select>
+              </div>
+            </div>
+            <div class="fr-col-12 fr-col-md-6">
+              <div class="fr-select-group">
+                <label for="filtre-nb-apis" class="fr-label">API ou jeux de données intégrés :</label>
+                <select id="filtre-nb-apis" class="fr-select" data-integratrices-target="nbApis" data-action="integratrices#filter">
+                  <option value="0">Tous</option>
+                  <% (1..onglets.flat_map(&:last).filter_map { |sol| nb_apis[sol.id] }.max.to_i).each do |nombre| %>
+                    <option value="<%= nombre %>">Au moins <%= nombre %></option>
+                  <% end %>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
+          <div class="fr-col-12 fr-col-md-6">
+            <% affichees = onglets.sum { |_, _, solutions| solutions.size } %>
+            <p class="fr-text--bold fr-mb-0 fr-ml-2w" data-integratrices-target="compteur"><%= affichees %> solution<%= 's' if affichees > 1 %> disponible<%= 's' if affichees > 1 %></p>
+          </div>
+          <div class="fr-col-auto fr-grid-row fr-grid-row--middle fr-ml-auto">
+            <div class="fr-select-group fr-grid-row fr-grid-row--middle">
+              <label for="tri-integratrices" class="fr-label fr-col-auto fr-m-0 fr-mr-1w">Trier par :</label>
+              <select id="tri-integratrices" class="fr-select fr-col" data-integratrices-target="tri" data-action="integratrices#filter">
+                <option value="integration">Le plus de données intégrées</option>
+                <option value="titre">Titre</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <p hidden class="fr-text--sm fr-text--center" data-integratrices-target="vide">
+          <i>Aucune solution ne correspond aux filtres sélectionnés.</i>
+        </p>
+      <% end %>
+
+      <div class="fr-tabs fr-mt-4w">
+        <ul class="fr-tabs__list" role="tablist" aria-label="Catégories de solutions intégratrices">
+          <% onglets.each_with_index do |(categorie, label, solutions), index| %>
+            <li role="presentation">
+              <button type="button" id="tab-<%= categorie.dasherize %>" class="fr-tabs__tab" tabindex="<%= index.zero? ? 0 : -1 %>" role="tab"
+                aria-selected="<%= index.zero? %>" aria-controls="tab-content-<%= categorie.dasherize %>"
+                data-integratrices-target="onglet" data-libelle="<%= label %>"><%= label %> (<%= solutions.size %>)</button>
+            </li>
+          <% end %>
+        </ul>
+        <% onglets.each_with_index do |(categorie, _label, solutions), index| %>
+          <div id="tab-content-<%= categorie.dasherize %>" class="fr-tabs__panel fr-tabs__panel--white <%= 'fr-tabs__panel--selected' if index.zero? %>"
+            role="tabpanel" aria-labelledby="tab-<%= categorie.dasherize %>" tabindex="0">
+            <ul class="fr-grid-row fr-grid-row--gutters list-none" data-integratrices-target="panneau">
+              <% solutions.each do |integratrice| %>
+                <% couverture = couvertures[integratrice.id] || {} %>
+                <li class="fr-col-12 fr-mb-2w" data-integratrices-target="carte"
+                  data-demarches="<%= couverture.keys.map(&:id).join(' ') %>"
+                  data-apis="<%= nb_apis[integratrice.id] || 0 %>" data-nom="<%= integratrice.nom %>">
+                  <%= render "integratrice", integratrice:, couverture: %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%= render "bloc_modification", sujet: "cette solution" %>
+</div>

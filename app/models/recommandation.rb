@@ -13,7 +13,7 @@ class Recommandation < ApplicationRecord
   def solutions_integratrices
     Solution.where(
       id: Integration.en_production.pour_demarche(demarche)
-        .where(integree: cible_et_exposees)
+        .where(integree: solution.fournies)
         .select(:integratrice_id)
     )
   end
@@ -24,7 +24,7 @@ class Recommandation < ApplicationRecord
 
   # Même ordre que le site actuel : ordre éditorial, puis description la plus fournie, puis nom
   def apis_utiles
-    demarche.recommandations.niveau_1.where(solution: cible_et_exposees)
+    demarche.recommandations.niveau_1.where(solution: solution.fournies)
       .joins(:solution).preload(:solution)
       .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC'))
   end
@@ -43,10 +43,6 @@ class Recommandation < ApplicationRecord
   end
 
   private
-
-  def cible_et_exposees
-    [solution, *solution.exposees]
-  end
 
   def ne_recommande_pas_de_solution_privee
     errors.add(:solution, 'une solution privée ne peut pas être mise en avant') if solution&.privee?

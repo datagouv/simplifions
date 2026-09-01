@@ -1,19 +1,7 @@
 <% content_for :title, "À propos — Simplifions.data.gouv.fr" %>
 
 <div class="fr-container">
-  <nav role="navigation" class="fr-breadcrumb" aria-label="vous êtes ici :">
-    <button type="button" class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-about">Voir le fil d'Ariane</button>
-    <div class="fr-collapse" id="breadcrumb-about">
-      <ol class="fr-breadcrumb__list">
-        <li>
-          <%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %>
-        </li>
-        <li>
-          <a class="fr-breadcrumb__link" aria-current="page">À propos</a>
-        </li>
-      </ol>
-    </div>
-  </nav>
+  <%= render "breadcrumb", id: "breadcrumb-about", liens: [["Accueil", root_path], ["À propos", nil]] %>
 
   <h1>À propos</h1>
 

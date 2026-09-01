@@ -1,46 +1,38 @@
-/* Page démarche : rendu repris de udata-front-kit (src/custom/simplifions). */
+/* Pages démarche et solution (.fiche-page) : rendu repris de udata-front-kit (src/custom/simplifions). */
 
-.demarche-page .topic__header {
+.fiche-page .topic__header {
   display: flex;
   align-items: center;
   flex-flow: wrap;
 }
 
-.demarche-page .white-space-normal {
+.white-space-normal {
   white-space: normal;
 }
 
 /* Le sommaire DSFR est en 12px par défaut */
-.demarche-page .fr-summary li a {
+.fiche-page .fr-summary li a {
   font-size: 1rem;
 }
 
-.demarche-page .subtitle {
+.fiche-page .subtitle {
   font-weight: 700;
 }
 
-.demarche-page .bloc-modifications {
+.fiche-page .bloc-modifications {
   background-color: #f1f1f1;
   padding: 1rem;
 }
 
-.demarche-page blockquote {
+.fiche-page blockquote {
   border-left: 4px solid var(--border-default-grey);
   margin-left: 2rem;
   padding-left: 2rem;
 }
 
-.demarche-page .font-weight-normal {
-  font-weight: normal;
-}
-
 .reco-card {
   background-color: var(--background-alt-beige-gris-galet);
   border-left: 4px solid var(--border-action-high-grey);
-}
-
-.reco-card .icon-green {
-  color: var(--text-default-success);
 }
 
 .reco-card .endpoint-term {
@@ -114,5 +106,100 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 1rem;
+  }
+}
+
+/* Page solution */
+
+.solution-page .icon-gray {
+  color: #8b8b8b;
+}
+
+.solution-page .example-image {
+  display: inline-block;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border: 4px solid #000;
+}
+
+.solution-page .example-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.solutions-integratices-container {
+  background-color: #f1f1f1;
+}
+
+.solutions-integratices-container .fr-select {
+  background-color: #fff;
+}
+
+.solutions-integratices-container .fr-tabs__panel--white {
+  background-color: white;
+}
+
+.cas-usages-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cas-usage-card {
+  background-color: var(--background-action-low-blue-france);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cas-usage-card .integration-indicator {
+  margin-top: auto;
+}
+
+.integration-indicator {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  background-color: var(--background-alt-grey);
+  border-radius: 4px;
+}
+
+.integration-indicator > * {
+  margin: 0 !important;
+}
+
+.integration-indicator__label {
+  color: var(--text-mention-grey);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.integration-indicator__count {
+  padding: 0 0.25rem;
+  border-radius: 4px;
+}
+
+.integration-indicator__count.indicator--green {
+  background-color: rgb(184, 254, 201);
+}
+
+.integration-indicator__count.indicator--yellow {
+  background-color: rgb(254, 240, 184);
+}
+
+.integration-indicator__count.indicator--orange {
+  background-color: rgb(254, 224, 184);
+}
+
+.integration-indicator__count.indicator--red {
+  background-color: rgb(254, 201, 201);
+}
+
+@media (max-width: 767px) {
+  .cas-usages-grid {
+    grid-template-columns: 1fr;
   }
 }
