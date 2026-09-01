@@ -19,6 +19,23 @@ RSpec.describe 'Solutions' do
       expect(response.body).not_to include('Brouillon')
       expect(response.body).not_to include('fr-pagination')
     end
+
+    it 'rend chaque carte comme le site : badge opérateur, chapo, usagers, acteurs et image' do
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', slug: 'bouquet',
+        visible: true, description_courte: 'Les données des particuliers.', organisations: [dinum],
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
+        types_acteurs: [TypeActeur.create!(nom: 'Communes')])
+      bouquet.image.attach(io: StringIO.new('img'), filename: 'swagger.png', content_type: 'image/png')
+
+      get solutions_path
+
+      expect(response.body).to include('Solution publique | <b>DINUM</b>')
+      expect(response.body).to include('Les données des particuliers.')
+      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
+      expect(response.body).to include('À destination des <b>Communes</b>')
+      expect(response.body).to include('swagger.png')
+    end
   end
 
   describe 'contenu de la page' do

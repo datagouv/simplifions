@@ -4,7 +4,7 @@
   </div>
 <% end %>
 <% if acteurs.present? %>
-  <div class="fr-card__detail">
+  <div class="fr-card__detail fr-text--right">
     <p class="fr-mb-1w white-space-normal">À destination <%= acteurs.first.start_with?("Tou") ? "de" : "des" %> <%= liste_humaine(acteurs) %></p>
   </div>
 <% end %>

@@ -7,15 +7,11 @@
       <h3 class="fr-card__title fr-text--lead fr-mb-0">
         <%= link_to @card[:title], @card[:href] %>
       </h3>
+      <% if @card[:description].present? %>
+        <p class="fr-card__desc"><%= @card[:description] %></p>
+      <% end %>
       <div class="fr-card__end">
-        <% if @card[:usagers].present? %>
-          <div class="fr-card__detail">
-            <p class="fr-mb-1w">
-              Pour simplifier les démarches des
-              <%= liste_humaine(@card[:usagers]) %>
-            </p>
-          </div>
-        <% end %>
+        <%= render "application/public_vise", usagers: @card[:usagers], acteurs: @card[:acteurs] %>
         <% if @card[:tag] %>
           <ul class="fr-tags-group fr-mb-0">
             <li><p class="fr-tag fr-tag--sm fr-m-0"><%= @card[:tag] %></p></li>

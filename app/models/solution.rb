@@ -31,6 +31,9 @@ class Solution < ApplicationRecord
   scope :visibles, -> { where(visible: true) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
   scope :fiches, -> { where(categorie: [nil, 'brique_logicielle', 'site_de_consultation', 'logiciel_metier_cle_en_main']) }
+  def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
+  def acteurs = types_acteurs.map(&:nom).sort
+
   scope :recherche, lambda { |q|
     q.to_s.split.reduce(all) do |liste, terme|
       liste.where("unaccent(concat_ws(' ', nom, description_courte)) ILIKE unaccent(?)", "%#{sanitize_sql_like(terme)}%")

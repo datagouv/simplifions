@@ -20,6 +20,22 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('Brouillon invisible')
     end
 
+    it 'rend chaque carte comme le site : titre, chapo, usagers et acteurs triés' do
+      Demarche.create!(nom: 'Cantine à 1€', icone: '🥣', slug: 'cantine', visible: true,
+        description_courte: "Communes, simplifiez.\nDeuxième ligne ignorée.",
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
+        types_acteurs: [TypeActeur.create!(nom: 'Départements'), TypeActeur.create!(nom: 'Communes')])
+
+      get demarches_path(q: 'cantine')
+
+      expect(response.body).to include('🥣 Cantine à 1€')
+      expect(response.body).to include('Communes, simplifiez.')
+      expect(response.body).not_to include('Deuxième ligne')
+      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
+      expect(response.body).to include('fr-text--right')
+      expect(response.body).to include('À destination des <b>Communes</b> et <b>Départements</b>')
+    end
+
     it 'sert la dernière page sans pagination quand tout tient sur une page' do
       get demarches_path(page: 2, q: 'Démarche 20')
 
