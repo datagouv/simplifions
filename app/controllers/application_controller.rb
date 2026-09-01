@@ -5,7 +5,13 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def filtres_catalogue = params.permit(*FILTRES_CATALOGUE)
+  # Le site actuel publie les facettes sous leur forme tag (`simplifions-v2-target-users-particuliers`) :
+  # ces liens doivent continuer à filtrer.
+  def filtres_catalogue
+    params.permit(*FILTRES_CATALOGUE).tap do |filtres|
+      FILTRES_CATALOGUE.drop(3).each { |facette| filtres[facette] = filtres[facette]&.delete_prefix("simplifions-v2-#{facette}-") }
+    end
+  end
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
