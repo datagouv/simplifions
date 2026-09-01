@@ -24,29 +24,29 @@
               Explorer le catalogue :
             </p>
           </div>
-          <div class="fr-grid-row fr-grid-row--gutters fr-my-0 fr-mb-3w">
-            <div class="fr-col-12 fr-col-md-6">
-              <div class="fr-select-group">
-                <label class="fr-label" for="select-target-users">Démarches à destination des :</label>
-                <select class="fr-select" id="select-target-users" name="select-target-users">
-                  <option value="" selected>particuliers, entreprises, associations</option>
-                </select>
+          <%= form_with url: demarches_path, method: :get, class: "explorateur" do |f| %>
+            <div class="fr-grid-row fr-grid-row--gutters fr-my-0 fr-mb-3w">
+              <div class="fr-col-12 fr-col-md-6">
+                <div class="fr-select-group">
+                  <%= f.label "target-users", "Démarches à destination des :", class: "fr-label", for: "select-target-users" %>
+                  <%= f.select "target-users", Vocabulaire.categorie_usager.order(:id).map { |v| [v.libelle, v.slug] },
+                        { include_blank: "particuliers, entreprises, associations" }, class: "fr-select", id: "select-target-users" %>
+                </div>
+              </div>
+              <div class="fr-col-12 fr-col-md-6">
+                <div class="fr-select-group">
+                  <%= f.label "fournisseurs-de-service", "Démarches gérées par :", class: "fr-label", for: "select-fournisseurs" %>
+                  <%= f.select "fournisseurs-de-service", TypeActeur::FILTRES.map(&:reverse),
+                        { include_blank: "tous les types d'acteurs publics" }, class: "fr-select", id: "select-fournisseurs" %>
+                </div>
               </div>
             </div>
-            <div class="fr-col-12 fr-col-md-6">
-              <div class="fr-select-group">
-                <label class="fr-label" for="select-fournisseurs">Démarches gérées par :</label>
-                <select class="fr-select" id="select-fournisseurs" name="select-fournisseurs">
-                  <option value="" selected>tous les types d'acteurs publics</option>
-                </select>
-              </div>
+            <div class="fr-grid-row fr-grid-row--center">
+              <button type="submit" class="fr-btn fr-btn--icon-right fr-icon-search-line">
+                Explorer les démarches référencées
+              </button>
             </div>
-          </div>
-          <div class="fr-grid-row fr-grid-row--center">
-            <a href="#" class="fr-btn fr-btn--icon-right fr-icon-search-line">
-              Explorer les démarches référencées
-            </a>
-          </div>
+          <% end %>
         </div>
       </div>
     </div>
