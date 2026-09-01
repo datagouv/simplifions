@@ -119,7 +119,7 @@
     <%= render ArticleSectionComponent.new(id:, label: titre) do %>
       <ul class="fr-grid-row fr-grid-row--gutters list-none fr-pt-2w">
         <% donnees.each do |donnee| %>
-          <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.new(api: { title: donnee.nom, url: donnee.lien_datagouv }) %></li>
+          <li class="fr-col-12 fr-py-0 fr-mb-2w"><%= render DataserviceCardComponent.pour(donnee) %></li>
         <% end %>
       </ul>
     <% end %>

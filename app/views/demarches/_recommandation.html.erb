@@ -51,11 +51,7 @@
               </div>
             <% end %>
             <% if cible.uid_datagouv.present? %>
-              <%= render DataserviceCardComponent.new(api: {
-                    title: cible.nom,
-                    url: cible.lien_datagouv,
-                    org: cible.organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
-                  }) %>
+              <%= render DataserviceCardComponent.pour(cible, heading: "h6") %>
             <% end %>
             <% if utiles.any? %>
               <p class="fr-mt-4w">
