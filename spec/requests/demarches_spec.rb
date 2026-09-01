@@ -36,6 +36,28 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('À destination des <b>Communes</b> et <b>Départements</b>')
     end
 
+    it 'propose les facettes du site préremplies et le passage aux solutions avec la même requête' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      Vocabulaire.create!(nom: '💠💠 DLNUF', slug: 'dlnuf', categorie: 'type_simplification')
+      Vocabulaire.create!(nom: 'Brique technique', slug: 'brique-technique', categorie: 'solution')
+      Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true,
+        description_courte: 'Démarches des communes', types_acteurs: [communes])
+
+      get demarches_path('fournisseurs-de-service' => 'communes', 'sort' => '-created', 'q' => 'Démarche')
+
+      expect(response.body).to include('<option selected="selected" value="communes">Communes et groupements de communes</option>')
+      expect(response.body).to include('<option value="particuliers">Particuliers</option>')
+      expect(response.body).to include('<option value="dlnuf">Dites-le nous une fois</option>')
+      expect(response.body).to include('<option value="brique-technique">API, jeu de données ou brique logicielle</option>')
+      expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
+      expect(response.body).to include('role="status">0 résultat<')
+      expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
+      expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
+      expect(response.body).to include('data-controller="form"')
+      expect(response.body).to include('data-action="change-&gt;form#submit"')
+    end
+
     it 'sert la dernière page sans pagination quand tout tient sur une page' do
       get demarches_path(page: 2, q: 'Démarche 20')
 

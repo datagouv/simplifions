@@ -3,7 +3,10 @@ class Vocabulaire < ApplicationRecord
   LIBELLES = {
     'acces-facile' => 'Accès facile',
     'dlnuf' => 'Dites-le nous une fois',
-    'proactivite' => 'Proactivité'
+    'proactivite' => 'Proactivité',
+    'brique-technique' => 'API, jeu de données ou brique logicielle',
+    'logiciel-metier' => 'Logiciel métier "clé en main"',
+    'portail-consultation' => 'Site de consultation'
   }.freeze
 
   validates :nom, presence: true
