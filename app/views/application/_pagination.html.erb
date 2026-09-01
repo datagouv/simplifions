@@ -1,0 +1,21 @@
+<% if pages > 1 %>
+  <% lien = lambda do |n, texte, classe = nil, title: nil|
+       if n.between?(1, pages) && n != page
+         link_to texte, url_for(request.query_parameters.merge('page' => n)), class: ['fr-pagination__link', classe], title:
+       else
+         tag.a texte, class: ['fr-pagination__link', classe], title:, role: 'link',
+           aria: { disabled: (true if n != page), current: ('page' if n == page) }
+       end
+     end %>
+  <nav role="navigation" class="fr-pagination fr-grid-row fr-grid-row--center fr-mt-2w" aria-label="Pagination">
+    <ul class="fr-pagination__list">
+      <li><%= lien.(1, 'Première page', 'fr-pagination__link--first') %></li>
+      <li><%= lien.(page - 1, 'Page précédente', 'fr-pagination__link--prev fr-pagination__link--lg-label') %></li>
+      <% (1..pages).each do |n| %>
+        <li><%= lien.(n, n.to_s, title: "Page #{n}") %></li>
+      <% end %>
+      <li><%= lien.(page + 1, 'Page suivante', 'fr-pagination__link--next fr-pagination__link--lg-label') %></li>
+      <li><%= lien.(pages, 'Dernière page', 'fr-pagination__link--last') %></li>
+    </ul>
+  </nav>
+<% end %>

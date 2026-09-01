@@ -207,32 +207,32 @@ RSpec.describe Solution do
         organisations: [Organisation.create!(nom: 'Mystère')])).not_to be_privee
     end
   end
-end
 
-RSpec.describe Solution, '.catalogue' do
-  let(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }
-  let(:brique) { Vocabulaire.create!(nom: 'Brique technique', slug: 'brique-technique', categorie: 'solution') }
-  let!(:bouquet) do
-    described_class.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', visible: true,
-      description_courte: 'Les données des entreprises', vocabulaires: [entreprises, brique],
-      types_acteurs: [TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])])
-  end
-  let!(:eovia) { described_class.create!(nom: 'Eovia', visible: true, description_courte: 'Logiciel de démarches') }
+  describe '.catalogue' do
+    let(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }
+    let(:brique) { Vocabulaire.create!(nom: 'Brique technique', slug: 'brique-technique', categorie: 'solution') }
+    let!(:bouquet) do
+      described_class.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', visible: true,
+        description_courte: 'Les données des entreprises', vocabulaires: [entreprises, brique],
+        types_acteurs: [TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])])
+    end
+    let!(:eovia) { described_class.create!(nom: 'Eovia', visible: true, description_courte: 'Logiciel de démarches') }
 
-  before do
-    described_class.create!(nom: 'API Entreprise cachée', categorie: 'api', visible: true)
-    described_class.create!(nom: 'Base entreprises', categorie: 'base_de_donnees', visible: true)
-    described_class.create!(nom: 'Brouillon', categorie: 'logiciel_metier_cle_en_main', visible: false)
-  end
+    before do
+      described_class.create!(nom: 'API Entreprise cachée', categorie: 'api', visible: true)
+      described_class.create!(nom: 'Base entreprises', categorie: 'base_de_donnees', visible: true)
+      described_class.create!(nom: 'Brouillon', categorie: 'logiciel_metier_cle_en_main', visible: false)
+    end
 
-  it 'liste les fiches visibles seulement, catégorie vide comprise' do
-    expect(described_class.catalogue({})).to eq([bouquet, eovia])
-  end
+    it 'liste les fiches visibles seulement, catégorie vide comprise' do
+      expect(described_class.catalogue({})).to eq([bouquet, eovia])
+    end
 
-  it 'filtre par facettes et cherche sans accents' do
-    expect(described_class.catalogue('categorie-de-solution' => 'brique-technique')).to eq([bouquet])
-    expect(described_class.catalogue('fournisseurs-de-service' => 'tout-acteurs-publics')).to eq([bouquet])
-    expect(described_class.catalogue('target-users' => 'entreprises', 'q' => 'donnees')).to eq([bouquet])
-    expect(described_class.catalogue('q' => 'demarche')).to eq([eovia])
+    it 'filtre par facettes et cherche sans accents' do
+      expect(described_class.catalogue('categorie-de-solution' => 'brique-technique')).to eq([bouquet])
+      expect(described_class.catalogue('fournisseurs-de-service' => 'tout-acteurs-publics')).to eq([bouquet])
+      expect(described_class.catalogue('target-users' => 'entreprises', 'q' => 'donnees')).to eq([bouquet])
+      expect(described_class.catalogue('q' => 'demarche')).to eq([eovia])
+    end
   end
 end

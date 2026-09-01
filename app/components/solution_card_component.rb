@@ -1,4 +1,8 @@
 class SolutionCardComponent < ApplicationComponent
+  def self.pour(solution, arrow: false)
+    new(arrow:, card: { title: solution.nom, href: "/solutions/#{solution.slug}" })
+  end
+
   def initialize(card:, arrow: false)
     @card = card
     @arrow = arrow

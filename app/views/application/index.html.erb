@@ -1,0 +1,48 @@
+<% types = { Demarche => ["Cas d'usages", "cas d'usages", demarches_path], Solution => ['Solutions', 'solutions', solutions_path] }
+   titre, label, _chemin = types.fetch(@catalogue.klass)
+   total = @catalogue.count
+   pages = (total / 20.0).ceil
+   resultats = @catalogue.offset((@page - 1) * 20).limit(20) %>
+<div class="fr-container">
+  <%= render "breadcrumb", id: "breadcrumb-catalogue", liens: [["Accueil", root_path], [titre, nil]] %>
+</div>
+
+<div class="fr-container fr-my-2v">
+  <div class="fr-grid-row fr-grid-row--middle fr-mb-3w">
+    <h1 class="fr-mb-0"><%= titre %></h1>
+  </div>
+</div>
+
+<section class="fr-container fr-mb-4w">
+  <h2 class="fr-mb-2w">Filtrer les <%= label %></h2>
+  <%= form_with url: _chemin, method: :get, class: "catalogue" do |f| %>
+    <div class="fr-search-bar fr-search-bar--lg" role="search">
+      <%= f.label :q, "Recherche", class: "fr-label" %>
+      <%= f.search_field :q, value: params[:q], class: "fr-input", placeholder: "Recherche" %>
+      <button type="submit" class="fr-btn">Recherche</button>
+    </div>
+
+    <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
+      <div class="fr-col-12 fr-col-md-4 fr-col-lg-3">
+      </div>
+
+      <section class="fr-col-12 fr-col-md-8 fr-col-lg-9">
+        <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters" style="justify-content: space-between">
+          <p class="fr-col-auto fr-my-0" role="status"><%= total %> résultat<%= 's' if total > 1 %></p>
+          <div class="fr-col-auto fr-grid-row fr-grid-row--middle">
+            <%= f.label :sort, "Trier par :", class: "fr-col-auto fr-text--sm fr-m-0 fr-mr-1w" %>
+            <%= f.select :sort, [["Pertinence", ""], ["Date de création", "-created"], ["Dernière mise à jour", "-last_modified"]],
+                  { selected: params[:sort] }, class: "fr-select fr-col" %>
+          </div>
+        </div>
+
+        <ul class="list-none fr-p-0 fr-mt-1w">
+          <% resultats.each do |resultat| %>
+            <li class="fr-mb-2w"><%= render CatalogCardComponent.pour(resultat) %></li>
+          <% end %>
+        </ul>
+        <%= render "pagination", page: @page, pages: pages %>
+      </section>
+    </div>
+  <% end %>
+</section>

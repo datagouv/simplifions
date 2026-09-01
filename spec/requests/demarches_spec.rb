@@ -1,6 +1,34 @@
 require 'rails_helper'
 
 RSpec.describe 'Demarches' do
+  describe 'GET /demarches' do
+    before do
+      21.times { |i| Demarche.create!(nom: "Démarche #{i}", slug: "demarche-#{i}", visible: true) }
+      Demarche.create!(nom: 'Brouillon invisible', slug: 'brouillon')
+    end
+
+    it 'liste les démarches visibles par pages de 20, avec compteur et pagination' do
+      get demarches_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('<h1 class="fr-mb-0">Cas d&#39;usages</h1>')
+      expect(response.body.scan('class="demarche-card').size).to eq(20)
+      expect(response.body).to include('href="/demarches/demarche-0"')
+      expect(response.body).to include('role="status">21 résultats')
+      expect(response.body).to include('fr-pagination')
+      expect(response.body).to include('href="/demarches?page=2"')
+      expect(response.body).not_to include('Brouillon invisible')
+    end
+
+    it 'sert la dernière page sans pagination quand tout tient sur une page' do
+      get demarches_path(page: 2, q: 'Démarche 20')
+
+      expect(response.body.scan('class="demarche-card').size).to eq(0)
+      expect(response.body).to include('role="status">1 résultat<')
+      expect(response.body).not_to include('fr-pagination')
+    end
+  end
+
   describe 'GET /demarches/:slug' do
     it 'rend la démarche visible' do
       Demarche.create!(nom: 'Tarification cantine scolaire à 1€', slug: 'tarification-cantine-scolaire-a-1eur',
@@ -110,6 +138,13 @@ RSpec.describe 'Demarches' do
   end
 
   describe 'anciennes URLs /cas-d-usages' do
+    it 'redirige la liste en 301 vers /demarches en conservant les filtres' do
+      get '/cas-d-usages?target-users=particuliers'
+
+      expect(response).to redirect_to('/demarches?target-users=particuliers')
+      expect(response).to have_http_status(:moved_permanently)
+    end
+
     it 'redirige en 301 vers /demarches/:slug' do
       get '/cas-d-usages/tarification-cantine-scolaire-a-1eur'
 
