@@ -28,6 +28,26 @@ RSpec.describe 'Pages' do
     end
   end
 
+  describe 'liens de la home et du pied de page' do
+    it 'branche les cartes, les boutons et le footer sur le catalogue et les pages statiques' do
+      get root_path
+
+      expect(response.body).to include('href="/demarches?target-users=particuliers"')
+      expect(response.body).to include('href="/demarches?target-users=entreprises"')
+      expect(response.body).to include('href="/demarches?target-users=associations"')
+      expect(response.body).to include('href="/about"')
+      expect(response.body).to include('href="/doctrine-referencement-cas-usages"')
+      expect(response.body).to include('href="/doctrine-referencement-solutions"')
+      expect(response.body).to include('href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions"')
+      expect(response.body).to include('Explorer le catalogue des démarches')
+      expect(response.body).to include('href="/sitemap">Plan du site</a>')
+      expect(response.body).to include('href="/terms">Conditions générales')
+      expect(response.body).to include('href="https://www.data.gouv.fr/fr/suivi/">Politique de confidentialité</a>')
+      expect(response.body).to include('href="/accessibility">Accessibilité : non conforme</a>')
+      expect(response.body).not_to include('<a href="#" class="fr-btn')
+    end
+  end
+
   describe 'GET /about' do
     it 'renders the about page mirroring simplifions.data.gouv.fr/about' do
       get about_path
