@@ -1,6 +1,7 @@
 class DemarchesController < ApplicationController
   def index
-    @catalogue = Demarche.catalogue(params).includes(:vocabulaires, :types_acteurs)
+    @filtres = filtres_catalogue
+    @catalogue = Demarche.catalogue(@filtres).includes(:vocabulaires, :types_acteurs)
   end
 
   def show

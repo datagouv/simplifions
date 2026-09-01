@@ -31,7 +31,7 @@ RSpec.describe Demarche do
       expect(described_class.catalogue('target-users' => '')).to eq([cantine, marches])
     end
 
-    it 'cherche par préfixe, sans accents, dans le nom, le chapo et les mots-clefs, tous les termes requis' do
+    it 'cherche par sous-chaîne, sans accents, dans le nom, le chapo et les mots-clefs, tous les termes requis' do
       expect(described_class.catalogue('q' => 'entre')).to eq([marches])
       expect(described_class.catalogue('q' => 'demarche')).to eq([cantine])
       expect(described_class.catalogue('q' => 'repas')).to eq([cantine])

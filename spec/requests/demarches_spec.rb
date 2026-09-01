@@ -58,12 +58,33 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('data-action="change-&gt;form#submit"')
     end
 
-    it 'sert la dernière page sans pagination quand tout tient sur une page' do
+    it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do
       get demarches_path(page: 2, q: 'Démarche 20')
 
-      expect(response.body.scan('class="demarche-card').size).to eq(0)
+      expect(response.body.scan('class="demarche-card').size).to eq(1)
       expect(response.body).to include('role="status">1 résultat<')
       expect(response.body).not_to include('fr-pagination')
+    end
+
+    it 'garde les liens de pagination sur /demarches quels que soient les paramètres reçus' do
+      get '/demarches?host=evil.com&protocol=ftp&controller=articles&action=show&script_name=/x&page=1'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('href="/demarches?page=2"')
+      expect(response.body).not_to include('evil.com')
+      expect(response.body).to match(/fr-pagination__link--first[^>]*aria-disabled="true"/)
+      expect(response.body).not_to match(/fr-pagination__link--first[^>]*aria-current/)
+      expect(response.body).to match(/aria-current="page"[^>]*title="Page 1"|title="Page 1"[^>]*aria-current="page"/)
+    end
+
+    it 'ignore les paramètres non scalaires ou hors plage' do
+      get '/demarches?page[]=1&target-users[a]=b&q[]=x&sort[]=y'
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('role="status">21 résultats')
+
+      get '/demarches?page=99999999999999999999999'
+      expect(response).to have_http_status(:ok)
+      expect(response.body.scan('class="demarche-card').size).to eq(1)
     end
   end
 

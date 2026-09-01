@@ -1,10 +1,10 @@
 <% if pages > 1 %>
   <% lien = lambda do |n, texte, classe = nil, title: nil|
        if n.between?(1, pages) && n != page
-         link_to texte, url_for(request.query_parameters.merge('page' => n)), class: ['fr-pagination__link', classe], title:
+         link_to texte, send(chemin, requete.merge('page' => n)), class: ['fr-pagination__link', classe], title:
        else
          tag.a texte, class: ['fr-pagination__link', classe], title:, role: 'link',
-           aria: { disabled: (true if n != page), current: ('page' if n == page) }
+           aria: (title ? { current: 'page' } : { disabled: true })
        end
      end %>
   <nav role="navigation" class="fr-pagination fr-grid-row fr-grid-row--center fr-mt-2w" aria-label="Pagination">

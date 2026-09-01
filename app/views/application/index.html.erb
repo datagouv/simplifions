@@ -1,11 +1,11 @@
 <% types = { Demarche => ["Cas d'usages", DemarcheCardComponent, :demarches_path],
              Solution => ['Solutions', SolutionCardComponent, :solutions_path] }
    titre, carte, chemin = types.fetch(@catalogue.klass)
-   page = [params[:page].to_i, 1].max
    total = @catalogue.count
-   pages = (total / 20.0).ceil
+   pages = [(total / 20.0).ceil, 1].max
+   page = @filtres[:page].to_i.clamp(1, pages)
    resultats = @catalogue.offset((page - 1) * 20).limit(20)
-   requete = request.query_parameters.except('page').compact_blank
+   requete = @filtres.to_h.except('page').compact_blank
    facettes = [['fournisseurs-de-service', 'Démarches gérées par :', "Tous les types d'acteurs", TypeActeur::FILTRES.to_a],
                ['target-users', 'Démarches à destination des :', 'Tous les usagers', Vocabulaire.categorie_usager.choix],
                ['categorie-de-solution', 'Catégorie de solution :', 'Toutes les catégories', Vocabulaire.categorie_solution.choix],
@@ -25,7 +25,7 @@
   <%= form_with url: send(chemin), method: :get, class: "catalogue", data: { controller: "form" } do |f| %>
     <div class="fr-search-bar fr-search-bar--lg" role="search">
       <%= f.label :q, "Recherche", class: "fr-label" %>
-      <%= f.search_field :q, value: params[:q], class: "fr-input", placeholder: "Recherche" %>
+      <%= f.search_field :q, value: @filtres[:q], class: "fr-input", placeholder: "Recherche" %>
       <button type="submit" class="fr-btn">Recherche</button>
     </div>
 
@@ -38,7 +38,7 @@
               <%= link_to send(chemin_type, requete), class: "fr-grid-row fr-grid-row--middle fr-text--sm fr-p-1v" do %>
                 <span class="fr-icon-book-2-line fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
                 <span class="fr-col"><%= nom %></span>
-                <span class="fr-badge fr-badge--sm fr-badge--no-icon"><%= klass == @catalogue.klass ? total : klass.catalogue(params).count %></span>
+                <span class="fr-badge fr-badge--sm fr-badge--no-icon"><%= klass == @catalogue.klass ? total : klass.catalogue(@filtres).count %></span>
               <% end %>
             </li>
           <% end %>
@@ -48,7 +48,7 @@
         <% facettes.each do |nom, label, tous, options| %>
           <div class="fr-select-group">
             <%= f.label nom, label, class: "fr-label" %>
-            <%= f.select nom, options, { include_blank: tous, selected: params[nom] },
+            <%= f.select nom, options, { include_blank: tous, selected: @filtres[nom] },
                   class: "fr-select", data: { action: "change->form#submit" } %>
           </div>
         <% end %>
@@ -60,7 +60,7 @@
           <div class="fr-col-auto fr-grid-row fr-grid-row--middle">
             <%= f.label :sort, "Trier par :", class: "fr-col-auto fr-text--sm fr-m-0 fr-mr-1w" %>
             <%= f.select :sort, [["Pertinence", ""], ["Date de création", "-created"], ["Dernière mise à jour", "-last_modified"]],
-                  { selected: params[:sort] }, class: "fr-select fr-col", data: { action: "change->form#submit" } %>
+                  { selected: @filtres[:sort] }, class: "fr-select fr-col", data: { action: "change->form#submit" } %>
           </div>
         </div>
 
@@ -69,7 +69,7 @@
             <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
           <% end %>
         </ul>
-        <%= render "pagination", page:, pages: %>
+        <%= render "pagination", page:, pages:, chemin:, requete: %>
       </section>
     </div>
   <% end %>

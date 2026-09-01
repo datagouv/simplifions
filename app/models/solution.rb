@@ -24,13 +24,14 @@ class Solution < ApplicationRecord
   has_many :consommees, -> { merge(Integration.consomme.en_production) },
     through: :integrations_comme_integratrice, source: :integree
 
+  HORS_FICHES = %w[api base_de_donnees].freeze
   enum :categorie,
     %w[brique_logicielle api base_de_donnees site_de_consultation logiciel_metier_cle_en_main].index_with(&:itself),
     prefix: true
 
   scope :visibles, -> { where(visible: true) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
-  scope :fiches, -> { where(categorie: [nil, *categories.keys - %w[api base_de_donnees]]) }
+  scope :fiches, -> { where(categorie: [nil, *categories.keys - HORS_FICHES]) }
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
 
@@ -52,7 +53,7 @@ class Solution < ApplicationRecord
       .recherche(params['q']).order(TRIS.fetch(params['sort'], {})).order(:id)
   end
 
-  def fiche? = !categorie_api? && !categorie_base_de_donnees?
+  def fiche? = HORS_FICHES.exclude?(categorie)
 
   def privee? = organisations.any? { |organisation| organisation.public_ou_prive == 'Privé' }
 

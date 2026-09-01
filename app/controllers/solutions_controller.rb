@@ -1,6 +1,7 @@
 class SolutionsController < ApplicationController
   def index
-    @catalogue = Solution.catalogue(params).includes(:vocabulaires, :types_acteurs, :organisations).with_attached_image
+    @filtres = filtres_catalogue
+    @catalogue = Solution.catalogue(@filtres).includes(:vocabulaires, :types_acteurs, :organisations).with_attached_image
   end
 
   def show
