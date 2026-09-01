@@ -12,6 +12,7 @@ RSpec.describe 'Solutions' do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('<h1 class="fr-mb-0">Solutions</h1>')
+      expect(response.body).to include('<title>Solutions — Simplifions.data.gouv.fr</title>')
       expect(response.body.scan('class="fr-card fr-card--no-icon').size).to eq(2)
       expect(response.body).to include('href="/solutions/acheteza"')
       expect(response.body).to include('role="status">2 résultats')

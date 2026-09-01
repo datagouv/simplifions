@@ -1,6 +1,7 @@
 <% types = { Demarche => ["Cas d'usages", DemarcheCardComponent, :demarches_path],
              Solution => ['Solutions', SolutionCardComponent, :solutions_path] }
    titre, carte, chemin = types.fetch(@catalogue.klass)
+   content_for :title, "#{titre} — Simplifions.data.gouv.fr"
    total = @catalogue.count
    pages = [(total / 20.0).ceil, 1].max
    page = @filtres[:page].to_i.clamp(1, pages)
