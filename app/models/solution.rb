@@ -24,14 +24,13 @@ class Solution < ApplicationRecord
   has_many :consommees, -> { merge(Integration.consomme.en_production) },
     through: :integrations_comme_integratrice, source: :integree
 
-  FICHES = %w[brique_logicielle site_de_consultation logiciel_metier_cle_en_main].freeze
   enum :categorie,
     %w[brique_logicielle api base_de_donnees site_de_consultation logiciel_metier_cle_en_main].index_with(&:itself),
     prefix: true
 
   scope :visibles, -> { where(visible: true) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
-  scope :fiches, -> { where(categorie: [nil, *FICHES]) }
+  scope :fiches, -> { where(categorie: [nil, *categories.keys - %w[api base_de_donnees]]) }
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
 
@@ -43,8 +42,8 @@ class Solution < ApplicationRecord
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 
-  scope :pour_vocabulaire, ->(slug) { where(id: joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
-  scope :pour_acteur, ->(slug) { where(id: joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
+  scope :pour_vocabulaire, ->(slug) { where(id: Solution.joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
+  scope :pour_acteur, ->(slug) { where(id: Solution.joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
 
   # Mêmes paramètres et mêmes valeurs que les tags des topics du site actuel.
   def self.catalogue(params)
@@ -53,7 +52,7 @@ class Solution < ApplicationRecord
       .recherche(params['q']).order(TRIS.fetch(params['sort'], {})).order(:id)
   end
 
-  def fiche? = categorie.nil? || FICHES.include?(categorie)
+  def fiche? = !categorie_api? && !categorie_base_de_donnees?
 
   def privee? = organisations.any? { |organisation| organisation.public_ou_prive == 'Privé' }
 

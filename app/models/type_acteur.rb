@@ -1,15 +1,15 @@
 class TypeActeur < ApplicationRecord
-  # Les regroupements proposés en filtre par le site actuel (config du front-kit), dans son ordre.
+  # Les regroupements proposés en filtre par le site actuel (config du front-kit), dans son ordre : libellé => slug.
   FILTRES = {
-    'communes' => 'Communes et groupements de communes',
-    'departements' => 'Départements',
-    'regions' => 'Régions',
-    'tout-collectivites-territoires' => 'Toutes les collectivités et territoires',
-    'etat' => 'État',
-    'organismes-droit-prive' => 'Organismes de droit privé',
-    'acteurs-education-enseignement' => "Acteurs de l'éducation et de l'enseignement",
-    'acteurs-transport' => 'Acteurs du transport',
-    'tout-acteurs-publics' => 'Tous les acteurs publics'
+    'Communes et groupements de communes' => 'communes',
+    'Départements' => 'departements',
+    'Régions' => 'regions',
+    'Toutes les collectivités et territoires' => 'tout-collectivites-territoires',
+    'État' => 'etat',
+    'Organismes de droit privé' => 'organismes-droit-prive',
+    "Acteurs de l'éducation et de l'enseignement" => 'acteurs-education-enseignement',
+    'Acteurs du transport' => 'acteurs-transport',
+    'Tous les acteurs publics' => 'tout-acteurs-publics'
   }.freeze
 
   validates :nom, presence: true

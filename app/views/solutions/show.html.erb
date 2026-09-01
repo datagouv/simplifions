@@ -22,7 +22,7 @@
    sections << ['solutions-integratices', 'Solutions intégratrices'] if onglets.any? %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-solution",
-        liens: [["Accueil", root_path], ["Solutions", "/solutions"], [@solution.nom, nil]] %>
+        liens: [["Accueil", root_path], ["Solutions", solutions_path], [@solution.nom, nil]] %>
 </div>
 
 <div class="fr-container fr-mt-1w fr-mb-8w solution-page fiche-page">
@@ -97,7 +97,7 @@
             <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
               <div class="fr-tile__body">
                 <div class="fr-tile__content">
-                  <h3 class="fr-tile__title"><%= link_to "#{demarche.icone} #{demarche.nom}".strip, demarche_path(demarche.slug) %></h3>
+                  <h3 class="fr-tile__title"><%= link_to demarche.titre, demarche_path(demarche.slug) %></h3>
                   <p class="fr-tile__detail"><%= demarche.description_courte %></p>
                 </div>
               </div>

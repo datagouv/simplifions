@@ -21,7 +21,7 @@
           <% couverture.each do |demarche, (integrees, utiles)| %>
             <% pourcentage = integrees * 100 / utiles %>
             <div class="cas-usage-card fr-p-2v">
-              <span class="fr-text--xs fr-text--bold fr-mb-1v"><%= "#{demarche.icone} #{demarche.nom}".strip %></span>
+              <span class="fr-text--xs fr-text--bold fr-mb-1v"><%= demarche.titre %></span>
               <div class="integration-indicator fr-p-1w">
                 <span class="fr-text--sm fr-text--bold integration-indicator__count <%= pourcentage >= 75 ? 'indicator--green' : pourcentage >= 50 ? 'indicator--yellow' : pourcentage >= 25 ? 'indicator--orange' : 'indicator--red' %>"><%= integrees %>/<%= utiles %></span>
                 <span class="fr-text--xs integration-indicator__label">API ou jeux de données intégrés</span>

@@ -29,14 +29,14 @@
               <div class="fr-col-12 fr-col-md-6">
                 <div class="fr-select-group">
                   <%= f.label "target-users", "Démarches à destination des :", class: "fr-label", for: "select-target-users" %>
-                  <%= f.select "target-users", Vocabulaire.categorie_usager.order(:id).map { |v| [v.libelle, v.slug] },
+                  <%= f.select "target-users", Vocabulaire.categorie_usager.choix,
                         { include_blank: "particuliers, entreprises, associations" }, class: "fr-select", id: "select-target-users" %>
                 </div>
               </div>
               <div class="fr-col-12 fr-col-md-6">
                 <div class="fr-select-group">
                   <%= f.label "fournisseurs-de-service", "Démarches gérées par :", class: "fr-label", for: "select-fournisseurs" %>
-                  <%= f.select "fournisseurs-de-service", TypeActeur::FILTRES.map(&:reverse),
+                  <%= f.select "fournisseurs-de-service", TypeActeur::FILTRES.to_a,
                         { include_blank: "tous les types d'acteurs publics" }, class: "fr-select", id: "select-fournisseurs" %>
                 </div>
               </div>

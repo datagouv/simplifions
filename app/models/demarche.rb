@@ -7,6 +7,7 @@ class Demarche < ApplicationRecord
   has_and_belongs_to_many :integrations
 
   scope :visibles, -> { where(visible: true) }
+  def titre = "#{icone} #{nom}".strip
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
 
@@ -19,8 +20,8 @@ class Demarche < ApplicationRecord
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 
-  scope :pour_vocabulaire, ->(slug) { where(id: joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
-  scope :pour_acteur, ->(slug) { where(id: joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
+  scope :pour_vocabulaire, ->(slug) { where(id: Demarche.joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
+  scope :pour_acteur, ->(slug) { where(id: Demarche.joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
 
   # Mêmes paramètres et mêmes valeurs que les tags des topics du site actuel.
   def self.catalogue(params)

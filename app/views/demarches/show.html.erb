@@ -1,18 +1,17 @@
-<% vocabulaires = @demarche.vocabulaires.group_by(&:categorie)
-   usagers = vocabulaires.fetch('usager', []).map(&:nom)
-   acteurs = @demarche.types_acteurs.map(&:nom)
+<% usagers = @demarche.usagers
+   acteurs = @demarche.acteurs
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                ['donnees-disponibles', 'Données disponibles']] %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-demarche",
-        liens: [["Accueil", root_path], ["Cas d'usages", "/demarches"], ["#{@demarche.icone} #{@demarche.nom}".strip, nil]] %>
+        liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
 </div>
 
 <div class="fr-container fr-mt-1w fr-mb-8w fiche-page">
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <div class="fr-col-12 fr-col-md-8">
       <div class="topic__header fr-mb-4v">
-        <h1 class="fr-mb-1v fr-mr-2v"><%= "#{@demarche.icone} #{@demarche.nom}".strip %></h1>
+        <h1 class="fr-mb-1v fr-mr-2v"><%= @demarche.titre %></h1>
       </div>
       <p class="fr-text--lead"><%= @demarche.description_courte %></p>
 

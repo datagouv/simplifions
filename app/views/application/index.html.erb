@@ -1,13 +1,15 @@
-<% types = { Demarche => ["Cas d'usages", "cas d'usages", demarches_path], Solution => ['Solutions', 'solutions', solutions_path] }
-   titre, label, _chemin = types.fetch(@catalogue.klass)
+<% types = { Demarche => ["Cas d'usages", DemarcheCardComponent, :demarches_path],
+             Solution => ['Solutions', SolutionCardComponent, :solutions_path] }
+   titre, carte, chemin = types.fetch(@catalogue.klass)
+   page = [params[:page].to_i, 1].max
    total = @catalogue.count
    pages = (total / 20.0).ceil
-   resultats = @catalogue.offset((@page - 1) * 20).limit(20)
+   resultats = @catalogue.offset((page - 1) * 20).limit(20)
    requete = request.query_parameters.except('page').compact_blank
    facettes = [['fournisseurs-de-service', 'Démarches gérées par :', "Tous les types d'acteurs", TypeActeur::FILTRES.to_a],
-               ['target-users', 'Démarches à destination des :', 'Tous les usagers', Vocabulaire.categorie_usager.order(:id).map { |v| [v.slug, v.libelle] }],
-               ['categorie-de-solution', 'Catégorie de solution :', 'Toutes les catégories', Vocabulaire.categorie_solution.order(:id).map { |v| [v.slug, v.libelle] }],
-               ['types-de-simplification', 'Type de simplification des démarches :', 'Tous les types de simplification', Vocabulaire.categorie_type_simplification.order(:id).map { |v| [v.slug, v.libelle] }]] %>
+               ['target-users', 'Démarches à destination des :', 'Tous les usagers', Vocabulaire.categorie_usager.choix],
+               ['categorie-de-solution', 'Catégorie de solution :', 'Toutes les catégories', Vocabulaire.categorie_solution.choix],
+               ['types-de-simplification', 'Type de simplification des démarches :', 'Tous les types de simplification', Vocabulaire.categorie_type_simplification.choix]] %>
 <div class="fr-container">
   <%= render "breadcrumb", id: "breadcrumb-catalogue", liens: [["Accueil", root_path], [titre, nil]] %>
 </div>
@@ -19,8 +21,8 @@
 </div>
 
 <section class="fr-container fr-mb-4w">
-  <h2 class="fr-mb-2w">Filtrer les <%= label %></h2>
-  <%= form_with url: _chemin, method: :get, class: "catalogue", data: { controller: "form" } do |f| %>
+  <h2 class="fr-mb-2w">Filtrer les <%= titre.downcase %></h2>
+  <%= form_with url: send(chemin), method: :get, class: "catalogue", data: { controller: "form" } do |f| %>
     <div class="fr-search-bar fr-search-bar--lg" role="search">
       <%= f.label :q, "Recherche", class: "fr-label" %>
       <%= f.search_field :q, value: params[:q], class: "fr-input", placeholder: "Recherche" %>
@@ -31,9 +33,9 @@
       <div class="fr-col-12 fr-col-md-4 fr-col-lg-3">
         <p class="fr-text--sm fr-text--bold fr-mb-2w">Type</p>
         <ul class="catalogue-types list-none fr-p-0 fr-mb-4w">
-          <% types.each do |klass, (nom, _, chemin)| %>
+          <% types.each do |klass, (nom, _, chemin_type)| %>
             <li class="<%= 'catalogue-types__actif' if klass == @catalogue.klass %>">
-              <%= link_to chemin + (requete.any? ? "?#{requete.to_query}" : ""), class: "fr-grid-row fr-grid-row--middle fr-text--sm fr-p-1v" do %>
+              <%= link_to send(chemin_type, requete), class: "fr-grid-row fr-grid-row--middle fr-text--sm fr-p-1v" do %>
                 <span class="fr-icon-book-2-line fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
                 <span class="fr-col"><%= nom %></span>
                 <span class="fr-badge fr-badge--sm fr-badge--no-icon"><%= klass == @catalogue.klass ? total : klass.catalogue(params).count %></span>
@@ -46,7 +48,7 @@
         <% facettes.each do |nom, label, tous, options| %>
           <div class="fr-select-group">
             <%= f.label nom, label, class: "fr-label" %>
-            <%= f.select nom, options.map(&:reverse), { include_blank: tous, selected: params[nom] },
+            <%= f.select nom, options, { include_blank: tous, selected: params[nom] },
                   class: "fr-select", data: { action: "change->form#submit" } %>
           </div>
         <% end %>
@@ -64,10 +66,10 @@
 
         <ul class="list-none fr-p-0 fr-mt-1w">
           <% resultats.each do |resultat| %>
-            <li class="fr-mb-2w"><%= render CatalogCardComponent.pour(resultat) %></li>
+            <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
           <% end %>
         </ul>
-        <%= render "pagination", page: @page, pages: pages %>
+        <%= render "pagination", page:, pages: %>
       </section>
     </div>
   <% end %>

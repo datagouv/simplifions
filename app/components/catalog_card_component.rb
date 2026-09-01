@@ -1,8 +1,4 @@
 class CatalogCardComponent < ApplicationComponent
-  def self.pour(record, arrow: false)
-    (record.is_a?(Demarche) ? DemarcheCardComponent : SolutionCardComponent).pour(record, arrow:)
-  end
-
   def initialize(card:, arrow: false)
     @card = card
     @arrow = arrow

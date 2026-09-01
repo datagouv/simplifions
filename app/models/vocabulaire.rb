@@ -16,5 +16,7 @@ class Vocabulaire < ApplicationRecord
 
   enum :categorie, %w[usager type_simplification solution].index_with(&:itself), prefix: true
 
+  def self.choix = order(:id).map { |vocabulaire| [vocabulaire.libelle, vocabulaire.slug] }
+
   def libelle = LIBELLES[slug] || nom
 end
