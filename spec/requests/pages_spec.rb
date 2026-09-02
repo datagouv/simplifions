@@ -51,14 +51,14 @@ RSpec.describe 'Pages' do
   describe 'pages statiques' do
     { '/doctrine-referencement-cas-usages' => "Doctrine de référencement des cas d'usages",
       '/doctrine-referencement-solutions' => 'Doctrine de référencement des solutions',
-      '/niveaux-simplification' => 'Guide pour la simplification',
+      '/niveaux-simplification' => ['Guide pour la simplification', 'Niveaux de simplification'],
       '/terms' => "Conditions générales d'utilisation",
-      '/accessibility' => 'Accessibilité' }.each do |chemin, titre|
+      '/accessibility' => 'Accessibilité' }.each do |chemin, (titre, h1)|
       it "rend #{chemin} avec son titre" do
         get chemin
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include("<h1>#{titre}</h1>")
+        expect(response.body).to include("<h1>#{h1 || titre}</h1>")
         expect(response.body).to include("#{ERB::Util.html_escape(titre)} — Simplifions.data.gouv.fr</title>")
         expect(response.body).to include('fr-breadcrumb')
         expect(response.body).not_to include('href="/cas-d-usages"')
