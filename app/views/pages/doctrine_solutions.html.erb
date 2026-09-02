@@ -11,22 +11,9 @@
 </div>
 
 <div class="fr-col-12 fr-col-lg-4">
-<nav class="fr-summary" role="navigation" aria-label="Sommaire">
-  <ol>
-      <li>
-          <a id="summary-link-1" class="fr-summary__link"  href="#referencement-solution">Référencement d'une solution</a>
-            <ol>
-                <li>
-                    <a id="summary-link-2" class="fr-summary__link" href="#regles-de-referencement">Règles de référencement</a>
-                </li>
-                <li>
-                    <a id="summary-link-3" class="fr-summary__link" href="#referencement-nest-pas-un-indicateur-qualite">Le référencement d'une solution n'est pas un indicateur de qualité</a>
-                </li>
-            </ol>
-      </li>
-    
-  </ol>
-</nav>
+<%= render "sommaire", sections: [['referencement-solution', "Référencement d'une solution",
+                                    [['regles-de-referencement', 'Règles de référencement'],
+                                     ['referencement-nest-pas-un-indicateur-qualite', "Le référencement d'une solution n'est pas un indicateur de qualité"]]]] %>
 </div>
 </div>
 

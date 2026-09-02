@@ -69,8 +69,9 @@ RSpec.describe 'Pages' do
       get '/doctrine-referencement-solutions'
       expect(response.body).to include('href="#referencement-solution"')
       expect(response.body).to include('id="referencement-solution"')
-      expect(response.body).not_to include('aria-labelledby="fr-summary-title"')
-      expect(response.body).to include('aria-label="Sommaire"')
+      expect(response.body).to include('id="fr-summary-title"')
+      expect(response.body).to include('href="#regles-de-referencement"')
+      expect(response.body).not_to include('Contenu rédigé par')
 
       get '/niveaux-simplification'
       expect(response.body.scan(/id="summary-link-\d+"/).uniq.size).to eq(3)
