@@ -1,5 +1,5 @@
 <% content_for :title, "#{@demarche.nom} — Simplifions.data.gouv.fr"
-   content_for :description, @demarche.description_courte.to_s.lines.first&.strip
+   content_for :description, @demarche.chapo
    usagers = @demarche.usagers
    acteurs = @demarche.acteurs
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],

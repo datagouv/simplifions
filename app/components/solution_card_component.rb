@@ -2,7 +2,7 @@ class SolutionCardComponent < ApplicationComponent
   def self.pour(solution, arrow: false)
     new(arrow:, card: {
       title: solution.nom, href: "/solutions/#{solution.slug}", badge: badge_operateur(solution),
-      description: solution.description_courte.to_s.lines.first&.strip,
+      description: solution.chapo,
       usagers: solution.usagers, acteurs: solution.acteurs,
       image: (solution.image if solution.image.attached?)
     })

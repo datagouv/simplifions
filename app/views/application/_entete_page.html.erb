@@ -1,4 +1,5 @@
-<% content_for :title, "#{titre} — Simplifions.data.gouv.fr" %>
+<% content_for :title, "#{titre} — Simplifions.data.gouv.fr"
+   content_for :description, description %>
 
 <div class="fr-container">
   <%= render "breadcrumb", id: "breadcrumb-#{titre.parameterize}", liens: [["Accueil", root_path], [titre, nil]] %>

@@ -8,6 +8,7 @@ class Demarche < ApplicationRecord
 
   scope :visibles, -> { where(visible: true) }
   def titre = "#{icone} #{nom}".strip
+  def chapo = description_courte.to_s.lines.first&.strip
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
 

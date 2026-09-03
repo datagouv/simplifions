@@ -1,5 +1,5 @@
 <% content_for :title, "#{@solution.nom} — Simplifions.data.gouv.fr"
-   content_for :description, @solution.description_courte.to_s.lines.first&.strip
+   content_for :description, @solution.chapo
    content_for :image, rails_blob_url(@solution.image) if @solution.image.attached?
    fournisseurs = @solution.organisations.map(&:nom)
    usagers = @solution.usagers
