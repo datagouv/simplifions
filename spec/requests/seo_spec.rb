@@ -59,4 +59,36 @@ RSpec.describe 'SEO' do
       expect(response.body).to include('<link rel="canonical" href="http://www.example.com/">')
     end
   end
+
+  describe 'GET /sitemap.xml' do
+    it 'liste les pages du site et les fiches visibles du catalogue, avec leur date de modification' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true, modifie_le: Time.zone.parse('2026-08-28T10:00:00Z'))
+      Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+      Solution.create!(nom: 'API Quotient familial', categorie: 'api', visible: true, uid_datagouv: 'qf')
+
+      get '/sitemap.xml'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq('application/xml')
+      expect(response.body).to include('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+      %w[/ /demarches /solutions /articles /about /doctrine-referencement-cas-usages /doctrine-referencement-solutions
+         /niveaux-simplification /terms /accessibility /sitemap /articles/qu-est-ce-qu-une-api
+         /demarches/cantine /solutions/babily].each do |chemin|
+        expect(response.body).to include("<loc>http://www.example.com#{chemin}</loc>"), chemin
+      end
+      expect(response.body).to include("<loc>http://www.example.com/demarches/cantine</loc>\n    <lastmod>2026-08-28</lastmod>")
+      expect(response.body).not_to include('brouillon')
+      expect(response.body).not_to include('Quotient')
+
+      get sitemap_path
+      expect(response.body).to include('<h1>Plan du site</h1>')
+    end
+
+    it 'est déclaré dans robots.txt' do
+      get '/robots.txt'
+
+      expect(response.body).to include('Sitemap: https://simplifions.data.gouv.fr/sitemap.xml')
+    end
+  end
 end
