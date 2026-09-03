@@ -4,9 +4,8 @@
 require 'json'
 require 'optparse'
 require 'nokogiri'
-require 'open3'
+require 'diff/lcs'
 require 'selenium-webdriver'
-require 'tmpdir'
 require 'fileutils'
 
 module RecetteParite
@@ -24,16 +23,15 @@ module RecetteParite
   def texte(html)
     main = Nokogiri::HTML(html).at_css('main') or return []
     main.css(IGNORES).remove
-    main.css(BLOCS).each { |bloc| bloc.add_previous_sibling(MARQUE) && bloc.add_next_sibling(MARQUE) }
+    main.css(BLOCS).each do |bloc|
+      bloc.add_previous_sibling(MARQUE)
+      bloc.add_next_sibling(MARQUE)
+    end
     main.text.tr('’', "'").split(MARQUE).map { |ligne| ligne.gsub(/\s+/, ' ').strip }.reject(&:empty?)
   end
 
   def comparer(anciennes, nouvelles)
-    Dir.mktmpdir do |dossier|
-      fichiers = { 'ancien' => anciennes, 'nouveau' => nouvelles }.map { |nom, lignes| File.join(dossier, nom).tap { |f| File.write(f, "#{lignes.join("\n")}\n") } }
-      sortie, = Open3.capture2('diff', *fichiers)
-      sortie.lines.grep(/\A[<>] /).map { |ligne| ligne.chomp.sub(/\A[<>]/, '<' => '-', '>' => '+') }
-    end
+    Diff::LCS.diff(anciennes, nouvelles).flatten(1).map { |changement| "#{changement.action} #{changement.element}" }
   end
 
   def urls(cle, slug, nouveau)
@@ -41,10 +39,12 @@ module RecetteParite
     ["#{ANCIEN}/#{ancien_chemin}/#{slug}", "#{nouveau}/#{ancien_chemin}/#{slug}", "#{nouveau}/#{nouveau_chemin}/#{slug}"]
   end
 
+  def identique?(resultat) = resultat[:erreur].nil? && resultat[:diff].empty?
+
   def statut(resultat)
     return "❌ #{resultat[:erreur]}" if resultat[:erreur]
 
-    resultat[:diff].empty? ? '✅ identique' : "⚠️ #{resultat[:diff].size} lignes différentes"
+    identique?(resultat) ? '✅ identique' : "⚠️ #{resultat[:diff].size} lignes différentes"
   end
 
   def rapport(resultats, nouveau)
@@ -66,20 +66,21 @@ module RecetteParite
   def deplier(navigateur)
     3.times do
       fermes = navigateur.find_elements(css: FERMES)
+      break if fermes.empty?
+
       fermes.each { |bouton| navigateur.execute_script('arguments[0].click()', bouton) }
-      fermes.empty? ? break : sleep(1)
+      sleep 0.5
     end
   end
 
   def recetter(cle, slug, nouveau, navigateur)
     ancienne, entree, nouvelle = urls(cle, slug, nouveau)
-    resultat = { slug:, nouvelle:, diff: [], erreur: nil }
     anciennes, = visiter(navigateur, ancienne)
     nouvelles, arrivee = visiter(navigateur, entree)
-    resultat[:erreur] = "redirigé vers #{arrivee} au lieu de #{nouvelle}" if arrivee.chomp('/') != nouvelle
-    resultat.merge(diff: comparer(anciennes, nouvelles))
+    erreur = ("redirigé vers #{arrivee} au lieu de #{nouvelle}" if arrivee.chomp('/') != nouvelle)
+    { slug:, nouvelle:, diff: comparer(anciennes, nouvelles), erreur: }
   rescue Selenium::WebDriver::Error::WebDriverError => e
-    resultat.merge(erreur: e.message.lines.first.strip)
+    { slug:, nouvelle:, diff: [], erreur: e.message.lines.first.strip }
   end
 
   def navigateur
@@ -93,36 +94,36 @@ module RecetteParite
   end
 
   def options(argv)
-    options = { nouveau: 'https://staging.simplifions.data.gouv.fr', seulement: [], sortie: 'tmp/recette/rapport.md' }
+    choix = { nouveau: 'https://staging.simplifions.data.gouv.fr', seulement: [], sortie: 'tmp/recette/rapport.md' }
     parseur = OptionParser.new
-    parseur.on('--nouveau URL') { |url| options[:nouveau] = url.chomp('/') }
-    parseur.on('--seulement SLUG') { |slug| options[:seulement] << slug }
-    parseur.on('--sortie FICHIER') { |fichier| options[:sortie] = fichier }
+    parseur.on('--nouveau URL') { |url| choix[:nouveau] = url.chomp('/') }
+    parseur.on('--seulement SLUG') { |slug| choix[:seulement] << slug }
+    parseur.on('--sortie FICHIER') { |fichier| choix[:sortie] = fichier }
     parseur.parse!(argv)
-    options
+    choix
   end
 
-  def pages(options)
+  def pages(choix)
     snapshot = JSON.parse(File.read(File.expand_path('../db/grist/topics_snapshot.json', __dir__)))
-    snapshot.select { |_, page| options[:seulement].empty? || options[:seulement].include?(page['slug']) }
+    snapshot.select { |_, page| choix[:seulement].empty? || choix[:seulement].include?(page['slug']) }
   end
 
-  def ecrire(resultats, options)
-    FileUtils.mkdir_p(File.dirname(options[:sortie]))
-    File.write(options[:sortie], rapport(resultats, options[:nouveau]))
-    puts "#{resultats.count { |r| statut(r).start_with?('✅') }}/#{resultats.size} pages identiques — #{options[:sortie]}"
+  def ecrire(resultats, choix)
+    FileUtils.mkdir_p(File.dirname(choix[:sortie]))
+    File.write(choix[:sortie], rapport(resultats, choix[:nouveau]))
+    puts "#{resultats.count { |r| identique?(r) }}/#{resultats.size} pages identiques — #{choix[:sortie]}"
   end
 
   def lancer(argv)
-    options = options(argv)
-    pages = pages(options)
+    choix = options(argv)
+    fiches = pages(choix)
     chrome = navigateur
-    resultats = pages.map.with_index(1) do |(cle, page), i|
-      warn "#{i}/#{pages.size} #{page['slug']}"
-      recetter(cle, page['slug'], options[:nouveau], chrome)
+    resultats = fiches.map.with_index(1) do |(cle, page), i|
+      warn "#{i}/#{fiches.size} #{page['slug']}"
+      recetter(cle, page['slug'], choix[:nouveau], chrome)
     end
     chrome.quit
-    ecrire(resultats, options)
+    ecrire(resultats, choix)
   end
 end
 
