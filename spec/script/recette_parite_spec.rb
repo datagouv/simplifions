@@ -25,7 +25,7 @@ RSpec.describe RecetteParite do
         <ul><li>Crèches</li><li>Parents</li></ul>
         <div class="dataservice-card"><p class="fr-badge">À définir</p><img src="https://placehold.co/40x40">
           <h4><a href="/d">API Quotient familial</a></h4><p class="dataservice-card__org">DINUM</p></div>
-        <p>Contenu rédigé par :<br>
+        <p>Contenu rédigé par\u00a0:<br>
           <a href="/o">DINUM</a>
           le <time>2 septembre</time>.</p>
         <table><tr hidden><td>Aucun endpoint ne correspond à votre recherche.</td></tr></table>
@@ -43,6 +43,20 @@ RSpec.describe RecetteParite do
   it 'compare deux textes et ne garde que les lignes qui diffèrent' do
     expect(described_class.comparer(%w[a b c], %w[a b c])).to eq []
     expect(described_class.comparer(%w[a b c], %w[a x c])).to eq ['- b', '+ x']
+  end
+
+  it 'signale une fiche dont l’ancienne URL ne redirige pas vers la nouvelle' do
+    allow(described_class).to receive(:visiter).and_return([%w[a], 'https://s/demarches/cantine/'], [%w[a], 'https://s/demarches/autre'])
+
+    resultat = described_class.recetter('Cas_d_usages:1', 'cantine', 'https://s', nil)
+
+    expect(resultat[:erreur]).to eq 'redirigé vers https://s/demarches/autre au lieu de https://s/demarches/cantine'
+  end
+
+  it 'accepte une arrivée avec une barre oblique finale' do
+    allow(described_class).to receive(:visiter).and_return([%w[a], 'https://s/demarches/cantine'], [%w[a], 'https://s/demarches/cantine/'])
+
+    expect(described_class.recetter('Cas_d_usages:1', 'cantine', 'https://s', nil)).to eq(slug: 'cantine', nouvelle: 'https://s/demarches/cantine', diff: [], erreur: nil)
   end
 
   it 'donne à chaque page l’ancienne et la nouvelle URL, l’ancienne via le chemin redirigé' do

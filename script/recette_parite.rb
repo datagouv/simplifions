@@ -27,7 +27,7 @@ module RecetteParite
       bloc.add_previous_sibling(MARQUE)
       bloc.add_next_sibling(MARQUE)
     end
-    main.text.tr('’', "'").split(MARQUE).map { |ligne| ligne.gsub(/\s+/, ' ').strip }.reject(&:empty?)
+    main.text.tr('’', "'").split(MARQUE).map { |ligne| ligne.gsub(/[[:space:]]+/, ' ').strip }.reject(&:empty?)
   end
 
   def comparer(anciennes, nouvelles)
@@ -122,8 +122,9 @@ module RecetteParite
       warn "#{i}/#{fiches.size} #{page['slug']}"
       recetter(cle, page['slug'], choix[:nouveau], chrome)
     end
-    chrome.quit
     ecrire(resultats, choix)
+  ensure
+    chrome&.quit
   end
 end
 
