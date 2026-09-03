@@ -59,6 +59,12 @@ RSpec.describe RecetteParite do
     expect(described_class.recetter('Cas_d_usages:1', 'cantine', 'https://s', nil)).to eq(slug: 'cantine', nouvelle: 'https://s/demarches/cantine', diff: [], erreur: nil)
   end
 
+  it 'transforme toute erreur de chargement en ligne ❌ sans interrompre la recette' do
+    allow(described_class).to receive(:visiter).and_raise(Net::ReadTimeout, 'Chrome')
+
+    expect(described_class.recetter('Solutions:2', 'babily', 'https://s', nil)[:erreur]).to include('Net::ReadTimeout')
+  end
+
   it 'donne à chaque page l’ancienne et la nouvelle URL, l’ancienne via le chemin redirigé' do
     expect(described_class.urls('Cas_d_usages:1', 'cantine', 'https://staging.example'))
       .to eq ['https://simplifions.data.gouv.fr/cas-d-usages/cantine', 'https://staging.example/cas-d-usages/cantine',

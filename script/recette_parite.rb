@@ -79,7 +79,7 @@ module RecetteParite
     nouvelles, arrivee = visiter(navigateur, entree)
     erreur = ("redirigé vers #{arrivee} au lieu de #{nouvelle}" if arrivee.chomp('/') != nouvelle)
     { slug:, nouvelle:, diff: comparer(anciennes, nouvelles), erreur: }
-  rescue Selenium::WebDriver::Error::WebDriverError => e
+  rescue StandardError => e
     { slug:, nouvelle:, diff: [], erreur: e.message.lines.first.strip }
   end
 
