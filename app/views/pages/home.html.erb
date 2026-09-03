@@ -63,15 +63,15 @@
         <p class="fr-mb-3w">
           Explorez les démarches référencées dans le catalogue à destination des :
         </p>
-        <% [["👱", "Particuliers", "Toutes les démarches concernant les particuliers"],
-            ["💼", "Entreprises", "Toutes les démarches concernant les entreprises"],
-            ["🤝", "Associations", "Toutes les démarches concernant les associations"]].each do |emoji, title, description| %>
+        <% [["👱", "Particuliers", "particuliers", "Toutes les démarches concernant les particuliers"],
+            ["💼", "Entreprises", "entreprises", "Toutes les démarches concernant les entreprises"],
+            ["🤝", "Associations", "associations", "Toutes les démarches concernant les associations"]].each do |emoji, title, slug, description| %>
           <div class="fr-mb-2w">
             <div class="fr-tile fr-tile--horizontal fr-enlarge-link fr-tile--no-icon">
               <div class="fr-tile__body">
                 <div class="fr-tile__content">
                   <h3 class="fr-tile__title">
-                    <a href="#"><%= emoji %> <%= title %></a>
+                    <a href="<%= demarches_path('target-users' => slug) %>"><%= emoji %> <%= title %></a>
                   </h3>
                   <p class="fr-tile__desc"><%= description %></p>
                 </div>
@@ -107,7 +107,7 @@
             </a>
           </div>
           <div>
-            <a href="#" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line fr-text--lg">
+            <a href="<%= about_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line fr-text--lg">
               A propos de simplifions.data
             </a>
           </div>
@@ -235,7 +235,9 @@
             Proposez l'ajout d'une démarche, d'une solution ou la correction
             d'un contenu directement depuis le formulaire en ligne.
           </p>
-          <a href="#" class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-right-line">
+          <a href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions"
+            rel="noopener external" target="_blank" title="Formulaire pour proposer un contenu - nouvelle fenêtre"
+            class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-right-line">
             Formulaire pour proposer un contenu
           </a>
         </div>
@@ -247,12 +249,12 @@
             référencés dans <i>Simplifions.data</i> :
           </p>
           <div class="fr-mb-2w">
-            <a href="#" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+            <a href="<%= doctrine_referencement_cas_usages_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
               Doctrine de référencement des démarches
             </a>
           </div>
           <div>
-            <a href="#" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+            <a href="<%= doctrine_referencement_solutions_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
               Doctrine de référencement des solutions
             </a>
           </div>
@@ -274,7 +276,7 @@
           <em>Rejoignez les administrations qui utilisent déjà Simplifions.data
           pour connaître les données et les solutions disponibles.</em>
         </p>
-        <a href="#" class="fr-btn fr-btn--lg fr-btn--icon-right fr-icon-search-line">
+        <a href="<%= demarches_path %>" class="fr-btn fr-btn--lg fr-btn--icon-right fr-icon-search-line">
           Explorer le catalogue des démarches
         </a>
       </div>

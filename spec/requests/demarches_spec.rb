@@ -15,6 +15,7 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('class="demarche-card').size).to eq(20)
       expect(response.body).to include('href="/demarches/demarche-0"')
       expect(response.body).to include('role="status">21 résultats')
+      expect(response.body).to include('<section id="list"')
       expect(response.body).to include('fr-pagination')
       expect(response.body).to include('href="/demarches?page=2"')
       expect(response.body).not_to include('Brouillon invisible')
@@ -89,6 +90,19 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('role="status"')
       expect(response.body).not_to include('Trier par')
       expect(response.body).not_to include('class="demarche-card')
+    end
+
+    it 'accepte la valeur en forme tag publiée par le site actuel' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes],
+        vocabulaires: [Vocabulaire.find_by!(slug: 'particuliers')])
+
+      get demarches_path('target-users' => 'simplifions-v2-target-users-particuliers',
+        'fournisseurs-de-service' => 'simplifions-v2-fournisseurs-de-service-communes')
+
+      expect(response.body).to include('role="status">1 résultat<')
+      expect(response.body).to include('href="/demarches/demarche-0"')
     end
 
     it 'ignore les paramètres non scalaires ou hors plage' do
