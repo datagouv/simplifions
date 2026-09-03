@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe 'SEO' do
+  SITE = '<meta name="description" content="Simplifiez les démarches et services des citoyens, entreprises et associations en récupérant pour eux leurs informations administratives grâce aux API et aux données de l&#39;État.">'.freeze
+
   describe 'fiches' do
     it 'titre et décrit un cas d’usage avec son nom et la première ligne de son chapo' do
       Demarche.create!(nom: 'Cantine à 1€', icone: '🥣', slug: 'cantine', visible: true,
@@ -8,7 +10,7 @@ RSpec.describe 'SEO' do
 
       get demarche_path('cantine')
 
-      expect(response.body).to include('<title>Cantine à 1€ — Simplifions.data.gouv.fr</title>')
+      expect(response.body).to include('<title>Cas d&#39;usage - 🥣 Cantine à 1€ | Simplifions.data.gouv.fr</title>')
       expect(response.body).to include('<meta name="description" content="Communes, simplifiez.">')
     end
 
@@ -19,20 +21,20 @@ RSpec.describe 'SEO' do
 
       get solution_path('babily')
 
-      expect(response.body).to include('<title>Babily — Simplifions.data.gouv.fr</title>')
+      expect(response.body).to include('<title>Solution - Babily | Simplifions.data.gouv.fr</title>')
       expect(response.body).to include('<meta name="description" content="Crèches, calculez le tarif.">')
       expect(response.body).to match(%r{<meta property="og:image" content="http://www\.example\.com/rails/active_storage/[^"]+/babily\.png">})
     end
   end
 
   describe 'listes et pages statiques' do
-    it 'décrit chaque page et canonise les listes sans leurs filtres' do
-      { demarches_path => 'cas d’usage', solutions_path => 'solutions', articles_path => 'API',
-        about_path => 'administrations', terms_path => 'Conditions générales',
-        accessibility_path => 'accessibilité', sitemap_path => 'Plan du site' }.each do |chemin, mot|
+    it 'reprend la description du site comme l’ancien, sauf les articles, et canonise les listes sans leurs filtres' do
+      [demarches_path, solutions_path, about_path, terms_path, accessibility_path, sitemap_path].each do |chemin|
         get chemin
-        expect(response.body).to match(/<meta name="description" content="[^"]*#{mot}[^"]*">/), chemin
+        expect(response.body).to include(SITE), chemin
       end
+      get articles_path
+      expect(response.body).to include('<meta name="description" content="Guides et explications')
 
       get demarches_path(q: 'cantine', page: 2)
       expect(response.body).to include('<link rel="canonical" href="http://www.example.com/demarches">')
@@ -44,7 +46,7 @@ RSpec.describe 'SEO' do
       get demarche_path('cantine')
 
       expect(response.body).to include('<link rel="canonical" href="http://www.example.com/demarches/cantine">')
-      expect(response.body).to include('<meta property="og:title" content="Cantine à 1€ — Simplifions.data.gouv.fr">')
+      expect(response.body).to include('<meta property="og:title" content="Cas d&#39;usage - Cantine à 1€ | Simplifions.data.gouv.fr">')
       expect(response.body).to include('<meta property="og:description" content="Communes, simplifiez.">')
       expect(response.body).to include('<meta property="og:url" content="http://www.example.com/demarches/cantine">')
       expect(response.body).to include('<meta property="og:site_name" content="Simplifions.data.gouv.fr">')
@@ -55,8 +57,27 @@ RSpec.describe 'SEO' do
       get root_path
 
       expect(response.body).to include('<title>Simplifions.data.gouv.fr</title>')
-      expect(response.body).to match(/<meta name="description" content="[^"]*acteurs publics[^"]*">/)
+      expect(response.body).to include(SITE)
       expect(response.body).to include('<link rel="canonical" href="http://www.example.com/">')
+    end
+  end
+
+  describe 'description des fiches' do
+    it 'tronque le chapo à 155 caractères sur un mot, comme l’ancien site' do
+      Demarche.create!(nom: 'Longue', slug: 'longue', visible: true, description_courte: "#{'mot ' * 45}fin\nsuite")
+
+      get demarche_path('longue')
+
+      expect(response.body).to match(/<meta name="description" content="(mot ){37}mot…">/)
+    end
+
+    it 'retombe sur la description du site quand le chapo est vide' do
+      Solution.create!(nom: 'Actradis', slug: 'actradis', visible: true, categorie: 'brique_logicielle', description_courte: '')
+
+      get solution_path('actradis')
+
+      expect(response.body).to include(SITE)
+      expect(response.body).not_to include('content=""')
     end
   end
 

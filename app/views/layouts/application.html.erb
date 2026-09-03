@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-    <% titre = content_for(:title) || @article&.title || "Simplifions.data.gouv.fr"
-       description = content_for(:description) || @article&.description ||
-         "Le catalogue des API et bases de données accessibles aux acteurs publics, et des solutions qui les utilisent, pour simplifier les démarches des particuliers, entreprises et associations."
+    <% titre = safe_join([content_for(:title) || @article&.title, "Simplifions.data.gouv.fr"].compact, " | ")
+       description = (content_for(:description) || @article&.description)&.truncate(155, separator: " ", omission: "…") ||
+         "Simplifiez les démarches et services des citoyens, entreprises et associations en récupérant pour eux leurs informations administratives grâce aux API et aux données de l'État."
        canonical = url_for(only_path: false) %>
     <title><%= titre %></title>
     <meta name="description" content="<%= description %>">
