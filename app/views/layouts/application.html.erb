@@ -1,7 +1,22 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-    <title><%= content_for(:title) || @article&.title || "Simplifions" %></title>
+    <% titre = content_for(:title) || @article&.title || "Simplifions.data.gouv.fr"
+       description = content_for(:description) || @article&.description ||
+         "Le catalogue des API et bases de données accessibles aux acteurs publics, et des solutions qui les utilisent, pour simplifier les démarches des particuliers, entreprises et associations."
+       canonical = url_for(only_path: false) %>
+    <title><%= titre %></title>
+    <meta name="description" content="<%= description %>">
+    <link rel="canonical" href="<%= canonical %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Simplifions.data.gouv.fr">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:title" content="<%= titre %>">
+    <meta property="og:description" content="<%= description %>">
+    <meta property="og:url" content="<%= canonical %>">
+    <% if content_for?(:image) %>
+      <meta property="og:image" content="<%= content_for(:image) %>">
+    <% end %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Simplifions">
@@ -9,14 +24,6 @@
     <meta name="theme-color" content="#000091">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
-    <% if (description = content_for(:description) || @article&.description) %>
-      <meta name="description" content="<%= description %>">
-    <% end %>
-    <% if content_for?(:image) %>
-      <meta property="og:image" content="<%= content_for(:image) %>">
-    <% end %>
-    <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
