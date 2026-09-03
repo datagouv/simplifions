@@ -32,6 +32,7 @@ class Solution < ApplicationRecord
   scope :visibles, -> { where(visible: true) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
   scope :fiches, -> { where(categorie: [nil, *categories.keys - HORS_FICHES]) }
+  def chapo = description_courte.to_s.lines.first&.strip
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
 

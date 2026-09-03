@@ -1,4 +1,6 @@
-<% usagers = @demarche.usagers
+<% content_for :title, "Cas d'usage - #{@demarche.titre}"
+   content_for :description, @demarche.chapo
+   usagers = @demarche.usagers
    acteurs = @demarche.acteurs
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                ['donnees-disponibles', 'Données disponibles']] %>

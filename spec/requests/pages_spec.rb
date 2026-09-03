@@ -59,7 +59,7 @@ RSpec.describe 'Pages' do
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("<h1>#{h1 || titre}</h1>")
-        expect(response.body).to include("#{ERB::Util.html_escape(titre)} — Simplifions.data.gouv.fr</title>")
+        expect(response.body).to include("#{ERB::Util.html_escape(titre)} | Simplifions.data.gouv.fr</title>")
         expect(response.body).to include('fr-breadcrumb')
         expect(response.body).not_to include('href="/cas-d-usages"')
       end
@@ -98,7 +98,7 @@ RSpec.describe 'Pages' do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('<h1>Plan du site</h1>')
-      expect(response.body).to include('Plan du site — Simplifions.data.gouv.fr</title>')
+      expect(response.body).to include('Plan du site | Simplifions.data.gouv.fr</title>')
       entrees = response.body.scan(%r{<h2><a href="([^"]+)">([^<]+)</a></h2>})
         .map { |chemin, nom| [chemin, CGI.unescapeHTML(nom)] }
       expect(entrees).to eq([['/', 'Accueil'], ['/demarches', "Cas d'usages"], ['/articles', 'Articles'],

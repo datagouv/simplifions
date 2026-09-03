@@ -6,5 +6,9 @@ class PagesController < ApplicationController
   def niveaux_simplification; end
   def terms; end
   def accessibility; end
-  def sitemap; end
+
+  def sitemap
+    @demarches = Demarche.visibles
+    @solutions = Solution.visibles.fiches
+  end
 end

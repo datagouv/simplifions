@@ -1,4 +1,7 @@
-<% fournisseurs = @solution.organisations.map(&:nom)
+<% content_for :title, "Solution - #{@solution.nom}"
+   content_for :description, @solution.chapo
+   content_for :image, rails_blob_url(@solution.image) if @solution.image.attached?
+   fournisseurs = @solution.organisations.map(&:nom)
    usagers = @solution.usagers
    acteurs = @solution.acteurs
    utilisees = @solution.consommees.visibles.sur_datagouv.load

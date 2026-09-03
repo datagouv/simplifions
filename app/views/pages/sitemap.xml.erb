@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<% pages = [root_url, demarches_url, solutions_url, articles_url, about_url, doctrine_referencement_cas_usages_url,
+            doctrine_referencement_solutions_url, niveaux_simplification_url, terms_url, accessibility_url, sitemap_url]
+   urls = pages.map { |url| [url, nil] } + Article.all.map { |article| [article_url(article.slug), nil] } +
+     @demarches.map { |demarche| [demarche_url(demarche.slug), demarche.modifie_le] } +
+     @solutions.map { |solution| [solution_url(solution.slug), solution.modifie_le] }
+   urls.each do |url, modifie_le| %>
+  <url>
+    <loc><%= url %></loc>
+    <% if modifie_le %><lastmod><%= modifie_le.to_date %></lastmod><% end %>
+  </url>
+<% end %>
+</urlset>
