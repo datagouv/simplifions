@@ -10,8 +10,11 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <% if @article %>
-      <meta name="description" content="<%= @article.description %>">
+    <% if (description = content_for(:description) || @article&.description) %>
+      <meta name="description" content="<%= description %>">
+    <% end %>
+    <% if content_for?(:image) %>
+      <meta property="og:image" content="<%= content_for(:image) %>">
     <% end %>
     <%= yield :head %>
 
