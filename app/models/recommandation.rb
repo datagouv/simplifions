@@ -11,7 +11,7 @@ class Recommandation < ApplicationRecord
   validate :ne_recommande_pas_de_solution_privee
 
   def solutions_integratrices
-    Solution.where(
+    Solution.visibles.where(
       id: Integration.en_production.pour_demarche(demarche)
         .where(integree: solution.fournies)
         .select(:integratrice_id)
