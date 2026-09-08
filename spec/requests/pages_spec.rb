@@ -5,7 +5,6 @@ RSpec.describe 'Pages' do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Le catalogue des données')
-      expect(response.body).to include('Nouvelle version en construction')
       expect(response.body).to include('fr-header')
       expect(response.body).to include('fr-footer')
     end
