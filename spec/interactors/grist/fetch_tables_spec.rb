@@ -8,6 +8,12 @@ RSpec.describe Grist::FetchTables do
 
     it { is_expected.to be_a_success }
 
+    it 'asks Grist for the Recommandations in sheet order, the one the current site renders' do
+      result
+      expect(a_request(:get, "#{described_class::DOC_URL}/tables/Recommandations/records")
+        .with(query: { sort: 'manualSort' })).to have_been_made
+    end
+
     it 'exposes every table records keyed by table name' do
       expect(result.tables.keys).to match_array(described_class::TABLES)
       expect(result.tables['Solutions']).to include(

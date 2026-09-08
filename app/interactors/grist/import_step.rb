@@ -14,7 +14,9 @@ class Grist::ImportStep < ApplicationInteractor
     end
   end
 
-  def each_record(table)
+  def each_record(table, &)
+    return to_enum(:each_record, table) unless block_given?
+
     context.tables.fetch(table).each { |record| yield "#{table}:#{record['id']}", record['fields'] }
   end
 
