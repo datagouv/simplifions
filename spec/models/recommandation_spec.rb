@@ -50,16 +50,17 @@ RSpec.describe Recommandation do
   end
 
   describe '#moyens_acces' do
-    it 'groups by categorie the in-production integrators of the target and its exposed solutions, scoped to the demarche' do
+    it 'groups by categorie the visible in-production integrators of the target and its exposed solutions, scoped to the demarche' do
       cantine = Demarche.create!(nom: 'Cantine à 1€')
       autre_demarche = Demarche.create!(nom: 'Autre démarche')
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
-      logiciel = Solution.create!(nom: 'Logiciel cantine', categorie: 'logiciel_metier_cle_en_main')
-      portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
-      prospect = Solution.create!(nom: 'Éditeur en prospection', categorie: 'logiciel_metier_cle_en_main')
-      hors_demarche = Solution.create!(nom: 'Éditeur hors démarche', categorie: 'logiciel_metier_cle_en_main')
+      logiciel = Solution.create!(nom: 'Logiciel cantine', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
+      prospect = Solution.create!(nom: 'Éditeur en prospection', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      hors_demarche = Solution.create!(nom: 'Éditeur hors démarche', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      brouillon = Solution.create!(nom: 'Éditeur non visible', categorie: 'logiciel_metier_cle_en_main')
 
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
@@ -70,6 +71,8 @@ RSpec.describe Recommandation do
         statut: '💡 en prospection', demarches: [cantine])
       Integration.create!(integratrice: hors_demarche, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [autre_demarche])
+      Integration.create!(integratrice: brouillon, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
 
       reco = described_class.create!(demarche: cantine, solution: bouquet)
 

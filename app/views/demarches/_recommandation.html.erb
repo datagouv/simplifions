@@ -3,6 +3,7 @@
    utiles = recommandation.apis_utiles.to_a
    lien_demande_acces = recommandation.lien_demande_acces
    nom_demarche = recommandation.demarche.titre
+   acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
    accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
                  ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
                  ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites']] %>
@@ -37,11 +38,11 @@
     <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
 
     <div class="fr-accordions-group">
-      <% if lien_demande_acces || utiles.any? %>
+      <% if lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
         <section class="fr-accordion">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
-              aria-controls="<%= dom_id(recommandation, :api_directe) %>">Par l'API directement</button>
+              aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
           </h5>
           <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
             <% if lien_demande_acces %>
@@ -122,7 +123,7 @@
         <section class="fr-accordion">
           <h5 class="fr-accordion__title">
             <span class="fr-accordion__btn fr-accordion__btn--empty">
-              <span class="fr-mr-auto">Par l'API directement</span>
+              <span class="fr-mr-auto"><%= acces_direct %></span>
               <span aria-hidden="true" class="fr-icon-subtract-line fr-icon--sm"></span>
               <span class="fr-sr-only">(Aucune solution référencée)</span>
             </span>

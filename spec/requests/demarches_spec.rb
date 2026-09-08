@@ -224,6 +224,32 @@ RSpec.describe 'Demarches' do
     end
   end
 
+  describe 'accès direct à la donnée recommandée' do
+    it 'montre la carte data.gouv du jeu de données même sans lien de demande d’accès ni endpoint utile' do
+      demarche = Demarche.create!(nom: 'Démarches proactives', slug: 'demarches-proactives', visible: true)
+      extrait = Solution.create!(nom: 'Extrait des coordonnées des étudiants boursiers', categorie: 'base_de_donnees',
+        uid_datagouv: 'extrait1')
+      Recommandation.create!(demarche:, solution: extrait, niveau: :niveau_2, visible: true)
+
+      get demarche_path('demarches-proactives')
+
+      expect(response.body).to include('Par le jeu de données directement')
+      expect(response.body).to include('https://www.data.gouv.fr/fr/datasets/extrait1')
+      expect(response.body).to include('Voir le jeu de données sur Data.gouv.fr')
+      expect(response.body.scan('Aucune solution référencée').size).to eq(3)
+    end
+
+    it 'grise l’accordéon quand la donnée n’est pas sur data.gouv' do
+      demarche = Demarche.create!(nom: 'Démarches proactives', slug: 'demarches-proactives', visible: true)
+      a_venir = Solution.create!(nom: 'Nombre d’étudiants boursiers par territoire', categorie: 'base_de_donnees')
+      Recommandation.create!(demarche:, solution: a_venir, niveau: :niveau_2, visible: true)
+
+      get demarche_path('demarches-proactives')
+
+      expect(response.body.scan('Aucune solution référencée').size).to eq(4)
+    end
+  end
+
   describe 'anciennes URLs /cas-d-usages' do
     it 'redirige la liste en 301 vers /demarches en conservant les filtres' do
       get '/cas-d-usages?target-users=particuliers'
