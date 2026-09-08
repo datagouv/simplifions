@@ -8,11 +8,11 @@ class Grist::ImportRecommandations < Grist::ImportStep
   private
 
   def import_recommandations
-    each_record('Recommandations') do |gid, fields|
+    each_record('Recommandations').with_index(1) do |(gid, fields), position|
       demarche = find('Cas_d_usages', fields['Cas_d_usage'], gid) || next
       solution = cible(gid, fields) || next
       synchronise(Recommandation, gid, {
-        demarche:, solution:, niveau: :niveau_2,
+        demarche:, solution:, niveau: :niveau_2, ordre: position,
         donnees_utiles: fields['Donnees_utiles_disponibles'],
         parametres_a_saisir: fields['Parametres_a_saisir_pour_recuperer_les_donnees'],
         url_demande_acces: fields['URL_demande_d_acces_cas_usage'],

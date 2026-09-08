@@ -250,6 +250,21 @@ RSpec.describe 'Demarches' do
     end
   end
 
+  describe 'ordre des recommandations' do
+    it 'suit l’ordre importé de Grist, pas celui des ids' do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      bio = Solution.create!(nom: 'API professionnels BIO', categorie: 'api')
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+      Recommandation.create!(demarche:, solution: bio, niveau: :niveau_2, visible: true, ordre: 2)
+      Recommandation.create!(demarche:, solution: bodacc, niveau: :niveau_2, visible: true, ordre: 1)
+
+      get demarche_path('marches-publics')
+
+      expect(response.body.index('Via «')).to be < response.body.index('API BODACC')
+      expect(response.body.index('API BODACC')).to be < response.body.index('API professionnels BIO')
+    end
+  end
+
   describe 'anciennes URLs /cas-d-usages' do
     it 'redirige la liste en 301 vers /demarches en conservant les filtres' do
       get '/cas-d-usages?target-users=particuliers'

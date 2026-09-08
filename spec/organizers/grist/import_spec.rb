@@ -92,6 +92,13 @@ RSpec.describe Grist::Import do
     expect(cibles).to contain_exactly('Solutions:1', 'Solutions:8')
   end
 
+  it 'orders niveau 2 recommandations like the Grist sheet, which the current site follows' do
+    result
+    cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
+    expect(cantine.recommandations.niveau_2.order(:ordre).pluck(:grist_id, :ordre))
+      .to eq([['Recommandations:73', 1], ['Recommandations:44', 2]])
+  end
+
   it 'computes the 4-access-means matrix of the cantine recommendation like the current site' do
     result
     reco = Recommandation.find_by!(grist_id: 'Recommandations:44')
@@ -172,7 +179,7 @@ RSpec.describe Grist::Import do
     recos['records'] << { 'id' => 901, 'fields' => {
       'Cas_d_usage' => 8, 'API_ou_datasets_recommandes' => 1, 'Visible_sur_simplifions' => true
     } }
-    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Recommandations/records")
+    stub_request(:get, Grist::FetchTables.url('Recommandations'))
       .to_return(status: 200, body: recos.to_json, headers: { 'Content-Type' => 'application/json' })
 
     expect(result).to be_a_success
@@ -190,7 +197,7 @@ RSpec.describe Grist::Import do
     reco44 = recos['records'].find { |record| record['id'] == 44 }
     reco44['fields']['Solution_recommandee'] = 0
     reco44['fields']['API_ou_datasets_recommandes'] = 59
-    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Recommandations/records")
+    stub_request(:get, Grist::FetchTables.url('Recommandations'))
       .to_return(status: 200, body: recos.to_json, headers: { 'Content-Type' => 'application/json' })
 
     relance = described_class.call
@@ -220,7 +227,7 @@ RSpec.describe Grist::Import do
     recos['records'] << { 'id' => 902, 'fields' => {
       'Cas_d_usage' => 8, 'Solution_recommandee' => 32, 'Visible_sur_simplifions' => true
     } }
-    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Recommandations/records")
+    stub_request(:get, Grist::FetchTables.url('Recommandations'))
       .to_return(status: 200, body: recos.to_json, headers: { 'Content-Type' => 'application/json' })
 
     expect(result).to be_a_success
