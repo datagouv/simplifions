@@ -275,23 +275,36 @@ RSpec.describe Solution do
       )
     end
 
-    it 'garde les valeurs précédentes et renvoie une note quand data.gouv répond 404 ou ne répond pas' do
+    it 'garde les valeurs précédentes et renvoie une note quand data.gouv ne répond pas' do
+      api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+      stub_request(:get, dataservice_url).to_timeout
+
+      expect(api.rafraichir_datagouv!).to match(/672cf9 — .*Timeout/)
+      expect(api.reload).to have_attributes(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+    end
+
+    it 'efface les métadonnées d’une fiche introuvable (retirée, ou passée d’API à jeu de données)' do
       api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
       stub_request(:get, dataservice_url).to_return(status: 404)
+
       expect(api.rafraichir_datagouv!).to eq('672cf9 — HTTP 404')
+      expect(api.reload).to have_attributes(datagouv_titre: nil, datagouv_acces: nil)
+    end
 
-      stub_request(:get, dataservice_url).to_timeout
-      expect(api.rafraichir_datagouv!).to match(/672cf9 — .*Timeout/)
+    it 'encode l’UID dans l’URL de la fiche' do
+      api.update!(uid_datagouv: 'a/../b')
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/a%2F..%2Fb/').to_return(status: 404)
 
-      expect(api.reload).to have_attributes(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+      expect(api.rafraichir_datagouv!).to eq('a/../b — HTTP 404')
     end
 
     it 'transforme toute autre erreur en note sans interrompre la tâche' do
       stub_datagouv(dataservice_url, nil)
       expect(api.rafraichir_datagouv!).to include('672cf9 — NoMethodError')
 
-      api.update!(uid_datagouv: 'avec espace')
-      expect(api.rafraichir_datagouv!).to include('avec espace — URI::InvalidURIError')
+      api.update!(uid_datagouv: 'a')
+      stub_datagouv('https://www.data.gouv.fr/api/1/dataservices/a/', { title: nil, organization: 'pas un objet' })
+      expect(api.rafraichir_datagouv!).to include('a — NoMethodError')
     end
   end
 
