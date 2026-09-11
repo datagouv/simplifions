@@ -285,5 +285,27 @@ RSpec.describe Solution do
 
       expect(api.reload).to have_attributes(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
     end
+
+    it 'transforme toute autre erreur en note sans interrompre la tâche' do
+      stub_datagouv(dataservice_url, nil)
+      expect(api.rafraichir_datagouv!).to include('672cf9 — NoMethodError')
+
+      api.update!(uid_datagouv: 'avec espace')
+      expect(api.rafraichir_datagouv!).to include('avec espace — URI::InvalidURIError')
+    end
+  end
+
+  describe 'changement de fiche data.gouv' do
+    it 'oublie les métadonnées data.gouv quand l’UID change, jamais celles d’une autre fiche' do
+      api = described_class.create!(nom: 'API', categorie: 'api', uid_datagouv: 'a', datagouv_titre: 'Titre A',
+        datagouv_organisation: 'Orga A', datagouv_logo: 'a.png', datagouv_acces: 'open', datagouv_acces_acteurs_publics: 'yes')
+
+      api.update!(nom: 'API renommée')
+      expect(api.datagouv_titre).to eq('Titre A')
+
+      api.update!(uid_datagouv: 'b')
+      expect(api).to have_attributes(datagouv_titre: nil, datagouv_organisation: nil, datagouv_logo: nil,
+        datagouv_acces: nil, datagouv_acces_acteurs_publics: nil)
+    end
   end
 end

@@ -11,6 +11,9 @@ class Solution < ApplicationRecord
 
   has_one_attached :image
 
+  DATAGOUV = %i[datagouv_titre datagouv_organisation datagouv_logo datagouv_acces datagouv_acces_acteurs_publics].freeze
+  before_save -> { DATAGOUV.each { |colonne| self[colonne] = nil } }, if: -> { uid_datagouv_changed? && uid_datagouv_was.present? }
+
   has_and_belongs_to_many :organisations
   has_and_belongs_to_many :vocabulaires
   has_and_belongs_to_many :types_acteurs, class_name: 'TypeActeur'
@@ -85,7 +88,7 @@ class Solution < ApplicationRecord
 
     update!(attributs_datagouv(JSON.parse(response.body)))
     nil
-  rescue *Grist::ImportStep::NETWORK_ERRORS, JSON::ParserError => e
+  rescue StandardError => e
     "#{uid_datagouv} — #{e.class} — #{e.message}"
   end
 
