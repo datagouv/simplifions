@@ -1,31 +1,25 @@
-<%# api: { title:, url:, org: nil, logo: nil, badge: nil, restricted: false, jeu_de_donnees: false, description: nil } -%>
 <div class="fr-p-2w dataservice-card fr-enlarge-link">
   <% if badge %>
     <div class="fr-grid-row fr-mt-n6v fr-mb-2w fr-ml-n1v">
       <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= badge[:classe] %>">
-        <% if badge[:icone] %>
-          <span class="<%= badge[:icone] %> fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
-        <% end %>
+        <span class="<%= badge[:icone] %> fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
         <%= badge[:label] %>
       </p>
     </div>
   <% end %>
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
-    <% if @api[:logo] %>
+    <% if datagouv_logo.present? %>
       <div class="fr-col-auto">
-        <img src="<%= @api[:logo] %>" alt="" loading="lazy" class="dataservice-card__logo">
+        <img src="<%= datagouv_logo %>" alt="" loading="lazy" class="dataservice-card__logo">
       </div>
     <% end %>
     <div class="fr-col">
       <%= content_tag @heading, class: "fr-text--md fr-mb-0" do %>
-        <%= link_to @api[:title], @api[:url], target: "_blank", rel: "noopener noreferrer",
-              title: "#{@api[:title]} - ouvre une nouvelle fenêtre" %>
+        <%= link_to titre, lien_datagouv, target: "_blank", rel: "noopener noreferrer",
+              title: "#{titre} - ouvre une nouvelle fenêtre" %>
       <% end %>
-      <% if @api[:org] %>
-        <p class="fr-text--sm fr-mb-0 dataservice-card__org"><%= @api[:org] %></p>
-      <% end %>
-      <% if @api[:description].present? %>
-        <p class="fr-text--sm fr-mb-0 dataservice-card__desc"><%= @api[:description] %></p>
+      <% if producteur %>
+        <p class="fr-text--sm fr-mb-0 dataservice-card__org"><%= producteur %></p>
       <% end %>
     </div>
   </div>

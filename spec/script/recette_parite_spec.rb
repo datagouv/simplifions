@@ -23,7 +23,7 @@ RSpec.describe RecetteParite do
         <h1>Babily</h1>
         <p class="fr-text--lead">Solution privée</p>
         <ul><li>Crèches</li><li>Parents</li></ul>
-        <div class="dataservice-card"><p class="fr-badge">À définir</p><img src="https://placehold.co/40x40">
+        <div class="dataservice-card"><p class="fr-badge">API ouverte</p><img src="https://avatars.test/dinum-100.png">
           <h4><a href="/d">API Quotient familial</a></h4><p class="dataservice-card__org">DINUM</p></div>
         <p>Contenu rédigé par\u00a0:<br>
           <a href="/o">DINUM</a>
