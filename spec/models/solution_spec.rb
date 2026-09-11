@@ -235,4 +235,55 @@ RSpec.describe Solution do
       expect(described_class.catalogue('q' => 'demarche')).to eq([eovia])
     end
   end
+
+  describe '#rafraichir_datagouv!' do
+    let(:api) { described_class.create!(nom: 'API QF (Grist)', categorie: 'api', uid_datagouv: '672cf9') }
+    let(:dataservice_url) { 'https://www.data.gouv.fr/api/1/dataservices/672cf9/' }
+
+    def stub_datagouv(url, body)
+      stub_request(:get, url).to_return(status: 200, body: body.to_json, headers: { 'Content-Type' => 'application/json' })
+    end
+
+    it 'stocke le titre, l’organisation, le logo et le type d’accès du dataservice' do
+      stub_datagouv(dataservice_url, {
+        title: 'API Quotient familial | Bouquet API Particulier', access_type: 'restricted',
+        access_audiences: [{ role: 'private', condition: 'no' }, { role: 'local_authority_and_administration', condition: 'yes' }],
+        organization: { name: 'Direction interministérielle du numérique', logo_thumbnail: 'https://avatars.test/dinum-100.png' },
+        owner: nil
+      })
+
+      expect(api.rafraichir_datagouv!).to be_nil
+      expect(api.reload).to have_attributes(
+        datagouv_titre: 'API Quotient familial | Bouquet API Particulier',
+        datagouv_organisation: 'Direction interministérielle du numérique',
+        datagouv_logo: 'https://avatars.test/dinum-100.png',
+        datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes'
+      )
+    end
+
+    it 'interroge les datasets pour une base de données et se rabat sur le producteur individuel' do
+      base = described_class.create!(nom: 'Base SIRENE', categorie: 'base_de_donnees', uid_datagouv: 'sirene')
+      stub_datagouv('https://www.data.gouv.fr/api/2/datasets/sirene/', {
+        title: 'Base Sirene des entreprises', access_type: 'open', access_audiences: [], organization: nil,
+        owner: { first_name: 'Jean', last_name: 'Dupont', avatar_thumbnail: 'https://avatars.test/jd-100.png' }
+      })
+
+      base.rafraichir_datagouv!
+      expect(base.reload).to have_attributes(
+        datagouv_titre: 'Base Sirene des entreprises', datagouv_organisation: 'Jean Dupont',
+        datagouv_logo: 'https://avatars.test/jd-100.png', datagouv_acces: 'open', datagouv_acces_acteurs_publics: nil
+      )
+    end
+
+    it 'garde les valeurs précédentes et renvoie une note quand data.gouv répond 404 ou ne répond pas' do
+      api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+      stub_request(:get, dataservice_url).to_return(status: 404)
+      expect(api.rafraichir_datagouv!).to eq('672cf9 — HTTP 404')
+
+      stub_request(:get, dataservice_url).to_timeout
+      expect(api.rafraichir_datagouv!).to match(/672cf9 — .*Timeout/)
+
+      expect(api.reload).to have_attributes(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+    end
+  end
 end

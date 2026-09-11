@@ -1,3 +1,5 @@
+require 'net/http'
+
 class Solution < ApplicationRecord
   validates :nom, presence: true
 
@@ -74,6 +76,21 @@ class Solution < ApplicationRecord
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end
 
+  def fiche_datagouv_url
+    "https://www.data.gouv.fr/api/#{categorie_base_de_donnees? ? '2/datasets' : '1/dataservices'}/#{uid_datagouv}/"
+  end
+
+  # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec, sans toucher aux colonnes.
+  def rafraichir_datagouv!
+    response = Net::HTTP.get_response(URI(fiche_datagouv_url))
+    return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+    update!(attributs_datagouv(JSON.parse(response.body)))
+    nil
+  rescue *Grist::ImportStep::NETWORK_ERRORS, JSON::ParserError => e
+    "#{uid_datagouv} — #{e.class} — #{e.message}"
+  end
+
   # { integratrice_id => { demarche visible => [intégrées, utiles] } } : pour chaque démarche où
   # l'intégratrice visible consomme en production une donnée fournie, x données marquées utiles sur y attendues.
   def couvertures
@@ -93,6 +110,17 @@ class Solution < ApplicationRecord
   end
 
   private
+
+  def attributs_datagouv(fiche)
+    producteur = fiche['organization'] || fiche['owner'] || {}
+    acteurs_publics = fiche['access_audiences'].to_a.find { |audience| audience['role'] == 'local_authority_and_administration' }
+    {
+      datagouv_titre: fiche['title'], datagouv_acces: fiche['access_type'],
+      datagouv_acces_acteurs_publics: acteurs_publics&.dig('condition'),
+      datagouv_organisation: producteur['name'] || producteur.values_at('first_name', 'last_name').join(' ').presence,
+      datagouv_logo: producteur['logo_thumbnail'] || producteur['avatar_thumbnail']
+    }
+  end
 
   # [demarche_id, solution_id] des données fournies marquées utiles pour une démarche (le « y » attendu)
   def paires_utiles
