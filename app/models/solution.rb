@@ -80,8 +80,7 @@ class Solution < ApplicationRecord
 
   # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec, sans toucher aux colonnes.
   def rafraichir_datagouv!
-    endpoint = categorie_base_de_donnees? ? '2/datasets' : '1/dataservices'
-    response = Net::HTTP.get_response(URI("https://www.data.gouv.fr/api/#{endpoint}/#{uid_datagouv}/"))
+    response = fiche_datagouv
     return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
     update!(attributs_datagouv(JSON.parse(response.body)))
@@ -109,6 +108,11 @@ class Solution < ApplicationRecord
   end
 
   private
+
+  def fiche_datagouv
+    uri = URI("https://www.data.gouv.fr/api/#{categorie_base_de_donnees? ? '2/datasets' : '1/dataservices'}/#{uid_datagouv}/")
+    Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 30) { |http| http.get(uri.request_uri) }
+  end
 
   def attributs_datagouv(fiche)
     producteur = fiche['organization'] || fiche['owner'] || {}

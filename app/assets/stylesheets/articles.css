@@ -296,9 +296,6 @@
   color: var(--text-title-grey);
 }
 
-.dataservice-card__desc {
-  color: var(--text-mention-grey);
-}
 
 
 /* Cartes solutions et cas d'usage (iso front-kit) */

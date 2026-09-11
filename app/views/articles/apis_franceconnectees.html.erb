@@ -239,9 +239,9 @@
     </p>
 
     <ul class="fr-mt-2w fr-p-0 list-none">
-      <% Solution.franceconnectees.each do |api| %>
+      <% Solution.franceconnectees.each do |solution| %>
         <li class="fr-mb-3w">
-          <%= render DataserviceCardComponent.new(api) %>
+          <%= render DataserviceCardComponent.new(solution) %>
         </li>
       <% end %>
     </ul>

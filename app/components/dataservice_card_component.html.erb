@@ -18,7 +18,7 @@
         <%= link_to titre, lien_datagouv, target: "_blank", rel: "noopener noreferrer",
               title: "#{titre} - ouvre une nouvelle fenêtre" %>
       <% end %>
-      <% if producteur %>
+      <% if producteur.present? %>
         <p class="fr-text--sm fr-mb-0 dataservice-card__org"><%= producteur %></p>
       <% end %>
     </div>
