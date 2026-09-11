@@ -6,7 +6,7 @@ class Solution < ApplicationRecord
   # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
   normalizes :site_internet, :url_demande_acces,
     with: ->(url) { url.strip if url.to_s.strip.match?(%r{\Ahttps?://}i) }
-  normalizes :uid_datagouv, with: ->(uid) { uid.strip.presence }
+  normalizes :uid_datagouv, with: ->(uid) { uid.strip }
   validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
     :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
 

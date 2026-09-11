@@ -293,9 +293,10 @@ RSpec.describe Solution do
       end
     end
 
-    it 'ignore les blancs autour de l’UID saisi dans Grist' do
+    it 'ignore les blancs autour de l’UID saisi dans Grist, sans faire d’un UID vide un nil que le scope laisserait passer' do
       expect(described_class.new(uid_datagouv: ' 672cf9 ').uid_datagouv).to eq('672cf9')
-      expect(described_class.new(uid_datagouv: '  ').uid_datagouv).to be_nil
+      described_class.create!(nom: 'Sans fiche', categorie: 'site_de_consultation', uid_datagouv: '')
+      expect(described_class.sur_datagouv.pluck(:nom)).not_to include('Sans fiche')
     end
 
     it 'encode l’UID dans l’URL de la fiche' do
