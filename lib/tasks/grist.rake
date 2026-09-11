@@ -9,6 +9,7 @@ namespace :grist do
     if result.success?
       puts "Import Grist terminé — #{Demarche.count} démarches, #{Solution.count} solutions, " \
            "#{Integration.count} intégrations, #{Recommandation.count} recommandations"
+      Rake::Task['datagouv:import'].invoke
     else
       puts "Import Grist échoué : #{result.error}"
       exit 1
