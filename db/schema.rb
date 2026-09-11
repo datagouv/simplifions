@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_142500) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_11_172500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -145,6 +145,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_142500) do
     t.string "datagouv_acces_acteurs_publics"
     t.string "datagouv_logo"
     t.string "datagouv_organisation"
+    t.string "datagouv_organisation_badges", default: [], null: false, array: true
     t.string "datagouv_titre"
     t.text "description_courte"
     t.boolean "france_connectee", default: false, null: false

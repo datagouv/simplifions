@@ -319,14 +319,15 @@ RSpec.describe Solution do
   describe 'changement de fiche data.gouv' do
     it 'oublie les métadonnées data.gouv quand l’UID change, jamais celles d’une autre fiche' do
       api = described_class.create!(nom: 'API', categorie: 'api', uid_datagouv: 'a', datagouv_titre: 'Titre A',
-        datagouv_organisation: 'Orga A', datagouv_logo: 'a.png', datagouv_acces: 'open', datagouv_acces_acteurs_publics: 'yes')
+        datagouv_organisation: 'Orga A', datagouv_logo: 'a.png', datagouv_organisation_badges: %w[certified],
+        datagouv_acces: 'open', datagouv_acces_acteurs_publics: 'yes')
 
       api.update!(nom: 'API renommée')
       expect(api.datagouv_titre).to eq('Titre A')
 
       api.update!(uid_datagouv: 'b')
       expect(api).to have_attributes(datagouv_titre: nil, datagouv_organisation: nil, datagouv_logo: nil,
-        datagouv_acces: nil, datagouv_acces_acteurs_publics: nil)
+        datagouv_organisation_badges: [], datagouv_acces: nil, datagouv_acces_acteurs_publics: nil)
     end
   end
 end

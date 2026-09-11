@@ -43,6 +43,9 @@ class DataserviceCardComponent < ApplicationComponent
     { label:, classe:, icone: }
   end
 
+  def service_public? = solution.datagouv_organisation_badges.include?('public-service')
+  def certifiee? = solution.datagouv_organisation_badges.include?('certified')
+
   def lien_label
     jeu_de_donnees? ? 'Voir le jeu de données sur Data.gouv.fr' : "Voir l'API sur Data.gouv.fr"
   end

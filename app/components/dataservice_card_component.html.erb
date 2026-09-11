@@ -19,7 +19,11 @@
               title: "#{titre} - ouvre une nouvelle fenêtre" %>
       <% end %>
       <% if producteur.present? %>
-        <p class="fr-text--sm fr-mb-0 dataservice-card__org"><%= producteur %></p>
+        <p class="fr-text--sm fr-mb-0 dataservice-card__org">
+          <% if service_public? %><span class="fr-icon-bank-line fr-icon--sm" aria-hidden="true"></span><% end %>
+          <%= producteur %>
+          <% if certifiee? %><span class="fr-icon-checkbox-circle-line fr-icon--sm" title="Organisation certifiée par data.gouv.fr"></span><% end %>
+        </p>
       <% end %>
     </div>
   </div>

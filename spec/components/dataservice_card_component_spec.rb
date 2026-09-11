@@ -9,7 +9,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
   it 'rend la carte du site actuel avec le titre, le producteur, le logo et le badge d’accès data.gouv' do
     api.assign_attributes(datagouv_titre: 'API Quotient familial | Bouquet API Particulier',
       datagouv_organisation: 'Direction interministérielle du numérique (data.gouv)',
-      datagouv_logo: 'https://avatars.test/dinum-100.png',
+      datagouv_logo: 'https://avatars.test/dinum-100.png', datagouv_organisation_badges: %w[certified public-service],
       datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes')
     render_inline(described_class.new(api))
 
@@ -20,7 +20,18 @@ RSpec.describe DataserviceCardComponent, type: :component do
       text: 'API Quotient familial | Bouquet API Particulier')
     expect(page).to have_link(href: 'https://www.data.gouv.fr/fr/dataservices/672cf9')
     expect(page).to have_css('.dataservice-card__org', text: 'Direction interministérielle du numérique (data.gouv)')
+    expect(page).to have_css('.dataservice-card__org .fr-icon-bank-line[aria-hidden]')
+    expect(page).to have_css(".dataservice-card__org .fr-icon-checkbox-circle-line[title='Organisation certifiée par data.gouv.fr']")
     expect(page).to have_css('.fr-link', text: "Voir l'API sur Data.gouv.fr")
+  end
+
+  it 'ne décore pas une organisation sans badge data.gouv' do
+    api.assign_attributes(datagouv_organisation: 'Start-up X', datagouv_organisation_badges: [])
+    render_inline(described_class.new(api))
+
+    expect(page).to have_css('.dataservice-card__org', text: 'Start-up X')
+    expect(page).to have_no_css('.dataservice-card__org .fr-icon-bank-line')
+    expect(page).to have_no_css('.dataservice-card__org .fr-icon-checkbox-circle-line')
   end
 
   it 'se rabat sur le nom et l’opérateur Grist, sans badge ni logo, tant que data.gouv n’a pas été recopié' do

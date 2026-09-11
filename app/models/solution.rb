@@ -12,8 +12,9 @@ class Solution < ApplicationRecord
 
   has_one_attached :image
 
-  DATAGOUV = %i[datagouv_titre datagouv_organisation datagouv_logo datagouv_acces datagouv_acces_acteurs_publics].freeze
-  before_save -> { DATAGOUV.each { |colonne| self[colonne] = nil } }, if: -> { uid_datagouv_changed? && uid_datagouv_was.present? }
+  DATAGOUV = %i[datagouv_titre datagouv_organisation datagouv_logo datagouv_organisation_badges datagouv_acces
+                datagouv_acces_acteurs_publics].freeze
+  before_save -> { assign_attributes(datagouv_vides) }, if: -> { uid_datagouv_changed? && uid_datagouv_was.present? }
 
   has_and_belongs_to_many :organisations
   has_and_belongs_to_many :vocabulaires
@@ -86,7 +87,7 @@ class Solution < ApplicationRecord
   # métadonnées, une erreur passagère les conserve.
   def rafraichir_datagouv!
     response = fiche_datagouv
-    update!(DATAGOUV.index_with(nil)) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
+    update!(datagouv_vides) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
     return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
     update!(attributs_datagouv(JSON.parse(response.body)))
@@ -122,15 +123,21 @@ class Solution < ApplicationRecord
   end
 
   def attributs_datagouv(fiche)
-    producteur = fiche['organization'] || fiche['owner'] || {}
     acteurs_publics = fiche['access_audiences'].to_a.find { |audience| audience['role'] == 'local_authority_and_administration' }
+    { datagouv_titre: fiche['title'], datagouv_acces: fiche['access_type'],
+      datagouv_acces_acteurs_publics: acteurs_publics&.dig('condition') }.merge(attributs_producteur(fiche))
+  end
+
+  def attributs_producteur(fiche)
+    producteur = fiche['organization'] || fiche['owner'] || {}
     {
-      datagouv_titre: fiche['title'], datagouv_acces: fiche['access_type'],
-      datagouv_acces_acteurs_publics: acteurs_publics&.dig('condition'),
       datagouv_organisation: producteur['name'] || producteur.values_at('first_name', 'last_name').join(' ').presence,
-      datagouv_logo: producteur['logo_thumbnail'] || producteur['avatar_thumbnail']
+      datagouv_logo: producteur['logo_thumbnail'] || producteur['avatar_thumbnail'],
+      datagouv_organisation_badges: producteur['badges'].to_a.filter_map { |badge| badge['kind'] }
     }
   end
+
+  def datagouv_vides = DATAGOUV.index_with(nil).merge(datagouv_organisation_badges: [])
 
   # [demarche_id, solution_id] des données fournies marquées utiles pour une démarche (le « y » attendu)
   def paires_utiles
