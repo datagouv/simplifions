@@ -283,12 +283,19 @@ RSpec.describe Solution do
       expect(api.reload).to have_attributes(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
     end
 
-    it 'efface les métadonnées d’une fiche introuvable (retirée, ou passée d’API à jeu de données)' do
-      api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
-      stub_request(:get, dataservice_url).to_return(status: 404)
+    [404, 410].each do |code|
+      it "efface les métadonnées d’une fiche en #{code} (retirée, ou passée d’API à jeu de données)" do
+        api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+        stub_request(:get, dataservice_url).to_return(status: code)
 
-      expect(api.rafraichir_datagouv!).to eq('672cf9 — HTTP 404')
-      expect(api.reload).to have_attributes(datagouv_titre: nil, datagouv_acces: nil)
+        expect(api.rafraichir_datagouv!).to eq("672cf9 — HTTP #{code}")
+        expect(api.reload).to have_attributes(datagouv_titre: nil, datagouv_acces: nil)
+      end
+    end
+
+    it 'ignore les blancs autour de l’UID saisi dans Grist' do
+      expect(described_class.new(uid_datagouv: ' 672cf9 ').uid_datagouv).to eq('672cf9')
+      expect(described_class.new(uid_datagouv: '  ').uid_datagouv).to be_nil
     end
 
     it 'encode l’UID dans l’URL de la fiche' do

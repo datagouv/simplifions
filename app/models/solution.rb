@@ -6,6 +6,7 @@ class Solution < ApplicationRecord
   # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
   normalizes :site_internet, :url_demande_acces,
     with: ->(url) { url.strip if url.to_s.strip.match?(%r{\Ahttps?://}i) }
+  normalizes :uid_datagouv, with: ->(uid) { uid.strip.presence }
   validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
     :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
 
@@ -81,10 +82,11 @@ class Solution < ApplicationRecord
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end
 
-  # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec, sans toucher aux colonnes.
+  # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec. Une fiche disparue perd ses
+  # métadonnées, une erreur passagère les conserve.
   def rafraichir_datagouv!
     response = fiche_datagouv
-    update!(DATAGOUV.index_with(nil)) if response.is_a?(Net::HTTPNotFound)
+    update!(DATAGOUV.index_with(nil)) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
     return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
     update!(attributs_datagouv(JSON.parse(response.body)))
