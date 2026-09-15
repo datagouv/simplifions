@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_172500) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_141500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -157,6 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_172500) do
     t.text "permet"
     t.string "site_internet"
     t.string "slug"
+    t.string "types_solution", default: [], null: false, array: true
     t.string "uid_datagouv"
     t.datetime "updated_at", null: false
     t.string "url_demande_acces"

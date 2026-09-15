@@ -82,6 +82,7 @@ class Grist::ImportEntites < Grist::ImportStep
       permet: fields['Cette_solution_permet'], ne_permet_pas: fields['Cette_solution_ne_permet_pas'],
       legende_image: fields['Legende_de_l_image'], url_demande_acces: fields['URL_demande_d_acces'],
       uid_datagouv: fields['UID_datagouv'], categorie: categorie_solution(gid, fields['Categorie_de_solution']),
+      types_solution: list(fields['Type_de_solution']),
       visible: fields['Visible_sur_simplifions'] == true, modifie_le: time_at(fields['Modifie_le'])
     }
   end
