@@ -18,7 +18,7 @@
               %>
               <li>
                 <% if count.zero? && !selected %>
-                  <p class="fr-tag" aria-disabled="true"><%= keyword %> (0)</p>
+                  <button type="button" class="fr-tag" disabled><%= keyword %> (0)</button>
                 <% else %>
                   <%= link_to articles_path(keywords: toggled.any? ? toggled.join(",") : nil),
                         class: "fr-tag", "aria-pressed": selected.to_s do %><%= keyword %> (<%= count %>)<% end %>
