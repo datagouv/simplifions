@@ -5,7 +5,15 @@ export default class extends Controller {
   static targets = ["track", "nav"]
 
   connect() {
-    this.navTarget.classList.toggle("fr-hidden", this.trackTarget.scrollWidth <= this.trackTarget.clientWidth)
+    this.update = () => {
+      this.navTarget.classList.toggle("fr-hidden", this.trackTarget.scrollWidth <= this.trackTarget.clientWidth)
+    }
+    this.update()
+    window.addEventListener("resize", this.update, { passive: true })
+  }
+
+  disconnect() {
+    window.removeEventListener("resize", this.update)
   }
 
   prev() {
