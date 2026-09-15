@@ -8,9 +8,11 @@ RSpec.describe RecetteParite do
       <html><body><header>Menu</header><main>
         <h1>Babily</h1><p>Solution   privée</p>
         <ul><li>Crèches</li><li>Familles</li></ul>
-        <div class="api-or-dataset-card"><div class="api-or-dataset-header"><p class="fr-badge">API ouverte</p>
+        <div class="api-or-dataset-card"><div class="api-or-dataset-header"><p class="fr-badge"> API ouverte</p>
           <div class="logo"><img src="dinum.png"></div><h3><a href="/d">API Quotient familial</a></h3>
-          <span class="org-name">DINUM</span></div></div>
+          <span class="org-name"><div>DINUM</div></span></div></div>
+        <div class="api-or-dataset-card"><div class="api-or-dataset-header"><div class="logo"><svg></svg></div>
+          <h3>Jeu RNA</h3><span class="org-name"><div>Intérieur</div></span></div></div>
         <p>Contenu rédigé par :<br><a href="/o">DINUM</a> le <time>2 septembre</time>.</p>
         <div id="tab-content-discussions"><h2>Discussions</h2><p>Connectez-vous pour démarrer une discussion</p></div>
       </main><footer>Pied</footer></body></html>
@@ -23,8 +25,9 @@ RSpec.describe RecetteParite do
         <h1>Babily</h1>
         <p class="fr-text--lead">Solution privée</p>
         <ul><li>Crèches</li><li>Parents</li></ul>
-        <div class="dataservice-card"><p class="fr-badge">API ouverte</p><img src="https://avatars.test/dinum-100.png">
+        <div class="dataservice-card"><p class="fr-badge">API ouverte</p><div><img src="https://avatars.test/dinum-100.png"></div>
           <h4><a href="/d">API Quotient familial</a></h4><p class="dataservice-card__org">DINUM</p></div>
+        <div class="dataservice-card"><h4><a href="/e">Jeu RNA</a></h4><p class="dataservice-card__org">Intérieur</p></div>
         <p>Contenu rédigé par\u00a0:<br>
           <a href="/o">DINUM</a>
           le <time>2 septembre</time>.</p>
@@ -33,9 +36,10 @@ RSpec.describe RecetteParite do
     HTML
   end
 
-  it 'extrait le texte de main par blocs et liens, sans éléments masqués, badge, logo, organisation ni discussions' do
-    attendu = ['Babily', 'Solution privée', 'Crèches', 'Familles', 'API Quotient familial',
-               'Contenu rédigé par :', 'DINUM', 'le 2 septembre.']
+  it 'extrait le texte de main par blocs et liens, sans éléments masqués ni discussions, cartes API comprises : ' \
+     'badge, logo par présence, titre, organisation' do
+    attendu = ['Babily', 'Solution privée', 'Crèches', 'Familles', 'API ouverte', 'logo', 'API Quotient familial', 'DINUM',
+               'Jeu RNA', 'Intérieur', 'Contenu rédigé par :', 'DINUM', 'le 2 septembre.']
     expect(described_class.texte(ancien)).to eq attendu
     expect(described_class.texte(nouveau)).to eq(attendu.map { |ligne| ligne.sub('Familles', 'Parents') })
   end
