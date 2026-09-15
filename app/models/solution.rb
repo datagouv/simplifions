@@ -1,13 +1,20 @@
+require 'net/http'
+
 class Solution < ApplicationRecord
   validates :nom, presence: true
 
   # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
   normalizes :site_internet, :url_demande_acces,
     with: ->(url) { url.strip if url.to_s.strip.match?(%r{\Ahttps?://}i) }
+  normalizes :uid_datagouv, with: ->(uid) { uid.strip }
   validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
     :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
 
   has_one_attached :image
+
+  DATAGOUV = %i[datagouv_titre datagouv_organisation datagouv_logo datagouv_organisation_badges datagouv_acces
+                datagouv_acces_acteurs_publics].freeze
+  before_save -> { assign_attributes(datagouv_vides) }, if: -> { uid_datagouv_changed? && uid_datagouv_was.present? }
 
   has_and_belongs_to_many :organisations
   has_and_belongs_to_many :vocabulaires
@@ -32,6 +39,8 @@ class Solution < ApplicationRecord
   scope :visibles, -> { where(visible: true) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
   scope :fiches, -> { where(categorie: [nil, *categories.keys - HORS_FICHES]) }
+  # Même filtre et même ordre (Grist) que la liste de l'article du site actuel.
+  scope :franceconnectees, -> { visibles.categorie_api.where(france_connectee: true).sur_datagouv.order(:id) }
   def chapo = description_courte.to_s.lines.first&.strip
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
@@ -74,6 +83,19 @@ class Solution < ApplicationRecord
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end
 
+  # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec. Une fiche disparue perd ses
+  # métadonnées, une erreur passagère les conserve.
+  def rafraichir_datagouv!
+    response = fiche_datagouv
+    update!(datagouv_vides) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
+    return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+    update!(attributs_datagouv(JSON.parse(response.body)))
+    nil
+  rescue StandardError => e
+    "#{uid_datagouv} — #{e.class} — #{e.message}"
+  end
+
   # { integratrice_id => { demarche visible => [intégrées, utiles] } } : pour chaque démarche où
   # l'intégratrice visible consomme en production une donnée fournie, x données marquées utiles sur y attendues.
   def couvertures
@@ -93,6 +115,29 @@ class Solution < ApplicationRecord
   end
 
   private
+
+  def fiche_datagouv
+    endpoint = categorie_base_de_donnees? ? '2/datasets' : '1/dataservices'
+    uri = URI("https://www.data.gouv.fr/api/#{endpoint}/#{ERB::Util.url_encode(uid_datagouv)}/")
+    Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 30) { |http| http.get(uri.request_uri) }
+  end
+
+  def attributs_datagouv(fiche)
+    acteurs_publics = fiche['access_audiences'].to_a.find { |audience| audience['role'] == 'local_authority_and_administration' }
+    { datagouv_titre: fiche['title'], datagouv_acces: fiche['access_type'],
+      datagouv_acces_acteurs_publics: acteurs_publics&.dig('condition') }.merge(attributs_producteur(fiche))
+  end
+
+  def attributs_producteur(fiche)
+    producteur = fiche['organization'] || fiche['owner'] || {}
+    {
+      datagouv_organisation: producteur['name'] || producteur.values_at('first_name', 'last_name').join(' ').presence,
+      datagouv_logo: producteur['logo_thumbnail'] || producteur['avatar_thumbnail'],
+      datagouv_organisation_badges: producteur['badges'].to_a.filter_map { |badge| badge['kind'] }
+    }
+  end
+
+  def datagouv_vides = DATAGOUV.index_with(nil).merge(datagouv_organisation_badges: [])
 
   # [demarche_id, solution_id] des données fournies marquées utiles pour une démarche (le « y » attendu)
   def paires_utiles

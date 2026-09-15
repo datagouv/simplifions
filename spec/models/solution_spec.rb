@@ -235,4 +235,99 @@ RSpec.describe Solution do
       expect(described_class.catalogue('q' => 'demarche')).to eq([eovia])
     end
   end
+
+  describe '#rafraichir_datagouv!' do
+    let(:api) { described_class.create!(nom: 'API QF (Grist)', categorie: 'api', uid_datagouv: '672cf9') }
+    let(:dataservice_url) { 'https://www.data.gouv.fr/api/1/dataservices/672cf9/' }
+
+    def stub_datagouv(url, body)
+      stub_request(:get, url).to_return(status: 200, body: body.to_json, headers: { 'Content-Type' => 'application/json' })
+    end
+
+    it 'stocke le titre, l’organisation, le logo et le type d’accès du dataservice' do
+      stub_datagouv(dataservice_url, {
+        title: 'API Quotient familial | Bouquet API Particulier', access_type: 'restricted',
+        access_audiences: [{ role: 'private', condition: 'no' }, { role: 'local_authority_and_administration', condition: 'yes' }],
+        organization: { name: 'Direction interministérielle du numérique', logo_thumbnail: 'https://avatars.test/dinum-100.png' },
+        owner: nil
+      })
+
+      expect(api.rafraichir_datagouv!).to be_nil
+      expect(api.reload).to have_attributes(
+        datagouv_titre: 'API Quotient familial | Bouquet API Particulier',
+        datagouv_organisation: 'Direction interministérielle du numérique',
+        datagouv_logo: 'https://avatars.test/dinum-100.png',
+        datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes'
+      )
+    end
+
+    it 'interroge les datasets pour une base de données et se rabat sur le producteur individuel' do
+      base = described_class.create!(nom: 'Base SIRENE', categorie: 'base_de_donnees', uid_datagouv: 'sirene')
+      stub_datagouv('https://www.data.gouv.fr/api/2/datasets/sirene/', {
+        title: 'Base Sirene des entreprises', access_type: 'open', access_audiences: [], organization: nil,
+        owner: { first_name: 'Jean', last_name: 'Dupont', avatar_thumbnail: 'https://avatars.test/jd-100.png' }
+      })
+
+      base.rafraichir_datagouv!
+      expect(base.reload).to have_attributes(
+        datagouv_titre: 'Base Sirene des entreprises', datagouv_organisation: 'Jean Dupont',
+        datagouv_logo: 'https://avatars.test/jd-100.png', datagouv_acces: 'open', datagouv_acces_acteurs_publics: nil
+      )
+    end
+
+    it 'garde les valeurs précédentes et renvoie une note quand data.gouv ne répond pas' do
+      api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+      stub_request(:get, dataservice_url).to_timeout
+
+      expect(api.rafraichir_datagouv!).to match(/672cf9 — .*Timeout/)
+      expect(api.reload).to have_attributes(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+    end
+
+    [404, 410].each do |code|
+      it "efface les métadonnées d’une fiche en #{code} (retirée, ou passée d’API à jeu de données)" do
+        api.update!(datagouv_titre: 'Ancien titre', datagouv_acces: 'open')
+        stub_request(:get, dataservice_url).to_return(status: code)
+
+        expect(api.rafraichir_datagouv!).to eq("672cf9 — HTTP #{code}")
+        expect(api.reload).to have_attributes(datagouv_titre: nil, datagouv_acces: nil)
+      end
+    end
+
+    it 'ignore les blancs autour de l’UID saisi dans Grist, sans faire d’un UID vide un nil que le scope laisserait passer' do
+      expect(described_class.new(uid_datagouv: ' 672cf9 ').uid_datagouv).to eq('672cf9')
+      described_class.create!(nom: 'Sans fiche', categorie: 'site_de_consultation', uid_datagouv: '')
+      expect(described_class.sur_datagouv.pluck(:nom)).not_to include('Sans fiche')
+    end
+
+    it 'encode l’UID dans l’URL de la fiche' do
+      api.update!(uid_datagouv: 'a/../b')
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/a%2F..%2Fb/').to_return(status: 404)
+
+      expect(api.rafraichir_datagouv!).to eq('a/../b — HTTP 404')
+    end
+
+    it 'transforme toute autre erreur en note sans interrompre la tâche' do
+      stub_datagouv(dataservice_url, nil)
+      expect(api.rafraichir_datagouv!).to include('672cf9 — NoMethodError')
+
+      api.update!(uid_datagouv: 'a')
+      stub_datagouv('https://www.data.gouv.fr/api/1/dataservices/a/', { title: nil, organization: 'pas un objet' })
+      expect(api.rafraichir_datagouv!).to include('a — NoMethodError')
+    end
+  end
+
+  describe 'changement de fiche data.gouv' do
+    it 'oublie les métadonnées data.gouv quand l’UID change, jamais celles d’une autre fiche' do
+      api = described_class.create!(nom: 'API', categorie: 'api', uid_datagouv: 'a', datagouv_titre: 'Titre A',
+        datagouv_organisation: 'Orga A', datagouv_logo: 'a.png', datagouv_organisation_badges: %w[certified],
+        datagouv_acces: 'open', datagouv_acces_acteurs_publics: 'yes')
+
+      api.update!(nom: 'API renommée')
+      expect(api.datagouv_titre).to eq('Titre A')
+
+      api.update!(uid_datagouv: 'b')
+      expect(api).to have_attributes(datagouv_titre: nil, datagouv_organisation: nil, datagouv_logo: nil,
+        datagouv_organisation_badges: [], datagouv_acces: nil, datagouv_acces_acteurs_publics: nil)
+    end
+  end
 end

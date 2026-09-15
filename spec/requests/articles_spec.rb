@@ -26,6 +26,24 @@ RSpec.describe 'Articles' do
       end
     end
 
+    it 'liste dans l’article FranceConnectées les API visibles marquées FranceConnectée, dans l’ordre Grist' do
+      Solution.create!(nom: 'API Impôt particulier', categorie: 'api', visible: true, france_connectee: true,
+        uid_datagouv: 'impot', datagouv_titre: 'API Impôt particulier (data.gouv)', datagouv_acces: 'restricted')
+      Solution.create!(nom: 'API Quotient familial', categorie: 'api', visible: true, france_connectee: true,
+        uid_datagouv: 'qf', datagouv_organisation: 'DINUM', datagouv_logo: 'https://avatars.test/dinum-100.png')
+      Solution.create!(nom: 'API brouillon', categorie: 'api', france_connectee: true, uid_datagouv: 'brouillon')
+      Solution.create!(nom: 'API sans FranceConnect', categorie: 'api', visible: true, uid_datagouv: 'sans')
+      Solution.create!(nom: 'Base FC', categorie: 'base_de_donnees', visible: true, france_connectee: true, uid_datagouv: 'base')
+
+      get article_path('apis-franceconnectees')
+
+      expect(response.body).to match(/API en accès restreint.*API Impôt particulier \(data.gouv\).*avatars.test.*API Quotient familial.*DINUM/m)
+      expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/impot')
+      expect(response.body).not_to include('API brouillon')
+      expect(response.body).not_to include('API sans FranceConnect')
+      expect(response.body).not_to include('Base FC')
+    end
+
     it 'renvoie 404 pour un slug inconnu' do
       get article_path('nexiste-pas')
       expect(response).to have_http_status(:not_found)

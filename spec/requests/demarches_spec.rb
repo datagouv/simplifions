@@ -156,7 +156,9 @@ RSpec.describe 'Demarches' do
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
         slug: 'bouquet-api-particulier', uid_datagouv: 'bouquet1',
-        url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier')
+        url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier',
+        datagouv_titre: 'Bouquet API Particulier (data.gouv)', datagouv_acces: 'restricted',
+        datagouv_acces_acteurs_publics: 'yes', datagouv_logo: 'https://avatars.test/dinum-100.png')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api', uid_datagouv: '672cf982fcc8065be6e66f54')
       logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
         slug: 'acheteza')
@@ -218,7 +220,9 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('API Quotient familial')
       expect(response.body).to include('Le quotient familial du mois courant.')
       expect(response.body).to match(%r{<h6[^>]*>\s*<a[^>]*dataservices/bouquet1})
-      expect(response.body).to include('À définir')
+      expect(response.body).to include('Bouquet API Particulier (data.gouv)')
+      expect(response.body).to include('API restreinte · accessible aux acteurs publics')
+      expect(response.body).to include('src="https://avatars.test/dinum-100.png"')
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('Filtrer les endpoints')
     end

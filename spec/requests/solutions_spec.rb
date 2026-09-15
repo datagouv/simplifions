@@ -63,7 +63,8 @@ RSpec.describe 'Solutions' do
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api', visible: true,
         uid_datagouv: '672cf982fcc8065be6e66f54')
       jeu = Solution.create!(nom: 'Jeu de données RNA', categorie: 'base_de_donnees', visible: true,
-        uid_datagouv: 'abc123')
+        uid_datagouv: 'abc123', datagouv_titre: 'Répertoire national des associations', datagouv_acces: 'open',
+        datagouv_organisation: 'Ministère de l’Intérieur', datagouv_logo: 'https://avatars.test/minint-100.png')
       api_cachee = Solution.create!(nom: 'API cachée', categorie: 'api', uid_datagouv: 'def456')
       api_sans_uid = Solution.create!(nom: 'API sans fiche data.gouv', categorie: 'api', visible: true)
       [api_qf, jeu, api_cachee, api_sans_uid].each do |donnee|
@@ -143,8 +144,11 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('https://www.data.gouv.fr/fr/datasets/abc123')
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/fc789')
-      expect(response.body).to include('À définir')
-      expect(response.body).to include('https://placehold.co/40x40')
+      expect(response.body).to include('Répertoire national des associations')
+      expect(response.body).to include('Jeu de données ouvert')
+      expect(response.body).to include('Ministère de l’Intérieur')
+      expect(response.body).to include('src="https://avatars.test/minint-100.png"')
+      expect(response.body).not_to include('placehold.co')
       expect(response.body).to include('Voir le jeu de données sur Data.gouv.fr')
       expect(response.body).not_to include('API cachée')
       expect(response.body).not_to include('API sans fiche data.gouv')
