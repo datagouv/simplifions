@@ -12,11 +12,6 @@
       <% end %>
       <div class="fr-card__end">
         <%= render "application/public_vise", usagers: @card[:usagers], acteurs: @card[:acteurs] %>
-        <% if @card[:tag] %>
-          <ul class="fr-tags-group fr-mb-0">
-            <li><p class="fr-tag fr-tag--sm fr-m-0"><%= @card[:tag] %></p></li>
-          </ul>
-        <% end %>
         <% if @arrow %>
           <div class="card-arrow" aria-hidden="true"><span class="fr-icon-arrow-right-line"></span></div>
         <% end %>

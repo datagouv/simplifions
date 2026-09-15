@@ -44,6 +44,23 @@ RSpec.describe 'Articles' do
       expect(response.body).not_to include('Base FC')
     end
 
+    it 'rend les tuiles des encarts comme le site actuel : sans tag de catégorie, description ou audience selon l’article' do
+      get article_path('apis-franceconnectees')
+      spotlights = Nokogiri::HTML(response.body).css('.spotlight')
+      expect(spotlights.text).to include('FranceConnect est une solution d’identification')
+      expect(spotlights.text).to include('API distribuant les données des particuliers')
+      expect(spotlights.text).not_to include('Pour simplifier les démarches')
+      expect(response.body).not_to include('Brique technique')
+
+      get article_path('guide-base-petites-collectivites')
+      page = Nokogiri::HTML(response.body)
+      expect(response.body).not_to include('Portail de consultation')
+      marches = page.css('.spotlight').find { |spotlight| spotlight.text.include?('Marchés publics') }
+      expect(marches.css('.fr-card__detail')).to be_empty
+      expect(page.css('.carousel-track').text).to include('Pour simplifier les démarches')
+      expect(page.css('.carousel-track').text).not_to include('À destination')
+    end
+
     it 'renvoie 404 pour un slug inconnu' do
       get article_path('nexiste-pas')
       expect(response).to have_http_status(:not_found)

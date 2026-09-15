@@ -3,10 +3,10 @@
     solution_card("formulaire-de-collecte-du-quotient-familial"),
     solution_card("annuaire-des-entreprises"),
     solution_card("data-subvention"),
-    demarche_card("tarification-sociale-municipale-a-lenfance"),
-    demarche_card("tarification-cantine-scolaire-a-1-eur"),
-    demarche_card("subventions-des-associations-attribution"),
-    demarche_card("marches-publics-depot-et-instruction-des-candidatures")
+    demarche_card("tarification-sociale-municipale-a-lenfance").except(:acteurs),
+    demarche_card("tarification-cantine-scolaire-a-1-eur").except(:acteurs),
+    demarche_card("subventions-des-associations-attribution").except(:acteurs),
+    demarche_card("marches-publics-depot-et-instruction-des-candidatures").except(:acteurs)
   ]
 %>
 <%= render ArticleLayoutComponent.new(article: @article, mentions: mentions) do %>
@@ -273,8 +273,8 @@
     <% end %>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          demarche_card("subventions-des-associations-attribution"),
-          demarche_card("marches-publics-depot-et-instruction-des-candidatures")
+          demarche_card("subventions-des-associations-attribution").except(:usagers, :acteurs),
+          demarche_card("marches-publics-depot-et-instruction-des-candidatures").except(:usagers, :acteurs)
         ]) do %>
       <p>
         <b>Pour vos démarches auprès des entreprises et des associations</b>

@@ -70,7 +70,7 @@
     </p>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("franceconnect-2")
+          solution_card("franceconnect-2").except(:usagers).merge(description: "FranceConnect est une solution d’identification et d’authentification numérique des particuliers. Il s'agit d'un pont entre un bouton de connexion, le bouton FranceConnect, et la partie authentifiée de votre service.")
         ]) do %>
       <p>
         <strong>FranceConnect, votre interlocuteur pour l'ajout du bouton FranceConnect :</strong><br>
@@ -129,7 +129,7 @@
     </p>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("bouquet-api-particulier")
+          solution_card("bouquet-api-particulier").except(:usagers).merge(description: "API distribuant les données des particuliers détenues par différentes administrations.")
         ]) do %>
       <p>
         <strong>API Particulier, un seul interlocuteur pour les données de différents fournisseurs :</strong><br>

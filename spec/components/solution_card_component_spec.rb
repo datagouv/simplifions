@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe SolutionCardComponent, type: :component do
   let(:card) do
     { title: 'Bouquet API Particulier', href: '/solutions/bouquet-api-particulier',
-      badge: 'Solution publique | DINUM', usagers: ['Particuliers'], tag: 'Brique technique' }
+      badge: 'Solution publique | DINUM', usagers: ['Particuliers'] }
   end
 
   it "affiche le titre, le badge opérateur en gras et l'audience" do
