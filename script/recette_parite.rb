@@ -10,9 +10,8 @@ require 'fileutils'
 
 module RecetteParite
   ANCIEN = 'https://simplifions.data.gouv.fr'.freeze
-  IGNORES = '[hidden], .api-or-dataset-header .fr-badge, .api-or-dataset-header .logo, .api-or-dataset-header .org-name, ' \
-            '#tab-discussions, #tab-content-discussions, ' \
-            '.dataservice-card .fr-badge, .dataservice-card img, .dataservice-card__org'.freeze
+  IGNORES = '[hidden], #tab-discussions, #tab-content-discussions'.freeze
+  LOGOS = '.api-or-dataset-card .logo img, .dataservice-card img'.freeze
   FERMES = '.fr-accordion__btn[aria-expanded="false"]'.freeze
   BLOCS = 'p, li, h1, h2, h3, h4, h5, h6, div, section, article, tr, td, th, dt, dd, br, figcaption, a, button'.freeze
   MARQUE = "\u2029".freeze
@@ -22,12 +21,14 @@ module RecetteParite
 
   def texte(html)
     main = Nokogiri::HTML(html).at_css('main') or return []
+    delimiter(main).text.tr('’', "'").split(MARQUE).map { |ligne| ligne.gsub(/[[:space:]]+/, ' ').strip }.reject(&:empty?)
+  end
+
+  def delimiter(main)
     main.css(IGNORES).remove
-    main.css(BLOCS).each do |bloc|
-      bloc.add_previous_sibling(MARQUE)
-      bloc.add_next_sibling(MARQUE)
-    end
-    main.text.tr('’', "'").split(MARQUE).map { |ligne| ligne.gsub(/[[:space:]]+/, ' ').strip }.reject(&:empty?)
+    main.css(LOGOS).each { |logo| logo.replace('logo') }
+    main.css(BLOCS).each { |bloc| bloc.before(MARQUE).after(MARQUE) }
+    main
   end
 
   def comparer(anciennes, nouvelles)
