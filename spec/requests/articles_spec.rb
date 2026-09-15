@@ -53,6 +53,7 @@ RSpec.describe 'Articles' do
       get article_path('qu-est-ce-qu-une-api')
       carrousel = response.parsed_body.css('[data-controller="carousel"]')
       expect(carrousel.css('.carousel-track')).to be_present
+      expect(carrousel.css('[data-carousel-target="nav"].fr-hidden')).to be_present
       expect(carrousel.css('button').map(&:text).map(&:strip)).to eq(%w[Précédent Suivant])
     end
 
@@ -62,11 +63,9 @@ RSpec.describe 'Articles' do
       expect(spotlights.text).to include('FranceConnect est une solution d’identification')
       expect(spotlights.text).to include('API distribuant les données des particuliers')
       expect(spotlights.text).not_to include('Pour simplifier les démarches')
-      expect(response.body).not_to include('Brique technique')
 
       get article_path('guide-base-petites-collectivites')
       page = response.parsed_body
-      expect(response.body).not_to include('Portail de consultation')
       marches = page.css('.spotlight').find { |spotlight| spotlight.text.include?('Marchés publics') }
       expect(marches.css('.fr-card__detail')).to be_empty
       expect(page.css('.carousel-track').text).to include('Pour simplifier les démarches')

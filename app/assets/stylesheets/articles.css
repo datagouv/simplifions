@@ -408,10 +408,14 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   list-style: none;
+  padding-bottom: 0.5rem;
+}
+
+.carousel-track--boutons {
   scrollbar-width: none;
 }
 
-.carousel-track::-webkit-scrollbar {
+.carousel-track--boutons::-webkit-scrollbar {
   display: none;
 }
 

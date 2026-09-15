@@ -1,10 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Bloc « Sont mentionnés dans cet article » : boutons Précédent / Suivant, sans barre de défilement.
+// Bloc « Sont mentionnés dans cet article » : boutons Précédent / Suivant à la place de la barre de défilement.
 export default class extends Controller {
   static targets = ["track", "nav"]
 
   connect() {
+    this.trackTarget.classList.add("carousel-track--boutons")
     this.update = () => {
       this.navTarget.classList.toggle("fr-hidden", this.trackTarget.scrollWidth <= this.trackTarget.clientWidth)
     }
@@ -17,10 +18,15 @@ export default class extends Controller {
   }
 
   prev() {
-    this.trackTarget.scrollBy({ left: -this.trackTarget.clientWidth, behavior: "smooth" })
+    this.scroll(-this.trackTarget.clientWidth)
   }
 
   next() {
-    this.trackTarget.scrollBy({ left: this.trackTarget.clientWidth, behavior: "smooth" })
+    this.scroll(this.trackTarget.clientWidth)
+  }
+
+  scroll(left) {
+    const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+    this.trackTarget.scrollBy({ left, behavior })
   }
 }
