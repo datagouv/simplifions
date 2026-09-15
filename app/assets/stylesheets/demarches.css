@@ -141,6 +141,11 @@
   background-color: white;
 }
 
+.solutions-integratices-container .fr-tabs__panel--white > ul {
+  background-color: var(--background-alt-beige-gris-galet);
+  padding: 1rem;
+}
+
 .cas-usages-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

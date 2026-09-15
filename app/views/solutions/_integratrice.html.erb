@@ -5,6 +5,10 @@
   </div>
   <div class="fr-grid-row fr-grid-row--gutters">
     <div class="fr-col-12 fr-col-md-4">
+      <% if integratrice.types_solution.any? %>
+        <p class="fr-text--sm fr-text--bold fr-mb-1v">Type de solution :</p>
+        <p class="fr-text--sm fr-mb-0"><%= integratrice.types_solution.join(' ou ') %></p>
+      <% end %>
       <% tags = integratrice.vocabulaires.select(&:categorie_type_simplification?) %>
       <% if tags.any? %>
         <ul class="fr-tags-group fr-mt-2v">
