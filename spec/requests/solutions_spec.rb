@@ -81,7 +81,7 @@ RSpec.describe 'Solutions' do
 
       editeur = Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')
       logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
-        slug: 'acheteza', organisations: [editeur],
+        slug: 'acheteza', organisations: [editeur], types_solution: ['Profil acheteur', 'Portail agent'],
         vocabulaires: [Vocabulaire.create!(nom: 'Dites-le-nous une fois', categorie: 'type_simplification')])
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
@@ -163,6 +163,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('href="/solutions/acheteza"')
       expect(response.body).to include('Solution privée')
       expect(response.body).to include('Dites-le-nous une fois')
+      expect(response.body).to match(%r{Type de solution :</p>\s*<p[^>]*>Profil acheteur ou Portail agent</p>})
       expect(response.body).to include('1/1')
       expect(response.body).not_to include('Portail en cours')
       expect(response.body).not_to include('Hub sans catégorie')
