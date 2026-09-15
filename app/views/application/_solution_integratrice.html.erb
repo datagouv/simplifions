@@ -1,8 +1,19 @@
 <div class="solution-integratrice-card fr-enlarge-link">
   <div class="solution-integratrice-card__header">
-    <p class="solution-integratrice-card__title fr-text--lg"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
+    <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
     <%= render "badge_operateur", solution: solution %>
   </div>
+  <% if solution.types_solution.any? %>
+    <p class="fr-text--sm fr-mb-0"><%= solution.types_solution.join(' • ') %></p>
+  <% end %>
+  <% if couverture %>
+    <% integrees, utiles = couverture %>
+    <% pourcentage = integrees * 100 / utiles %>
+    <div class="integration-indicator fr-p-1w fr-mt-2w">
+      <span class="fr-text--sm fr-text--bold integration-indicator__count <%= pourcentage >= 75 ? 'indicator--green' : pourcentage >= 50 ? 'indicator--yellow' : pourcentage >= 25 ? 'indicator--orange' : 'indicator--red' %>"><%= integrees %>/<%= utiles %></span>
+      <span class="fr-text--xs integration-indicator__label"><%= cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %> utiles <%= cible.nom %></span>
+    </div>
+  <% end %>
   <div class="solution-integratrice-card__arrow">
     <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
   </div>

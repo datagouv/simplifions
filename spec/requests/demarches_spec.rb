@@ -161,7 +161,7 @@ RSpec.describe 'Demarches' do
         datagouv_acces_acteurs_publics: 'yes', datagouv_logo: 'https://avatars.test/dinum-100.png')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api', uid_datagouv: '672cf982fcc8065be6e66f54')
       logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
-        slug: 'acheteza')
+        slug: 'acheteza', types_solution: ['Profil acheteur', 'Portail agent'])
 
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
@@ -205,6 +205,12 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('Acheteza')
       expect(response.body).to include('Sans développement')
       expect(response.body.scan('Aucune solution référencée').size).to eq(2)
+    end
+
+    it 'rend chaque intégratrice comme le site : titre en gras, types de solution, données utiles intégrées' do
+      expect(response.body).to match(%r{<p class="[^"]*fr-text--bold[^"]*">\s*<a[^>]*>Acheteza</a>})
+      expect(response.body).to include('Profil acheteur • Portail agent')
+      expect(response.body).to match(%r{indicator--green">1/1</span>\s*<span[^>]*>API ou jeu de données utiles Bouquet API Particulier})
     end
 
     it 'fait pointer les intégratrices de la matrice vers leur page solution' do
