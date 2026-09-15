@@ -4,7 +4,7 @@ RSpec.describe Recommandation do
   describe '#lien_demande_acces' do
     it 'préfère l’URL de la recommandation à celle de la solution et scope la démarche' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
-      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.example/bouquet')
       reco = described_class.create!(demarche:, solution:,
         url_demande_acces: 'https://datapass.example/specifique?habilitation=42')
@@ -14,7 +14,7 @@ RSpec.describe Recommandation do
 
     it 'refuse toute URL qui n’est pas http(s), le contenu Grist étant semi-confiance' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
-      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'javascript:alert(1)')
       reco = described_class.create!(demarche:, solution:)
 
@@ -23,7 +23,7 @@ RSpec.describe Recommandation do
 
     it 'refuse une URL imparsable' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
-      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://exa mple.com')
       reco = described_class.create!(demarche:, solution:)
 
@@ -32,7 +32,7 @@ RSpec.describe Recommandation do
 
     it 'place la query avant le fragment' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
-      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.example/bouquet#formulaire')
       reco = described_class.create!(demarche:, solution:)
 
@@ -41,7 +41,7 @@ RSpec.describe Recommandation do
 
     it 'retombe sur l’URL de la solution, en ajoutant la query' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
-      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle',
+      solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.example/bouquet')
       reco = described_class.create!(demarche:, solution:)
 
@@ -54,7 +54,7 @@ RSpec.describe Recommandation do
       cantine = Demarche.create!(nom: 'Cantine à 1€')
       autre_demarche = Demarche.create!(nom: 'Autre démarche')
 
-      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
       logiciel = Solution.create!(nom: 'Logiciel cantine', categorie: 'logiciel_metier_cle_en_main', visible: true)
       portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
@@ -101,8 +101,8 @@ RSpec.describe Recommandation do
   describe '.visibles' do
     it 'returns only visible recommandations' do
       demarche = Demarche.create!(nom: 'Démarche')
-      visible = described_class.create!(demarche:, solution: Solution.create!(nom: 'Publiée'), visible: true)
-      described_class.create!(demarche:, solution: Solution.create!(nom: 'Brouillon'), visible: false)
+      visible = described_class.create!(demarche:, solution: Solution.create!(nom: 'Publiée', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]), visible: true)
+      described_class.create!(demarche:, solution: Solution.create!(nom: 'Brouillon', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]), visible: false)
 
       expect(described_class.visibles).to contain_exactly(visible)
     end

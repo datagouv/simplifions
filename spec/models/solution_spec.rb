@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Solution do
   describe '#exposees' do
     it 'returns only solutions integrated with type expose' do
-      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       france_connect = described_class.create!(nom: 'FranceConnect', categorie: 'api')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
@@ -15,7 +15,7 @@ RSpec.describe Solution do
 
   describe '#demarches_simplifiables' do
     it 'liste les démarches visibles recommandant la solution, ou qu’elle intègre en production via une reco visible' do
-      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main')
       portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
@@ -39,7 +39,7 @@ RSpec.describe Solution do
     end
 
     it 'suit l’ordre de saisie des recommandations, comme le site actuel' do
-      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       zoo = Demarche.create!(nom: 'Zoo', visible: true)
       autre = Demarche.create!(nom: 'Autre', visible: true)
       Recommandation.create!(demarche: zoo, solution: bouquet, niveau: :niveau_2, visible: true)
@@ -78,7 +78,7 @@ RSpec.describe Solution do
 
   describe '#integratrices_visibles' do
     it 'liste les solutions visibles intégrant en production une donnée fournie, cible comprise' do
-      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
 
@@ -99,7 +99,7 @@ RSpec.describe Solution do
 
   describe '#couvertures' do
     it 'compte par intégratrice et démarche visible les données utiles intégrées (x) sur attendues (y)' do
-      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       api_statut = described_class.create!(nom: 'API Statut étudiant', categorie: 'api')
       api_extra = described_class.create!(nom: 'API Extra', categorie: 'api')
@@ -140,7 +140,7 @@ RSpec.describe Solution do
 
   describe '#nb_donnees_integrees' do
     it 'compte les intégrations en production de chaque intégratrice visible, tous fournisseurs confondus' do
-      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       api_autre = described_class.create!(nom: 'API d’un autre fournisseur', categorie: 'api')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
@@ -197,14 +197,19 @@ RSpec.describe Solution do
   end
 
   describe '#privee?' do
-    it 'derives from the operators, false when no operator says so' do
-      expect(described_class.create!(nom: 'Acheteza',
-        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])).to be_privee
+    it 'is public only when an operator is explicitly « Public », private otherwise, like the current site' do
       expect(described_class.create!(nom: 'Bouquet',
         organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])).not_to be_privee
-      expect(described_class.create!(nom: 'Sans opérateur')).not_to be_privee
-      expect(described_class.create!(nom: 'Indéterminée',
-        organisations: [Organisation.create!(nom: 'Mystère')])).not_to be_privee
+      expect(described_class.create!(nom: 'Acheteza',
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])).to be_privee
+      expect(described_class.create!(nom: 'Babily',
+        organisations: [Organisation.create!(nom: 'Babily', public_ou_prive: '')])).to be_privee
+      expect(described_class.create!(nom: 'Sans opérateur')).to be_privee
+    end
+
+    it 'does not apply to APIs and datasets, which carry no badge' do
+      expect(described_class.create!(nom: 'API Quotient familial', categorie: 'api')).not_to be_privee
+      expect(described_class.create!(nom: 'Jeu RNA', categorie: 'base_de_donnees')).not_to be_privee
     end
   end
 

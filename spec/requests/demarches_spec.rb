@@ -155,7 +155,7 @@ RSpec.describe 'Demarches' do
         types_acteurs: [TypeActeur.create!(nom: 'Communes et groupements de communes')])
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
-        slug: 'bouquet-api-particulier', uid_datagouv: 'bouquet1',
+        slug: 'bouquet-api-particulier', uid_datagouv: 'bouquet1', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier',
         datagouv_titre: 'Bouquet API Particulier (data.gouv)', datagouv_acces: 'restricted',
         datagouv_acces_acteurs_publics: 'yes', datagouv_logo: 'https://avatars.test/dinum-100.png')
@@ -169,7 +169,7 @@ RSpec.describe 'Demarches' do
 
       Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true,
         donnees_utiles: '- quotient familial CAF ou MSA', parametres_a_saisir: 'État civil')
-      brouillon = Solution.create!(nom: 'Reco brouillon', categorie: 'brique_logicielle')
+      brouillon = Solution.create!(nom: 'Reco brouillon', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       Recommandation.create!(demarche:, solution: brouillon, niveau: :niveau_2, visible: false)
       Recommandation.create!(demarche:, solution: api_qf, niveau: :niveau_1, ordre: 1, visible: true,
         description: 'Le quotient familial du mois courant.')
