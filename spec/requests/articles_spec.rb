@@ -10,6 +10,11 @@ RSpec.describe 'Articles' do
       end
     end
 
+    it 'grise, comme un bouton désactivé, les mots-clefs sans article' do
+      get articles_path
+      expect(response.body).to match(%r{<button[^>]*class="fr-tag"[^>]*disabled[^>]*>Jeux de données \(0\)</button>})
+    end
+
     it 'filtre par mot-clef' do
       get articles_path(keywords: 'Guide de base')
       expect(response.body).to include('Guide de base pour les petites collectivités')
@@ -42,6 +47,29 @@ RSpec.describe 'Articles' do
       expect(response.body).not_to include('API brouillon')
       expect(response.body).not_to include('API sans FranceConnect')
       expect(response.body).not_to include('Base FC')
+    end
+
+    it 'fait défiler le bloc « Sont mentionnés » avec Précédent / Suivant' do
+      get article_path('qu-est-ce-qu-une-api')
+      carrousel = response.parsed_body.css('[data-controller="carousel"]')
+      expect(carrousel.css('.carousel-track')).to be_present
+      expect(carrousel.css('[data-carousel-target="nav"].fr-hidden')).to be_present
+      expect(carrousel.css('button').map(&:text).map(&:strip)).to eq(%w[Précédent Suivant])
+    end
+
+    it 'rend les tuiles des encarts comme le site actuel : sans tag de catégorie, description ou audience selon l’article' do
+      get article_path('apis-franceconnectees')
+      spotlights = response.parsed_body.css('.spotlight')
+      expect(spotlights.text).to include('FranceConnect est une solution d’identification')
+      expect(spotlights.text).to include('API distribuant les données des particuliers')
+      expect(spotlights.text).not_to include('Pour simplifier les démarches')
+
+      get article_path('guide-base-petites-collectivites')
+      page = response.parsed_body
+      marches = page.css('.spotlight').find { |spotlight| spotlight.text.include?('Marchés publics') }
+      expect(marches.css('.fr-card__detail')).to be_empty
+      expect(page.css('.carousel-track').text).to include('Pour simplifier les démarches')
+      expect(page.css('.carousel-track').text).not_to include('À destination')
     end
 
     it 'renvoie 404 pour un slug inconnu' do

@@ -411,6 +411,14 @@
   padding-bottom: 0.5rem;
 }
 
+.carousel-track--boutons {
+  scrollbar-width: none;
+}
+
+.carousel-track--boutons::-webkit-scrollbar {
+  display: none;
+}
+
 .carousel__item {
   flex: 0 0 280px;
   scroll-snap-align: start;
