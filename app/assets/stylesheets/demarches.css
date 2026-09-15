@@ -85,6 +85,10 @@
   margin-bottom: 1rem;
 }
 
+.solution-integratrice-card .integration-indicator {
+  margin-top: 1rem;
+}
+
 .solution-integratrice-card__title {
   color: var(--text-action-high-blue-france);
   margin: 0 0 0.5rem;

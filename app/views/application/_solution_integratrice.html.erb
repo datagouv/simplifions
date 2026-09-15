@@ -8,11 +8,8 @@
   <% end %>
   <% if couverture %>
     <% integrees, utiles = couverture %>
-    <% pourcentage = integrees * 100 / utiles %>
-    <div class="integration-indicator fr-p-1w fr-mt-2w">
-      <span class="fr-text--sm fr-text--bold integration-indicator__count <%= pourcentage >= 75 ? 'indicator--green' : pourcentage >= 50 ? 'indicator--yellow' : pourcentage >= 25 ? 'indicator--orange' : 'indicator--red' %>"><%= integrees %>/<%= utiles %></span>
-      <span class="fr-text--xs integration-indicator__label"><%= cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %> utiles <%= cible.nom %></span>
-    </div>
+    <%= render 'integration_indicator', integrees:, utiles:,
+          label: "#{cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données'} utiles #{cible.nom}" %>
   <% end %>
   <div class="solution-integratrice-card__arrow">
     <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
