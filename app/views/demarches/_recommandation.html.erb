@@ -3,6 +3,7 @@
    utiles = recommandation.apis_utiles.to_a
    lien_demande_acces = recommandation.lien_demande_acces
    nom_demarche = recommandation.demarche.titre
+   couvertures = cible.couvertures
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
    accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
                  ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
@@ -178,7 +179,8 @@
               <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
                 <% solutions.each do |solution| %>
                   <div class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
-                    <%= render 'solution_integratrice', solution: solution %>
+                    <%= render 'solution_integratrice', solution:, cible:,
+                          couverture: couvertures.dig(solution.id, recommandation.demarche) %>
                   </div>
                 <% end %>
               </div>

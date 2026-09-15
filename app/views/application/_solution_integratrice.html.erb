@@ -1,8 +1,16 @@
 <div class="solution-integratrice-card fr-enlarge-link">
   <div class="solution-integratrice-card__header">
-    <p class="solution-integratrice-card__title fr-text--lg"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
+    <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
     <%= render "badge_operateur", solution: solution %>
   </div>
+  <% if solution.types_solution.any? %>
+    <p class="fr-text--sm fr-mb-0"><%= solution.types_solution.join(' • ') %></p>
+  <% end %>
+  <% if couverture %>
+    <% integrees, utiles = couverture %>
+    <%= render 'integration_indicator', integrees:, utiles:,
+          label: "#{cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données'} utiles #{cible.nom}" %>
+  <% end %>
   <div class="solution-integratrice-card__arrow">
     <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
   </div>

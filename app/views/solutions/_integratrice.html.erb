@@ -5,6 +5,10 @@
   </div>
   <div class="fr-grid-row fr-grid-row--gutters">
     <div class="fr-col-12 fr-col-md-4">
+      <% if integratrice.types_solution.any? %>
+        <p class="fr-text--sm fr-text--bold fr-mb-1v">Type de solution :</p>
+        <p class="fr-text--sm fr-mb-0"><%= integratrice.types_solution.join(' ou ') %></p>
+      <% end %>
       <% tags = integratrice.vocabulaires.select(&:categorie_type_simplification?) %>
       <% if tags.any? %>
         <ul class="fr-tags-group fr-mt-2v">
@@ -19,13 +23,9 @@
         <p class="fr-text--sm fr-text--bold fr-mb-1v">Cas d'usages :</p>
         <div class="cas-usages-grid">
           <% couverture.each do |demarche, (integrees, utiles)| %>
-            <% pourcentage = integrees * 100 / utiles %>
             <div class="cas-usage-card fr-p-2v">
               <span class="fr-text--xs fr-text--bold fr-mb-1v"><%= demarche.titre %></span>
-              <div class="integration-indicator fr-p-1w">
-                <span class="fr-text--sm fr-text--bold integration-indicator__count <%= pourcentage >= 75 ? 'indicator--green' : pourcentage >= 50 ? 'indicator--yellow' : pourcentage >= 25 ? 'indicator--orange' : 'indicator--red' %>"><%= integrees %>/<%= utiles %></span>
-                <span class="fr-text--xs integration-indicator__label">API ou jeux de données intégrés</span>
-              </div>
+              <%= render 'integration_indicator', integrees:, utiles:, label: 'API ou jeux de données intégrés' %>
             </div>
           <% end %>
         </div>

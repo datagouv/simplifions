@@ -55,7 +55,9 @@ RSpec.describe Grist::Import do
     expect(api_qf).to have_attributes(categorie: 'api', france_connectee: true, slug: nil)
 
     expect(Solution.find_by!(grist_id: 'APIs_et_datasets:45').categorie).to eq('base_de_donnees')
-    expect(Solution.find_by!(grist_id: 'Solutions:32').categorie).to eq('logiciel_metier_cle_en_main')
+    expect(Solution.find_by!(grist_id: 'Solutions:32'))
+      .to have_attributes(categorie: 'logiciel_metier_cle_en_main', types_solution: ['Profil acheteur', 'Portail agent'])
+    expect(bouquet.types_solution).to eq([])
   end
 
   it 'reports unmappable categories instead of guessing' do

@@ -85,6 +85,10 @@
   margin-bottom: 1rem;
 }
 
+.solution-integratrice-card .integration-indicator {
+  margin-top: 1rem;
+}
+
 .solution-integratrice-card__title {
   color: var(--text-action-high-blue-france);
   margin: 0 0 0.5rem;
@@ -139,6 +143,11 @@
 
 .solutions-integratices-container .fr-tabs__panel--white {
   background-color: white;
+}
+
+.solutions-integratices-container .fr-tabs__panel--white > ul {
+  background-color: var(--background-alt-beige-gris-galet);
+  padding: 1rem;
 }
 
 .cas-usages-grid {

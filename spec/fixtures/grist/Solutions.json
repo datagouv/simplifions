@@ -149,6 +149,7 @@
    "id": 32,
    "fields": {
     "Visible_sur_simplifions": true,
+    "Type_de_solution": ["L", "Profil acheteur", "Portail agent"],
     "Modifie_le": 1772087363.019064,
     "Description_courte": "Portail famille permettant aux collectivités de centraliser la gestion et la facturation des activités scolaires, périscolaires et de loisirs. Les col",
     "URL_demande_d_acces": "",
