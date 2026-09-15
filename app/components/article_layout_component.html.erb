@@ -82,15 +82,19 @@
 
   <% if @mentions.any? %>
     <section class="topics-carousel fr-mt-6w fr-py-5w" style="background-image: <%= @article.hero_backdrop_gradient %>">
-      <div class="fr-container">
+      <div class="fr-container" data-controller="carousel">
         <h2 class="fr-h5 fr-mb-3w">Sont mentionnés dans cet article :</h2>
-        <ul class="carousel-track fr-p-0 fr-m-0" role="list">
+        <ul class="carousel-track fr-p-0 fr-m-0" role="list" data-carousel-target="track">
           <% @mentions.each do |mention| %>
             <li class="carousel__item">
               <%= render CatalogCardComponent.new(card: mention) %>
             </li>
           <% end %>
         </ul>
+        <div class="fr-grid-row fr-grid-row--center fr-mt-2w" data-carousel-target="nav">
+          <button type="button" class="fr-link fr-link--sm fr-link--icon-left fr-icon-arrow-left-s-line fr-mr-2w" data-action="carousel#prev">Précédent</button>
+          <button type="button" class="fr-link fr-link--sm fr-link--icon-right fr-icon-arrow-right-s-line" data-action="carousel#next">Suivant</button>
+        </div>
       </div>
     </section>
   <% end %>
