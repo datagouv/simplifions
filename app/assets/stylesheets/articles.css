@@ -81,10 +81,17 @@
 }
 
 .article-toc-col {
-  position: sticky;
-  top: 1rem;
-  align-self: start;
-  height: calc(100vh - 2rem);
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 62em) {
+  .article-toc-col {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    height: calc(100vh - 2rem);
+    margin-bottom: 0;
+  }
 }
 
 .article-toc {
@@ -513,11 +520,6 @@
   .article-hero__title {
     max-width: none;
     font-size: clamp(1.8rem, 7vw, 2.5rem);
-  }
-
-  .article-toc-col {
-    position: static;
-    height: auto;
   }
 
   .article-content {
