@@ -8,6 +8,12 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('fr-header')
       expect(response.body).to include('fr-footer')
     end
+
+    it 'présente le formulaire, et non des espaces de discussion disparus, comme moyen de contribuer' do
+      get root_path
+      expect(response.body).to include('Un formulaire est mis à disposition pour permettre aux usagers')
+      expect(response.body).not_to include('De nombreux espaces sont disponibles')
+    end
   end
 
   describe 'explorateur de la page d’accueil' do
