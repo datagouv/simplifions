@@ -37,6 +37,21 @@
     <%= stylesheet_link_tag "demarches", "data-turbo-track": "reload" %>
 
     <%= javascript_importmap_tags %>
+
+    <% if ENV["MATOMO_SITE_ID"].present? %>
+      <script>
+        var _paq = window._paq = window._paq || [];
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+          var u = "https://stats.data.gouv.fr/";
+          _paq.push(['setTrackerUrl', u + 'matomo.php']);
+          _paq.push(['setSiteId', '<%= j ENV["MATOMO_SITE_ID"] %>']);
+          var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+          g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+        })();
+      </script>
+    <% end %>
   </head>
 
   <body>
