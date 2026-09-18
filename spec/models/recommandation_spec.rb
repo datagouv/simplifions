@@ -124,10 +124,13 @@ RSpec.describe Recommandation do
         statut: '✅ en production', demarches: [cantine])
       Integration.create!(integratrice: portail, integree: api_statut, type_integration: 'consomme',
         statut: '🚧 en cours', demarches: [cantine])
+      hors_utiles = Solution.create!(nom: 'Portail extra', categorie: 'site_de_consultation', visible: true)
+      Integration.create!(integratrice: hors_utiles, integree: api_extra, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
 
       reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
 
-      expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2])
+      expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2], hors_utiles.id => [0, 2])
     end
 
     it 'est vide sans donnée utile attendue' do
