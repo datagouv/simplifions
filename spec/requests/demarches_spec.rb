@@ -220,6 +220,12 @@ RSpec.describe 'Demarches' do
       expect(response.body).to match(%r{indicator--green">2/2</span>\s*<span[^>]*>API ou jeu de données utiles Bouquet API Particulier})
     end
 
+    it 'propose « Plus d’informations » vers la fiche de la solution recommandée, avant la demande d’accès' do
+      bouton = %r{<a class="fr-btn fr-btn--secondary" href="/solutions/bouquet-api-particulier">Plus d&#39;informations sur Bouquet API Particulier</a>}
+      expect(response.body).to match(bouton)
+      expect(response.body.index('Plus d&#39;informations sur')).to be < response.body.index('Demander un accès pour ce cas')
+    end
+
     it 'fait pointer les intégratrices de la matrice vers leur page solution' do
       expect(response.body).to include('href="/solutions/acheteza"')
     end

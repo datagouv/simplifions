@@ -39,17 +39,22 @@
     <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
 
     <div class="fr-accordions-group">
-      <% if lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
+      <% if cible.slug.present? || lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
         <section class="fr-accordion">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
               aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
           </h5>
           <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
-            <% if lien_demande_acces %>
+            <% if cible.slug.present? || lien_demande_acces %>
               <div class="fr-btns-group fr-btns-group--inline fr-btns-group--right fr-my-2w">
-                <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
-                      rel: 'noopener external', target: '_blank' %>
+                <% if cible.slug.present? %>
+                  <%= link_to "Plus d'informations sur #{cible.nom}", solution_path(cible.slug), class: 'fr-btn fr-btn--secondary' %>
+                <% end %>
+                <% if lien_demande_acces %>
+                  <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
+                        rel: 'noopener external', target: '_blank' %>
+                <% end %>
               </div>
             <% end %>
             <% if cible.uid_datagouv.present? %>
