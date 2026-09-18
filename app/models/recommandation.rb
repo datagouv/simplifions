@@ -18,6 +18,13 @@ class Recommandation < ApplicationRecord
     )
   end
 
+  # Même calcul que le site actuel : données utiles pour la démarche intégrées en production par chaque
+  # intégratrice, quelle que soit la démarche saisie sur l'intégration.
+  def couvertures
+    Integration.consomme.en_production.where(integratrice: solutions_integratrices, integree: apis_utiles.map(&:solution))
+      .group(:integratrice_id).distinct.count(:integree_id)
+  end
+
   def moyens_acces
     solutions_integratrices.group_by(&:categorie)
   end
