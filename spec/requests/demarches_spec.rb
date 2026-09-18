@@ -163,9 +163,15 @@ RSpec.describe 'Demarches' do
       logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
         slug: 'acheteza', types_solution: ['Profil acheteur', 'Portail agent'])
 
+      api_statut = Solution.create!(nom: 'API Statut étudiant', categorie: 'api')
+      autre_demarche = Demarche.create!(nom: 'Bourse', visible: true)
+
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
+      Integration.create!(integratrice: bouquet, integree: api_statut, type_integration: 'expose')
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [demarche])
+      Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [autre_demarche])
 
       Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true,
         donnees_utiles: '- quotient familial CAF ou MSA', parametres_a_saisir: 'État civil')
@@ -173,6 +179,7 @@ RSpec.describe 'Demarches' do
       Recommandation.create!(demarche:, solution: brouillon, niveau: :niveau_2, visible: false)
       Recommandation.create!(demarche:, solution: api_qf, niveau: :niveau_1, ordre: 1, visible: true,
         description: 'Le quotient familial du mois courant.')
+      Recommandation.create!(demarche:, solution: api_statut, niveau: :niveau_1, ordre: 2, visible: true)
 
       get demarche_path('tarification-cantine-scolaire-a-1eur')
     end
@@ -207,10 +214,10 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('Aucune solution référencée').size).to eq(2)
     end
 
-    it 'rend chaque intégratrice comme le site : titre en gras, types de solution, données utiles intégrées' do
+    it 'rend chaque intégratrice comme le site : titre en gras, types de solution, données utiles intégrées toutes démarches confondues' do
       expect(response.body).to match(%r{<p class="[^"]*fr-text--bold[^"]*">\s*<a[^>]*>Acheteza</a>})
       expect(response.body).to include('Profil acheteur • Portail agent')
-      expect(response.body).to match(%r{indicator--green">1/1</span>\s*<span[^>]*>API ou jeu de données utiles Bouquet API Particulier})
+      expect(response.body).to match(%r{indicator--green">2/2</span>\s*<span[^>]*>API ou jeu de données utiles Bouquet API Particulier})
     end
 
     it 'fait pointer les intégratrices de la matrice vers leur page solution' do
