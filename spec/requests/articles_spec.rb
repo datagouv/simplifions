@@ -72,6 +72,13 @@ RSpec.describe 'Articles' do
       expect(page.css('.carousel-track').text).not_to include('À destination')
     end
 
+    it 'renvoie vers la section « Parcours alternatifs » sans coquille' do
+      get article_path('anticiper-le-parcours-usager-avant-d-integrer-vos-api')
+
+      expect(response.body.scan("Plus d'informations sur parcours alternatifs").size).to eq(2)
+      expect(response.body).not_to include('altenratifs')
+    end
+
     it 'renvoie 404 pour un slug inconnu' do
       get article_path('nexiste-pas')
       expect(response).to have_http_status(:not_found)
