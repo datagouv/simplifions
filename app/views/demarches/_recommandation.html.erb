@@ -2,8 +2,9 @@
    moyens = recommandation.moyens_acces
    utiles = recommandation.apis_utiles.to_a
    lien_demande_acces = recommandation.lien_demande_acces
+   lien_fiche = (solution_path(cible.slug) if cible.visible? && cible.slug.present?)
    nom_demarche = recommandation.demarche.titre
-   couvertures = cible.couvertures
+   couvertures = recommandation.couvertures
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
    accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
                  ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
@@ -39,17 +40,22 @@
     <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
 
     <div class="fr-accordions-group">
-      <% if lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
+      <% if lien_fiche || lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
         <section class="fr-accordion">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
               aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
           </h5>
           <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
-            <% if lien_demande_acces %>
+            <% if lien_fiche || lien_demande_acces %>
               <div class="fr-btns-group fr-btns-group--inline fr-btns-group--right fr-my-2w">
-                <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
-                      rel: 'noopener external', target: '_blank' %>
+                <% if lien_fiche %>
+                  <%= link_to "Plus d'informations sur #{cible.nom}", lien_fiche, class: 'fr-btn fr-btn--secondary' %>
+                <% end %>
+                <% if lien_demande_acces %>
+                  <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
+                        rel: 'noopener external', target: '_blank' %>
+                <% end %>
               </div>
             <% end %>
             <% if cible.uid_datagouv.present? %>
@@ -180,7 +186,7 @@
                 <% solutions.each do |solution| %>
                   <div class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
                     <%= render 'solution_integratrice', solution:, cible:,
-                          couverture: couvertures.dig(solution.id, recommandation.demarche) %>
+                          couverture: couvertures[solution.id] %>
                   </div>
                 <% end %>
               </div>

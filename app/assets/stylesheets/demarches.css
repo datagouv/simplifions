@@ -184,6 +184,7 @@
   color: var(--text-mention-grey);
   text-decoration: underline dotted;
   text-underline-offset: 2px;
+  cursor: help;
 }
 
 .integration-indicator__count {

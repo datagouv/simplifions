@@ -81,6 +81,64 @@ RSpec.describe Recommandation do
         'site_de_consultation' => [portail]
       )
     end
+
+    it 'trie les intégratrices par nom, comme le site actuel' do
+      cantine = Demarche.create!(nom: 'Cantine à 1€')
+      api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      zed, acheteza, editions = ['Zed', 'acheteza', 'Éditions du Sud'].map do |nom|
+        Solution.create!(nom:, categorie: 'logiciel_metier_cle_en_main', visible: true).tap do |logiciel|
+          Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+            statut: '✅ en production', demarches: [cantine])
+        end
+      end
+
+      reco = described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
+
+      expect(reco.moyens_acces['logiciel_metier_cle_en_main']).to eq([acheteza, editions, zed])
+    end
+  end
+
+  describe '#couvertures' do
+    it 'compte par intégratrice les données utiles intégrées en production, toutes démarches confondues' do
+      cantine = Demarche.create!(nom: 'Cantine à 1€')
+      autre_demarche = Demarche.create!(nom: 'Autre démarche')
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      api_statut = Solution.create!(nom: 'API Statut étudiant', categorie: 'api')
+      api_extra = Solution.create!(nom: 'API Extra', categorie: 'api')
+      [api_qf, api_statut, api_extra].each do |api|
+        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      end
+      described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
+      described_class.create!(demarche: cantine, solution: api_statut, niveau: :niveau_1)
+
+      logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
+      Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [autre_demarche])
+      Integration.create!(integratrice: logiciel, integree: api_extra, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
+      portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
+      Integration.create!(integratrice: portail, integree: api_qf, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
+      Integration.create!(integratrice: portail, integree: api_statut, type_integration: 'consomme',
+        statut: '🚧 en cours', demarches: [cantine])
+      hors_utiles = Solution.create!(nom: 'Portail extra', categorie: 'site_de_consultation', visible: true)
+      Integration.create!(integratrice: hors_utiles, integree: api_extra, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [cantine])
+
+      reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
+
+      expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2], hors_utiles.id => [0, 2])
+    end
+
+    it 'est vide sans donnée utile attendue' do
+      demarche = Demarche.create!(nom: 'Cantine')
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+
+      expect(described_class.create!(demarche:, solution: bouquet).couvertures).to eq({})
+    end
   end
 
   describe 'contrainte politique' do
