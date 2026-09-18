@@ -15,7 +15,7 @@ class Recommandation < ApplicationRecord
       id: Integration.en_production.pour_demarche(demarche)
         .where(integree: solution.fournies)
         .select(:integratrice_id)
-    )
+    ).order(:nom)
   end
 
   # Même calcul que le site actuel : données utiles pour la démarche intégrées en production par chaque

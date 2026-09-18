@@ -81,6 +81,21 @@ RSpec.describe Recommandation do
         'site_de_consultation' => [portail]
       )
     end
+
+    it 'trie les intégratrices par nom, comme le site actuel' do
+      cantine = Demarche.create!(nom: 'Cantine à 1€')
+      api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      zed, acheteza, editions = ['Zed', 'acheteza', 'Éditions du Sud'].map do |nom|
+        Solution.create!(nom:, categorie: 'logiciel_metier_cle_en_main', visible: true).tap do |logiciel|
+          Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
+            statut: '✅ en production', demarches: [cantine])
+        end
+      end
+
+      reco = described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
+
+      expect(reco.moyens_acces['logiciel_metier_cle_en_main']).to eq([acheteza, editions, zed])
+    end
   end
 
   describe '#couvertures' do
