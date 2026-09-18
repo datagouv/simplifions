@@ -2,7 +2,7 @@
    moyens = recommandation.moyens_acces
    utiles = recommandation.apis_utiles.to_a
    lien_demande_acces = recommandation.lien_demande_acces
-   lien_fiche = (solution_path(cible.slug) if cible.slug.present?)
+   lien_fiche = (solution_path(cible.slug) if cible.visible? && cible.slug.present?)
    nom_demarche = recommandation.demarche.titre
    couvertures = recommandation.couvertures
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"

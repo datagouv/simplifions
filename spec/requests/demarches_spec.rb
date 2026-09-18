@@ -248,6 +248,17 @@ RSpec.describe 'Demarches' do
   end
 
   describe 'accès direct à la donnée recommandée' do
+    it 'ne renvoie pas vers une fiche retirée du site' do
+      demarche = Demarche.create!(nom: 'Démarches proactives', slug: 'demarches-proactives', visible: true)
+      retiree = Solution.create!(nom: 'Bouquet retiré', categorie: 'brique_logicielle', slug: 'bouquet-retire', visible: false,
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      Recommandation.create!(demarche:, solution: retiree, niveau: :niveau_2, visible: true)
+
+      get demarche_path('demarches-proactives')
+
+      expect(response.body).not_to include('Plus d&#39;informations sur')
+    end
+
     it 'montre la carte data.gouv du jeu de données même sans lien de demande d’accès ni endpoint utile' do
       demarche = Demarche.create!(nom: 'Démarches proactives', slug: 'demarches-proactives', visible: true)
       extrait = Solution.create!(nom: 'Extrait des coordonnées des étudiants boursiers', categorie: 'base_de_donnees',
