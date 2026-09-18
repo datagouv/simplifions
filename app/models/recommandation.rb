@@ -15,24 +15,26 @@ class Recommandation < ApplicationRecord
       id: Integration.en_production.pour_demarche(demarche)
         .where(integree: solution.fournies)
         .select(:integratrice_id)
-    ).order(:nom)
+    )
   end
 
-  # Même calcul que le site actuel : données utiles pour la démarche intégrées en production par chaque
-  # intégratrice, quelle que soit la démarche saisie sur l'intégration.
+  # { integratrice_id => [x, y] } : comme sur le site actuel, x données utiles intégrées en production sur les y
+  # attendues, quelle que soit la démarche saisie sur l'intégration.
   def couvertures
-    Integration.consomme.en_production.where(integratrice: solutions_integratrices, integree: apis_utiles.map(&:solution))
-      .group(:integratrice_id).distinct.count(:integree_id)
+    y = utiles.count
+    return {} if y.zero?
+
+    Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
+      .group(:integratrice_id).distinct.count(:integree_id).transform_values { |x| [x, y] }
   end
 
   def moyens_acces
-    solutions_integratrices.group_by(&:categorie)
+    solutions_integratrices.order(:nom).group_by(&:categorie)
   end
 
   # Même ordre que le site actuel : ordre éditorial, puis description la plus fournie, puis nom
   def apis_utiles
-    demarche.recommandations.niveau_1.where(solution: solution.fournies)
-      .joins(:solution).preload(:solution)
+    utiles.joins(:solution).preload(:solution)
       .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC'))
   end
 
@@ -50,6 +52,8 @@ class Recommandation < ApplicationRecord
   end
 
   private
+
+  def utiles = demarche.recommandations.niveau_1.where(solution: solution.fournies)
 
   def ne_recommande_pas_de_solution_privee
     errors.add(:solution, 'une solution privée ne peut pas être mise en avant') if solution&.privee?

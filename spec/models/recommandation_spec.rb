@@ -127,7 +127,14 @@ RSpec.describe Recommandation do
 
       reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
 
-      expect(reco.couvertures).to eq(logiciel.id => 2, portail.id => 1)
+      expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2])
+    end
+
+    it 'est vide sans donnée utile attendue' do
+      demarche = Demarche.create!(nom: 'Cantine')
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+
+      expect(described_class.create!(demarche:, solution: bouquet).couvertures).to eq({})
     end
   end
 
