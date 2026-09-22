@@ -82,6 +82,14 @@ RSpec.describe 'Pages' do
       expect(response.body.scan(/id="summary-link-\d+"/).uniq.size).to eq(3)
     end
 
+    it 'espace les titres de section sous le sommaire comme l’ancien site' do
+      %w[/doctrine-referencement-cas-usages /doctrine-referencement-solutions /niveaux-simplification].each do |chemin|
+        get chemin
+        expect(response.body).to include('<h2 id="', 'class="fr-h2 fr-mt-5w fr-mb-0"')
+        expect(response.body).not_to include('fr-my-0w')
+      end
+    end
+
     it 'signale la nouvelle fenêtre du formulaire de contenu' do
       get root_path
       expect(response.body).to include('title="Formulaire pour proposer un contenu - nouvelle fenêtre"')

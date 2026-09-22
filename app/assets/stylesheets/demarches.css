@@ -185,6 +185,8 @@
   text-decoration: underline dotted;
   text-underline-offset: 2px;
   cursor: help;
+  position: relative;
+  z-index: 2;
 }
 
 .integration-indicator__count {
