@@ -1,5 +1,8 @@
-<% pourcentage = integrees * 100 / utiles %>
+<% pourcentage = integrees * 100 / utiles
+   couleur = pourcentage >= 75 ? 'green' : pourcentage >= 50 ? 'yellow' : pourcentage >= 25 ? 'orange' : 'red'
+   tooltip_id = "integration-indicator-#{SecureRandom.hex(4)}" %>
 <div class="integration-indicator fr-p-1w">
-  <span class="fr-text--sm fr-text--bold integration-indicator__count <%= pourcentage >= 75 ? 'indicator--green' : pourcentage >= 50 ? 'indicator--yellow' : pourcentage >= 25 ? 'indicator--orange' : 'indicator--red' %>"><%= integrees %>/<%= utiles %></span>
-  <span class="fr-text--xs integration-indicator__label" title="<%= title %>"><%= label %></span>
+  <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur %>"><%= integrees %>/<%= utiles %></span>
+  <button type="button" class="fr-text--xs integration-indicator__label" aria-describedby="<%= tooltip_id %>"><%= label %></button>
+  <span class="fr-tooltip fr-placement integration-indicator__tooltip" id="<%= tooltip_id %>" role="tooltip" aria-hidden="true"><span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur %>"><%= integrees %></span> <%= description %></span>
 </div>

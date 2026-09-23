@@ -217,7 +217,7 @@ RSpec.describe 'Demarches' do
     it 'rend chaque intégratrice comme le site : titre en gras, types de solution, données utiles intégrées toutes démarches confondues' do
       expect(response.body).to match(%r{<p class="[^"]*fr-text--bold[^"]*">\s*<a[^>]*>Acheteza</a>})
       expect(response.body).to include('Profil acheteur • Portail agent')
-      expect(response.body).to match(%r{indicator--green">2/2</span>\s*<span class="[^"]*integration-indicator__label" title="2 API ou jeu de données « Bouquet API Particulier » sur les 2 utiles pour ce cas d&#39;usage ont été intégrées par cette solution\.">API ou jeu de données utiles Bouquet API Particulier})
+      expect(response.body).to match(%r{indicator--green">2/2</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeu de données utiles Bouquet API Particulier</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">2</span> API ou jeu de données « Bouquet API Particulier » sur les 2 utiles pour ce cas d&#39;usage ont été intégrées par cette solution\.</span>})
     end
 
     it 'propose « Plus d’informations » vers la fiche de la solution recommandée, avant la demande d’accès' do
