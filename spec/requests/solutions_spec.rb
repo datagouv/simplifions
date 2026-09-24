@@ -164,7 +164,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Solution privée')
       expect(response.body).to include('Dites-le-nous une fois')
       expect(response.body).to match(%r{Type de solution :</p>\s*<p[^>]*>Profil acheteur ou Portail agent</p>})
-      expect(response.body).to match(%r{1/1</span>\s*<span class="[^"]*integration-indicator__label" title="1 API et jeux de données « Bouquet API Particulier » sur les 1 utiles pour ce cas d&#39;usage ont été intégrés par cette solution\.">API ou jeux de données intégrés</span>})
+      expect(response.body).to match(%r{1/1</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeux de données intégrés</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">1</span> API et jeux de données « Bouquet API Particulier » sur les 1 utiles pour ce cas d&#39;usage ont été intégrés par cette solution\.</span>})
       expect(response.body).not_to include('Portail en cours')
       expect(response.body).not_to include('Hub sans catégorie')
       expect(response.body).to include('2 solutions disponibles')

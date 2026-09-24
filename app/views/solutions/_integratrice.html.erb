@@ -26,7 +26,7 @@
             <div class="cas-usage-card fr-p-2v">
               <span class="fr-text--xs fr-text--bold fr-mb-1v"><%= demarche.titre %></span>
               <%= render 'integration_indicator', integrees:, utiles:, label: 'API ou jeux de données intégrés',
-                    title: "#{integrees} API et jeux de données « #{@solution.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrés par cette solution." %>
+                    description: "API et jeux de données « #{@solution.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrés par cette solution." %>
             </div>
           <% end %>
         </div>

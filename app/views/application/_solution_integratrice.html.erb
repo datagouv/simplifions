@@ -10,7 +10,7 @@
     <% integrees, utiles = couverture
        type = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %>
     <%= render 'integration_indicator', integrees:, utiles:, label: "#{type} utiles #{cible.nom}",
-          title: "#{integrees} #{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution." %>
+          description: "#{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution." %>
   <% end %>
   <div class="solution-integratrice-card__arrow">
     <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
