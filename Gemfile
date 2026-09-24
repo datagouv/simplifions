@@ -21,6 +21,9 @@ gem "view_component"
 # Chain-of-command pipelines (Grist import)
 gem "interactor"
 
+# Suivi des erreurs (staging, production) ; inactif sans SENTRY_DSN
+gem "sentry-rails"
+
 # Rend le markdown du catalogue Grist (safe par défaut : HTML brut et URLs dangereuses neutralisés)
 gem "commonmarker"
 
