@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe 'Sentry' do
   subject(:config) { Sentry.configuration }
 
-  it "n'envoie rien sans SENTRY_DSN" do
+  it "n'envoie rien sans sentry_dsn dans les credentials" do
     expect(config.dsn).to be_nil
     expect(config.sending_allowed?).to be(false)
   end

@@ -1,4 +1,4 @@
 Sentry.init do |config|
-  config.dsn = ENV.fetch('SENTRY_DSN', nil)
+  config.dsn = Rails.application.credentials.sentry_dsn
   config.environment = Rails.env
 end
