@@ -32,6 +32,7 @@ RSpec.configure do |config|
   end
 
   config.include ActiveJob::TestHelper
+  config.include Devise::Test::IntegrationHelpers, type: :request
 
   config.before do
     clear_enqueued_jobs

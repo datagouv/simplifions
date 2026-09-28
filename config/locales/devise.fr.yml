@@ -1,0 +1,10 @@
+fr:
+  devise:
+    failure:
+      already_authenticated: "Vous êtes déjà connecté."
+      invalid: "Adresse e-mail ou mot de passe incorrect."
+      not_found_in_database: "Adresse e-mail ou mot de passe incorrect."
+      unauthenticated: "Vous devez vous connecter pour accéder à cette page."
+    sessions:
+      signed_in: "Connecté."
+      signed_out: "Déconnecté."

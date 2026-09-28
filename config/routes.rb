@@ -11,6 +11,11 @@ Rails.application.routes.draw do
 
   mount ActiveStorageDB::Engine => "/active_storage_db"
 
+  devise_for :admins, path: "admin", path_names: { sign_in: "connexion", sign_out: "deconnexion" }
+  namespace :admin do
+    root "dashboard#index"
+  end
+
   root "pages#home"
   get "about" => "pages#about"
   get "doctrine-referencement-cas-usages" => "pages#doctrine_cas_usages"

@@ -110,6 +110,7 @@ RSpec.describe 'SEO' do
       get '/robots.txt'
 
       expect(response.body).to include('Sitemap: https://simplifions.data.gouv.fr/sitemap.xml')
+      expect(response.body).to include('Disallow: /admin')
     end
   end
 end
