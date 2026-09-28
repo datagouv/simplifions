@@ -38,6 +38,38 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'outils de l’en-tête' do
+    it 'propose la connexion aux visiteurs' do
+      get root_path
+      expect(response.body).to include('<a class="fr-btn fr-icon-lock-line" href="/admin/connexion">Se connecter</a>')
+      expect(response.body).not_to include('Se déconnecter')
+    end
+
+    it 'propose l’administration et la déconnexion aux admins connectés' do
+      sign_in admin
+      get root_path
+      expect(response.body).to include('<a class="fr-btn fr-icon-settings-5-line" href="/admin">Administration</a>')
+      expect(response.body).to include('<form class="button_to" method="post" action="/admin/deconnexion">')
+      expect(response.body).to include('<button class="fr-btn fr-icon-logout-box-r-line" type="submit">Se déconnecter</button>')
+      expect(response.body).not_to include('Se connecter')
+    end
+
+    it 'ferme la session et ramène à l’accueil' do
+      sign_in admin
+      delete destroy_admin_session_path
+      expect(response).to redirect_to(root_path)
+      get admin_root_path
+      expect(response).to redirect_to(new_admin_session_path)
+    end
+  end
+
+  describe 'robots.txt' do
+    it 'écarte l’administration des robots' do
+      get '/robots.txt'
+      expect(response.body).to include('Disallow: /admin')
+    end
+  end
+
   describe 'GET /admin/connexion' do
     it 'présente le formulaire de connexion en DSFR' do
       get new_admin_session_path
