@@ -1,0 +1,23 @@
+<% content_for :title, "Connexion" %>
+<div class="fr-container fr-my-6w">
+  <div class="fr-grid-row fr-grid-row--center">
+    <div class="fr-col-12 fr-col-md-6">
+      <h1>Connexion à l’administration</h1>
+      <%= form_with model: resource, url: session_path(resource_name), class: "fr-mt-4w" do |f| %>
+        <div class="fr-input-group">
+          <%= f.label :email, "Adresse e-mail", class: "fr-label" %>
+          <%= f.email_field :email, class: "fr-input", autocomplete: "email" %>
+        </div>
+        <div class="fr-input-group">
+          <%= f.label :password, "Mot de passe", class: "fr-label" %>
+          <%= f.password_field :password, class: "fr-input", autocomplete: "current-password" %>
+        </div>
+        <div class="fr-checkbox-group fr-mb-3w">
+          <%= f.check_box :remember_me %>
+          <%= f.label :remember_me, "Se souvenir de moi", class: "fr-label" %>
+        </div>
+        <button type="submit" class="fr-btn">Se connecter</button>
+      <% end %>
+    </div>
+  </div>
+</div>

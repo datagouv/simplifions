@@ -57,6 +57,13 @@
   <body>
     <%= render "layouts/header" %>
     <main role="main" id="content">
+      <% flash.each do |type, message| %>
+        <div class="fr-container fr-mt-2w">
+          <div class="fr-alert fr-alert--<%= type == "alert" ? "error" : "info" %> fr-alert--sm">
+            <p><%= message %></p>
+          </div>
+        </div>
+      <% end %>
       <%= yield %>
     </main>
     <%= render "layouts/footer" %>
