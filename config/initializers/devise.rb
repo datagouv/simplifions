@@ -1,15 +1,9 @@
 # Comptes locaux de l'administration : mot de passe seulement, aucun mail envoyé.
+# Seuls les écarts aux défauts de Devise figurent ici.
 Devise.setup do |config|
   require "devise/orm/active_record"
 
-  config.case_insensitive_keys = [:email]
-  config.strip_whitespace_keys = [:email]
-  config.skip_session_storage = [:http_auth]
-  config.stretches = Rails.env.test? ? 1 : 12
-  config.expire_all_remember_me_on_sign_out = true
-  config.password_length = 6..128
-  config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
-  config.sign_out_via = :delete
+  config.stretches = 1 if Rails.env.test?
 
   # Statuts attendus par Turbo, comme les génère Devise pour une application neuve.
   config.responder.error_status = :unprocessable_content

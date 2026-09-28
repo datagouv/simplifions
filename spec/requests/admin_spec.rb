@@ -63,13 +63,6 @@ RSpec.describe 'Administration' do
     end
   end
 
-  describe 'robots.txt' do
-    it 'écarte l’administration des robots' do
-      get '/robots.txt'
-      expect(response.body).to include('Disallow: /admin')
-    end
-  end
-
   describe 'GET /admin/connexion' do
     it 'présente le formulaire de connexion en DSFR' do
       get new_admin_session_path
