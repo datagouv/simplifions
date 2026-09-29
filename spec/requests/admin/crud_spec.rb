@@ -95,6 +95,38 @@ RSpec.describe 'Administration' do
     let(:attributs) { { nom: 'Particuliers', categorie: 'usager' } }
   end
 
+  describe 'associations plusieurs-à-plusieurs' do
+    let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
+
+    before { sign_in admin }
+
+    it 'coche les vocabulaires et types d’acteurs d’une démarche' do
+      demarche = Demarche.create!(nom: 'Aides')
+      usager = Vocabulaire.create!(nom: 'Particuliers', categorie: 'usager')
+      communes = TypeActeur.create!(nom: 'Communes')
+
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.body).to include("<input type=\"checkbox\" value=\"#{usager.id}\" name=\"demarche[vocabulaire_ids][]\" id=\"demarche_vocabulaire_ids_#{usager.id}\" />")
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { vocabulaire_ids: [usager.id], type_acteur_ids: [communes.id] } }
+      expect(demarche.reload.vocabulaires).to eq([usager])
+      expect(demarche.types_acteurs).to eq([communes])
+    end
+
+    it 'coche les démarches d’une intégration et les solutions d’une organisation' do
+      demarche = Demarche.create!(nom: 'Aides')
+      bouquet = Solution.create!(nom: 'Bouquet')
+      integration = Integration.create!(integratrice: bouquet, integree: Solution.create!(nom: 'API QF'), type_integration: 'consomme')
+      dinum = Organisation.create!(nom: 'DINUM')
+
+      patch "/admin/integrations/#{integration.id}", params: { integration: { demarche_ids: [demarche.id] } }
+      expect(integration.reload.demarches).to eq([demarche])
+
+      patch "/admin/organisations/#{dinum.id}", params: { organisation: { solution_ids: [bouquet.id] } }
+      expect(dinum.reload.solutions).to eq([bouquet])
+    end
+  end
+
   describe 'GET /admin' do
     it 'mène à chaque table du catalogue' do
       sign_in Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide')

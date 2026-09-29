@@ -92,6 +92,39 @@
     <%= f.label :datagouv_acces_acteurs_publics, class: "fr-label" %>
     <%= f.text_field :datagouv_acces_acteurs_publics, class: "fr-input" %>
   </div>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Organisations</legend>
+    <%= f.collection_check_boxes :organisation_ids, Organisation.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Vocabulaires</legend>
+    <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Types d'acteurs</legend>
+    <%= f.collection_check_boxes :type_acteur_ids, TypeActeur.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
   <ul class="fr-btns-group fr-btns-group--inline">
     <li><button type="submit" class="fr-btn">Enregistrer</button></li>
     <li><%= link_to "Annuler", admin_solutions_path, class: "fr-btn fr-btn--secondary" %></li>

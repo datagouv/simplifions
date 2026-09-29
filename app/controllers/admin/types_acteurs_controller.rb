@@ -40,6 +40,6 @@ class Admin::TypesActeursController < Admin::BaseController
   end
 
   def type_acteur_params
-    params.expect(type_acteur: %i[nom description codes_juridiques grist_id])
+    params.expect(type_acteur: [:nom, :description, :codes_juridiques, :grist_id, { demarche_ids: [], solution_ids: [] }])
   end
 end
