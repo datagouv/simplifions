@@ -2,4 +2,11 @@
 
 <div class="fr-container fr-mb-6w">
   <h1>Administration</h1>
+  <ul>
+    <% { "Démarches" => admin_demarches_path, "Solutions" => admin_solutions_path, "Recommandations" => admin_recommandations_path,
+         "Intégrations" => admin_integrations_path, "Organisations" => admin_organisations_path,
+         "Types d'acteurs" => admin_types_acteurs_path, "Vocabulaires" => admin_vocabulaires_path }.each do |titre, chemin| %>
+      <li><%= link_to titre, chemin, class: "fr-link" %></li>
+    <% end %>
+  </ul>
 </div>

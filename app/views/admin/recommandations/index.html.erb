@@ -1,0 +1,26 @@
+<%= render "entete_page", titre: "Recommandations" %>
+
+<div class="fr-container fr-mb-6w">
+  <h1>Recommandations</h1>
+  <%= link_to "Ajouter", new_admin_recommandation_path, class: "fr-btn fr-mb-3w" %>
+  <div class="fr-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Ligne</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @recommandations.each do |ligne| %>
+          <tr>
+            <td><%= ligne.id %></td>
+            <td><%= ligne.demarche.nom %> → <%= ligne.solution.nom %></td>
+            <td><%= link_to "Modifier", edit_admin_recommandation_path(ligne), class: "fr-link" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,26 @@
+<%= render "entete_page", titre: "Intégrations" %>
+
+<div class="fr-container fr-mb-6w">
+  <h1>Intégrations</h1>
+  <%= link_to "Ajouter", new_admin_integration_path, class: "fr-btn fr-mb-3w" %>
+  <div class="fr-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Ligne</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @integrations.each do |ligne| %>
+          <tr>
+            <td><%= ligne.id %></td>
+            <td><%= ligne.integratrice.nom %> → <%= ligne.integree.nom %></td>
+            <td><%= link_to "Modifier", edit_admin_integration_path(ligne), class: "fr-link" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

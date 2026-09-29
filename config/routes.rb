@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   devise_for :admins, path: "admin", path_names: { sign_in: "connexion", sign_out: "deconnexion" }
   namespace :admin do
     root "dashboard#index"
+    resources :demarches, :solutions, :recommandations, :integrations, :organisations, :types_acteurs, :vocabulaires,
+      except: :show
   end
 
   root "pages#home"
