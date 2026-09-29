@@ -88,7 +88,7 @@ RSpec.describe 'Solutions' do
       sans_categorie = Solution.create!(nom: 'Hub sans catégorie', visible: true, slug: 'hub-sans-categorie')
       Integration.create!(integratrice: sans_categorie, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
-      en_cours = Solution.create!(nom: 'Portail en cours', categorie: 'site_de_consultation', visible: true)
+      en_cours = Solution.create!(nom: 'Portail en cours', slug: 'portail-en-cours', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: en_cours, integree: api_qf, type_integration: 'consomme',
         statut: '🚧 en cours', demarches: [cantine])
       portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true,

@@ -4,6 +4,7 @@ class Solution < ApplicationRecord
   validates :nom, presence: true
   normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
   validates :grist_id, :slug, uniqueness: true, allow_nil: true
+  validates :slug, presence: true, if: -> { visible? && fiche? }
 
   # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
   normalizes :site_internet, :url_demande_acces,

@@ -158,6 +158,18 @@ RSpec.describe 'Administration' do
       expect(response.body).to include('Type integration doit être rempli')
     end
 
+    it 'exige un slug dès qu’une fiche est visible, comme l’import le garantissait' do
+      post '/admin/demarches', params: { demarche: { nom: 'Aides', visible: '1', slug: '' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Slug doit être rempli')
+
+      post '/admin/solutions', params: { solution: { nom: 'Bouquet', visible: '1', slug: '' } }
+      expect(response).to have_http_status(:unprocessable_content)
+
+      post '/admin/solutions', params: { solution: { nom: 'API QF', categorie: 'api', visible: '1', slug: '' } }
+      expect(response).to redirect_to('/admin/solutions')
+    end
+
     it 'refuse un slug de démarche déjà pris' do
       Demarche.create!(nom: 'Aides', slug: 'aides')
       post '/admin/demarches', params: { demarche: { nom: 'Autre', slug: 'aides' } }

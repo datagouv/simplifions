@@ -21,9 +21,9 @@ RSpec.describe Solution do
       portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
 
-      cantine = Demarche.create!(nom: 'Cantine', visible: true)
+      cantine = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
       brouillon = Demarche.create!(nom: 'Brouillon', visible: false)
-      autre = Demarche.create!(nom: 'Autre', visible: true)
+      autre = Demarche.create!(nom: 'Autre', slug: 'autre', visible: true)
       Recommandation.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2, visible: true)
       Recommandation.create!(demarche: brouillon, solution: bouquet, niveau: :niveau_2, visible: true)
       Recommandation.create!(demarche: autre, solution: bouquet, niveau: :niveau_2, visible: false)
@@ -40,8 +40,8 @@ RSpec.describe Solution do
 
     it 'suit l’ordre de saisie des recommandations, comme le site actuel' do
       bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
-      zoo = Demarche.create!(nom: 'Zoo', visible: true)
-      autre = Demarche.create!(nom: 'Autre', visible: true)
+      zoo = Demarche.create!(nom: 'Zoo', slug: 'zoo', visible: true)
+      autre = Demarche.create!(nom: 'Autre', slug: 'autre-2', visible: true)
       Recommandation.create!(demarche: zoo, solution: bouquet, niveau: :niveau_2, visible: true)
       Recommandation.create!(demarche: autre, solution: bouquet, niveau: :niveau_2, visible: true)
 
@@ -51,7 +51,7 @@ RSpec.describe Solution do
     it 'compte l’intégration de la cible elle-même quand la reco vise une API en direct' do
       api = described_class.create!(nom: 'API FranceConnect', categorie: 'api')
       portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation')
-      demarche = Demarche.create!(nom: 'Cantine', visible: true)
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine-2', visible: true)
       Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, visible: true)
       Integration.create!(integratrice: portail, integree: api, type_integration: 'consomme',
         statut: '✅ en production', demarches: [demarche])
@@ -82,9 +82,9 @@ RSpec.describe Solution do
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
 
-      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      logiciel = described_class.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
       brouillon = described_class.create!(nom: 'Portail brouillon', categorie: 'site_de_consultation')
-      en_cours = described_class.create!(nom: 'Portail en cours', categorie: 'site_de_consultation', visible: true)
+      en_cours = described_class.create!(nom: 'Portail en cours', slug: 'portail-en-cours', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production')
       Integration.create!(integratrice: brouillon, integree: api_qf, type_integration: 'consomme',
@@ -107,15 +107,15 @@ RSpec.describe Solution do
         Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
       end
 
-      cantine = Demarche.create!(nom: 'Cantine', visible: true)
-      autre = Demarche.create!(nom: 'Autre', visible: true)
+      cantine = Demarche.create!(nom: 'Cantine', slug: 'cantine-3', visible: true)
+      autre = Demarche.create!(nom: 'Autre', slug: 'autre-3', visible: true)
       brouillon = Demarche.create!(nom: 'Brouillon', visible: false)
       Recommandation.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
       Recommandation.create!(demarche: cantine, solution: api_statut, niveau: :niveau_1)
       Recommandation.create!(demarche: autre, solution: api_qf, niveau: :niveau_1)
 
-      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
-      portail = described_class.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
+      logiciel = described_class.create!(nom: 'Acheteza', slug: 'acheteza-2', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      portail = described_class.create!(nom: 'Portail agents', slug: 'portail-agents', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine, autre, brouillon])
       Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
@@ -144,7 +144,7 @@ RSpec.describe Solution do
       api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
       api_autre = described_class.create!(nom: 'API d’un autre fournisseur', categorie: 'api')
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
-      logiciel = described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      logiciel = described_class.create!(nom: 'Acheteza', slug: 'acheteza-3', categorie: 'logiciel_metier_cle_en_main', visible: true)
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production')
       Integration.create!(integratrice: logiciel, integree: api_autre, type_integration: 'consomme',
@@ -189,7 +189,7 @@ RSpec.describe Solution do
 
   describe '.visibles' do
     it 'returns only visible solutions' do
-      visible = described_class.create!(nom: 'Publiée', visible: true)
+      visible = described_class.create!(nom: 'Publiée', slug: 'publiee', visible: true)
       described_class.create!(nom: 'Brouillon', visible: false)
 
       expect(described_class.visibles).to contain_exactly(visible)
@@ -217,11 +217,11 @@ RSpec.describe Solution do
     let(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }
     let(:brique) { Vocabulaire.create!(nom: 'Brique technique', slug: 'brique-technique', categorie: 'solution') }
     let!(:bouquet) do
-      described_class.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', visible: true,
+      described_class.create!(nom: 'Bouquet API Entreprise', slug: 'bouquet-api-entreprise', categorie: 'brique_logicielle', visible: true,
         description_courte: 'Les données des entreprises', vocabulaires: [entreprises, brique],
         types_acteurs: [TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])])
     end
-    let!(:eovia) { described_class.create!(nom: 'Eovia', visible: true, description_courte: 'Logiciel de démarches') }
+    let!(:eovia) { described_class.create!(nom: 'Eovia', slug: 'eovia', visible: true, description_courte: 'Logiciel de démarches') }
 
     before do
       described_class.create!(nom: 'API Entreprise cachée', categorie: 'api', visible: true)
