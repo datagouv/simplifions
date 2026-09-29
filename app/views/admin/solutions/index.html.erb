@@ -17,7 +17,11 @@
           <tr>
             <td><%= ligne.id %></td>
             <td><%= ligne.nom %></td>
-            <td><%= link_to "Modifier", edit_admin_solution_path(ligne), class: "fr-link" %></td>
+            <td>
+              <%= link_to "Modifier", edit_admin_solution_path(ligne), class: "fr-link fr-mr-2w" %>
+              <%= button_to "Supprimer", admin_solution_path(ligne), method: :delete, class: "fr-btn fr-btn--tertiary fr-btn--sm",
+                form: { data: { turbo_confirm: "Supprimer la ligne #{ligne.id} ?" }, class: "fr-inline" } %>
+            </td>
           </tr>
         <% end %>
       </tbody>

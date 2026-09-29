@@ -2,6 +2,9 @@ require 'rails_helper'
 
 RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
+  let(:cle) { modele.model_name.param_key }
+  let(:modification) { { nom: 'Nouveau nom' } }
+  let(:nouveaux) { attributs }
   let!(:ligne) { modele.create!(attributs) }
 
   it 'exige la connexion' do
@@ -16,6 +19,35 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).to include("<td>#{ligne.id}</td>")
     expect(response.body).to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
   end
+
+  it 'affiche les formulaires de création et de modification' do
+    sign_in admin
+    get "/admin/#{chemin}/new"
+    expect(response.body).to include("action=\"/admin/#{chemin}\"")
+    get "/admin/#{chemin}/#{ligne.id}/edit"
+    expect(response.body).to include("action=\"/admin/#{chemin}/#{ligne.id}\"")
+  end
+
+  it 'crée une ligne puis revient à la liste' do
+    sign_in admin
+    expect { post "/admin/#{chemin}", params: { cle => nouveaux } }.to change(modele, :count).by(1)
+    expect(response).to redirect_to("/admin/#{chemin}")
+    follow_redirect!
+    expect(response.body).to include('Enregistré.')
+  end
+
+  it 'modifie une ligne' do
+    sign_in admin
+    patch "/admin/#{chemin}/#{ligne.id}", params: { cle => modification }
+    expect(response).to redirect_to("/admin/#{chemin}")
+    expect(ligne.reload.attributes).to include(modification.stringify_keys)
+  end
+
+  it 'supprime une ligne' do
+    sign_in admin
+    expect { delete "/admin/#{chemin}/#{ligne.id}" }.to change(modele, :count).by(-1)
+    expect(response).to redirect_to("/admin/#{chemin}")
+  end
 end
 
 RSpec.describe 'Administration' do
@@ -28,13 +60,16 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Recommandation, 'recommandations' do
-    let(:attributs) { { demarche: Demarche.create!(nom: 'Aides'), solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1' } }
+    let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
+    let(:modification) { { ordre: 3 } }
+    let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
     let(:attributs) do
-      { integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'), type_integration: 'expose' }
+      { integratrice_id: Solution.create!(nom: 'Bouquet').id, integree_id: Solution.create!(nom: 'API QF').id, type_integration: 'expose' }
     end
+    let(:modification) { { statut: '✅ en production' } }
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do
