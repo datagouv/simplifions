@@ -1,5 +1,7 @@
 class Demarche < ApplicationRecord
   validates :nom, presence: true
+  normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
+  validates :grist_id, :slug, uniqueness: true, allow_nil: true
 
   has_many :recommandations, dependent: :destroy
   has_and_belongs_to_many :vocabulaires

@@ -44,6 +44,22 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).to include(invalide.last)
   end
 
+  it 'laisse vides les identifiants Grist et slugs non renseignés, sans collision entre lignes' do
+    sign_in admin
+    vides = modele.column_names.include?('slug') ? { grist_id: '', slug: '' } : { grist_id: '' }
+    patch "/admin/#{chemin}/#{ligne.id}", params: { cle => vides }
+    expect(ligne.reload.grist_id).to be_nil
+    expect { post "/admin/#{chemin}", params: { cle => nouveaux.merge(vides) } }.to change(modele, :count).by(1)
+  end
+
+  it 'refuse un identifiant Grist déjà pris plutôt que de casser sur l’index unique' do
+    sign_in admin
+    ligne.update!(grist_id: 'Table:1')
+    post "/admin/#{chemin}", params: { cle => nouveaux.merge(grist_id: 'Table:1') }
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.body).to include('Grist est déjà utilisé')
+  end
+
   it 'modifie une ligne' do
     sign_in admin
     patch "/admin/#{chemin}/#{ligne.id}", params: { cle => modification }
@@ -123,6 +139,40 @@ RSpec.describe 'Administration' do
 
       patch "/admin/organisations/#{dinum.id}", params: { organisation: { solution_ids: [bouquet.id] } }
       expect(dinum.reload.solutions).to eq([bouquet])
+    end
+  end
+
+  describe 'colonnes obligatoires en base' do
+    before { sign_in admin }
+
+    it 'refuse un vocabulaire sans catégorie' do
+      post '/admin/vocabulaires', params: { vocabulaire: { nom: 'Particuliers', categorie: '' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Categorie doit être rempli')
+    end
+
+    it 'refuse une intégration sans type' do
+      bouquet = Solution.create!(nom: 'Bouquet')
+      post '/admin/integrations', params: { integration: { integratrice_id: bouquet.id, integree_id: bouquet.id, type_integration: '' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Type integration doit être rempli')
+    end
+
+    it 'refuse un slug de démarche déjà pris' do
+      Demarche.create!(nom: 'Aides', slug: 'aides')
+      post '/admin/demarches', params: { demarche: { nom: 'Autre', slug: 'aides' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Slug est déjà utilisé')
+    end
+  end
+
+  describe 'image de solution' do
+    it 'attache le fichier envoyé par le formulaire' do
+      sign_in admin
+      image = Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'swagger.png')
+      post '/admin/solutions', params: { solution: { nom: 'Bouquet', image: } }
+      expect(response).to redirect_to('/admin/solutions')
+      expect(Solution.last.image).to be_attached
     end
   end
 

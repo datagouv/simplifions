@@ -6,6 +6,9 @@ class Integration < ApplicationRecord
   has_and_belongs_to_many :demarches
 
   enum :type_integration, %w[expose consomme].index_with(&:itself)
+  normalizes :grist_id, with: ->(valeur) { valeur.presence }
+  validates :grist_id, uniqueness: true, allow_nil: true
+  validates :type_integration, presence: true
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
   def libelle = "#{integratrice.nom} → #{integree.nom} (#{type_integration})"
