@@ -1,3 +1,4 @@
+<% solutions = Solution.order(:nom) %>
 <%= form_with model: [:admin, integration], class: "fr-mt-4w" do |f| %>
   <% if integration.errors.any? %>
     <div class="fr-alert fr-alert--error">
@@ -10,11 +11,11 @@
   <% end %>
   <div class="fr-select-group">
     <%= f.label :integratrice_id, class: "fr-label" %>
-    <%= f.collection_select :integratrice_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
+    <%= f.collection_select :integratrice_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
     <%= f.label :integree_id, class: "fr-label" %>
-    <%= f.collection_select :integree_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
+    <%= f.collection_select :integree_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
     <%= f.label :type_integration, class: "fr-label" %>

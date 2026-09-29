@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
-  let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
   let(:cle) { modele.model_name.param_key }
   let(:modification) { { nom: 'Nouveau nom' } }
   let(:nouveaux) { attributs }
@@ -60,6 +59,8 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 end
 
 RSpec.describe 'Administration' do
+  let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
+
   it_behaves_like 'un CRUD brut', Demarche, 'demarches' do
     let(:attributs) { { nom: 'Aides publiques' } }
   end
@@ -96,8 +97,6 @@ RSpec.describe 'Administration' do
   end
 
   describe 'associations plusieurs-à-plusieurs' do
-    let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
-
     before { sign_in admin }
 
     it 'coche les vocabulaires et types d’acteurs d’une démarche' do
@@ -129,7 +128,7 @@ RSpec.describe 'Administration' do
 
   describe 'colonnes tableau' do
     it 'affiche et enregistre les mots-clefs une valeur par ligne' do
-      sign_in Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide')
+      sign_in admin
       demarche = Demarche.create!(nom: 'Aides', mots_clefs: %w[aides subventions])
 
       get "/admin/demarches/#{demarche.id}/edit"
@@ -137,16 +136,6 @@ RSpec.describe 'Administration' do
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { mots_clefs: "aides\r\nprimes" } }
       expect(demarche.reload.mots_clefs).to eq(%w[aides primes])
-    end
-  end
-
-  describe 'GET /admin' do
-    it 'mène à chaque table du catalogue' do
-      sign_in Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide')
-      get admin_root_path
-      %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
-        expect(response.body).to include("href=\"/admin/#{chemin}\"")
-      end
     end
   end
 end

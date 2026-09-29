@@ -77,7 +77,7 @@
   </fieldset>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Intégrations</legend>
-    <%= f.collection_check_boxes :integration_ids, Integration.includes(:integratrice, :integree).order(:id), :id, ->(i) { "#{i.integratrice.nom} → #{i.integree.nom} (#{i.type_integration})" } do |b| %>
+    <%= f.collection_check_boxes :integration_ids, Integration.includes(:integratrice, :integree).order(:id), :id, :libelle do |b| %>
       <div class="fr-fieldset__element">
         <div class="fr-checkbox-group">
           <%= b.check_box %>

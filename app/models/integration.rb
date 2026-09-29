@@ -8,5 +8,7 @@ class Integration < ApplicationRecord
   enum :type_integration, %w[expose consomme].index_with(&:itself)
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
+  def libelle = "#{integratrice.nom} → #{integree.nom} (#{type_integration})"
+
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
 end

@@ -16,11 +16,13 @@
         <% @integrations.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= ligne.integratrice.nom %> → <%= ligne.integree.nom %></td>
+            <td><%= ligne.libelle %></td>
             <td>
-              <%= link_to "Modifier", edit_admin_integration_path(ligne), class: "fr-link fr-mr-2w" %>
-              <%= button_to "Supprimer", admin_integration_path(ligne), method: :delete, class: "fr-btn fr-btn--tertiary fr-btn--sm",
-                form: { data: { turbo_confirm: "Supprimer la ligne #{ligne.id} ?" }, class: "fr-inline" } %>
+              <ul class="fr-btns-group fr-btns-group--inline-sm fr-btns-group--sm">
+                <li><%= link_to "Modifier", edit_admin_integration_path(ligne), class: "fr-btn fr-btn--secondary" %></li>
+                <li><%= button_to "Supprimer", admin_integration_path(ligne), method: :delete, class: "fr-btn fr-btn--tertiary",
+                  form: { data: { turbo_confirm: "Supprimer la ligne #{ligne.id} ?" } } %></li>
+              </ul>
             </td>
           </tr>
         <% end %>
