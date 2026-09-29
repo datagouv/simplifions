@@ -127,6 +127,19 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'colonnes tableau' do
+    it 'affiche et enregistre les mots-clefs une valeur par ligne' do
+      sign_in Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide')
+      demarche = Demarche.create!(nom: 'Aides', mots_clefs: %w[aides subventions])
+
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.body).to include("<textarea class=\"fr-input\" rows=\"4\" name=\"demarche[mots_clefs]\" id=\"demarche_mots_clefs\">\naides\nsubventions</textarea>")
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { mots_clefs: "aides\r\nprimes" } }
+      expect(demarche.reload.mots_clefs).to eq(%w[aides primes])
+    end
+  end
+
   describe 'GET /admin' do
     it 'mène à chaque table du catalogue' do
       sign_in Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide')

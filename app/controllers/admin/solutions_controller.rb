@@ -40,6 +40,6 @@ class Admin::SolutionsController < Admin::BaseController
   end
 
   def solution_params
-    params.expect(solution: [:nom, :categorie, :slug, :description_courte, :permet, :ne_permet_pas, :image, :legende_image, :site_internet, :url_demande_acces, :uid_datagouv, :france_connectee, :visible, :cree_le, :modifie_le, :grist_id, :datagouv_titre, :datagouv_organisation, :datagouv_logo, :datagouv_acces, :datagouv_acces_acteurs_publics, { organisation_ids: [], vocabulaire_ids: [], type_acteur_ids: [] }])
+    params.expect(solution: [:nom, :categorie, :slug, :description_courte, :permet, :ne_permet_pas, :image, :legende_image, :site_internet, :url_demande_acces, :uid_datagouv, :types_solution, :france_connectee, :visible, :cree_le, :modifie_le, :grist_id, :datagouv_titre, :datagouv_organisation, :datagouv_logo, :datagouv_acces, :datagouv_acces_acteurs_publics, :datagouv_organisation_badges, { organisation_ids: [], vocabulaire_ids: [], type_acteur_ids: [] }])
   end
 end

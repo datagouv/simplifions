@@ -30,4 +30,8 @@ class Demarche < ApplicationRecord
       .pour_vocabulaire(params['categorie-de-solution']).pour_acteur(params['fournisseurs-de-service'])
       .recherche(params['q']).order(TRIS.fetch(params['sort'], {})).order(:id)
   end
+
+  def mots_clefs=(valeur)
+    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+  end
 end

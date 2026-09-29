@@ -21,6 +21,11 @@
     <%= f.text_field :slug, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
+    <%= f.label :mots_clefs, class: "fr-label" %>
+    <span class="fr-hint-text">Une valeur par ligne</span>
+    <%= f.text_area :mots_clefs, value: demarche.mots_clefs.join("\n"), class: "fr-input", rows: 4 %>
+  </div>
+  <div class="fr-input-group">
     <%= f.label :description_courte, class: "fr-label" %>
     <%= f.text_area :description_courte, class: "fr-input", rows: 6 %>
   </div>

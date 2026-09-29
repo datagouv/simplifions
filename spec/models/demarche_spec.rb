@@ -46,4 +46,14 @@ RSpec.describe Demarche do
       expect(described_class.catalogue('sort' => 'autre')).to eq([cantine, marches])
     end
   end
+
+  describe '#mots_clefs=' do
+    it 'accepte une valeur par ligne, comme dans le formulaire d’administration' do
+      expect(described_class.new(mots_clefs: "aides\r\n subventions \n\n").mots_clefs).to eq(%w[aides subventions])
+    end
+
+    it 'garde un tableau tel quel, comme à l’import Grist' do
+      expect(described_class.new(mots_clefs: %w[aides subventions]).mots_clefs).to eq(%w[aides subventions])
+    end
+  end
 end

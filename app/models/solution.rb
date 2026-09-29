@@ -115,6 +115,14 @@ class Solution < ApplicationRecord
     Demarche.visibles.where(id: ordre).sort_by { |demarche| ordre.index(demarche.id) }
   end
 
+  def types_solution=(valeur)
+    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+  end
+
+  def datagouv_organisation_badges=(valeur)
+    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+  end
+
   private
 
   def fiche_datagouv
