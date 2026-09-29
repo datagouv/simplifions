@@ -1,4 +1,13 @@
 <%= form_with model: [:admin, integration], class: "fr-mt-4w" do |f| %>
+  <% if integration.errors.any? %>
+    <div class="fr-alert fr-alert--error">
+      <ul>
+        <% integration.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
   <div class="fr-select-group">
     <%= f.label :integratrice_id, class: "fr-label" %>
     <%= f.collection_select :integratrice_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>

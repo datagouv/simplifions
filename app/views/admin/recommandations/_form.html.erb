@@ -1,4 +1,13 @@
 <%= form_with model: [:admin, recommandation], class: "fr-mt-4w" do |f| %>
+  <% if recommandation.errors.any? %>
+    <div class="fr-alert fr-alert--error">
+      <ul>
+        <% recommandation.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
   <div class="fr-select-group">
     <%= f.label :demarche_id, class: "fr-label" %>
     <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>

@@ -5,6 +5,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let(:cle) { modele.model_name.param_key }
   let(:modification) { { nom: 'Nouveau nom' } }
   let(:nouveaux) { attributs }
+  let(:invalide) { [{ nom: '' }, 'Nom doit être rempli'] }
   let!(:ligne) { modele.create!(attributs) }
 
   it 'exige la connexion' do
@@ -36,6 +37,14 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).to include('Enregistré.')
   end
 
+  it 'refuse une ligne invalide et réaffiche le formulaire avec l’erreur' do
+    sign_in admin
+    post "/admin/#{chemin}", params: { cle => invalide.first }
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.body).to include('<div class="fr-alert fr-alert--error">')
+    expect(response.body).to include(invalide.last)
+  end
+
   it 'modifie une ligne' do
     sign_in admin
     patch "/admin/#{chemin}/#{ligne.id}", params: { cle => modification }
@@ -62,6 +71,7 @@ RSpec.describe 'Administration' do
   it_behaves_like 'un CRUD brut', Recommandation, 'recommandations' do
     let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
     let(:modification) { { ordre: 3 } }
+    let(:invalide) { [{ demarche_id: '' }, 'Demarche doit exister'] }
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
   end
 
@@ -70,6 +80,7 @@ RSpec.describe 'Administration' do
       { integratrice_id: Solution.create!(nom: 'Bouquet').id, integree_id: Solution.create!(nom: 'API QF').id, type_integration: 'expose' }
     end
     let(:modification) { { statut: '✅ en production' } }
+    let(:invalide) { [{ integratrice_id: '' }, 'Integratrice doit exister'] }
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do

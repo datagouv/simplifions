@@ -7,6 +7,13 @@ fr:
     abbr_month_names: [~, jan., fév., mars, avr., mai, juin, juil., août, sept., oct., nov., déc.]
     day_names: [dimanche, lundi, mardi, mercredi, jeudi, vendredi, samedi]
     abbr_day_names: [dim., lun., mar., mer., jeu., ven., sam.]
+  errors:
+    messages:
+      blank: "doit être rempli"
+      required: "doit exister"
+      taken: "est déjà utilisé"
+      invalid: "n'est pas valide"
+      present: "doit être vide"
   admin:
     enregistre: "Enregistré."
     supprime: "Supprimé."
