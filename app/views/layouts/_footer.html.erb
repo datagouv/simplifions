@@ -1,12 +1,19 @@
 <footer class="fr-footer" role="contentinfo" id="footer">
   <div class="fr-container">
     <div class="fr-footer__body">
-      <div class="fr-footer__brand fr-enlarge-link">
+      <div class="fr-footer__brand footer-brand">
         <a href="/" title="Retour à l'accueil du site — Simplifions.data.gouv.fr">
           <p class="fr-logo">
             République
             <br>Française
           </p>
+        </a>
+        <a class="fr-footer__brand-link footer-brand__datagouv" href="https://www.data.gouv.fr/products" target="_blank" rel="noopener external" title="Les produits de l’écosystème datagouv — nouvelle fenêtre">
+          <%= image_tag "logos/datagouv.svg", alt: "", width: 48, height: 55 %>
+          <span>Produit de l’écosystème datagouv</span>
+        </a>
+        <a class="fr-footer__brand-link" href="https://www.numerique.gouv.fr/" target="_blank" rel="noopener external" title="numerique.gouv.fr — nouvelle fenêtre">
+          <%= image_tag "logos/numerique-gouv.svg", alt: "numerique.gouv - L’alliance du numérique de l’État", width: 180, height: 93 %>
         </a>
       </div>
       <div class="fr-footer__content">

@@ -9,6 +9,16 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('fr-footer')
     end
 
+    it 'affiche les logos datagouv et numerique.gouv dans le bloc marque du pied de page' do
+      get root_path
+
+      expect(response.body).not_to include('fr-footer__brand fr-enlarge-link')
+      expect(response.body).to include('href="https://www.data.gouv.fr/products"')
+      expect(response.body).to include('Produit de l’écosystème datagouv')
+      expect(response.body).to include('href="https://www.numerique.gouv.fr/"')
+      expect(response.body).to include('alt="numerique.gouv - L’alliance du numérique de l’État"')
+    end
+
     it 'présente le formulaire, et non des espaces de discussion disparus, comme moyen de contribuer' do
       get root_path
       expect(response.body).to include('Un formulaire est mis à disposition pour permettre aux usagers')
