@@ -14,7 +14,7 @@
   <%= form_with url: contact_path(anchor: "ecrire"), method: :get, local: true do %>
     <%= hidden_field_tag :besoin, besoin.cle, id: nil %>
     <% if fiche %>
-      <%= hidden_field_tag :page, params[:page], id: nil %>
+      <%= hidden_field_tag :page, @page, id: nil %>
     <% end %>
     <%= hidden_field_tag :adresse, 1, id: nil %>
     <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-md fr-btns-group--icon-right">

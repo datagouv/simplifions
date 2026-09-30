@@ -1,4 +1,4 @@
-<%= link_to "Retour", contact_path(besoin: besoin.precedent&.cle, page: params[:page].presence, anchor: "parcours"),
+<%= link_to "Retour", contact_path(besoin: besoin.precedent&.cle, page: @page, anchor: "parcours"),
       class: "fr-btn fr-btn--tertiary fr-btn--sm fr-btn--icon-left fr-icon-arrow-left-line fr-mb-4w" %>
 
 <% unless besoin.choix? %>
@@ -48,5 +48,5 @@
     <li><%= link_to besoin.suite, contact_path(besoin: besoin.enfants.first.cle, anchor: "parcours"), class: "fr-btn fr-btn--secondary" %></li>
   </ul>
 <% elsif besoin.enfants.any? %>
-  <%= render "pages/contact/choix", legende: "Précisez votre demande", besoins: besoin.enfants, page: params[:page] %>
+  <%= render "pages/contact/choix", legende: "Précisez votre demande", besoins: besoin.enfants, page: @page %>
 <% end %>

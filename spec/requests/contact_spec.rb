@@ -148,6 +148,16 @@ RSpec.describe 'Contact' do
     end
   end
 
+  it 'ignore un paramètre page qui n’est pas un texte' do
+    get '/contact?besoin=modifier-cas-usage&page[x]=1'
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('href="/contact?besoin=contenu#parcours"')
+
+    get '/contact?besoin=contenu&page[]=cantine'
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include('name="page"')
+  end
+
   it 'revient à la première étape pour un besoin inconnu' do
     get contact_path(besoin: 'nimporte-quoi')
 

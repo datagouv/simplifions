@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Nous contacter" %>
 <% content_for :description, "Proposition de contenu, signalement d’une erreur, question : répondez à quelques questions pour être orienté vers la bonne réponse ou le bon contact." %>
-<% content_for :robots, "noindex" if params[:besoin].present? || params[:page].present? %>
+<% content_for :robots, "noindex" if params[:besoin].present? || @page.present? %>
 
 <div class="fr-container fr-mb-8w">
   <h1>Nous contacter</h1>
