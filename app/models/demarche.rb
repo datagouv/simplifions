@@ -1,5 +1,8 @@
 class Demarche < ApplicationRecord
   validates :nom, presence: true
+  normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
+  validates :grist_id, :slug, uniqueness: true, allow_nil: true
+  validates :slug, presence: true, if: :visible?
 
   has_many :recommandations, dependent: :destroy
   has_and_belongs_to_many :vocabulaires
@@ -29,5 +32,9 @@ class Demarche < ApplicationRecord
     visibles.pour_vocabulaire(params['target-users']).pour_vocabulaire(params['types-de-simplification'])
       .pour_vocabulaire(params['categorie-de-solution']).pour_acteur(params['fournisseurs-de-service'])
       .recherche(params['q']).order(TRIS.fetch(params['sort'], {})).order(:id)
+  end
+
+  def mots_clefs=(valeur)
+    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
   end
 end

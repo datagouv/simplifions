@@ -17,6 +17,14 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('<h1>Administration</h1>')
     end
+
+    it 'mène à chaque table du catalogue' do
+      sign_in admin
+      get admin_root_path
+      %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
+        expect(response.body).to include("href=\"/admin/#{chemin}\"")
+      end
+    end
   end
 
   describe 'POST /admin/connexion' do

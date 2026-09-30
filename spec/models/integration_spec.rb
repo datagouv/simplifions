@@ -32,4 +32,11 @@ RSpec.describe Integration do
       described_class.new(type_integration: 'transporte')
     }.to raise_error(ArgumentError)
   end
+
+  describe '#libelle' do
+    it 'nomme la paire et le sens de l’intégration' do
+      integration = described_class.new(integratrice: Solution.new(nom: 'Bouquet'), integree: Solution.new(nom: 'API QF'), type_integration: 'consomme')
+      expect(integration.libelle).to eq('Bouquet → API QF (consomme)')
+    end
+  end
 end

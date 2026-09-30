@@ -164,7 +164,7 @@ RSpec.describe 'Demarches' do
         slug: 'acheteza', types_solution: ['Profil acheteur', 'Portail agent'])
 
       api_statut = Solution.create!(nom: 'API Statut étudiant', categorie: 'api')
-      autre_demarche = Demarche.create!(nom: 'Bourse', visible: true)
+      autre_demarche = Demarche.create!(nom: 'Bourse', slug: 'bourse', visible: true)
 
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
       Integration.create!(integratrice: bouquet, integree: api_statut, type_integration: 'expose')

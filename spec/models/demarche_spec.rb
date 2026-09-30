@@ -7,12 +7,12 @@ RSpec.describe Demarche do
     let(:logiciel) { Vocabulaire.create!(nom: 'Logiciel métier', slug: 'logiciel-metier', categorie: 'solution') }
     let(:communes) { TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-collectivites-territoires tout-acteurs-publics]) }
     let!(:cantine) do
-      described_class.create!(nom: 'Tarification cantine', visible: true, cree_le: 1.day.ago, modifie_le: 3.days.ago,
+      described_class.create!(nom: 'Tarification cantine', slug: 'tarification-cantine', visible: true, cree_le: 1.day.ago, modifie_le: 3.days.ago,
         description_courte: 'Pour les démarches des familles', mots_clefs: %w[repas],
         vocabulaires: [particuliers, dlnuf, logiciel], types_acteurs: [communes])
     end
     let!(:marches) do
-      described_class.create!(nom: 'Marchés publics', visible: true, cree_le: 2.days.ago, modifie_le: 1.day.ago,
+      described_class.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true, cree_le: 2.days.ago, modifie_le: 1.day.ago,
         description_courte: 'Justificatifs des entreprises', types_acteurs: [TypeActeur.create!(nom: 'État', slugs: %w[etat])])
     end
 
@@ -44,6 +44,16 @@ RSpec.describe Demarche do
       expect(described_class.catalogue('sort' => '-created')).to eq([cantine, marches])
       expect(described_class.catalogue('sort' => '-last_modified')).to eq([marches, cantine])
       expect(described_class.catalogue('sort' => 'autre')).to eq([cantine, marches])
+    end
+  end
+
+  describe '#mots_clefs=' do
+    it 'accepte une valeur par ligne, comme dans le formulaire d’administration' do
+      expect(described_class.new(mots_clefs: "aides\r\n subventions \n\n").mots_clefs).to eq(%w[aides subventions])
+    end
+
+    it 'garde un tableau tel quel, comme à l’import Grist' do
+      expect(described_class.new(mots_clefs: %w[aides subventions]).mots_clefs).to eq(%w[aides subventions])
     end
   end
 end

@@ -1,0 +1,47 @@
+<% solutions = Solution.order(:nom) %>
+<%= form_with model: [:admin, integration], class: "fr-mt-4w" do |f| %>
+  <% if integration.errors.any? %>
+    <div class="fr-alert fr-alert--error">
+      <ul>
+        <% integration.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="fr-select-group">
+    <%= f.label :integratrice_id, class: "fr-label" %>
+    <%= f.collection_select :integratrice_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-select-group">
+    <%= f.label :integree_id, class: "fr-label" %>
+    <%= f.collection_select :integree_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-select-group">
+    <%= f.label :type_integration, class: "fr-label" %>
+    <%= f.select :type_integration, Integration.type_integrations.keys, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :statut, class: "fr-label" %>
+    <%= f.text_field :statut, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :grist_id, class: "fr-label" %>
+    <%= f.text_field :grist_id, class: "fr-input" %>
+  </div>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Démarches</legend>
+    <%= f.collection_check_boxes :demarche_ids, Demarche.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <ul class="fr-btns-group fr-btns-group--inline">
+    <li><button type="submit" class="fr-btn">Enregistrer</button></li>
+    <li><%= link_to "Annuler", admin_integrations_path, class: "fr-btn fr-btn--secondary" %></li>
+  </ul>
+<% end %>

@@ -56,10 +56,10 @@ RSpec.describe Recommandation do
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
-      logiciel = Solution.create!(nom: 'Logiciel cantine', categorie: 'logiciel_metier_cle_en_main', visible: true)
-      portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
-      prospect = Solution.create!(nom: 'Éditeur en prospection', categorie: 'logiciel_metier_cle_en_main', visible: true)
-      hors_demarche = Solution.create!(nom: 'Éditeur hors démarche', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      logiciel = Solution.create!(nom: 'Logiciel cantine', slug: 'logiciel-cantine', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      portail = Solution.create!(nom: 'Portail agents', slug: 'portail-agents', categorie: 'site_de_consultation', visible: true)
+      prospect = Solution.create!(nom: 'Éditeur en prospection', slug: 'editeur-en-prospection', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      hors_demarche = Solution.create!(nom: 'Éditeur hors démarche', slug: 'editeur-hors-demarche', categorie: 'logiciel_metier_cle_en_main', visible: true)
       brouillon = Solution.create!(nom: 'Éditeur non visible', categorie: 'logiciel_metier_cle_en_main')
 
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
@@ -86,7 +86,7 @@ RSpec.describe Recommandation do
       cantine = Demarche.create!(nom: 'Cantine à 1€')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
       zed, acheteza, editions = ['Zed', 'acheteza', 'Éditions du Sud'].map do |nom|
-        Solution.create!(nom:, categorie: 'logiciel_metier_cle_en_main', visible: true).tap do |logiciel|
+        Solution.create!(nom:, slug: nom.parameterize, categorie: 'logiciel_metier_cle_en_main', visible: true).tap do |logiciel|
           Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
             statut: '✅ en production', demarches: [cantine])
         end
@@ -112,19 +112,19 @@ RSpec.describe Recommandation do
       described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
       described_class.create!(demarche: cantine, solution: api_statut, niveau: :niveau_1)
 
-      logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
       Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
         statut: '✅ en production', demarches: [autre_demarche])
       Integration.create!(integratrice: logiciel, integree: api_extra, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
-      portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true)
+      portail = Solution.create!(nom: 'Portail agents', slug: 'portail-agents-2', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: portail, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
       Integration.create!(integratrice: portail, integree: api_statut, type_integration: 'consomme',
         statut: '🚧 en cours', demarches: [cantine])
-      hors_utiles = Solution.create!(nom: 'Portail extra', categorie: 'site_de_consultation', visible: true)
+      hors_utiles = Solution.create!(nom: 'Portail extra', slug: 'portail-extra', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: hors_utiles, integree: api_extra, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
 

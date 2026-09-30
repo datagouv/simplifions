@@ -2,6 +2,9 @@ require 'net/http'
 
 class Solution < ApplicationRecord
   validates :nom, presence: true
+  normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
+  validates :grist_id, :slug, uniqueness: true, allow_nil: true
+  validates :slug, presence: true, if: -> { visible? && fiche? }
 
   # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
   normalizes :site_internet, :url_demande_acces,
@@ -113,6 +116,14 @@ class Solution < ApplicationRecord
   def demarches_simplifiables
     ordre = recommandations.visibles.order(:id).pluck(:demarche_id) + demarche_ids_integres
     Demarche.visibles.where(id: ordre).sort_by { |demarche| ordre.index(demarche.id) }
+  end
+
+  def types_solution=(valeur)
+    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+  end
+
+  def datagouv_organisation_badges=(valeur)
+    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
   end
 
   private

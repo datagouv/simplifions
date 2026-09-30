@@ -1,0 +1,59 @@
+<%= form_with model: [:admin, recommandation], class: "fr-mt-4w" do |f| %>
+  <% if recommandation.errors.any? %>
+    <div class="fr-alert fr-alert--error">
+      <ul>
+        <% recommandation.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="fr-select-group">
+    <%= f.label :demarche_id, class: "fr-label" %>
+    <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-select-group">
+    <%= f.label :solution_id, class: "fr-label" %>
+    <%= f.collection_select :solution_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-select-group">
+    <%= f.label :niveau, class: "fr-label" %>
+    <%= f.select :niveau, Recommandation.niveaus.keys, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :ordre, class: "fr-label" %>
+    <%= f.number_field :ordre, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :description, class: "fr-label" %>
+    <%= f.text_area :description, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :donnees_utiles, class: "fr-label" %>
+    <%= f.text_area :donnees_utiles, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :parametres_a_saisir, class: "fr-label" %>
+    <%= f.text_area :parametres_a_saisir, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :url_demande_acces, class: "fr-label" %>
+    <%= f.text_field :url_demande_acces, class: "fr-input" %>
+  </div>
+  <div class="fr-checkbox-group">
+    <%= f.check_box :visible %>
+    <%= f.label :visible, class: "fr-label" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :modifie_le, class: "fr-label" %>
+    <%= f.datetime_field :modifie_le, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :grist_id, class: "fr-label" %>
+    <%= f.text_field :grist_id, class: "fr-input" %>
+  </div>
+  <ul class="fr-btns-group fr-btns-group--inline">
+    <li><button type="submit" class="fr-btn">Enregistrer</button></li>
+    <li><%= link_to "Annuler", admin_recommandations_path, class: "fr-btn fr-btn--secondary" %></li>
+  </ul>
+<% end %>

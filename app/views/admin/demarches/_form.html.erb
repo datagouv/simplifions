@@ -1,0 +1,93 @@
+<%= form_with model: [:admin, demarche], class: "fr-mt-4w" do |f| %>
+  <% if demarche.errors.any? %>
+    <div class="fr-alert fr-alert--error">
+      <ul>
+        <% demarche.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="fr-input-group">
+    <%= f.label :nom, class: "fr-label" %>
+    <%= f.text_field :nom, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :icone, class: "fr-label" %>
+    <%= f.text_field :icone, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :slug, class: "fr-label" %>
+    <%= f.text_field :slug, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :mots_clefs, class: "fr-label" %>
+    <span class="fr-hint-text">Une valeur par ligne</span>
+    <%= f.text_area :mots_clefs, value: demarche.mots_clefs.join("\n"), class: "fr-input", rows: 4 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :description_courte, class: "fr-label" %>
+    <%= f.text_area :description_courte, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :contexte, class: "fr-label" %>
+    <%= f.text_area :contexte, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :cadre_juridique, class: "fr-label" %>
+    <%= f.text_area :cadre_juridique, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-checkbox-group">
+    <%= f.check_box :visible %>
+    <%= f.label :visible, class: "fr-label" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :cree_le, class: "fr-label" %>
+    <%= f.datetime_field :cree_le, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :modifie_le, class: "fr-label" %>
+    <%= f.datetime_field :modifie_le, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :grist_id, class: "fr-label" %>
+    <%= f.text_field :grist_id, class: "fr-input" %>
+  </div>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Vocabulaires</legend>
+    <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Types d'acteurs</legend>
+    <%= f.collection_check_boxes :type_acteur_ids, TypeActeur.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Intégrations</legend>
+    <%= f.collection_check_boxes :integration_ids, Integration.includes(:integratrice, :integree).order(:id), :id, :libelle do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <ul class="fr-btns-group fr-btns-group--inline">
+    <li><button type="submit" class="fr-btn">Enregistrer</button></li>
+    <li><%= link_to "Annuler", admin_demarches_path, class: "fr-btn fr-btn--secondary" %></li>
+  </ul>
+<% end %>

@@ -1,0 +1,58 @@
+<%= form_with model: [:admin, type_acteur], class: "fr-mt-4w" do |f| %>
+  <% if type_acteur.errors.any? %>
+    <div class="fr-alert fr-alert--error">
+      <ul>
+        <% type_acteur.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="fr-input-group">
+    <%= f.label :nom, class: "fr-label" %>
+    <%= f.text_field :nom, class: "fr-input" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :slugs, class: "fr-label" %>
+    <span class="fr-hint-text">Une valeur par ligne</span>
+    <%= f.text_area :slugs, value: type_acteur.slugs.join("\n"), class: "fr-input", rows: 4 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :description, class: "fr-label" %>
+    <%= f.text_area :description, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :codes_juridiques, class: "fr-label" %>
+    <%= f.text_area :codes_juridiques, class: "fr-input", rows: 6 %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :grist_id, class: "fr-label" %>
+    <%= f.text_field :grist_id, class: "fr-input" %>
+  </div>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Démarches</legend>
+    <%= f.collection_check_boxes :demarche_ids, Demarche.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">Solutions</legend>
+    <%= f.collection_check_boxes :solution_ids, Solution.order(:nom), :id, :nom do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
+  <ul class="fr-btns-group fr-btns-group--inline">
+    <li><button type="submit" class="fr-btn">Enregistrer</button></li>
+    <li><%= link_to "Annuler", admin_types_acteurs_path, class: "fr-btn fr-btn--secondary" %></li>
+  </ul>
+<% end %>

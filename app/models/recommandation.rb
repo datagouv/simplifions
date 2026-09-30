@@ -3,6 +3,8 @@ class Recommandation < ApplicationRecord
   belongs_to :solution
 
   enum :niveau, { niveau_1: 1, niveau_2: 2 }
+  normalizes :grist_id, with: ->(valeur) { valeur.presence }
+  validates :grist_id, uniqueness: true, allow_nil: true
 
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
