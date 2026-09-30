@@ -1,8 +1,8 @@
-<%= link_to "Retour", contact_path(besoin: besoin.precedent&.cle, page: @page, anchor: "parcours"),
+<%= link_to "Retour", contact_path(besoin: besoin.precedent&.cle, **@origine, anchor: "parcours"),
       class: "fr-btn fr-btn--tertiary fr-btn--sm fr-btn--icon-left fr-icon-arrow-left-line fr-mb-4w" %>
 
 <% unless besoin.choix? %>
-  <h2 class="fr-h3"><%= besoin.titre %></h2>
+  <h2 class="fr-h3"><%= besoin.libelle %></h2>
 <% end %>
 
 <% besoin.reponse.each do |paragraphe| %>
@@ -43,10 +43,6 @@
 
 <% if besoin.contact? %>
   <%= render "pages/contact/ecrire", besoin:, fiche: %>
-<% elsif besoin.suite %>
-  <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline">
-    <li><%= link_to besoin.suite, contact_path(besoin: besoin.enfants.first.cle, anchor: "parcours"), class: "fr-btn fr-btn--secondary" %></li>
-  </ul>
 <% elsif besoin.enfants.any? %>
-  <%= render "pages/contact/choix", legende: "Précisez votre demande", besoins: besoin.enfants, page: @page %>
+  <%= render "pages/contact/choix", legende: "Précisez votre demande", besoins: besoin.enfants, origine: @origine %>
 <% end %>

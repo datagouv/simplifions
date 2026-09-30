@@ -1,5 +1,5 @@
 BesoinContact = Data.define(:cle, :libelle, :description, :parent, :reponse, :liens, :a_verifier, :informations,
-  :objet_mail, :fiche, :suite, :autres_sujets, :pictogramme, :groupe, :titre)
+  :objet_mail, :fiche, :autres_sujets, :pictogramme, :groupe)
 
 # Une étape du parcours de la page « Nous contacter », décrite dans config/contact.yml.
 class BesoinContact
@@ -50,11 +50,7 @@ class BesoinContact
 
   # Une étape de choix propose ses enfants ; les autres étapes affichent une réponse ou le contact, sous un titre.
   def choix?
-    enfants.any? && !contact? && suite.nil?
-  end
-
-  def titre
-    to_h[:titre] || libelle
+    enfants.any? && !contact?
   end
 
   # L'adresse mail n'est donnée qu'aux étapes qui ont un objet de mail.
@@ -75,9 +71,8 @@ class BesoinContact
   end
 
   VALEURS_PAR_DEFAUT = { description: nil, parent: nil, reponse: [], liens: [], a_verifier: [], informations: [],
-                         objet_mail: nil, fiche: nil, suite: nil, autres_sujets: false,
-                         pictogramme: nil, groupe: nil,
-                         titre: nil }.freeze
+                         objet_mail: nil, fiche: nil, autres_sujets: false,
+                         pictogramme: nil, groupe: nil }.freeze
 
   def self.information(valeur)
     return Information.new(valeur, nil) if valeur.is_a?(String)

@@ -1,6 +1,6 @@
 <%= form_with url: contact_path(anchor: "parcours"), method: :get, local: true do %>
-  <% if page.present? %>
-    <%= hidden_field_tag :page, page, id: nil %>
+  <% origine.each do |type, slug| %>
+    <%= hidden_field_tag type, slug, id: nil %>
   <% end %>
   <fieldset class="fr-fieldset" aria-labelledby="choix-besoin-legende">
     <% groupes = besoins.group_by(&:groupe) %>

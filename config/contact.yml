@@ -9,10 +9,8 @@
 # - informations: informations à transmettre, reprises dans le modèle de mail. Une information peut
 #                 lister des options : { libelle, options: types_administrations | publics }.
 # - objet_mail  : objet pré-rempli. Présent = l'adresse mail est donnée à cette étape.
-# - fiche       : "demarche" ou "solution" ; la fiche passée en ?page=<slug> est citée dans le mail.
-# - suite       : libellé du lien vers l'étape suivante quand il n'y a qu'un seul choix possible.
+# - fiche       : "demarche" ou "solution" ; la fiche passée en ?demarche=<slug> ou ?solution=<slug> est citée dans le mail.
 # - autres_sujets: true pour rappeler, avec un lien, les autres choix de la même étape avant le contact.
-# - titre       : titre de l'étape quand il diffère du libellé du choix.
 # - groupe      : sous-titre sous lequel le choix est regroupé à son étape.
 # - pictogramme : pictogramme DSFR du bouton radio (chemin sous app/assets/images/artwork/pictograms/).
 

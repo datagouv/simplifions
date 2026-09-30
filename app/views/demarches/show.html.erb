@@ -43,5 +43,5 @@
     <% end %>
   </div>
 
-  <%= render "bloc_modification", sujet: "ce cas d'usage", besoin: "modifier-cas-usage", page: @demarche.slug %>
+  <%= render "bloc_modification", sujet: "ce cas d'usage", besoin: "modifier-cas-usage", origine: { demarche: @demarche.slug } %>
 </div>

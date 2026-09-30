@@ -84,11 +84,11 @@ RSpec.describe 'Contact' do
     it 'cite la fiche d’origine dans le mail' do
       Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
 
-      get contact_path(besoin: 'modifier-cas-usage', page: 'cantine')
+      get contact_path(besoin: 'modifier-cas-usage', demarche: 'cantine')
       expect(response.body).to include('Fiche concernée : <a href="http://www.example.com/demarches/cantine">Cantine à 1€</a>')
-      expect(response.body).to include('<input type="hidden" name="page" value="cantine" />')
+      expect(response.body).to include('<input type="hidden" name="demarche" value="cantine" />')
 
-      get contact_path(besoin: 'modifier-cas-usage', page: 'cantine', adresse: 1)
+      get contact_path(besoin: 'modifier-cas-usage', demarche: 'cantine', adresse: 1)
       expect(response.body).to include('Fiche concernée : Cantine à 1€ – http://www.example.com/demarches/cantine')
       expect(response.body).to include('.data] Modification d&#39;un cas d&#39;usage : Cantine à 1€')
     end
@@ -96,11 +96,29 @@ RSpec.describe 'Contact' do
     it 'ignore une fiche inconnue ou non publiée' do
       Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
 
-      get contact_path(besoin: 'modifier-cas-usage', page: 'brouillon', adresse: 1)
+      get contact_path(besoin: 'modifier-cas-usage', demarche: 'brouillon', adresse: 1)
 
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include('Fiche concernée')
       expect(response.body).not_to include('Brouillon')
+    end
+
+    it 'ne cherche pas le slug d’une démarche parmi les solutions' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+      Solution.create!(nom: 'Solution homonyme', slug: 'cantine', visible: true)
+
+      get contact_path(besoin: 'contenu', demarche: 'cantine')
+      expect(response.body).to include('<input type="hidden" name="demarche" value="cantine" />')
+
+      get contact_path(besoin: 'modifier-solution', demarche: 'cantine', adresse: 1)
+      expect(response.body).not_to include('Fiche concernée', 'Solution homonyme')
+    end
+
+    it 'sépare les lignes du mail par CRLF dans le lien, comme le demande la RFC 6068' do
+      get contact_path(besoin: 'autre', adresse: 1)
+
+      expect(response.body).to include('body=Bonjour%2C%0D%0A%0D%0A')
+      expect(response.body).to include("Bonjour,\n\n")
     end
 
     it 'prévient quand l’adresse n’est pas configurée' do
@@ -148,14 +166,14 @@ RSpec.describe 'Contact' do
     end
   end
 
-  it 'ignore un paramètre page qui n’est pas un texte' do
-    get '/contact?besoin=modifier-cas-usage&page[x]=1'
+  it 'ignore une fiche d’origine qui n’est pas un texte' do
+    get '/contact?besoin=modifier-cas-usage&demarche[x]=1'
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('href="/contact?besoin=contenu#parcours"')
 
-    get '/contact?besoin=contenu&page[]=cantine'
+    get '/contact?besoin=contenu&solution[]=cantine'
     expect(response).to have_http_status(:ok)
-    expect(response.body).not_to include('name="page"')
+    expect(response.body).not_to include('name="solution"')
   end
 
   it 'revient à la première étape pour un besoin inconnu' do
