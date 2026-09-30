@@ -174,6 +174,8 @@ RSpec.describe 'Solutions' do
     it 'propose une modification du contenu' do
       expect(response.body).to include('Proposer une modification du contenu')
       expect(response.body).to include('de cette solution')
+      expect(response.body).to include('href="/contact?besoin=modifier-solution&amp;page=bouquet-api-particulier#parcours"')
+      expect(response.body).not_to include('demarches-simplifiees.fr')
     end
   end
 

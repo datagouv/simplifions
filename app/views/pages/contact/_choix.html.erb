@@ -1,0 +1,34 @@
+<%= form_with url: contact_path(anchor: "parcours"), method: :get, local: true do %>
+  <% if page.present? %>
+    <%= hidden_field_tag :page, page, id: nil %>
+  <% end %>
+  <fieldset class="fr-fieldset" aria-labelledby="choix-besoin-legende">
+    <% groupes = besoins.group_by(&:groupe) %>
+    <% catalogues = { "Cas d'usages" => ["Voir les cas d'usages", demarches_path],
+                      "Solutions" => ["Voir les solutions", solutions_path],
+                      "Articles" => ["Voir les articles", articles_path] } %>
+    <%# Avec des catégories, la légende reste pour les lecteurs d'écran : les titres de catégorie suffisent à l'écran. %>
+    <legend class="fr-fieldset__legend<%= " fr-sr-only" if groupes.keys.any? %>" id="choix-besoin-legende"><%= legende %></legend>
+    <% groupes.each do |groupe, besoins_du_groupe| %>
+      <% if groupe %>
+        <div class="fr-fieldset__element">
+          <fieldset class="fr-fieldset fr-mb-0" aria-labelledby="groupe-<%= groupe.parameterize %>">
+            <legend class="fr-fieldset__legend fr-text--lg fr-mb-0 fr-pb-1w contact-groupe">
+              <span id="groupe-<%= groupe.parameterize %>"><%= groupe %></span>
+              <% if (catalogue = catalogues[groupe]) %>
+                <%= link_to catalogue.first, catalogue.last, class: "fr-link fr-link--sm fr-text--regular", target: "_blank", rel: "noopener",
+                      title: "#{catalogue.first} - nouvelle fenêtre" %>
+              <% end %>
+            </legend>
+            <%= render partial: "pages/contact/radio", collection: besoins_du_groupe, as: :besoin %>
+          </fieldset>
+        </div>
+      <% else %>
+        <%= render partial: "pages/contact/radio", collection: besoins_du_groupe, as: :besoin %>
+      <% end %>
+    <% end %>
+  </fieldset>
+  <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline fr-btns-group--icon-right">
+    <li><button type="submit" class="fr-btn fr-btn--icon-right fr-icon-arrow-right-line">Continuer</button></li>
+  </ul>
+<% end %>

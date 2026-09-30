@@ -32,6 +32,21 @@ Prérequis : Ruby 3.4.5 (voir `.ruby-version`) et PostgreSQL.
 bin/setup      # installe les gems, crée la base, démarre le serveur
 ```
 
+## Variables d'environnement
+
+| Variable | Rôle |
+|---|---|
+| `CONTACT_EMAIL` | Adresse donnée en fin de parcours sur la page `/contact`. Sans elle, la page indique « Adresse de contact indisponible ». |
+| `MATOMO_SITE_ID` | Identifiant du site dans Matomo (statistiques). Sans lui, aucun suivi n'est chargé. |
+
+En local avec Docker, créez un fichier `.env` à la racine (il est ignoré par Git) :
+
+```bash
+CONTACT_EMAIL=adresse@exemple.fr
+```
+
+puis relancez le site (`make restart`). Sur les environnements hébergés, déclarez-les dans la configuration de l'hébergeur.
+
 ## Tests et lint
 
 ```bash

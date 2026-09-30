@@ -1,0 +1,17 @@
+<%= render "entete_page", titre: "Nous contacter" %>
+<% content_for :description, "Proposition de contenu, signalement d’une erreur, question : répondez à quelques questions pour être orienté vers la bonne réponse ou le bon contact." %>
+<% content_for :robots, "noindex" if params[:besoin].present? || params[:page].present? %>
+
+<div class="fr-container fr-mb-8w">
+  <h1>Nous contacter</h1>
+
+  <section id="parcours" class="fr-grid-row" aria-label="Orienter votre demande">
+    <div class="fr-col-12 fr-col-lg-8 contact-parcours fr-p-4w">
+      <% if @besoin %>
+        <%= render "pages/contact/etape", besoin: @besoin, fiche: @fiche %>
+      <% else %>
+        <%= render "pages/contact/choix", legende: "Quel est votre besoin ?", besoins: BesoinContact.racines, page: nil %>
+      <% end %>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,21 @@
+<div class="fr-fieldset__element">
+  <div class="fr-radio-group fr-radio-rich">
+    <input type="radio" id="besoin-<%= besoin.cle %>" name="besoin" value="<%= besoin.cle %>" required>
+    <label class="fr-label" for="besoin-<%= besoin.cle %>">
+      <%= besoin.libelle %>
+      <% if besoin.description %>
+        <span class="fr-hint-text"><%= besoin.description %></span>
+      <% end %>
+    </label>
+    <% if besoin.pictogramme %>
+      <div class="fr-radio-rich__pictogram">
+        <% pictogramme = asset_path("artwork/pictograms/#{besoin.pictogramme}.svg") %>
+        <svg aria-hidden="true" class="fr-artwork" viewBox="0 0 80 80" width="80" height="80">
+          <use class="fr-artwork-decorative" href="<%= pictogramme %>#artwork-decorative"></use>
+          <use class="fr-artwork-minor" href="<%= pictogramme %>#artwork-minor"></use>
+          <use class="fr-artwork-major" href="<%= pictogramme %>#artwork-major"></use>
+        </svg>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,179 @@
+# Parcours de la page « Nous contacter » (/contact).
+#
+# Chaque besoin est une étape. Un besoin sans `parent` est proposé à la première étape ;
+# les besoins dont le `parent` vaut `cle` sont proposés à l'étape suivante.
+#
+# - reponse     : paragraphes affichés avant tout contact (réponse directe à l'usager).
+# - liens       : liens utiles affichés sous la réponse ({ libelle, url }).
+# - a_verifier  : liens à consulter avant d'écrire ({ libelle, url }).
+# - informations: informations à transmettre, reprises dans le modèle de mail. Une information peut
+#                 lister des options : { libelle, options: types_administrations | publics }.
+# - objet_mail  : objet pré-rempli. Présent = l'adresse mail est donnée à cette étape.
+# - fiche       : "demarche" ou "solution" ; la fiche passée en ?page=<slug> est citée dans le mail.
+# - suite       : libellé du lien vers l'étape suivante quand il n'y a qu'un seul choix possible.
+# - autres_sujets: true pour rappeler, avec un lien, les autres choix de la même étape avant le contact.
+# - titre       : titre de l'étape quand il diffère du libellé du choix.
+# - groupe      : sous-titre sous lequel le choix est regroupé à son étape.
+# - pictogramme : pictogramme DSFR du bouton radio (chemin sous app/assets/images/artwork/pictograms/).
+
+- cle: contenu
+  libelle: Proposer ou corriger un contenu du site
+  pictogramme: document/conclusion
+  description: Un cas d'usage, une solution ou un article manque, est incomplet ou contient une erreur.
+
+- cle: nouveau-cas-usage
+  parent: contenu
+  groupe: Cas d'usages
+  libelle: Proposer un nouveau cas d'usage
+  pictogramme: digital/innovation
+  description: Une démarche qui peut être simplifiée grâce à la donnée n'est pas encore sur le site.
+  a_verifier:
+    - libelle: Vérifiez que votre cas d'usage n'existe pas déjà
+      url: /demarches
+    - libelle: Consultez la doctrine de référencement des cas d'usages
+      url: /doctrine-referencement-cas-usages
+  informations:
+    - Votre organisation et votre fonction
+    - La description de la démarche à simplifier
+    - libelle: Le public concerné
+      options: publics
+    - libelle: Les types d'administrations concernées
+      options: types_administrations
+    - Les API et jeux de données utiles (nom et URL sur Data.gouv.fr si possible)
+  objet_mail: Proposition d'un nouveau cas d'usage
+
+- cle: modifier-cas-usage
+  parent: contenu
+  groupe: Cas d'usages
+  libelle: Proposer une modification d'un cas d'usage existant
+  pictogramme: document/sign-document
+  description: Une information est manquante, obsolète ou erronée sur une fiche cas d'usage.
+  fiche: demarche
+  informations:
+    - Votre organisation et votre fonction
+    - Le nom et l'URL du cas d'usage concerné
+    - Vos propositions pour améliorer la fiche
+  objet_mail: Modification d'un cas d'usage
+
+- cle: nouvelle-solution
+  parent: contenu
+  groupe: Solutions
+  libelle: Référencer une nouvelle solution
+  pictogramme: digital/innovation
+  description: Un logiciel, un portail, une API ou un jeu de données permet de simplifier une démarche.
+  a_verifier:
+    - libelle: Rechercher parmi les solutions existantes
+      url: /solutions
+    - libelle: Lire la doctrine de référencement des solutions
+      url: /doctrine-referencement-solutions
+  informations:
+    - Votre organisation et votre fonction
+    - Le nom, le site internet et le fournisseur de la solution
+    - "Le type de solution : API, jeu de données, portail usagers, portail agent, formulaire en ligne, hub d'échange, service d'authentification…"
+    - libelle: Les types d'administrations concernées
+      options: types_administrations
+    - libelle: Le public concerné
+      options: publics
+    - Les données qui ne sont plus redemandées aux usagers grâce à la solution
+    - Les cas d'usages couverts par la solution (URL des fiches existantes, ou description)
+  objet_mail: Référencement d'une nouvelle solution
+
+- cle: modifier-solution
+  parent: contenu
+  groupe: Solutions
+  libelle: Proposer une modification d'une fiche solution existante
+  pictogramme: document/sign-document
+  description: Une information est manquante, obsolète ou erronée sur une fiche solution.
+  fiche: solution
+  informations:
+    - Votre organisation et votre fonction
+    - Le nom de la solution et l'URL de sa fiche
+    - Vos propositions pour améliorer la fiche
+  objet_mail: Modification d'une fiche solution
+
+- cle: nouvel-article
+  parent: contenu
+  groupe: Articles
+  libelle: Proposer un nouvel article
+  pictogramme: digital/innovation
+  description: Un guide utile aux administrations qui simplifient leurs démarches.
+  a_verifier:
+    - libelle: Consulter les articles existants
+      url: /articles
+  informations:
+    - Votre organisation et votre fonction
+    - Le sujet de l'article et le public visé
+    - Un plan ou un premier contenu, si vous en avez un
+  objet_mail: Proposition d'un nouvel article
+
+- cle: modifier-article
+  parent: contenu
+  groupe: Articles
+  libelle: Proposer une modification d'un article existant
+  pictogramme: document/sign-document
+  description: Une information est manquante, obsolète ou erronée dans un article.
+  informations:
+    - Votre organisation et votre fonction
+    - Le titre et l'URL de l'article concerné
+    - Vos propositions pour améliorer l'article
+  objet_mail: Modification d'un article
+
+- cle: autre-contenu
+  parent: contenu
+  groupe: Autre contenu
+  libelle: Proposer la modification d'un autre contenu
+  pictogramme: leisure/book
+  description: Une autre page du site, un lien cassé.
+  informations:
+    - L'URL de la page concernée
+    - Votre proposition ou votre remarque
+  objet_mail: Erreur de contenu
+
+- cle: demarche-personnelle
+  libelle: J'ai une question sur ma propre démarche administrative
+  pictogramme: digital/avatar
+  description: Un dossier, une aide, un document à obtenir en tant que particulier, entreprise ou association.
+  reponse:
+    - Nous ne sommes pas en mesure de vous aider à ce sujet.
+    - Simplifions.data.gouv.fr s'adresse uniquement aux acteurs publics pour les aider à simplifier leurs démarches auprès des associations, entreprises et particuliers. 
+    - L'équipe de Simplifions.data.gouv.fr ne traite aucune démarche de particulier, entreprise ou association et ne détient aucune information.
+  liens:
+    - libelle: Service-public.fr, pour les particuliers
+      url: https://www.service-public.fr
+    - libelle: Entreprendre.service-public.fr, pour les entreprises
+      url: https://entreprendre.service-public.fr
+    - libelle: Associations.gouv.fr, pour les associations
+      url: https://www.associations.gouv.fr
+
+- cle: question-api
+  libelle: J'ai une question sur une API ou un jeu de données
+  pictogramme: digital/coding
+  description: Accès, habilitation, fonctionnement ou panne d'une API ou d'un jeu de données.
+  reponse:
+    - Simplifions.data.gouv.fr recense les API et les jeux de données mais ne les produit pas. Les demandes d'accès, les habilitations et les incidents sont traités par le fournisseur de chaque API ou jeu de données.
+    - 'Retrouvez les coordonnées de contact du fournisseur de données depuis la fiche dédiée sur data.gouv.fr :'
+  liens:
+    - libelle: Directement depuis la recherche data.gouv.fr
+      url: https://www.data.gouv.fr
+    - libelle: ou via les démarches référencées sur simplifions.data.gouv.fr
+      url: /demarches
+
+- cle: probleme-site
+  libelle: Signaler un problème technique ou d'accessibilité sur le site
+  pictogramme: system/technical-error
+  description: Une page ne s'affiche pas, un lien est cassé, un contenu n'est pas accessible.
+  informations:
+    - L'URL de la page concernée
+    - Votre navigateur et votre appareil (ordinateur, téléphone)
+    - La description du problème, et si possible une capture d'écran en pièce jointe
+  objet_mail: Problème technique ou d'accessibilité
+
+- cle: autre
+  libelle: Autre sujet
+  pictogramme: digital/mail-send
+  description: Votre besoin ne correspond pas aux cases précédentes.
+  autres_sujets: true
+  informations:
+    - Votre organisation et votre fonction
+    - L'objet de votre demande
+  objet_mail: Prise de contact - autre sujet
