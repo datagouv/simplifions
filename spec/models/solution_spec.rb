@@ -136,6 +136,18 @@ RSpec.describe Solution do
       expect(solution.site_internet).to be_nil
       expect(solution.url_demande_acces).to eq('https://datapass.example/ok')
     end
+
+    it 'complète en https une adresse saisie sans protocole, sans réhabiliter les autres schémas' do
+      solution = described_class.new(nom: 'Pressée', site_internet: ' www.exemple.fr ',
+        url_demande_acces: 'exemple.fr/demande?x=1')
+
+      expect(solution.site_internet).to eq('https://www.exemple.fr')
+      expect(solution.url_demande_acces).to eq('https://exemple.fr/demande?x=1')
+      expect(described_class.new(site_internet: 'javascript:alert(1)//.fr').site_internet).to be_nil
+      expect(described_class.new(site_internet: 'voir le site').site_internet).to be_nil
+      expect(described_class.new(url_demande_acces: 'contact@exemple.fr').url_demande_acces).to be_nil
+      expect(described_class.new(site_internet: 'http://exemple.fr').site_internet).to eq('http://exemple.fr')
+    end
   end
 
   describe '#nb_donnees_integrees' do
