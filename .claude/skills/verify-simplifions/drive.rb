@@ -72,8 +72,31 @@ def vocabulaires(page)
   page.click_button 'Se déconnecter'
 end
 
+def cascade(page)
+  nom = "Vérif verify-map #{Verify.browser}"
+  solution = Solution.order(:id).find { |s| !s.privee? }
+  demarche = Demarche.create!(nom:)
+  Recommandation.create!(demarche:, solution:)
+  Verify.login(page)
+  page.click_link 'Démarches'
+  page.assert_selector 'h1', text: 'Démarches'
+  page.assert_selector 'td', text: nom
+  Verify.evidence('admin-supprimer-demarche', page, 'avant',
+    "demarche=#{demarche.id} recommandations=#{Recommandation.where(demarche:).count} solution=#{solution.id}")
+  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.accept_confirm { page.click_button 'Supprimer' } }
+  page.assert_text 'Supprimé.'
+  page.assert_no_selector 'td', text: nom
+  ActiveRecord::Base.uncached do
+    Verify.evidence('admin-supprimer-demarche', page, 'apres',
+      "demarche_en_base=#{Demarche.where(nom:).count} recommandations=#{Recommandation.where(demarche:).count} " \
+      "solution_en_base=#{Solution.where(id: solution.id).count}")
+  end
+  page.click_button 'Se déconnecter'
+end
+
 Verify.ensure_admin
-{ 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires }.each do |nom, fn|
+{ 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
+  'cascade' => :cascade }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
