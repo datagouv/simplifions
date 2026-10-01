@@ -25,9 +25,9 @@
   <h2 class="fr-mb-2w">Filtrer les <%= titre.downcase %></h2>
   <%= form_with url: send(chemin), method: :get, class: "catalogue", data: { controller: "form" } do |f| %>
     <div class="fr-search-bar fr-search-bar--lg" role="search">
-      <%= f.label :q, "Recherche", class: "fr-label" %>
-      <%= f.search_field :q, value: @filtres[:q], class: "fr-input", placeholder: "Recherche" %>
-      <button type="submit" class="fr-btn">Recherche</button>
+      <%= f.label :q, "Rechercher", class: "fr-label" %>
+      <%= f.search_field :q, value: @filtres[:q], class: "fr-input", placeholder: "Rechercher" %>
+      <button type="submit" class="fr-btn">Rechercher</button>
     </div>
 
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
