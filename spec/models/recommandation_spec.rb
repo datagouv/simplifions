@@ -123,7 +123,7 @@ RSpec.describe Recommandation do
       Integration.create!(integratrice: portail, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
       Integration.create!(integratrice: portail, integree: api_statut, type_integration: 'consomme',
-        statut: '🚧 en cours', demarches: [cantine])
+        statut: '⚙️ en développement', demarches: [cantine])
       hors_utiles = Solution.create!(nom: 'Portail extra', slug: 'portail-extra', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: hors_utiles, integree: api_extra, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])

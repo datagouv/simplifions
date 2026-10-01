@@ -90,7 +90,7 @@ RSpec.describe 'Solutions' do
         statut: '✅ en production', demarches: [cantine])
       en_cours = Solution.create!(nom: 'Portail en cours', slug: 'portail-en-cours', categorie: 'site_de_consultation', visible: true)
       Integration.create!(integratrice: en_cours, integree: api_qf, type_integration: 'consomme',
-        statut: '🚧 en cours', demarches: [cantine])
+        statut: '⚙️ en développement', demarches: [cantine])
       portail = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true,
         slug: 'portail-agents')
       Integration.create!(integratrice: portail, integree: api_qf, type_integration: 'consomme',

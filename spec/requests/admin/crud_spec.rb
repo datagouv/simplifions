@@ -178,6 +178,23 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'listes fermées' do
+    before { sign_in admin }
+
+    it 'propose les statuts d’intégration en liste et refuse une saisie libre' do
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'),
+        type_integration: 'consomme')
+
+      get "/admin/integrations/#{integration.id}/edit"
+      expect(response.body).to include('<select class="fr-select" name="integration[statut]" id="integration_statut">')
+      expect(response.body).to include('<option value="✅ en production">✅ en production</option>')
+
+      patch "/admin/integrations/#{integration.id}", params: { integration: { statut: 'en production' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Statut doit être choisi dans la liste')
+    end
+  end
+
   describe 'image de solution' do
     it 'attache le fichier envoyé par le formulaire' do
       sign_in admin

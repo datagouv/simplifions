@@ -69,7 +69,7 @@ RSpec.describe Solution do
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production')
       Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
-        statut: '🚧 en cours')
+        statut: '⚙️ en développement')
       Integration.create!(integratrice: logiciel, integree: api_fc, type_integration: 'expose')
 
       expect(logiciel.consommees).to contain_exactly(api_qf)
@@ -90,7 +90,7 @@ RSpec.describe Solution do
       Integration.create!(integratrice: brouillon, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production')
       Integration.create!(integratrice: en_cours, integree: api_qf, type_integration: 'consomme',
-        statut: '🚧 en cours')
+        statut: '⚙️ en développement')
 
       expect(bouquet.integratrices_visibles).to contain_exactly(logiciel)
       expect(api_qf.integratrices_visibles).to contain_exactly(logiciel)
@@ -119,7 +119,7 @@ RSpec.describe Solution do
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine, autre, brouillon])
       Integration.create!(integratrice: logiciel, integree: api_statut, type_integration: 'consomme',
-        statut: '🚧 en cours', demarches: [cantine])
+        statut: '⚙️ en développement', demarches: [cantine])
       Integration.create!(integratrice: portail, integree: api_extra, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
 
