@@ -28,3 +28,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
 - [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete a démarche the drive created; its recommandations go with it.
+- [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.
