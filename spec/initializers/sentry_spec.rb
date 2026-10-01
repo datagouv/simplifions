@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe 'Sentry' do
   subject(:config) { Sentry.configuration }
 
-  it "n'envoie rien sans sentry_dsn dans les credentials" do
-    expect(config.dsn).to be_nil
+  it "n'émet qu'en staging et production" do
+    expect(config.enabled_environments).to eq(%w[staging production])
     expect(config.sending_allowed?).to be(false)
   end
 
