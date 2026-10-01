@@ -33,6 +33,20 @@ RSpec.describe Integration do
     }.to raise_error(ArgumentError)
   end
 
+  describe 'statut' do
+    let(:integration) { described_class.new(integratrice: bouquet, integree: api, type_integration: 'consomme') }
+
+    it 'accepte les statuts Grist et le vide, refuse une saisie hors liste' do
+      expect(described_class::STATUTS).to include('🚧 Intéressé si évolution')
+      [nil, '', *described_class::STATUTS].each do |statut|
+        expect(integration.tap { it.statut = statut }).to be_valid
+      end
+      integration.statut = 'en production'
+      expect(integration).not_to be_valid
+      expect(integration.errors.full_messages).to eq(['Statut doit être choisi dans la liste'])
+    end
+  end
+
   describe '#libelle' do
     it 'nomme la paire et le sens de l’intégration' do
       integration = described_class.new(integratrice: Solution.new(nom: 'Bouquet'), integree: Solution.new(nom: 'API QF'), type_integration: 'consomme')

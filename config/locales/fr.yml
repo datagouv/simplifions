@@ -13,6 +13,7 @@ fr:
       required: "doit exister"
       taken: "est déjà utilisé"
       present: "doit être vide"
+      inclusion: "doit être choisi dans la liste"
   admin:
     enregistre: "Enregistré."
     supprime: "Supprimé."
