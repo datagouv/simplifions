@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe 'Sentry' do
   subject(:config) { Sentry.configuration }
 
-  it "n'émet qu'en staging et production" do
-    expect(config.enabled_environments).to eq(%w[staging production])
+  it "n'émet qu'en bac à sable, staging et production" do
+    expect(config.enabled_environments).to eq(%w[sandbox staging production])
     expect(config.sending_allowed?).to be(false)
   end
 
