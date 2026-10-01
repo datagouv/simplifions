@@ -28,6 +28,19 @@ RSpec.describe Grist::AttachImages do
     expect(solution.image.filename.to_s).to eq('logo.png')
   end
 
+  it 'attaches an image whose received filename is not valid UTF-8' do
+    stub_request(:get, download_url).to_return(
+      status: 200, body: 'PNGBYTES',
+      headers: { 'Content-Type' => 'image/png',
+                 'Content-Disposition' => "attachment; filename=\"Capture_d_\xFDcran.png\"".b }
+    )
+
+    expect(result).to be_a_success
+    filename = solution.reload.image.filename.to_s
+    expect(filename).to be_valid_encoding
+    expect(filename).to start_with('Capture_d_').and end_with('cran.png')
+  end
+
   it 'does not download again when an image is already attached' do
     call_interactor
     call_interactor
