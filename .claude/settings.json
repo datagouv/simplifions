@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "dsfr-skill": {
+      "source": { "source": "github", "repo": "numerique-gouv/dsfr-skill" }
+    },
+    "rgaa-toolkit": {
+      "source": { "source": "git", "url": "https://github.com/Isalafont/claude-skill-rgaa-dev.git" }
+    }
+  },
+  "enabledPlugins": {
+    "dsfr-skill@dsfr-skill": true,
+    "accessibility@rgaa-toolkit": true
+  }
+}
