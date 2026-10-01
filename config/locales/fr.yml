@@ -14,6 +14,7 @@ fr:
       taken: "est déjà utilisé"
       present: "doit être vide"
       inclusion: "doit être choisi dans la liste"
+      format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
   admin:
     enregistre: "Enregistré."
     supprime: "Supprimé."

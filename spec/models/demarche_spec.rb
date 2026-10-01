@@ -1,6 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe Demarche do
+  it 'refuse un slug hors format d’URL en disant le format attendu' do
+    expect(described_class.new(nom: 'Cantine', slug: 'cantine-scolaire-2')).to be_valid
+    ligne = described_class.new(nom: 'Cantine', slug: 'avec espaces/et accents é')
+    expect(ligne).not_to be_valid
+    expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
+  end
+
   describe '.catalogue' do
     let(:particuliers) { Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
     let(:dlnuf) { Vocabulaire.create!(nom: 'DLNUF', slug: 'dlnuf', categorie: 'type_simplification') }

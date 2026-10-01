@@ -207,6 +207,19 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'slug' do
+    it 'annonce le format attendu sous le champ et garde la saisie refusée' do
+      sign_in admin
+      get '/admin/solutions/new'
+      expect(response.body).to include('<span class="fr-hint-text">Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>')
+
+      post '/admin/demarches', params: { demarche: { nom: 'Aides', slug: 'Aides publiques' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets')
+      expect(response.body).to include('value="Aides publiques"')
+    end
+  end
+
   describe 'image de solution' do
     it 'attache le fichier envoyé par le formulaire' do
       sign_in admin

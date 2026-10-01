@@ -17,7 +17,10 @@
     <%= f.select :categorie, Solution.categories.keys, { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :slug, class: "fr-label" %>
+    <%= f.label :slug, class: "fr-label" do %>
+      Slug
+      <span class="fr-hint-text">Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>
+    <% end %>
     <%= f.text_field :slug, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
