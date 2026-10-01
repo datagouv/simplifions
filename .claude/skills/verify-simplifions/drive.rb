@@ -94,9 +94,58 @@ def cascade(page)
   page.click_button 'Se déconnecter'
 end
 
+def saisies(page)
+  Verify.login(page)
+  solution = Solution.visibles.fiches.where.not(slug: nil).order(:id).find { |s| !s.privee? }
+  site_avant = solution.site_internet
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  page.fill_in 'Site internet', with: 'www.exemple-verif.fr'
+  page.click_button 'Enregistrer'
+  page.assert_text 'Enregistré.'
+  page.visit("/solutions/#{solution.slug}")
+  page.assert_selector :link, 'Site de la solution', href: 'https://www.exemple-verif.fr'
+  Verify.evidence('admin-saisies-controlees', page, 'url-completee',
+    "solution=#{solution.id} saisi=www.exemple-verif.fr en_base=#{solution.reload.site_internet}")
+  solution.update!(site_internet: site_avant)
+
+  integration = Integration.en_production.order(:id).first
+  page.visit("/admin/integrations/#{integration.id}/edit")
+  options = page.find_field('Statut').all('option').map(&:value)
+  raise "options #{options}" unless options == ['', *Integration::STATUTS]
+
+  page.select Integration::STATUT_EN_PRODUCTION, from: 'Statut'
+  page.click_button 'Enregistrer'
+  page.assert_text 'Enregistré.'
+  Verify.evidence('admin-saisies-controlees', page, 'statut-liste',
+    "integration=#{integration.id} options=#{options.size} en_base=#{integration.reload.statut}")
+
+  organisation = solution.organisations.find_by!(public_ou_prive: 'Public')
+  page.visit("/admin/organisations/#{organisation.id}/edit")
+  page.assert_selector :radio_button, 'Public', checked: true, visible: :all
+  Verify.evidence('admin-saisies-controlees', page, 'radios-public-prive')
+  page.click_button 'Enregistrer'
+  page.assert_text 'Enregistré.'
+  page.visit("/solutions/#{solution.slug}")
+  page.assert_text(/Solution publique \| #{Regexp.escape(organisation.nom)}/i)
+  Verify.evidence('admin-saisies-controlees', page, 'solution-reste-publique',
+    "organisation=#{organisation.id} en_base=#{organisation.reload.public_ou_prive} privee=#{solution.reload.privee?}")
+
+  demarche = Demarche.visibles.order(:id).first
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.fill_in 'Slug', with: 'Vérif avec espaces/et accents'
+  page.click_button 'Enregistrer'
+  page.assert_text 'Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'
+  page.assert_selector :field, 'Slug', with: 'Vérif avec espaces/et accents'
+  Verify.evidence('admin-saisies-controlees', page, 'slug-refuse', "demarche=#{demarche.id} en_base=#{demarche.reload.slug}")
+  page.visit("/demarches/#{demarche.slug}")
+  page.assert_selector 'h1', text: demarche.nom
+  Verify.evidence('admin-saisies-controlees', page, 'page-publique', "path=#{page.current_path}")
+  page.click_button 'Se déconnecter'
+end
+
 Verify.ensure_admin
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
-  'cascade' => :cascade }.each do |nom, fn|
+  'cascade' => :cascade, 'saisies' => :saisies }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
