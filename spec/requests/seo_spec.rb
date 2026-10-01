@@ -106,6 +106,16 @@ RSpec.describe 'SEO' do
       expect(response.body).to include('<h1>Plan du site</h1>')
     end
 
+    it 'contient chaque page du plan du site' do
+      get sitemap_path
+      plan = response.parsed_body.css('main ul[role=list] a').pluck('href')
+      get '/sitemap.xml'
+      xml = Nokogiri::XML(response.body).remove_namespaces!.css('loc').map { |loc| URI(loc.text).path }
+
+      expect(plan).not_to be_empty
+      expect(xml).to include(*plan)
+    end
+
     it 'est déclaré dans robots.txt' do
       get '/robots.txt'
 
