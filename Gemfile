@@ -33,6 +33,8 @@ gem "active_storage_db"
 # Authentification de l'administration : comptes locaux, sans inscription ni e-mail
 gem "devise"
 
+gem "strong_migrations"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
