@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_085509) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_01_091500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -81,18 +81,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_085509) do
     t.bigint "demarche_id", null: false
     t.bigint "integration_id", null: false
     t.index ["demarche_id", "integration_id"], name: "index_demarches_integrations_on_demarche_id_and_integration_id", unique: true
+    t.index ["integration_id"], name: "index_demarches_integrations_on_integration_id"
   end
 
   create_table "demarches_types_acteurs", id: false, force: :cascade do |t|
     t.bigint "demarche_id", null: false
     t.bigint "type_acteur_id", null: false
     t.index ["demarche_id", "type_acteur_id"], name: "idx_on_demarche_id_type_acteur_id_e6293e9502", unique: true
+    t.index ["type_acteur_id"], name: "index_demarches_types_acteurs_on_type_acteur_id"
   end
 
   create_table "demarches_vocabulaires", id: false, force: :cascade do |t|
     t.bigint "demarche_id", null: false
     t.bigint "vocabulaire_id", null: false
     t.index ["demarche_id", "vocabulaire_id"], name: "index_demarches_vocabulaires_on_demarche_id_and_vocabulaire_id", unique: true
+    t.index ["vocabulaire_id"], name: "index_demarches_vocabulaires_on_vocabulaire_id"
   end
 
   create_table "integrations", force: :cascade do |t|
@@ -124,6 +127,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_085509) do
     t.bigint "organisation_id", null: false
     t.bigint "solution_id", null: false
     t.index ["organisation_id", "solution_id"], name: "idx_on_organisation_id_solution_id_c637cc21ae", unique: true
+    t.index ["solution_id"], name: "index_organisations_solutions_on_solution_id"
   end
 
   create_table "recommandations", force: :cascade do |t|
@@ -141,7 +145,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_085509) do
     t.string "url_demande_acces"
     t.boolean "visible", default: false, null: false
     t.index ["demarche_id", "solution_id"], name: "index_recommandations_on_demarche_id_and_solution_id", unique: true
-    t.index ["demarche_id"], name: "index_recommandations_on_demarche_id"
     t.index ["grist_id"], name: "index_recommandations_on_grist_id", unique: true
     t.index ["solution_id"], name: "index_recommandations_on_solution_id"
   end
@@ -179,12 +182,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_085509) do
     t.bigint "solution_id", null: false
     t.bigint "type_acteur_id", null: false
     t.index ["solution_id", "type_acteur_id"], name: "idx_on_solution_id_type_acteur_id_b3c16472c6", unique: true
+    t.index ["type_acteur_id"], name: "index_solutions_types_acteurs_on_type_acteur_id"
   end
 
   create_table "solutions_vocabulaires", id: false, force: :cascade do |t|
     t.bigint "solution_id", null: false
     t.bigint "vocabulaire_id", null: false
     t.index ["solution_id", "vocabulaire_id"], name: "index_solutions_vocabulaires_on_solution_id_and_vocabulaire_id", unique: true
+    t.index ["vocabulaire_id"], name: "index_solutions_vocabulaires_on_vocabulaire_id"
   end
 
   create_table "types_acteurs", force: :cascade do |t|
