@@ -193,6 +193,18 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('Statut doit être choisi dans la liste')
     end
+
+    it 'propose public ou privé en boutons radio, non renseigné compris' do
+      dinum = Organisation.create!(nom: 'DINUM')
+
+      get "/admin/organisations/#{dinum.id}/edit"
+      expect(response.body).to include('<input type="radio" value="" checked="checked" name="organisation[public_ou_prive]" id="organisation_public_ou_prive_" />')
+      expect(response.body).to include('<input type="radio" value="Privé" name="organisation[public_ou_prive]" id="organisation_public_ou_prive_privé" />')
+      expect(response.body).to include('<label class="fr-label" for="organisation_public_ou_prive_privé">Privé</label>')
+
+      patch "/admin/organisations/#{dinum.id}", params: { organisation: { public_ou_prive: 'Public' } }
+      expect(dinum.reload.public_ou_prive).to eq('Public')
+    end
   end
 
   describe 'image de solution' do
