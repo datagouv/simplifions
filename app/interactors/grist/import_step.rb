@@ -54,13 +54,15 @@ class Grist::ImportStep < ApplicationInteractor
   def normalise_slug(row, gid)
     if row.respond_to?(:fiche?) && !row.fiche?
       row.slug = nil
-    elsif row.respond_to?(:slug) && row.slug.blank?
+    elsif row.respond_to?(:slug) && (row.slug.blank? || slug_hors_format?(row))
       assign_slug(row, gid)
     end
   end
 
+  def slug_hors_format?(row) = row.invalid? && row.errors.of_kind?(:slug, :invalid)
+
   def assign_slug(row, gid)
-    slug = SNAPSHOT.dig(gid, 'slug') || row.nom.to_s.parameterize
+    slug = SNAPSHOT.dig(gid, 'slug') || row.nom.to_s.tr('_', ' ').parameterize
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug
   end

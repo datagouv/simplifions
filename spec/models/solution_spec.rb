@@ -1,6 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe Solution do
+  it 'refuse un slug hors format d’URL en disant le format attendu' do
+    expect(described_class.new(nom: 'Cantine', slug: 'cantine-scolaire-2')).to be_valid
+    ligne = described_class.new(nom: 'Cantine', slug: 'avec espaces/et accents é')
+    expect(ligne).not_to be_valid
+    expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
+  end
+
   describe '#exposees' do
     it 'returns only solutions integrated with type expose' do
       bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])

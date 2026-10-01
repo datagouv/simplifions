@@ -42,6 +42,23 @@ RSpec.describe Grist::Import do
     expect(eau).to have_attributes(visible: false, slug: 'tarification-sociale-de-l-eau-potable', cree_le: nil)
   end
 
+  it 'recalcule un slug saisi hors format avant sa validation plutôt que de purger la démarche' do
+    Demarche.new(nom: 'Cantine', grist_id: 'Cas_d_usages:8', slug: 'Aides publiques').save!(validate: false)
+
+    result
+    expect(Demarche.find_by!(grist_id: 'Cas_d_usages:8').slug).to eq('tarification-cantine-scolaire-a-1eur')
+  end
+
+  it 'remplace les « _ » d’un nom par des tirets plutôt que de mettre la démarche en quarantaine' do
+    table = JSON.parse(Rails.root.join('spec/fixtures/grist/Cas_d_usages.json').read)
+    table['records'].find { it['id'] == 6 }['fields']['Nom'] = 'Eau_potable _ sociale_'
+    stub_request(:get, Grist::FetchTables.url('Cas_d_usages')).to_return(status: 200, body: table.to_json,
+      headers: { 'Content-Type' => 'application/json' })
+
+    result
+    expect(Demarche.find_by!(grist_id: 'Cas_d_usages:6').slug).to eq('eau-potable-sociale')
+  end
+
   it 'unifies Grist Solutions and APIs_et_datasets into solutions with mapped categories' do
     result
     bouquet = Solution.find_by!(grist_id: 'Solutions:1')
