@@ -19,10 +19,14 @@ class Grist::AttachImages < Grist::ImportStep
     response = grist_get("attachments/#{attachment_id}/download")
     return quarantine(gid, "image #{attachment_id} : HTTP #{response.code}") unless response.is_a?(Net::HTTPSuccess)
 
-    filename = response['Content-Disposition'].to_s[/filename="([^"]+)"/, 1] || "image-#{attachment_id}"
-    solution.image.attach(io: StringIO.new(response.body), filename:, content_type: response['Content-Type'],
-      metadata: { 'grist_attachment_id' => attachment_id })
+    solution.image.attach(io: StringIO.new(response.body), filename: filename(response, attachment_id),
+      content_type: response['Content-Type'], metadata: { 'grist_attachment_id' => attachment_id })
   rescue *NETWORK_ERRORS => e
     quarantine(gid, "image #{attachment_id} : #{e.class} — #{e.message}")
+  end
+
+  def filename(response, attachment_id)
+    response['Content-Disposition'].to_s[/filename="([^"]+)"/, 1]&.force_encoding(Encoding::UTF_8)&.scrub('_') ||
+      "image-#{attachment_id}"
   end
 end
