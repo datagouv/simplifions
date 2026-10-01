@@ -71,7 +71,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -103,7 +103,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: |
-          bin/rails db:test:prepare
+          SCHEMA=tmp/schema_rejoue.rb bin/rails db:create db:migrate
           bin/rails active_record_doctor
           bundle exec rspec
 
