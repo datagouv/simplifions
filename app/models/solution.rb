@@ -22,7 +22,7 @@ class Solution < ApplicationRecord
   has_and_belongs_to_many :organisations
   has_and_belongs_to_many :vocabulaires
   has_and_belongs_to_many :types_acteurs, class_name: 'TypeActeur'
-  has_many :recommandations, dependent: :destroy
+  has_many :recommandations, dependent: :delete_all
 
   has_many :integrations_comme_integratrice, class_name: 'Integration', foreign_key: :integratrice_id,
     inverse_of: :integratrice, dependent: :destroy
