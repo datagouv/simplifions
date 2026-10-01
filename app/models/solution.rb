@@ -7,8 +7,11 @@ class Solution < ApplicationRecord
   validates :slug, presence: true, if: -> { visible? && fiche? }
 
   # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
-  normalizes :site_internet, :url_demande_acces,
-    with: ->(url) { url.strip if url.to_s.strip.match?(%r{\Ahttps?://}i) }
+  normalizes :site_internet, :url_demande_acces, with: lambda { |url|
+    url = url.strip
+    url = "https://#{url}" if url.match?(%r{\A[^\s/:@]+\.[^\s/:@]+(?:[/?#]\S*)?\z})
+    url if url.match?(%r{\Ahttps?://}i)
+  }
   normalizes :uid_datagouv, with: ->(uid) { uid.strip }
   validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
     :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
