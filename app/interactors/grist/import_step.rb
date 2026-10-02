@@ -29,11 +29,11 @@ class Grist::ImportStep < ApplicationInteractor
 
     row.assign_attributes(attributes.merge(grist_id: gid))
     normalise_slug(row, gid)
+    vide_hors_liste(row, gid)
     assign_cree_le(row, gid)
     row.save!
     context.index[gid] = row
     seen(row)
-    row
   rescue ActiveRecord::RecordInvalid => e
     quarantine(gid, e.message)
     nil
@@ -47,9 +47,7 @@ class Grist::ImportStep < ApplicationInteractor
     row.grist_id != gid && context.seen[row.class.name].include?(row.id)
   end
 
-  def seen(row)
-    context.seen[row.class.name] << row.id
-  end
+  def seen(row) = row.tap { context.seen[row.class.name] << row.id }
 
   def normalise_slug(row, gid)
     if row.respond_to?(:fiche?) && !row.fiche?
@@ -60,6 +58,14 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def slug_hors_format?(row) = row.invalid? && row.errors.of_kind?(:slug, :invalid)
+
+  def vide_hors_liste(row, gid)
+    row.validate
+    row.errors.select { it.type == :inclusion }.each do |erreur|
+      note("#{gid} — #{erreur.attribute} « #{row[erreur.attribute]} » hors liste, laissé vide")
+      row[erreur.attribute] = nil
+    end
+  end
 
   def assign_slug(row, gid)
     slug = SNAPSHOT.dig(gid, 'slug') || row.nom.to_s.tr('_', ' ').parameterize
