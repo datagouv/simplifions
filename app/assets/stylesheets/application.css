@@ -96,3 +96,41 @@
   line-height: 1rem;
   text-align: center;
 }
+
+.contact-parcours {
+  background-color: var(--background-alt-grey);
+}
+
+.contact-parcours textarea[readonly] {
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* Les pictogrammes du parcours de contact gardent les couleurs natives du DSFR. */
+.fr-radio-rich__pictogram .fr-artwork-decorative {
+  fill: var(--artwork-decorative-blue-france);
+}
+
+.fr-radio-rich__pictogram .fr-artwork-minor {
+  fill: var(--artwork-minor-red-marianne);
+}
+
+.fr-radio-rich__pictogram .fr-artwork-major {
+  fill: var(--artwork-major-blue-france);
+}
+
+.contact-groupe {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.contact-adresse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}

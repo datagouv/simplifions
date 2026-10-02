@@ -20,6 +20,9 @@ module Simplifions
 
     config.active_storage.service = :db
 
+    # Adresse donnée en fin de parcours sur /contact, hors du dépôt public.
+    config.x.contact_email = ENV["CONTACT_EMAIL"].presence
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

@@ -191,6 +191,8 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('Communes et groupements de communes')
       expect(response.body).to include('Direction interministérielle du numérique')
       expect(response.body).to include('Proposer une modification')
+      expect(response.body).to include('href="/contact?besoin=modifier-cas-usage&amp;demarche=tarification-cantine-scolaire-a-1eur#parcours"')
+      expect(response.body).not_to include('demarches-simplifiees.fr')
     end
 
     it 'rend les sections contexte et cadre juridique en markdown' do

@@ -1,0 +1,48 @@
+<%= link_to "Retour", contact_path(besoin: besoin.precedent&.cle, **@origine, anchor: "parcours"),
+      class: "fr-btn fr-btn--tertiary fr-btn--sm fr-btn--icon-left fr-icon-arrow-left-line fr-mb-4w" %>
+
+<% unless besoin.choix? %>
+  <h2 class="fr-h3"><%= besoin.libelle %></h2>
+<% end %>
+
+<% besoin.reponse.each do |paragraphe| %>
+  <p><%= paragraphe %></p>
+<% end %>
+
+<% if besoin.liens.any? %>
+  <ul class="fr-mb-4w">
+    <% besoin.liens.each do |lien| %>
+      <li><%= link_to lien[:libelle], lien[:url], **(lien[:url].start_with?("http") ? { target: "_blank", rel: "noopener external", title: "#{lien[:libelle]} - nouvelle fenêtre" } : {}) %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<% if besoin.a_verifier.any? %>
+  <div class="fr-callout fr-callout--beige-gris-galet fr-mb-4w">
+    <h3 class="fr-callout__title fr-h6">Avant de nous écrire :</h3>
+    <ul class="fr-callout__text fr-text--md">
+      <% besoin.a_verifier.each do |lien| %>
+        <li><%= link_to lien[:libelle], lien[:url] %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% if besoin.autres_sujets %>
+  <div class="fr-callout fr-callout--beige-gris-galet fr-mb-4w">
+    <p class="fr-callout__text fr-text--md">
+      Veuillez vérifier que votre demande ne concerne aucun des sujets suivants :
+    </p>
+    <ul class="fr-callout__text fr-text--md">
+      <% besoin.voisins.each do |voisin| %>
+        <li><%= link_to voisin.libelle, contact_path(besoin: voisin.cle, anchor: "parcours") %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% if besoin.contact? %>
+  <%= render "pages/contact/ecrire", besoin:, fiche: %>
+<% elsif besoin.enfants.any? %>
+  <%= render "pages/contact/choix", legende: "Précisez votre demande", besoins: besoin.enfants, origine: @origine %>
+<% end %>
