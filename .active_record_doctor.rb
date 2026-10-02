@@ -8,7 +8,8 @@ ActiveRecordDoctor.configure do
     "ar_internal_metadata",
     "schema_migrations",
     # tables d'Active Storage et d'active_storage_db : leur schéma n'est pas le nôtre
-    /\Aactive_storage_/
+    /\Aactive_storage_/,
+    /\Asolid_queue_/
   ]
 
   global :ignore_models, [
@@ -17,7 +18,8 @@ ActiveRecordDoctor.configure do
     /\AActiveStorageDB::/,
     /\AActionMailbox::/,
     /\AActionText::/,
-    "SolidCache::Entry"
+    "SolidCache::Entry",
+    /\ASolidQueue::/
   ]
 
   # tables has_and_belongs_to_many : id: false et sans horodatage, voulu
