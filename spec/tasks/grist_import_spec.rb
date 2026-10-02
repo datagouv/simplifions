@@ -16,10 +16,9 @@ RSpec.describe 'rake grist:import' do
     expect(a_request(:get, %r{data\.gouv\.fr/api/})).to have_been_made.at_least_once
   end
 
-  it 'exits with an error status when the import fails' do
+  it 'raises the import error so Sentry reports it' do
     stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_return(status: 500)
-    expect { Rake::Task['grist:import'].invoke }
-      .to raise_error(SystemExit).and output(/échoué/i).to_stdout
+    expect { Rake::Task['grist:import'].invoke }.to raise_error(RuntimeError, 'Grist Solutions: HTTP 500')
     expect(a_request(:get, %r{data\.gouv\.fr/api/})).not_to have_been_made
   end
 end
