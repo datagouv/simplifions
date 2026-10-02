@@ -41,6 +41,8 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 # Use the database-backed adapter for Rails.cache
 gem "solid_cache"
 
+gem "solid_queue", "~> 1.7"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 

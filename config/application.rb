@@ -20,6 +20,8 @@ module Simplifions
 
     config.active_storage.service = :db
 
+    config.active_job.queue_adapter = :solid_queue
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

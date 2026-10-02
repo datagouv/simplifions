@@ -1,0 +1,9 @@
+dispatchers:
+  - polling_interval: 1
+    batch_size: 500
+    batch_maintenance: false
+workers:
+  - queues: "*"
+    threads: 1
+    processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+    polling_interval: 60
