@@ -49,11 +49,24 @@ RSpec.describe Grist::Import do
     expect(Demarche.find_by!(grist_id: 'Cas_d_usages:8').slug).to eq('tarification-cantine-scolaire-a-1eur')
   end
 
+  it 'garde une ligne dont une valeur Grist sort de la liste, champ vidé et noté, sans la purger' do
+    result
+    integration = Integration.find_by!(grist_id: 'API_et_datasets_integres:2')
+    dinum = Organisation.find_by!(grist_id: 'Operateurs:4')
+    stub_grist_champ('API_et_datasets_integres', 2, 'Status_de_l_integration', '🛑 abandonné')
+    stub_grist_champ('Operateurs', 4, 'Public_ou_prive', 'public')
+
+    relance = described_class.call
+
+    expect(integration.reload.statut).to be_nil
+    expect(dinum.reload.public_ou_prive).to be_nil
+    expect(relance.report[:quarantine].join).not_to include('API_et_datasets_integres:2', 'Operateurs:4')
+    expect(relance.report[:notes]).to include('API_et_datasets_integres:2 — statut « 🛑 abandonné » hors liste, laissé vide',
+      'Operateurs:4 — public_ou_prive « public » hors liste, laissé vide')
+  end
+
   it 'remplace les « _ » d’un nom par des tirets plutôt que de mettre la démarche en quarantaine' do
-    table = JSON.parse(Rails.root.join('spec/fixtures/grist/Cas_d_usages.json').read)
-    table['records'].find { it['id'] == 6 }['fields']['Nom'] = 'Eau_potable _ sociale_'
-    stub_request(:get, Grist::FetchTables.url('Cas_d_usages')).to_return(status: 200, body: table.to_json,
-      headers: { 'Content-Type' => 'application/json' })
+    stub_grist_champ('Cas_d_usages', 6, 'Nom', 'Eau_potable _ sociale_')
 
     result
     expect(Demarche.find_by!(grist_id: 'Cas_d_usages:6').slug).to eq('eau-potable-sociale')
@@ -286,5 +299,12 @@ RSpec.describe Grist::Import do
 
     expect(cantine.reload).to have_attributes(nom: 'Tarification cantine scolaire à 1€', slug: 'slug-custom',
       cree_le: Time.zone.parse('2020-01-01'))
+  end
+
+  def stub_grist_champ(table, id, champ, valeur)
+    donnees = JSON.parse(Rails.root.join("spec/fixtures/grist/#{table}.json").read)
+    donnees['records'].find { it['id'] == id }['fields'][champ] = valeur
+    stub_request(:get, Grist::FetchTables.url(table)).to_return(status: 200, body: donnees.to_json,
+      headers: { 'Content-Type' => 'application/json' })
   end
 end
