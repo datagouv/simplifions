@@ -24,7 +24,7 @@ gem "interactor"
 # Suivi des erreurs (sandbox, staging, production) ; inactif sans sentry_dsn dans les credentials
 gem "sentry-rails"
 
-# Rend le markdown du catalogue Grist (safe par défaut : HTML brut et URLs dangereuses neutralisés)
+# Rend le markdown du catalogue Grist (HTML brut autorisé, nettoyé par sanitize dans ApplicationHelper#markdown)
 gem "commonmarker"
 
 # Store Active Storage blobs in PostgreSQL, shared by every host [https://github.com/blocknotes/active_storage_db]
