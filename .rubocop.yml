@@ -135,6 +135,7 @@ RSpec/DescribeClass:
   Exclude:
     - "spec/requests/**/*"
     - "spec/config/**/*"
+    - "spec/tasks/**/*"
 
 RSpec/DescribeMethod:
   Enabled: false
@@ -169,7 +170,3 @@ RSpec/RepeatedDescription:
 
 Rails/HasAndBelongsToMany:
   Enabled: false
-
-RSpec/DescribeClass:
-  Exclude:
-    - spec/tasks/**/*
