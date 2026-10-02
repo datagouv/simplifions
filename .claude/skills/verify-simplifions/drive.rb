@@ -144,8 +144,36 @@ def saisies(page)
 end
 
 Verify.ensure_admin
+def pages_avec_html
+  avec_html = ->(scope, *cols) { scope.where(cols.map { |c| "#{c} LIKE '%<%'" }.join(' OR ')) }
+  demarches = avec_html.call(Demarche.visibles, :contexte, :cadre_juridique).pluck(:slug)
+  recos = avec_html.call(Recommandation.where(visible: true), :donnees_utiles, :parametres_a_saisir, :description)
+  solutions = avec_html.call(Solution.visibles.fiches, :permet, :ne_permet_pas).pluck(:slug)
+  (demarches + Demarche.where(id: recos.select(:demarche_id)).pluck(:slug)).uniq.map { "/demarches/#{it}" } +
+    solutions.map { "/solutions/#{it}" }
+end
+
+def contenu_html(page)
+  page.visit('/demarches/actes-detat-civil')
+  encadre = page.find('.fr-callout', text: 'Utilisez Comedec')
+  encadre.scroll_to(encadre)
+  Verify.evidence('contenu-html-grist', page, 'encadre-comedec', "encadre=#{encadre.tag_name}.fr-callout")
+  page.visit('/solutions/passe-marche')
+  separateur = page.find('hr:not([class])')
+  separateur.scroll_to(separateur)
+  Verify.evidence('contenu-html-grist', page, 'solution-hr', 'passe-marche hr_saisi=1')
+  chemins = pages_avec_html
+  omis = chemins.select do |chemin|
+    page.visit(chemin)
+    page.html.include?('raw HTML omitted')
+  end
+  raise "HTML omis sur #{omis.join(', ')}" if omis.any?
+
+  Verify.evidence('contenu-html-grist', page, 'aucun-html-omis', "pages_avec_html=#{chemins.size} omis=0")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
-  'cascade' => :cascade, 'saisies' => :saisies }.each do |nom, fn|
+  'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
