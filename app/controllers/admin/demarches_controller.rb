@@ -40,6 +40,6 @@ class Admin::DemarchesController < Admin::BaseController
   end
 
   def demarche_params
-    params.expect(demarche: [:nom, :icone, :slug, :mots_clefs, :description_courte, :contexte, :cadre_juridique, :visible, :grist_id, { vocabulaire_ids: [], type_acteur_ids: [], integration_ids: [] }])
+    params.expect(demarche: [:nom, :icone, :slug, :mots_clefs, :description_courte, :contexte, :cadre_juridique, :visible, { vocabulaire_ids: [], type_acteur_ids: [], integration_ids: [] }])
   end
 end
