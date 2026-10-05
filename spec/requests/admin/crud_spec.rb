@@ -294,6 +294,25 @@ RSpec.describe 'Administration' do
       patch "/admin/organisations/#{dinum.id}", params: { organisation: { solution_ids: [bouquet.id] } }
       expect(dinum.reload.solutions).to eq([bouquet])
     end
+
+    it 'range chaque longue liste de cases dans un groupe filtrable, sans champ envoyé avec le formulaire' do
+      {
+        'demarches' => ["Types d'acteurs", 'Intégrations'], 'solutions' => ['Organisations', "Types d'acteurs"],
+        'integrations' => ['Démarches'], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
+        'vocabulaires' => %w[Démarches Solutions]
+      }.each do |chemin, groupes|
+        get "/admin/#{chemin}/new"
+        filtrables = response.parsed_body.css('fieldset[data-controller="liste-filtrable"]')
+        expect(filtrables.map { |groupe| groupe.at_css('legend').text.strip }).to eq(groupes)
+        filtrables.each do |groupe|
+          filtre = groupe.at_css('input[type=search]')
+          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer')
+          expect(filtre['name']).to be_nil
+          expect(groupe.at_css('[aria-live=polite]')).to be_present
+          expect(groupe.css('input[type=checkbox]')).to all(satisfy { |case_a_cocher| case_a_cocher['name'].end_with?('_ids][]') })
+        end
+      end
+    end
   end
 
   describe 'ce que la suppression emporte' do

@@ -18,17 +18,7 @@
     <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", **aria %>
   <% end %>
   <%= render "admin/identifiant_grist", grist_id: integration.grist_id %>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend">Démarches</legend>
-    <%= f.collection_check_boxes :demarche_ids, Demarche.order(:nom), :id, :nom do |b| %>
-      <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/cases_filtrables", f: f, attribut: :demarche_ids, collection: Demarche.order(:nom), libelle: :nom, legende: "Démarches" %>
   <ul class="fr-btns-group fr-btns-group--inline">
     <li><button type="submit" class="fr-btn">Enregistrer</button></li>
     <li><%= link_to "Annuler", admin_integrations_path, class: "fr-btn fr-btn--secondary" %></li>
