@@ -18,6 +18,7 @@ fr:
       present: "doit être vide"
       inclusion: "doit être choisi dans la liste"
       format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
+      solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
   admin:
     enregistre: "Enregistré."
     supprime: "Supprimé."

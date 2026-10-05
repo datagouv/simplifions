@@ -199,6 +199,13 @@ RSpec.describe 'Administration' do
       expect(response.body).to include('Type integration doit être rempli')
     end
 
+    it 'refuse une intégration d’une solution avec elle-même' do
+      bouquet = Solution.create!(nom: 'Bouquet')
+      post '/admin/integrations', params: { integration: { integratrice_id: bouquet.id, integree_id: bouquet.id, type_integration: 'consomme' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Une solution ne peut pas s’intégrer elle-même')
+    end
+
     it 'exige un slug dès qu’une fiche est visible, comme l’import le garantissait' do
       post '/admin/demarches', params: { demarche: { nom: 'Aides', visible: '1', slug: '' } }
       expect(response).to have_http_status(:unprocessable_content)
