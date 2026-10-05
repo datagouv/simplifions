@@ -59,7 +59,7 @@ def vocabulaires(page)
   page.click_link 'Ajouter'
   page.fill_in 'Nom', with: nom
   page.fill_in 'Slug', with: "verif-verify-map-#{Verify.browser}"
-  page.select 'usager', from: 'Categorie'
+  page.select 'usager', from: 'Catégorie'
   page.click_button 'Enregistrer'
   page.assert_text 'Enregistré.'
   page.assert_selector 'td', text: nom
@@ -121,10 +121,10 @@ def saisies(page)
 
   integration = Integration.en_production.order(:id).first
   page.visit("/admin/integrations/#{integration.id}/edit")
-  options = page.find_field('Statut').all('option').map(&:value)
+  options = page.find_field('Statut de l’intégration').all('option').map(&:value)
   raise "options #{options}" unless options == ['', *Integration::STATUTS]
 
-  page.select Integration::STATUT_EN_PRODUCTION, from: 'Statut'
+  page.select Integration::STATUT_EN_PRODUCTION, from: 'Statut de l’intégration'
   page.click_button 'Enregistrer'
   page.assert_text 'Enregistré.'
   Verify.evidence('admin-saisies-controlees', page, 'statut-liste',
@@ -158,7 +158,7 @@ def incoherences(page)
   Verify.login(page)
   integration = Integration.order(:id).first!
   page.visit("/admin/integrations/#{integration.id}/edit")
-  page.select integration.integratrice.nom, from: 'Integree'
+  page.select integration.integratrice.nom, from: 'API ou jeu de données'
   page.click_button 'Enregistrer'
   page.assert_text 'Une solution ne peut pas s’intégrer elle-même'
   Verify.evidence('admin-saisies-controlees', page, 'integration-elle-meme',
@@ -167,7 +167,7 @@ def incoherences(page)
   nom = "Vérif verify-map #{Verify.browser}"
   page.visit('/admin/vocabulaires/new')
   page.fill_in 'Nom', with: nom
-  page.select 'usager', from: 'Categorie'
+  page.select 'usager', from: 'Catégorie'
   page.click_button 'Enregistrer'
   page.assert_text 'Slug doit être rempli'
   page.fill_in 'Slug', with: 'Vérif Accents'

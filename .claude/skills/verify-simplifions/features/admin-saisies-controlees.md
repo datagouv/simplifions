@@ -4,8 +4,8 @@ Four admin fields that used to break the public site in silence: a solution URL 
 
 ## How to get to it (user POV)
 
-- `/admin/solutions/<id>/edit` field `Site internet` (also `Url demande acces`).
-- `/admin/integrations/<id>/edit` select `Statut`.
+- `/admin/solutions/<id>/edit` field `Site internet` (also `URL de demande d’accès`).
+- `/admin/integrations/<id>/edit` select `Statut de l’intégration`.
 - `/admin/organisations/<id>/edit` radios `Public ou privé`: `Non renseigné`, `Public`, `Privé`.
 - `/admin/demarches/<id>/edit` and `/admin/solutions/<id>/edit` field `Slug`, hint `Minuscules sans accent, chiffres et tirets`.
 
@@ -14,10 +14,10 @@ Four admin fields that used to break the public site in silence: a solution URL 
 `drive.rb saisies`. Preconditions: logged in, a visible public solution with a slug, an intégration `✅ en production`, a visible démarche.
 
 - **URL.** Fill `Site internet` with `www.exemple-verif.fr`, save: `Enregistré.`, the public page's `Site de la solution` links to `https://www.exemple-verif.fr`. The drive restores the previous value.
-- **Statut.** The `Statut` options are `""` + `Integration::STATUTS`; re-select the current one, save, read back.
+- **Statut.** The `Statut de l’intégration` options are `""` + `Integration::STATUTS`; re-select the current one, save, read back.
 - **Public ou privé.** `Public` is checked for a public operator; save; the public solution page still shows `Solution publique | <organisation>`.
 - **Slug.** Fill `Slug` with `Vérif avec espaces/et accents`, save: the error `Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets`, the field keeps the typed value, the database keeps the old slug, `/demarches/<slug>` still answers with its H1.
-- **Incohérences** (`drive.rb incoherences`). On the first intégration, select its intégratrice in `Integree`, save: `Une solution ne peut pas s’intégrer elle-même`, the database keeps the old intégrée. A new vocabulaire with an empty `Slug`: `Slug doit être rempli`; with `Vérif Accents`: the format message; no row created.
+- **Incohérences** (`drive.rb incoherences`). On the first intégration, select its intégratrice in `API ou jeu de données`, save: `Une solution ne peut pas s’intégrer elle-même`, the database keeps the old intégrée. A new vocabulaire with an empty `Slug`: `Slug doit être rempli`; with `Vérif Accents`: the format message; no row created.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-saisies-controlees/`.
 
 ## Gotchas
