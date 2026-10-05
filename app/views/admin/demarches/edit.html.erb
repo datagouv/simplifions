@@ -6,6 +6,9 @@
     <p><%= link_to demarche_path(en_base.slug), class: "fr-link", target: "_blank", rel: "noopener", title: "Voir la page publique de #{nom_en_base} - nouvelle fenêtre" do %>Voir la page publique<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %></p>
   <% end %>
   <%= render "form", demarche: @demarche %>
+  <h2 id="recommandations" class="fr-mt-6w">Recommandations</h2>
+  <%= render "admin/recommandations/tableau", recommandations: en_base.recommandations, titre_id: "recommandations" %>
+  <%= link_to "Ajouter une recommandation", new_admin_recommandation_path(demarche_id: en_base.id), class: "fr-btn fr-btn--secondary fr-mb-6w" %>
   <%= render "admin/supprimer", url: admin_demarche_path(en_base), nom: nom_en_base,
   consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
     t("admin.suppression.integrations_detachees", count: en_base.integrations.count)] %>

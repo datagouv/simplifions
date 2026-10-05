@@ -1,0 +1,28 @@
+<% lignes = recommandations.par_niveau_et_ordre.includes(:solution).load %>
+<% if lignes.any? %>
+  <div class="fr-table">
+    <table aria-labelledby="<%= titre_id %>">
+      <thead>
+        <tr>
+          <th scope="col">Solution</th>
+          <th scope="col"><%= Recommandation.human_attribute_name(:niveau) %></th>
+          <th scope="col"><%= Recommandation.human_attribute_name(:ordre) %></th>
+          <th scope="col">Visible</th>
+          <th scope="col">Modifié le</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% lignes.each do |ligne| %>
+          <tr>
+            <td><%= link_to ligne.solution.libelle_admin, edit_admin_recommandation_path(ligne) %></td>
+            <td><%= Recommandation.human_attribute_name("niveau.#{ligne.niveau}") if ligne.niveau %></td>
+            <td><%= ligne.ordre %></td>
+            <%= render "visible_et_modifie_le", ligne: %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p>Aucune recommandation.</p>
+<% end %>
