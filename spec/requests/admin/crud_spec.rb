@@ -165,6 +165,42 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'ce que la suppression emporte' do
+    let(:aides) { Demarche.create!(nom: 'Aides') }
+    let(:bouquet) { Solution.create!(nom: 'Bouquet') }
+    let(:api_qf) { Solution.create!(nom: 'API QF', categorie: 'api') }
+
+    before { sign_in admin }
+
+    def confirmation(chemin)
+      get chemin
+      response.parsed_body.at_css('form[data-turbo-confirm]')['data-turbo-confirm']
+    end
+
+    it 'compte les recommandations et intégrations détachées d’une démarche' do
+      [api_qf, Solution.create!(nom: 'API Entreprise', categorie: 'api')].each { |solution| Recommandation.create!(demarche: aides, solution:) }
+      Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme', demarches: [aides])
+      expect(confirmation("/admin/demarches/#{aides.id}/edit"))
+        .to eq('Supprimer « Aides » ? 2 recommandations seront supprimées. 1 intégration en sera détachée.')
+    end
+
+    it 'compte les recommandations et intégrations d’une solution, n’annonce rien quand rien ne part' do
+      Recommandation.create!(demarche: aides, solution: api_qf)
+      Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
+      expect(confirmation("/admin/solutions/#{api_qf.id}/edit"))
+        .to eq('Supprimer « API QF » ? 1 recommandation sera supprimée. 1 intégration sera supprimée.')
+      expect(confirmation("/admin/solutions/#{Solution.create!(nom: 'Seule').id}/edit")).to eq('Supprimer « Seule » ?')
+    end
+
+    it 'compte les démarches et solutions détachées d’un vocabulaire et d’un type d’acteur' do
+      usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager', demarches: [aides], solutions: [bouquet, api_qf])
+      communes = TypeActeur.create!(nom: 'Communes', demarches: [aides])
+      expect(confirmation("/admin/vocabulaires/#{usager.id}/edit"))
+        .to eq('Supprimer « Particuliers » ? 1 démarche en sera détachée. 2 solutions en seront détachées.')
+      expect(confirmation("/admin/types_acteurs/#{communes.id}/edit")).to eq('Supprimer « Communes » ? 1 démarche en sera détachée.')
+    end
+  end
+
   describe 'dates de création et de modification' do
     include ActiveSupport::Testing::TimeHelpers
 

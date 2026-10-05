@@ -4,5 +4,7 @@
   <h1>Vocabulaire n°<%= @vocabulaire.id %></h1>
   <%= render "form", vocabulaire: @vocabulaire %>
   <% en_base = Vocabulaire.find(@vocabulaire.id) %>
-  <%= render "admin/supprimer", url: admin_vocabulaire_path(en_base), nom: en_base.nom %>
+  <%= render "admin/supprimer", url: admin_vocabulaire_path(en_base), nom: en_base.nom,
+  consequences: [t("admin.suppression.demarches_detachees", count: en_base.demarches.count),
+    t("admin.suppression.solutions_detachees", count: en_base.solutions.count)] %>
 </div>
