@@ -47,6 +47,12 @@ RSpec.describe Integration do
     end
   end
 
+  it 'refuse qu’une solution s’intègre elle-même' do
+    integration = described_class.new(integratrice: bouquet, integree: bouquet, type_integration: 'consomme')
+    expect(integration).not_to be_valid
+    expect(integration.errors.full_messages).to eq(['Une solution ne peut pas s’intégrer elle-même'])
+  end
+
   describe '#libelle' do
     it 'nomme la paire et le sens de l’intégration' do
       integration = described_class.new(integratrice: Solution.new(nom: 'Bouquet'), integree: Solution.new(nom: 'API QF'), type_integration: 'consomme')

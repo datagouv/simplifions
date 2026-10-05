@@ -12,6 +12,7 @@ class Integration < ApplicationRecord
   validates :grist_id, uniqueness: true, allow_nil: true
   validates :type_integration, presence: true
   validates :statut, inclusion: { in: STATUTS }, allow_blank: true
+  validate { errors.add(:base, :solution_integree_elle_meme) if integratrice_id && integratrice_id == integree_id }
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
   def libelle = "#{integratrice.nom} → #{integree.nom} (#{type_integration})"
