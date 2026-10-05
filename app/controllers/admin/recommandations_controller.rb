@@ -14,7 +14,7 @@ class Admin::RecommandationsController < Admin::BaseController
   def create
     @recommandation = Recommandation.new(recommandation_params.merge(modifie_le: Time.current))
     if @recommandation.save
-      redirect_to admin_recommandations_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@recommandation)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def update
     if @recommandation.update(recommandation_params.merge(modifie_le: Time.current))
-      redirect_to admin_recommandations_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@recommandation)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def destroy
     @recommandation.destroy!
-    redirect_to admin_recommandations_path, notice: t('admin.supprime', nom: @recommandation.libelle), status: :see_other
+    redirect_to admin_recommandations_path, notice: t('admin.supprime', nom: nom_de(@recommandation)), status: :see_other
   end
 
   private

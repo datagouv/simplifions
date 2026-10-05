@@ -14,7 +14,7 @@ class Admin::TypesActeursController < Admin::BaseController
   def create
     @type_acteur = TypeActeur.new(type_acteur_params)
     if @type_acteur.save
-      redirect_to admin_types_acteurs_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@type_acteur)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::TypesActeursController < Admin::BaseController
 
   def update
     if @type_acteur.update(type_acteur_params)
-      redirect_to admin_types_acteurs_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@type_acteur)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::TypesActeursController < Admin::BaseController
 
   def destroy
     @type_acteur.destroy!
-    redirect_to admin_types_acteurs_path, notice: t('admin.supprime', nom: @type_acteur.nom), status: :see_other
+    redirect_to admin_types_acteurs_path, notice: t('admin.supprime', nom: nom_de(@type_acteur)), status: :see_other
   end
 
   private

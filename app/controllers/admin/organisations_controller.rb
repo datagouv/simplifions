@@ -14,7 +14,7 @@ class Admin::OrganisationsController < Admin::BaseController
   def create
     @organisation = Organisation.new(organisation_params)
     if @organisation.save
-      redirect_to admin_organisations_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@organisation)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::OrganisationsController < Admin::BaseController
 
   def update
     if @organisation.update(organisation_params)
-      redirect_to admin_organisations_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@organisation)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::OrganisationsController < Admin::BaseController
 
   def destroy
     @organisation.destroy!
-    redirect_to admin_organisations_path, notice: t('admin.supprime', nom: @organisation.nom), status: :see_other
+    redirect_to admin_organisations_path, notice: t('admin.supprime', nom: nom_de(@organisation)), status: :see_other
   end
 
   private

@@ -14,7 +14,7 @@ class Admin::SolutionsController < Admin::BaseController
   def create
     @solution = Solution.new(solution_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
     if @solution.save
-      redirect_to admin_solutions_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@solution)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::SolutionsController < Admin::BaseController
 
   def update
     if @solution.update(solution_params.merge(modifie_le: Time.current))
-      redirect_to admin_solutions_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@solution)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::SolutionsController < Admin::BaseController
 
   def destroy
     @solution.destroy!
-    redirect_to admin_solutions_path, notice: t('admin.supprime', nom: @solution.nom), status: :see_other
+    redirect_to admin_solutions_path, notice: t('admin.supprime', nom: nom_de(@solution)), status: :see_other
   end
 
   private

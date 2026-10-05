@@ -14,7 +14,7 @@ class Admin::VocabulairesController < Admin::BaseController
   def create
     @vocabulaire = Vocabulaire.new(vocabulaire_params)
     if @vocabulaire.save
-      redirect_to admin_vocabulaires_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@vocabulaire)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::VocabulairesController < Admin::BaseController
 
   def update
     if @vocabulaire.update(vocabulaire_params)
-      redirect_to admin_vocabulaires_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@vocabulaire)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::VocabulairesController < Admin::BaseController
 
   def destroy
     @vocabulaire.destroy!
-    redirect_to admin_vocabulaires_path, notice: t('admin.supprime', nom: @vocabulaire.nom), status: :see_other
+    redirect_to admin_vocabulaires_path, notice: t('admin.supprime', nom: nom_de(@vocabulaire)), status: :see_other
   end
 
   private
