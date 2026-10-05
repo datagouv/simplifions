@@ -8,6 +8,18 @@ RSpec.describe Solution do
     expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
   end
 
+  describe '#libelle_admin' do
+    it 'distingue deux homonymes par leur catégorie' do
+      api = described_class.new(nom: 'API Impôt particulier', categorie: 'api')
+      fiche = described_class.new(nom: 'API Impôt particulier', categorie: 'logiciel_metier_cle_en_main')
+      expect([api.libelle_admin, fiche.libelle_admin]).to eq(['API Impôt particulier (API)', 'API Impôt particulier (Logiciel métier)'])
+    end
+
+    it 'garde le nom seul sans catégorie' do
+      expect(described_class.new(nom: 'Acheteza').libelle_admin).to eq('Acheteza')
+    end
+  end
+
   describe '#exposees' do
     it 'returns only solutions integrated with type expose' do
       bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])

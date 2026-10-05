@@ -28,7 +28,7 @@
     <%= f.text_field :site_internet, class: "fr-input" %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: organisation.grist_id %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :solution_ids, collection: Solution.order(:nom), libelle: :nom, legende: "Solutions" %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :solution_ids, collection: Solution.par_libelle_admin, libelle: :libelle_admin, legende: "Solutions" %>
   <ul class="fr-btns-group fr-btns-group--inline">
     <li><button type="submit" class="fr-btn">Enregistrer</button></li>
     <li><%= link_to "Annuler", admin_organisations_path, class: "fr-btn fr-btn--secondary" %></li>

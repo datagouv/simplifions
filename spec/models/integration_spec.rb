@@ -55,8 +55,8 @@ RSpec.describe Integration do
 
   describe '#libelle' do
     it 'nomme la paire et le sens de l’intégration' do
-      integration = described_class.new(integratrice: Solution.new(nom: 'Bouquet'), integree: Solution.new(nom: 'API QF'), type_integration: 'consomme')
-      expect(integration.libelle).to eq('Bouquet → API QF (intégrée)')
+      integration = described_class.new(integratrice: Solution.new(nom: 'Bouquet'), integree: Solution.new(nom: 'API QF', categorie: 'api'), type_integration: 'consomme')
+      expect(integration.libelle).to eq('Bouquet → API QF (API) (intégrée)')
     end
   end
 end
