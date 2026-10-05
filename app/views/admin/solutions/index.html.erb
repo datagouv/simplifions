@@ -18,11 +18,7 @@
             <td><%= ligne.id %></td>
             <td><%= ligne.nom %></td>
             <td>
-              <ul class="fr-btns-group fr-btns-group--inline-sm fr-btns-group--sm">
-                <li><%= link_to "Modifier", edit_admin_solution_path(ligne), class: "fr-btn fr-btn--secondary" %></li>
-                <li><%= button_to "Supprimer", admin_solution_path(ligne), method: :delete, class: "fr-btn fr-btn--tertiary",
-                  form: { data: { turbo_confirm: "Supprimer la ligne #{ligne.id} ? Ses recommandations et intégrations partent avec elle." } } %></li>
-              </ul>
+              <%= link_to "Modifier", edit_admin_solution_path(ligne), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
             </td>
           </tr>
         <% end %>

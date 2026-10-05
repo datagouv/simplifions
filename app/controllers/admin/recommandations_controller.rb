@@ -30,7 +30,7 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def destroy
     @recommandation.destroy!
-    redirect_to admin_recommandations_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_recommandations_path, notice: t('admin.supprime', nom: @recommandation.libelle), status: :see_other
   end
 
   private

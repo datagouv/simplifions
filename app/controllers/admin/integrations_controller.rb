@@ -30,7 +30,7 @@ class Admin::IntegrationsController < Admin::BaseController
 
   def destroy
     @integration.destroy!
-    redirect_to admin_integrations_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_integrations_path, notice: t('admin.supprime', nom: @integration.libelle), status: :see_other
   end
 
   private

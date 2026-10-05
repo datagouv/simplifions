@@ -6,6 +6,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let(:nouveaux) { attributs }
   let(:invalide) { [{ nom: '' }, 'Nom doit être rempli'] }
   let!(:ligne) { modele.create!(attributs) }
+  let(:nom) { attributs[:nom] }
 
   it 'exige la connexion' do
     get "/admin/#{chemin}"
@@ -18,6 +19,14 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("<td>#{ligne.id}</td>")
     expect(response.body).to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
+    expect(response.body).not_to include('Supprimer')
+  end
+
+  it 'propose la suppression depuis la fiche, en nommant la ligne' do
+    sign_in admin
+    get "/admin/#{chemin}/#{ligne.id}/edit"
+    formulaire = response.parsed_body.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"]:has(input[name=_method][value=delete])")
+    expect(formulaire['data-turbo-confirm']).to start_with("Supprimer « #{nom} » ?")
   end
 
   it 'affiche les formulaires de création et de modification' do
@@ -26,6 +35,13 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).to include("action=\"/admin/#{chemin}\"")
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(response.body).to include("action=\"/admin/#{chemin}/#{ligne.id}\"")
+  end
+
+  it 'nomme la ligne telle qu’en base quand une modification est refusée' do
+    sign_in admin
+    patch "/admin/#{chemin}/#{ligne.id}", params: { cle => invalide.first }
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body.at_css('form[data-turbo-confirm]')['data-turbo-confirm']).to start_with("Supprimer « #{nom} » ?")
   end
 
   it 'crée une ligne puis revient à la liste' do
@@ -74,6 +90,8 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     sign_in admin
     expect { delete "/admin/#{chemin}/#{ligne.id}" }.to change(modele, :count).by(-1)
     expect(response).to redirect_to("/admin/#{chemin}")
+    follow_redirect!
+    expect(response.body).to include("« #{nom} » supprimé.")
   end
 end
 
@@ -93,6 +111,7 @@ RSpec.describe 'Administration' do
     let(:modification) { { ordre: 3 } }
     let(:invalide) { [{ demarche_id: '' }, 'Demarche doit exister'] }
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
+    let(:nom) { 'Aides → API QF' }
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
@@ -101,6 +120,7 @@ RSpec.describe 'Administration' do
     end
     let(:modification) { { statut: '✅ en production' } }
     let(:invalide) { [{ integratrice_id: '' }, 'Integratrice doit exister'] }
+    let(:nom) { 'Bouquet → API QF (expose)' }
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do

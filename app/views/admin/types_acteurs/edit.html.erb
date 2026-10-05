@@ -3,4 +3,6 @@
 <div class="fr-container fr-mb-6w">
   <h1>Type d'acteur n°<%= @type_acteur.id %></h1>
   <%= render "form", type_acteur: @type_acteur %>
+  <% en_base = TypeActeur.find(@type_acteur.id) %>
+  <%= render "admin/supprimer", url: admin_type_acteur_path(en_base), nom: en_base.nom %>
 </div>

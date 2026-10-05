@@ -30,7 +30,7 @@ class Admin::VocabulairesController < Admin::BaseController
 
   def destroy
     @vocabulaire.destroy!
-    redirect_to admin_vocabulaires_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_vocabulaires_path, notice: t('admin.supprime', nom: @vocabulaire.nom), status: :see_other
   end
 
   private
