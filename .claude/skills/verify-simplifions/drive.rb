@@ -61,10 +61,25 @@ def vocabulaires(page)
   page.fill_in 'Slug', with: "verif-verify-map-#{Verify.browser}"
   page.select 'Usager', from: 'Catégorie'
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
-  page.assert_selector 'td', text: nom
+  page.assert_text "« #{nom} » enregistré."
   ligne = Vocabulaire.find_by!(nom:)
-  Verify.evidence('admin-vocabulaires', page, 'cree', "id=#{ligne.id} nom=#{ligne.nom} categorie=#{ligne.categorie}")
+  page.assert_current_path("/admin/vocabulaires/#{ligne.id}/edit")
+  page.assert_selector 'h1', text: nom
+  fil = page.all('.fr-breadcrumb__list li', visible: :all).map { |etape| etape.text(:all).strip }
+  raise "fil #{fil}" unless fil == ['Administration', 'Vocabulaires', nom]
+
+  Verify.evidence('admin-vocabulaires', page, 'cree',
+    "id=#{ligne.id} nom=#{ligne.nom} categorie=#{ligne.categorie} url=#{page.current_path} fil=#{fil.join(' > ')} onglet=#{page.title}")
+  page.fill_in 'Nom', with: "#{nom} modifié"
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} modifié » enregistré."
+  page.assert_selector 'h1', text: "#{nom} modifié"
+  Verify.evidence('admin-vocabulaires', page, 'modifie',
+    "url=#{page.current_path} nom_en_base=#{ActiveRecord::Base.uncached { ligne.reload.nom }} onglet=#{page.title}")
+  page.fill_in 'Nom', with: nom
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} » enregistré."
+  page.click_link 'Vocabulaires'
   page.assert_no_selector :button, 'Supprimer'
   page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
   page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
@@ -112,7 +127,7 @@ def saisies(page)
   page.visit("/admin/solutions/#{solution.id}/edit")
   page.fill_in 'Site internet', with: 'www.exemple-verif.fr'
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
+  page.assert_text "« #{solution.nom} » enregistré."
   page.visit("/solutions/#{solution.slug}")
   page.assert_selector :link, 'Site de la solution', href: 'https://www.exemple-verif.fr'
   Verify.evidence('admin-saisies-controlees', page, 'url-completee',
@@ -126,7 +141,7 @@ def saisies(page)
 
   page.select Integration::STATUT_EN_PRODUCTION, from: 'Statut de l’intégration'
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
+  page.assert_text "« #{integration.libelle} » enregistré."
   Verify.evidence('admin-saisies-controlees', page, 'statut-liste',
     "integration=#{integration.id} options=#{options.size} en_base=#{integration.reload.statut}")
 
@@ -135,7 +150,7 @@ def saisies(page)
   page.assert_selector :radio_button, 'Public', checked: true, visible: :all
   Verify.evidence('admin-saisies-controlees', page, 'radios-public-prive')
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
+  page.assert_text "« #{organisation.nom} » enregistré."
   page.visit("/solutions/#{solution.slug}")
   page.assert_text(/Solution publique \| #{Regexp.escape(organisation.nom)}/i)
   Verify.evidence('admin-saisies-controlees', page, 'solution-reste-publique',
@@ -185,7 +200,7 @@ def dates(page)
   page.assert_no_selector "[name='demarche[cree_le]'], [name='demarche[modifie_le]']"
   page.fill_in 'Nom', with: nom
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
+  page.assert_text "« #{nom} » enregistré."
   demarche = ActiveRecord::Base.uncached { Demarche.find_by!(nom:) }
   creation = demarche.cree_le
   raise "dates a la creation #{creation.inspect} #{demarche.modifie_le.inspect}" unless creation&.after?(1.minute.ago) && demarche.modifie_le
@@ -194,7 +209,7 @@ def dates(page)
   page.visit("/admin/demarches/#{demarche.id}/edit")
   page.fill_in 'Nom', with: "#{nom} modifiée"
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
+  page.assert_text "« #{nom} modifiée » enregistré."
   demarche.reload
   raise "modification non datee #{demarche.modifie_le.inspect}" unless demarche.modifie_le > creation && demarche.cree_le == creation
 
@@ -347,7 +362,7 @@ def formulaire_modifie(page)
   demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
   page.fill_in 'Nom', with: "#{nom} enregistré"
   page.click_button 'Enregistrer'
-  page.assert_text 'Enregistré.'
+  page.assert_text "« #{nom} enregistré » enregistré."
   ActiveRecord::Base.uncached do
     Verify.evidence('admin-formulaire-modifie', page, 'enregistre', "confirmation=aucune nom_en_base=#{Demarche.find(demarche.id).nom}")
   end

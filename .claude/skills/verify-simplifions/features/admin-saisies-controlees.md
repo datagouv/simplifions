@@ -13,7 +13,7 @@ Four admin fields that used to break the public site in silence: a solution URL 
 
 `drive.rb saisies`. Preconditions: logged in, a visible public solution with a slug, an intégration `✅ en production`, a visible démarche.
 
-- **URL.** Fill `Site internet` with `www.exemple-verif.fr`, save: `Enregistré.`, the public page's `Site de la solution` links to `https://www.exemple-verif.fr`. The drive restores the previous value.
+- **URL.** Fill `Site internet` with `www.exemple-verif.fr`, save: `« <nom> » enregistré.`, the public page's `Site de la solution` links to `https://www.exemple-verif.fr`. The drive restores the previous value.
 - **Statut.** The `Statut de l’intégration` options are `""` + `Integration::STATUTS`; re-select the current one, save, read back.
 - **Public ou privé.** `Public` is checked for a public operator; save; the public solution page still shows `Solution publique | <organisation>`.
 - **Slug.** Fill `Slug` with `Vérif avec espaces/et accents`, save: the error `Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets`, the field keeps the typed value, the database keeps the old slug, `/demarches/<slug>` still answers with its H1.

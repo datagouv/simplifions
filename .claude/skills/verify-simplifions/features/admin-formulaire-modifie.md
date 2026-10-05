@@ -19,7 +19,7 @@ Preconditions: logged in (`Verify.login`); the drive creates its own démarche `
 - **Forward after leaving.** `go_forward`: the field shows the value in base, not the abandoned text (the form is reset on leave).
 - **Network failure.** `window.fetch` rejected, type, `Enregistrer`: `Annuler` still asks (state restored on `turbo:submit-end` without success).
 - **422.** Empty `Nom`, `Enregistrer`, then `Annuler` asks the question without typing.
-- **Save.** Valid `Nom`, `Enregistrer`: no dialog, `Enregistré.`, the name in base changed.
+- **Save.** Valid `Nom`, `Enregistrer`: no dialog, `« <nom> » enregistré.` on the same fiche, the name in base changed.
 - **Delete, unchanged.** `accept_confirm("Supprimer « … » ?") { click_button "Supprimer" }`: only the delete dialog.
 
 ## Gotchas
