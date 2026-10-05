@@ -73,7 +73,7 @@ class Solution < ApplicationRecord
   def fiche? = HORS_FICHES.exclude?(categorie)
 
   # Comme le site actuel : une fiche n'est publique que si un opérateur est explicitement « Public ».
-  def privee? = fiche? && organisations.none? { |organisation| organisation.public_ou_prive == 'Public' }
+  def privee? = fiche? && organisations.none?(&:publique?)
 
   # Les données que la solution fournit : elle-même quand c'est une API, plus celles qu'elle expose.
   def fournies = [self, *exposees]

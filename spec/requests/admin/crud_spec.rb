@@ -199,6 +199,16 @@ RSpec.describe 'Administration' do
         .to eq('Supprimer « Particuliers » ? 1 démarche en sera détachée. 2 solutions en seront détachées.')
       expect(confirmation("/admin/types_acteurs/#{communes.id}/edit")).to eq('Supprimer « Communes » ? 1 démarche en sera détachée.')
     end
+
+    it 'nomme les solutions qu’une organisation rendrait privées' do
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public', solutions: [bouquet, Solution.create!(nom: 'Démarches simplifiées')])
+      expect(confirmation("/admin/organisations/#{dinum.id}/edit"))
+        .to eq('Supprimer « DINUM » ? Ces solutions deviendront privées : Bouquet, Démarches simplifiées.')
+
+      patch "/admin/organisations/#{dinum.id}", params: { organisation: { nom: '', public_ou_prive: 'Privé' } }
+      expect(response.parsed_body.at_css('form[data-turbo-confirm]')['data-turbo-confirm'])
+        .to eq('Supprimer « DINUM » ? Ces solutions deviendront privées : Bouquet, Démarches simplifiées.')
+    end
   end
 
   describe 'dates de création et de modification' do

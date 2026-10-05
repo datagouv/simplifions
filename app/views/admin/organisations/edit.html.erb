@@ -4,5 +4,7 @@
   <h1>Organisation n°<%= @organisation.id %></h1>
   <%= render "form", organisation: @organisation %>
   <% en_base = Organisation.find(@organisation.id) %>
-  <%= render "admin/supprimer", url: admin_organisation_path(en_base), nom: en_base.nom %>
+  <% privees = en_base.solutions_rendues_privees.order(:nom).pluck(:nom) %>
+  <%= render "admin/supprimer", url: admin_organisation_path(en_base), nom: en_base.nom,
+  consequences: [t("admin.suppression.solutions_privees", count: privees.size, noms: privees.join(", "))] %>
 </div>
