@@ -361,6 +361,37 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'textes longs' do
+    before { sign_in admin }
+
+    def hauteurs(chemin)
+      get chemin
+      response.parsed_body.css('textarea').to_h { |zone| [zone['name'], zone['rows'].to_i] }
+    end
+
+    it 'donne à chaque zone de texte la hauteur de son contenu, retours à la ligne compris' do
+      demarche = Demarche.create!(nom: 'Aides', contexte: "Ligne\n" * 30, cadre_juridique: 'x' * 2900, mots_clefs: %w[a b c d e f g h])
+
+      hauteurs_de_la_fiche = hauteurs("/admin/demarches/#{demarche.id}/edit")
+      expect(hauteurs_de_la_fiche).to include('demarche[description_courte]' => 6, 'demarche[contexte]' => 32, 'demarche[mots_clefs]' => 10)
+      expect(hauteurs_de_la_fiche['demarche[cadre_juridique]']).to be >= 30
+      expect(hauteurs('/admin/demarches/new').values).to all(eq(6))
+    end
+
+    it 'signale « Markdown accepté » sur les seuls champs mis en forme sur le site' do
+      {
+        'demarches' => %w[demarche_contexte demarche_cadre_juridique],
+        'solutions' => %w[solution_permet solution_ne_permet_pas],
+        'recommandations' => %w[recommandation_donnees_utiles recommandation_parametres_a_saisir recommandation_description],
+        'types_acteurs' => []
+      }.each do |chemin, champs|
+        get "/admin/#{chemin}/new"
+        signales = response.parsed_body.css('label:has(.fr-hint-text:contains("Markdown accepté"))').pluck('for')
+        expect(signales).to eq(champs)
+      end
+    end
+  end
+
   describe 'ce que la suppression emporte' do
     let(:aides) { Demarche.create!(nom: 'Aides') }
     let(:bouquet) { Solution.create!(nom: 'Bouquet') }
@@ -760,7 +791,7 @@ RSpec.describe 'Administration' do
       demarche = Demarche.create!(nom: 'Aides', mots_clefs: %w[aides subventions])
 
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(response.body).to include("<textarea class=\"fr-input\" rows=\"4\" name=\"demarche[mots_clefs]\" id=\"demarche_mots_clefs\">\naides\nsubventions</textarea>")
+      expect(response.body).to include("<textarea class=\"fr-input\" rows=\"6\" name=\"demarche[mots_clefs]\" id=\"demarche_mots_clefs\">\naides\nsubventions</textarea>")
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { mots_clefs: "aides\r\nprimes" } }
       expect(demarche.reload.mots_clefs).to eq(%w[aides primes])
