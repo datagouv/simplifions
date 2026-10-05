@@ -67,6 +67,8 @@ class Solution < ApplicationRecord
   end
 
   def fiche? = HORS_FICHES.exclude?(categorie)
+  scope :par_libelle_admin, -> { order(:nom, :categorie) }
+  def libelle_admin = categorie ? "#{nom} (#{self.class.human_attribute_name("categorie.#{categorie}")})" : nom
 
   # Comme le site actuel : une fiche n'est publique que si un opérateur est explicitement « Public ».
   def privee? = fiche? && organisations.none?(&:publique?)

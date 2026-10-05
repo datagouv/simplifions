@@ -143,6 +143,12 @@ end
 RSpec.describe 'Administration' do
   let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
 
+  def colonnes(chemin)
+    get "/admin/#{chemin}"
+    entetes = response.parsed_body.css('thead th').map(&:text)
+    response.parsed_body.css('tbody tr').map { |ligne| entetes.zip(ligne.css('td').map { |cellule| cellule.text.squish }).to_h.except('Id') }
+  end
+
   it_behaves_like 'un CRUD brut', Demarche, 'demarches' do
     let(:collection) { 'Démarches' }
     let(:attributs) { { nom: 'Aides publiques' } }
@@ -159,8 +165,8 @@ RSpec.describe 'Administration' do
     let(:modification) { { ordre: 3 } }
     let(:invalide) { [{ demarche_id: '' }, 'Choisissez une démarche'] }
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
-    let(:nom) { 'Aides → API QF' }
-    let(:nom_cree) { 'Autre démarche → API QF' }
+    let(:nom) { 'Aides → API QF (API)' }
+    let(:nom_cree) { 'Autre démarche → API QF (API)' }
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
@@ -211,8 +217,8 @@ RSpec.describe 'Administration' do
       [api_qf, api_entreprise].each { |solution| Recommandation.create!(demarche: aides, solution:, niveau: :niveau_1) }
       Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api_qf, type_integration: 'consomme')
 
-      expect(noms_listes('recommandations', 'aides qf')).to eq(['Aides → API QF'])
-      expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet → API QF (intégrée)'])
+      expect(noms_listes('recommandations', 'aides qf')).to eq(['Aides → API QF (API)'])
+      expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet → API QF (API) (intégrée)'])
       expect(noms_listes('integrations', 'entreprise')).to be_empty
     end
   end
@@ -238,20 +244,14 @@ RSpec.describe 'Administration' do
   describe 'colonnes des listes' do
     before { sign_in admin }
 
-    def colonnes(chemin)
-      get "/admin/#{chemin}"
-      entetes = response.parsed_body.css('thead th').map(&:text)
-      response.parsed_body.css('tbody tr').map { |ligne| entetes.zip(ligne.css('td').map { |cellule| cellule.text.squish }).to_h.except('Id') }
-    end
-
     it 'montre si la démarche, la solution ou la recommandation est visible, et sa date de modification' do
       aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, modifie_le: Time.zone.local(2026, 10, 4, 23, 30))
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
       Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1, visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
 
       expect(colonnes('demarches')).to eq([{ 'Nom' => 'Aides', 'Visible' => 'Oui', 'Modifié le' => '05/10/2026' }])
-      expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
-      expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
+      expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
+      expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
     end
 
     it 'nomme les solutions qui intègrent chaque solution, avec un lien vers leur fiche' do
@@ -261,7 +261,7 @@ RSpec.describe 'Administration' do
         Integration.create!(integratrice:, integree: api_qf, type_integration:)
       end
 
-      expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'API QF' }['Intégrée par']).to eq('Bouquet, eTicket, Mes Aides')
+      expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'API QF (API)' }['Intégrée par']).to eq('Bouquet, eTicket, Mes Aides')
       expect(response.parsed_body.css('tbody td:last-child a').pluck('href')).to include("/admin/solutions/#{bouquet.id}/edit")
     end
   end
@@ -311,6 +311,36 @@ RSpec.describe 'Administration' do
       end
     end
 
+    it 'distingue les solutions homonymes par leur catégorie dans chaque choix de solution' do
+      api = Solution.create!(nom: 'API Impôt particulier', categorie: 'api')
+      fiche = Solution.create!(nom: 'API Impôt particulier', categorie: 'logiciel_metier_cle_en_main')
+      attendus = ['API Impôt particulier (API)', 'API Impôt particulier (Logiciel métier)']
+
+      %w[types_acteurs organisations vocabulaires].each do |chemin|
+        get "/admin/#{chemin}/new"
+        expect(response.parsed_body.css('input[type=checkbox][name$="[solution_ids][]"] + label').map { |libelle| libelle.text.strip }).to eq(attendus)
+      end
+      { 'recommandations' => %w[recommandation_solution_id], 'integrations' => %w[integration_integree_id integration_integratrice_id] }.each do |chemin, champs|
+        get "/admin/#{chemin}/new"
+        champs.each { |champ| expect(response.parsed_body.css("##{champ} option").map(&:text).compact_blank).to eq(attendus) }
+      end
+
+      Integration.create!(integratrice: fiche, integree: api, type_integration: 'consomme')
+      Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api, niveau: :niveau_1)
+      expect(colonnes('solutions').map { |ligne| ligne.values_at('Nom', 'Intégrée par') })
+        .to contain_exactly(['API Impôt particulier (API)', 'API Impôt particulier (Logiciel métier)'], ['API Impôt particulier (Logiciel métier)', ''])
+      expect(colonnes('recommandations').pluck('Ligne')).to eq(['Aides → API Impôt particulier (API)'])
+
+      get "/admin/solutions/#{api.id}/edit"
+      expect(response.parsed_body.at_css('h1').text).to eq('API Impôt particulier (API)')
+      expect(response.parsed_body.at_css('.fr-breadcrumb [aria-current]').text.strip).to eq('API Impôt particulier (API)')
+
+      dgfip = Organisation.create!(nom: 'DGFiP', public_ou_prive: 'Public', solutions: [api, fiche])
+      get "/admin/organisations/#{dgfip.id}/edit"
+      expect(response.parsed_body.at_css('form[data-turbo-confirm]')['data-turbo-confirm'])
+        .to end_with('La solution API Impôt particulier (Logiciel métier) deviendra privée.')
+    end
+
     it 'range chaque longue liste de cases dans un groupe filtrable, sans champ envoyé avec le formulaire' do
       {
         'demarches' => ["Types d'acteurs", 'Intégrations'], 'solutions' => ['Organisations', "Types d'acteurs"],
@@ -354,7 +384,7 @@ RSpec.describe 'Administration' do
       Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
       expect(confirmation("/admin/solutions/#{api_qf.id}/edit"))
-        .to eq('Supprimer « API QF » ? 1 recommandation sera supprimée. 1 intégration sera supprimée.')
+        .to eq('Supprimer « API QF (API) » ? 1 recommandation sera supprimée. 1 intégration sera supprimée.')
       expect(confirmation("/admin/solutions/#{Solution.create!(nom: 'Seule').id}/edit")).to eq('Supprimer « Seule » ?')
     end
 

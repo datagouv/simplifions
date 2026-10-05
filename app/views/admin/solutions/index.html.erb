@@ -19,9 +19,9 @@
         <% @solutions.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= link_to ligne.nom, edit_admin_solution_path(ligne) %></td>
+            <td><%= link_to ligne.libelle_admin, edit_admin_solution_path(ligne) %></td>
             <%= render "visible_et_modifie_le", ligne: %>
-            <td><%= safe_join(ligne.integratrices.sort_by { |integratrice| integratrice.nom.downcase }.map { |integratrice| link_to integratrice.nom, edit_admin_solution_path(integratrice) }, ", ") %></td>
+            <td><%= safe_join(ligne.integratrices.sort_by { |integratrice| integratrice.libelle_admin.downcase }.map { |integratrice| link_to integratrice.libelle_admin, edit_admin_solution_path(integratrice) }, ", ") %></td>
           </tr>
         <% end %>
       </tbody>

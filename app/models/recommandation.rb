@@ -10,7 +10,7 @@ class Recommandation < ApplicationRecord
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
   scope :visibles, -> { where(visible: true) }
-  def libelle = "#{demarche.nom} → #{solution.nom}"
+  def libelle = "#{demarche.nom} → #{solution.libelle_admin}"
 
   scope :nom_contient, lambda { |q|
     q.to_s.split.reduce(all) do |liste, terme|

@@ -325,11 +325,11 @@ def listes(page)
   integratrice = integree.integratrices.min_by(&:nom)
   rechercher(page, integree.nom)
   noms = lignes_affichees(page).map(&:second)
-  attendus = Solution.recherche(integree.nom).order(:id).limit(50).pluck(:nom)
+  attendus = Solution.recherche(integree.nom).order(:id).limit(50).map(&:libelle_admin)
   raise "recherche #{noms} != #{attendus}" unless noms == attendus
 
   Verify.evidence(dossier, page, 'solutions-recherche', "q=#{integree.nom} lignes=#{noms.size} en_base=#{Solution.recherche(integree.nom).count}")
-  page.within(:xpath, "//tr[td[2][normalize-space()=#{integree.nom.inspect}]]") { page.click_link integratrice.nom, exact_text: true }
+  page.within(:xpath, "//tr[td[2][normalize-space()=#{integree.libelle_admin.inspect}]]") { page.click_link integratrice.libelle_admin, exact_text: true }
   page.assert_current_path("/admin/solutions/#{integratrice.id}/edit")
   Verify.evidence(dossier, page, 'integratrice-ouverte', "integree=#{integree.id} integratrice=#{integratrice.id} url=#{page.current_path}")
   page.click_link 'Administration', match: :first
@@ -523,11 +523,44 @@ def erreurs(page)
   page.assert_selector :link, 'Se connecter'
 end
 
+def homonymes(page)
+  dossier = 'admin-homonymes'
+  nom = 'API Impôt particulier'
+  Verify.login(page)
+  page.visit('/admin/recommandations/new')
+  options = page.all('#recommandation_solution_id option', text: nom).map(&:text)
+  raise "options recommandation #{options}" unless options.size == 2 && options.uniq.size == 2
+
+  Verify.evidence(dossier, page, 'recommandation', "options=#{options.join(' | ')} en_base=#{Solution.where(nom:).pluck(:categorie).join(',')}")
+  page.visit('/admin/integrations/new')
+  integrees = page.all('#integration_integree_id option', text: nom).map(&:text)
+  raise "options intégration #{integrees}" unless integrees == options
+
+  Verify.evidence(dossier, page, 'integration', "integree=#{integrees.join(' | ')}")
+  page.visit('/admin/types_acteurs/new')
+  groupe = page.find('fieldset', text: 'Filtrer les solutions')
+  groupe.fill_in 'Filtrer les solutions', with: 'impot particulier'
+  cases = groupe.all('[data-liste-filtrable-target=element]:not(.fr-hidden) label').map(&:text)
+  raise "cases #{cases}" unless cases.sort == options.sort
+
+  Verify.evidence(dossier, page, 'cases-filtrables', "cases=#{cases.join(' | ')}")
+  page.visit('/admin/solutions')
+  page.fill_in 'Rechercher', with: 'impot particulier'
+  page.click_button 'Rechercher'
+  page.assert_current_path(/q=/)
+  integree_par = page.all('tbody tr').map { |ligne| ligne.all('td').last.text }.reject(&:empty?)
+  raise "intégrée par #{integree_par}" unless integree_par.any? { |cellule| cellule.include?("#{nom} (") }
+
+  Verify.evidence(dossier, page, 'integree-par', "integree_par=#{integree_par.join(' / ')}")
+  Verify.logout(page)
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
-  'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable }.each do |nom, fn|
+  'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable,
+  'homonymes' => :homonymes }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

@@ -31,5 +31,9 @@ class Admin::BaseController < ApplicationController
 
   def nom_en_base = en_base && nom_de(en_base)
 
-  def nom_de(ligne) = ligne.respond_to?(:nom) ? ligne.nom : ligne.libelle
+  def nom_de(ligne)
+    return ligne.libelle_admin if ligne.respond_to?(:libelle_admin)
+
+    ligne.respond_to?(:nom) ? ligne.nom : ligne.libelle
+  end
 end
