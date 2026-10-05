@@ -2,7 +2,7 @@ class Admin::TypesActeursController < Admin::BaseController
   before_action :set_type_acteur, only: %i[edit update destroy]
 
   def index
-    @types_acteurs = TypeActeur.order(:id)
+    @types_acteurs = TypeActeur.nom_contient(params[:q]).order(:id)
   end
 
   def new

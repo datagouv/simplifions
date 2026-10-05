@@ -2,7 +2,7 @@ class Admin::OrganisationsController < Admin::BaseController
   before_action :set_organisation, only: %i[edit update destroy]
 
   def index
-    @organisations = Organisation.order(:id)
+    @organisations = Organisation.nom_contient(params[:q]).order(:id)
   end
 
   def new

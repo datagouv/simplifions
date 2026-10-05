@@ -1,0 +1,7 @@
+<%= form_with url: request.path, method: :get, class: "fr-mb-3w" do |f| %>
+  <div class="fr-search-bar" role="search">
+    <%= f.label :q, "Rechercher", class: "fr-label" %>
+    <%= f.search_field :q, value: params[:q], class: "fr-input", placeholder: "Rechercher" %>
+    <button type="submit" class="fr-btn">Rechercher</button>
+  </div>
+<% end %>
