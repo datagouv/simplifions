@@ -4,10 +4,12 @@
   <%= groupe_de_champ(f, :integree_id, "fr-select-group") do |aria| %>
     <%= libelle_obligatoire(f, :integree_id) %>
     <%= f.collection_select :integree_id, solutions, :id, :libelle_admin, { include_blank: true }, class: "fr-select", required: true, **aria %>
+    <%= lien_vers_la_fiche(integration.integree, integration.integree.libelle_admin) if integration.integree %>
   <% end %>
   <%= groupe_de_champ(f, :integratrice_id, "fr-select-group") do |aria| %>
     <%= libelle_obligatoire(f, :integratrice_id) %>
     <%= f.collection_select :integratrice_id, solutions, :id, :libelle_admin, { include_blank: true }, class: "fr-select", required: true, **aria %>
+    <%= lien_vers_la_fiche(integration.integratrice, integration.integratrice.libelle_admin) if integration.integratrice %>
   <% end %>
   <%= groupe_de_champ(f, :type_integration, "fr-select-group") do |aria| %>
     <%= libelle_avec_aide(f, :type_integration, "Fournie : la solution met l’API ou le jeu de données à disposition. Intégrée : la solution l’utilise.", obligatoire: true) %>

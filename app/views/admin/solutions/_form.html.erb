@@ -43,6 +43,7 @@
   </div>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Vocabulaires</legend>
+    <% vocabulaires_coches = f.object.vocabulaire_ids %>
     <% options_traduites(Vocabulaire, :categorie).each do |legende, categorie| %>
       <div class="fr-fieldset__element">
         <fieldset class="fr-fieldset">
@@ -53,6 +54,7 @@
                 <%= b.check_box %>
                 <%= b.label(class: "fr-label") %>
               </div>
+              <%= lien_vers_la_fiche(b.object, b.text) if vocabulaires_coches.include?(b.value) %>
             </div>
           <% end %>
         </fieldset>

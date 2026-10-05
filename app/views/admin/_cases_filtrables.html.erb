@@ -1,4 +1,5 @@
 <% filtre = f.field_id(attribut, :filtre) %>
+<% cochees = f.object.public_send(attribut) %>
 <fieldset class="fr-fieldset" data-controller="liste-filtrable">
   <legend class="fr-fieldset__legend"><%= legende %></legend>
   <div class="fr-fieldset__element">
@@ -18,6 +19,7 @@
         <%= b.check_box data: { action: "change->liste-filtrable#compter" } %>
         <%= b.label(class: "fr-label") %>
       </div>
+      <%= lien_vers_la_fiche(b.object, b.text) if cochees.include?(b.value) %>
     </div>
   <% end %>
 </fieldset>
