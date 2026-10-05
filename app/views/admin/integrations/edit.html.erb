@@ -3,4 +3,6 @@
 <div class="fr-container fr-mb-6w">
   <h1>Intégration n°<%= @integration.id %></h1>
   <%= render "form", integration: @integration %>
+  <% en_base = Integration.find(@integration.id) %>
+  <%= render "admin/supprimer", url: admin_integration_path(en_base), nom: en_base.libelle %>
 </div>

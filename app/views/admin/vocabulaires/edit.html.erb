@@ -3,4 +3,6 @@
 <div class="fr-container fr-mb-6w">
   <h1>Vocabulaire n°<%= @vocabulaire.id %></h1>
   <%= render "form", vocabulaire: @vocabulaire %>
+  <% en_base = Vocabulaire.find(@vocabulaire.id) %>
+  <%= render "admin/supprimer", url: admin_vocabulaire_path(en_base), nom: en_base.nom %>
 </div>

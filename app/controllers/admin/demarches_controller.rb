@@ -30,7 +30,7 @@ class Admin::DemarchesController < Admin::BaseController
 
   def destroy
     @demarche.destroy!
-    redirect_to admin_demarches_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_demarches_path, notice: t('admin.supprime', nom: @demarche.nom), status: :see_other
   end
 
   private

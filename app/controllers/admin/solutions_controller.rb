@@ -30,7 +30,7 @@ class Admin::SolutionsController < Admin::BaseController
 
   def destroy
     @solution.destroy!
-    redirect_to admin_solutions_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_solutions_path, notice: t('admin.supprime', nom: @solution.nom), status: :see_other
   end
 
   private

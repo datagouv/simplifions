@@ -30,7 +30,7 @@ class Admin::TypesActeursController < Admin::BaseController
 
   def destroy
     @type_acteur.destroy!
-    redirect_to admin_types_acteurs_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_types_acteurs_path, notice: t('admin.supprime', nom: @type_acteur.nom), status: :see_other
   end
 
   private

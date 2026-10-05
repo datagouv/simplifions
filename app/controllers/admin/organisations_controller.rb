@@ -30,7 +30,7 @@ class Admin::OrganisationsController < Admin::BaseController
 
   def destroy
     @organisation.destroy!
-    redirect_to admin_organisations_path, notice: t('admin.supprime'), status: :see_other
+    redirect_to admin_organisations_path, notice: t('admin.supprime', nom: @organisation.nom), status: :see_other
   end
 
   private

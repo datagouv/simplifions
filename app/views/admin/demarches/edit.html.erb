@@ -3,4 +3,6 @@
 <div class="fr-container fr-mb-6w">
   <h1>Démarche n°<%= @demarche.id %></h1>
   <%= render "form", demarche: @demarche %>
+  <% en_base = Demarche.find(@demarche.id) %>
+  <%= render "admin/supprimer", url: admin_demarche_path(en_base), nom: en_base.nom %>
 </div>

@@ -9,6 +9,7 @@ class Recommandation < ApplicationRecord
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
   scope :visibles, -> { where(visible: true) }
+  def libelle = "#{demarche.nom} → #{solution.nom}"
 
   validate :ne_recommande_pas_de_solution_privee
 

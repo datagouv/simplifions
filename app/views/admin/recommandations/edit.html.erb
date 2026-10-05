@@ -3,4 +3,6 @@
 <div class="fr-container fr-mb-6w">
   <h1>Recommandation n°<%= @recommandation.id %></h1>
   <%= render "form", recommandation: @recommandation %>
+  <% en_base = Recommandation.find(@recommandation.id) %>
+  <%= render "admin/supprimer", url: admin_recommandation_path(en_base), nom: en_base.libelle %>
 </div>
