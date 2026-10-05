@@ -14,7 +14,7 @@ class Admin::DemarchesController < Admin::BaseController
   def create
     @demarche = Demarche.new(demarche_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
     if @demarche.save
-      redirect_to admin_demarches_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@demarche)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::DemarchesController < Admin::BaseController
 
   def update
     if @demarche.update(demarche_params.merge(modifie_le: Time.current))
-      redirect_to admin_demarches_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@demarche)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::DemarchesController < Admin::BaseController
 
   def destroy
     @demarche.destroy!
-    redirect_to admin_demarches_path, notice: t('admin.supprime', nom: @demarche.nom), status: :see_other
+    redirect_to admin_demarches_path, notice: t('admin.supprime', nom: nom_de(@demarche)), status: :see_other
   end
 
   private

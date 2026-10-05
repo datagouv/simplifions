@@ -7,6 +7,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let(:invalide) { [{ nom: '' }, 'Nom doit être rempli'] }
   let!(:ligne) { modele.create!(attributs) }
   let(:nom) { attributs[:nom] }
+  let(:nom_cree) { nom }
 
   it 'exige la connexion' do
     get "/admin/#{chemin}"
@@ -54,12 +55,12 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['data-formulaire-modifie-modifie-value']).to eq('true')
   end
 
-  it 'crée une ligne puis revient à la liste' do
+  it 'crée une ligne et reste sur sa fiche, en la nommant' do
     sign_in admin
     expect { post "/admin/#{chemin}", params: { cle => nouveaux } }.to change(modele, :count).by(1)
-    expect(response).to redirect_to("/admin/#{chemin}")
+    expect(response).to redirect_to("/admin/#{chemin}/#{modele.last.id}/edit")
     follow_redirect!
-    expect(response.body).to include('Enregistré.')
+    expect(response.body).to include("« #{nom_cree} » enregistré.")
   end
 
   it 'refuse une ligne invalide et réaffiche le formulaire avec l’erreur' do
@@ -88,11 +89,13 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).not_to include('Identifiant Grist')
   end
 
-  it 'modifie une ligne' do
+  it 'modifie une ligne et reste sur sa fiche, en la nommant' do
     sign_in admin
     patch "/admin/#{chemin}/#{ligne.id}", params: { cle => modification }
-    expect(response).to redirect_to("/admin/#{chemin}")
+    expect(response).to redirect_to("/admin/#{chemin}/#{ligne.id}/edit")
     expect(ligne.reload.attributes).to include(modification.stringify_keys)
+    follow_redirect!
+    expect(response.body).to include("« #{modification[:nom] || nom} » enregistré.")
   end
 
   it 'supprime une ligne' do
@@ -121,6 +124,7 @@ RSpec.describe 'Administration' do
     let(:invalide) { [{ demarche_id: '' }, 'Choisissez une démarche'] }
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
     let(:nom) { 'Aides → API QF' }
+    let(:nom_cree) { 'Autre démarche → API QF' }
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
@@ -296,7 +300,7 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
 
       post '/admin/solutions', params: { solution: { nom: 'API QF', categorie: 'api', visible: '1', slug: '' } }
-      expect(response).to redirect_to('/admin/solutions')
+      expect(response).to redirect_to("/admin/solutions/#{Solution.last.id}/edit")
     end
 
     it 'refuse un slug de démarche déjà pris' do
@@ -562,7 +566,7 @@ RSpec.describe 'Administration' do
       sign_in admin
       image = Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'swagger.png')
       post '/admin/solutions', params: { solution: { nom: 'Bouquet', image: } }
-      expect(response).to redirect_to('/admin/solutions')
+      expect(response).to redirect_to("/admin/solutions/#{Solution.last.id}/edit")
       expect(Solution.last.image).to be_attached
     end
   end

@@ -14,7 +14,7 @@ class Admin::IntegrationsController < Admin::BaseController
   def create
     @integration = Integration.new(integration_params)
     if @integration.save
-      redirect_to admin_integrations_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@integration)
     else
       render :new, status: :unprocessable_content
     end
@@ -22,7 +22,7 @@ class Admin::IntegrationsController < Admin::BaseController
 
   def update
     if @integration.update(integration_params)
-      redirect_to admin_integrations_path, notice: t('admin.enregistre'), status: :see_other
+      redirige_vers_la_fiche(@integration)
     else
       render :edit, status: :unprocessable_content
     end
@@ -30,7 +30,7 @@ class Admin::IntegrationsController < Admin::BaseController
 
   def destroy
     @integration.destroy!
-    redirect_to admin_integrations_path, notice: t('admin.supprime', nom: @integration.libelle), status: :see_other
+    redirect_to admin_integrations_path, notice: t('admin.supprime', nom: nom_de(@integration)), status: :see_other
   end
 
   private
