@@ -251,7 +251,7 @@ RSpec.describe 'Administration' do
 
       expect(colonnes('demarches')).to eq([{ 'Nom' => 'Aides', 'Visible' => 'Oui', 'Modifié le' => '05/10/2026' }])
       expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
-      expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
+      expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
     end
 
     it 'nomme les solutions qui intègrent chaque solution, avec un lien vers leur fiche' do
@@ -948,6 +948,21 @@ RSpec.describe 'Administration' do
       expect(categorie.to_h.slice('data-controller', 'data-action')).to eq('data-controller' => 'champs-fiche', 'data-action' => 'champs-fiche#basculer')
       expect(JSON.parse(categorie['data-champs-fiche-hors-fiches-value'])).to eq(Solution::HORS_FICHES)
       expect(response.parsed_body.css('form [data-champ-fiche]').size).to eq(champs_fiche.size)
+    end
+  end
+
+  describe 'solution privée' do
+    before { sign_in admin }
+
+    it 'le signale sur la fiche et dans la liste, comme sur le site' do
+      privee = Solution.create!(nom: 'Bouquet')
+      publique = Solution.create!(nom: 'Mes Aides', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+
+      expect(colonnes('solutions').to_h { |ligne| ligne.values_at('Nom', 'Privée') }).to eq('Bouquet' => 'Oui', 'Mes Aides' => 'Non')
+      get "/admin/solutions/#{privee.id}/edit"
+      expect(response.parsed_body.at_css('h1 + .fr-badge').text.strip).to eq('Privée')
+      get "/admin/solutions/#{publique.id}/edit"
+      expect(response.parsed_body.at_css('h1 + .fr-badge')).to be_nil
     end
   end
 

@@ -41,3 +41,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-listes.md](admin-listes.md) — admin lists: search, 50 rows per page, name links to the edit page, Visible / Modifié le / Intégrée par columns.
 - [admin-liste-filtrable.md](admin-liste-filtrable.md) — long lists of linked rows in admin forms show only checked boxes and filter as you type; vocabulaires grouped by category.
 - [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — list and add a démarche's recommandations from its form; a recommandation keeps its démarche in view.
+- [admin-formulaire-solution.md](admin-formulaire-solution.md) — a solution form shows only the fields of its catégorie, its image (removable) and whether it is private.
