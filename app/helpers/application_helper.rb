@@ -42,6 +42,8 @@ module ApplicationHelper
     end
   end
 
+  def id_du_champ(formulaire, attribut) = formulaire.field_id(champ_de_l_erreur(formulaire.object, attribut))
+
   def options_traduites(modele, enum)
     modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
   end

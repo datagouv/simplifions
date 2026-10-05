@@ -96,3 +96,7 @@
   line-height: 1rem;
   text-align: center;
 }
+
+form :target {
+  scroll-margin-top: 8rem;
+}

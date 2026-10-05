@@ -102,6 +102,9 @@ fr:
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
   admin:
     enregistre: "Enregistré."
+    erreurs:
+      one: "1 erreur à corriger"
+      other: "%{count} erreurs à corriger"
     supprime: "« %{nom} » supprimé."
     rafraichissement_lance: "Rafraîchissement lancé."
     suppression:

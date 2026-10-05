@@ -1,13 +1,5 @@
 <%= form_with model: [:admin, recommandation], class: "fr-mt-4w", data: surveille_les_modifications(recommandation) do |f| %>
-  <% if recommandation.errors.any? %>
-    <div class="fr-alert fr-alert--error">
-      <ul>
-        <% recommandation.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render "admin/erreurs", f: f %>
   <div class="fr-checkbox-group fr-mb-3w">
     <%= f.check_box :visible %>
     <%= f.label :visible, class: "fr-label" %>
