@@ -2,7 +2,7 @@ class Admin::VocabulairesController < Admin::BaseController
   before_action :set_vocabulaire, only: %i[edit update destroy]
 
   def index
-    @vocabulaires = Vocabulaire.order(:id)
+    @vocabulaires = Vocabulaire.nom_contient(params[:q]).order(:id)
   end
 
   def new

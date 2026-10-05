@@ -52,11 +52,7 @@ class Solution < ApplicationRecord
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
   def acteurs = types_acteurs.map(&:nom).sort
 
-  scope :recherche, lambda { |q|
-    q.to_s.split.reduce(all) do |liste, terme|
-      liste.where("unaccent(concat_ws(' ', nom, description_courte)) ILIKE unaccent(?)", "%#{sanitize_sql_like(terme)}%")
-    end
-  }
+  scope :recherche, ->(q) { chaque_mot_dans("unaccent(concat_ws(' ', nom, description_courte)) ILIKE unaccent(:motif)", q) }
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 

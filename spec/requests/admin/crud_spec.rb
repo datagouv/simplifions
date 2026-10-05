@@ -25,6 +25,15 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).not_to include('Supprimer')
   end
 
+  it 'filtre la liste sur le nom, sans tenir compte des accents ni de la casse' do
+    sign_in admin
+    get "/admin/#{chemin}", params: { q: I18n.transliterate(nom.split.first).upcase }
+    expect(response.body).to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
+    expect(response.parsed_body.at_css('input[name=q]')['value']).to eq(I18n.transliterate(nom.split.first).upcase)
+    get "/admin/#{chemin}", params: { q: 'introuvable' }
+    expect(response.body).not_to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
+  end
+
   it 'propose la suppression depuis la fiche, en nommant la ligne' do
     sign_in admin
     get "/admin/#{chemin}/#{ligne.id}/edit"
@@ -176,6 +185,32 @@ RSpec.describe 'Administration' do
   it_behaves_like 'un CRUD brut', Vocabulaire, 'vocabulaires' do
     let(:collection) { 'Vocabulaires' }
     let(:attributs) { { nom: 'Particuliers', slug: 'particuliers', categorie: 'usager' } }
+  end
+
+  describe 'recherche dans les listes' do
+    before { sign_in admin }
+
+    def noms_listes(chemin, recherche)
+      get "/admin/#{chemin}", params: { q: recherche }
+      response.parsed_body.css('tbody tr').map { |ligne| ligne.css('td')[1].text.strip }
+    end
+
+    it 'cherche une solution par son nom' do
+      ['Impôt particulier', 'Bouquet'].each { |nom| Solution.create!(nom:) }
+      expect(noms_listes('solutions', 'impot')).to eq(['Impôt particulier'])
+    end
+
+    it 'cherche une recommandation ou une intégration par les noms qu’elle relie, chaque mot quelque part' do
+      aides = Demarche.create!(nom: 'Aides')
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      api_entreprise = Solution.create!(nom: 'API Entreprise', categorie: 'api')
+      [api_qf, api_entreprise].each { |solution| Recommandation.create!(demarche: aides, solution:, niveau: :niveau_1) }
+      Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api_qf, type_integration: 'consomme')
+
+      expect(noms_listes('recommandations', 'aides qf')).to eq(['Aides → API QF'])
+      expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet → API QF (intégrée)'])
+      expect(noms_listes('integrations', 'entreprise')).to be_empty
+    end
   end
 
   describe 'associations plusieurs-à-plusieurs' do

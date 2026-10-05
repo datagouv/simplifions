@@ -17,5 +17,11 @@ class Integration < ApplicationRecord
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
   def libelle = "#{integratrice.nom} → #{integree.nom} (#{self.class.human_attribute_name("type_integration.#{type_integration}").downcase})"
 
+  scope :nom_contient, lambda { |q|
+    q.to_s.split.reduce(all) do |liste, terme|
+      solutions = Solution.nom_contient(terme)
+      liste.where(integratrice: solutions).or(liste.where(integree: solutions))
+    end
+  }
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
 end
