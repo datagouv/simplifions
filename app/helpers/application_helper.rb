@@ -24,6 +24,12 @@ module ApplicationHelper
       action: 'input->formulaire-modifie#marquer change->formulaire-modifie#marquer' }
   end
 
+  def libelle_avec_aide(formulaire, champ, aide)
+    formulaire.label(champ, class: 'fr-label') do |libelle|
+      safe_join([libelle.translation, tag.span(aide, class: 'fr-hint-text')])
+    end
+  end
+
   def options_traduites(modele, enum)
     modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
   end

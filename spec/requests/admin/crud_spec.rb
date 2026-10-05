@@ -379,6 +379,24 @@ RSpec.describe 'Administration' do
       get "/admin/integrations/#{integration.id}/edit"
       expect(response.parsed_body.at_css('#integration_type_integration option[selected]').text).to eq('Intégrée')
     end
+
+    it 'explique les champs ambigus dans leur libellé' do
+      {
+        Recommandation => %w[niveau ordre], Solution => %w[uid_datagouv france_connectee types_solution slug],
+        TypeActeur => %w[slugs], Demarche => %w[mots_clefs slug], Integration => %w[type_integration]
+      }.each do |modele, champs|
+        get "/admin/#{modele.model_name.route_key}/new"
+        champs.each do |champ|
+          aide = response.parsed_body.at_css("label[for=#{modele.model_name.param_key}_#{champ}] .fr-hint-text")
+          expect(aide).to be_present, "#{modele}.#{champ}"
+        end
+      end
+    end
+
+    it 'renvoie les slugs d’un type d’acteur au filtre « Démarches gérées par » du site' do
+      get '/admin/types_acteurs/new'
+      expect(response.parsed_body.at_css('label[for=type_acteur_slugs] .fr-hint-text').text).to include('« Démarches gérées par »')
+    end
   end
 
   describe 'slug' do

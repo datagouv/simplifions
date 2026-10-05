@@ -13,8 +13,7 @@
     <%= f.text_field :nom, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :slugs, class: "fr-label" %>
-    <span class="fr-hint-text">Une valeur par ligne</span>
+    <%= libelle_avec_aide(f, :slugs, "Une valeur par ligne : les filtres « Démarches gérées par » du site qui retiennent ce type d’acteur, ex. : communes, tout-acteurs-publics") %>
     <%= f.text_area :slugs, value: type_acteur.slugs.join("\n"), class: "fr-input", rows: 4 %>
   </div>
   <div class="fr-input-group">
