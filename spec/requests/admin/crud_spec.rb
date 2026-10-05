@@ -452,14 +452,15 @@ RSpec.describe 'Administration' do
       expect(liens_vers_les_fiches("/admin/solutions/#{Solution.create!(nom: 'Bouquet', vocabulaires: [usager]).id}/edit")).to eq(attendu)
     end
 
-    it 'mène depuis une recommandation à sa solution, depuis une intégration à ses deux solutions' do
+    it 'mène depuis une recommandation à sa démarche et sa solution, depuis une intégration à ses deux solutions' do
       api = Solution.create!(nom: 'API QF', categorie: 'api')
       bouquet = Solution.create!(nom: 'Bouquet')
-      recommandation = Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api, niveau: :niveau_1)
+      aides = Demarche.create!(nom: 'Aides')
+      recommandation = Recommandation.create!(demarche: aides, solution: api, niveau: :niveau_1)
       integration = Integration.create!(integratrice: bouquet, integree: api, type_integration: 'consomme')
 
       expect(liens_vers_les_fiches("/admin/recommandations/#{recommandation.id}/edit"))
-        .to eq([['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false]])
+        .to eq([['Voir la fiche Aides', "/admin/demarches/#{aides.id}/edit", false], ['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false]])
       expect(liens_vers_les_fiches("/admin/integrations/#{integration.id}/edit")).to eq([
         ['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false],
         ['Voir la fiche Bouquet', "/admin/solutions/#{bouquet.id}/edit", false]
@@ -499,6 +500,20 @@ RSpec.describe 'Administration' do
     it 'pré-remplit la démarche d’une nouvelle recommandation' do
       get '/admin/recommandations/new', params: { demarche_id: aides.id }
       expect(response.parsed_body.at_css('#recommandation_demarche_id option[selected]').text).to eq('Aides')
+    end
+
+    it 'garde la démarche et ses autres recommandations sous les yeux pendant l’édition d’une recommandation' do
+      aides.update!(description_courte: 'Demander une aide sociale')
+      recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1')
+      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2', ordre: 4)
+
+      expect(recommandations_de("/admin/recommandations/#{recommandation.id}/edit"))
+        .to eq([{ 'Solution' => 'Mes Aides (API)', 'Type de recommandation' => 'Solution recommandée', 'Ordre' => '4' }])
+      encart = response.parsed_body.at_css('aside')
+      expect(encart.text.squish).to include('Démarche : Aides', 'Demander une aide sociale')
+      expect(encart.at_css('a[aria-label="Voir la fiche Aides"]')['href']).to eq("/admin/demarches/#{aides.id}/edit")
+
+      expect(recommandations_de("/admin/recommandations/new?demarche_id=#{aides.id}").size).to eq(2)
     end
   end
 

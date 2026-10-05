@@ -610,12 +610,59 @@ def pages_liees(page)
   Verify.logout(page)
 end
 
+def recommandations_demarche(page)
+  dossier = 'admin-recommandations-demarche'
+  demarche = Demarche.visibles.max_by { |ligne| ligne.recommandations.count }
+  solution = Solution.where(categorie: 'api').where.not(id: demarche.recommandations.select(:solution_id)).reject(&:privee?).first
+  avant = demarche.recommandations.count
+  Verify.login(page)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  lignes = page.find('table[aria-labelledby=recommandations]').all('tbody tr').size
+  raise "#{lignes} lignes pour #{avant} recommandations" unless lignes == avant
+
+  Verify.evidence(dossier, page, 'demarche', "lignes=#{lignes} en_base=#{avant}")
+  page.click_link 'Ajouter une recommandation'
+  choisie = page.find('#recommandation_demarche_id option[selected]').text
+  raise "démarche pré-remplie #{choisie}" unless choisie == demarche.nom
+
+  autres = page.find('table[aria-labelledby=autres-recommandations]', visible: :all).all('tbody tr', visible: :all).size
+  Verify.evidence(dossier, page, 'nouvelle', "demarche=#{choisie} autres=#{autres}")
+  page.select solution.libelle_admin, from: 'Solution (obligatoire)'
+  page.select 'Donnée utile (API ou jeu de données)', from: 'Type de recommandation'
+  page.fill_in 'Ordre', with: '99'
+  page.click_button 'Enregistrer'
+  page.assert_text 'enregistré'
+  creee = ActiveRecord::Base.uncached { demarche.recommandations.find_by!(solution:) }
+  page.assert_current_path("/admin/recommandations/#{creee.id}/edit")
+  encart = page.find('aside')
+  encart.find('button', text: 'Autres recommandations de la démarche').click
+  encart.assert_selector('table[aria-labelledby=autres-recommandations]', visible: true)
+  Verify.evidence(dossier, page, 'enregistree', "url=#{page.current_path} encart=#{encart.find('h2').text} autres=#{encart.all('tbody tr', visible: :all).size} en_base=#{ActiveRecord::Base.uncached { demarche.recommandations.count }}")
+  lien_nomme(encart, "Voir la fiche #{demarche.nom}").click
+  page.assert_current_path("/admin/demarches/#{demarche.id}/edit")
+  derniere = page.find('table[aria-labelledby=recommandations]').all('tbody tr').map { |ligne| ligne.all('td').map(&:text) }
+    .find { |cellules| cellules.first == solution.libelle_admin }
+  raise 'nouvelle recommandation absente de la démarche' unless derniere
+
+  Verify.evidence(dossier, page, 'retour-demarche', "ligne=#{derniere.first(3).join(' | ')}")
+  page.click_link solution.libelle_admin
+  page.accept_confirm { page.click_button 'Supprimer' }
+  page.assert_current_path('/admin/recommandations')
+  Verify.evidence(dossier, page, 'supprimee', "en_base=#{ActiveRecord::Base.uncached { demarche.recommandations.count }} attendu=#{avant}")
+  page.current_window.resize_to(320, 1024)
+  page.visit("/admin/recommandations/#{demarche.recommandations.first.id}/edit")
+  Verify.evidence(dossier, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+  Verify.logout(page)
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
   'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable,
-  'homonymes' => :homonymes, 'pages-liees' => :pages_liees }.each do |nom, fn|
+  'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
+  'recommandations-demarche' => :recommandations_demarche }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
