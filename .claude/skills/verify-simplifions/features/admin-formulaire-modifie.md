@@ -4,14 +4,14 @@ An admin form that was changed and not saved asks `Quitter sans enregistrer les 
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → any table → row → `Modifier`, or `Ajouter`; type in a field, then leave.
+- Dashboard `/admin` → any table → row name, or `Ajouter`; type in a field, then leave.
 - Admin only; the seven admin forms carry `data-controller="formulaire-modifie"`.
 
 ## Driving it with Capybara
 
 Preconditions: logged in (`Verify.login`); the drive creates its own démarche `Vérif verify-map <browser>` and deletes it.
 
-- **Unchanged.** Reach the fiche through Turbo links (Administration → Démarches → row → `Modifier`), `click_link "Annuler"`: no dialog, H1 `Démarches`.
+- **Unchanged.** Reach the fiche through Turbo links (Administration → Démarches → search → row name), `click_link "Annuler"`: no dialog, H1 `Démarches`.
 - **Changed, stay.** Fill `Nom`, `dismiss_confirm { click_link "Annuler" }` then `dismiss_confirm { go_back }`, then `dismiss_confirm { click_button "Supprimer" }`: each returns the question (no delete dialog after the third), the field keeps the typed value, the démarche is still in base.
 - **beforeunload.** A synthetic cancelable `beforeunload` dispatched on `window` comes back `defaultPrevented`.
 - **Delete refused after leaving.** Accept the question, dismiss `Supprimer « … » ?`: `Annuler` still asks.

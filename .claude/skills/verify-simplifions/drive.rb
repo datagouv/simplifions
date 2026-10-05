@@ -81,7 +81,7 @@ def vocabulaires(page)
   page.assert_text "« #{nom} » enregistré."
   page.click_link 'Vocabulaires'
   page.assert_no_selector :button, 'Supprimer'
-  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
+  ouvrir_depuis_la_liste(page, nom)
   page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
   page.assert_text "« #{nom} » supprimé."
   page.assert_no_selector 'td', text: nom
@@ -97,10 +97,9 @@ def cascade(page)
   Verify.login(page)
   page.click_link 'Démarches'
   page.assert_selector 'h1', text: 'Démarches'
-  page.assert_selector 'td', text: nom
   Verify.evidence('admin-supprimer-demarche', page, 'avant',
     "demarche=#{demarche.id} recommandations=#{Recommandation.where(demarche:).count} solution=#{solution.id}")
-  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
+  ouvrir_depuis_la_liste(page, nom)
   page.accept_confirm("Supprimer « #{nom} » ? 1 recommandation sera supprimée.") { page.click_button 'Supprimer' }
   page.assert_text "« #{nom} » supprimé."
   page.assert_no_selector 'td', text: nom
@@ -304,10 +303,60 @@ def contenu_html(page)
   Verify.evidence('contenu-html-grist', page, 'aucun-html-omis', "pages_avec_html=#{chemins.size} omis=0")
 end
 
+def lignes_affichees(page) = page.all('tbody tr').map { |ligne| ligne.all('td').map(&:text) }
+
+def listes(page)
+  dossier = 'admin-listes'
+  Verify.login(page)
+  page.click_link 'Solutions'
+  page.assert_selector 'thead th', text: 'Intégrée par'
+  entetes = page.all('thead th').map(&:text)
+  raise "entetes #{entetes}" unless entetes == ['Id', 'Nom', 'Visible', 'Modifié le', 'Intégrée par']
+
+  attendu = [(Solution.count / 50.0).ceil, 50].min
+  raise "lignes page 1 #{lignes_affichees(page).size}" unless lignes_affichees(page).size == [Solution.count, 50].min
+
+  Verify.evidence(dossier, page, 'solutions-page-1', "solutions=#{Solution.count} lignes=#{lignes_affichees(page).size} pages=#{attendu}")
+  page.click_link 'Page 2'
+  premiere = Solution.order(:id).offset(50).first
+  page.assert_selector 'tbody tr:first-child td', text: premiere.nom
+  Verify.evidence(dossier, page, 'solutions-page-2', "url=#{page.current_url.sub(%r{\Ahttps?://[^/]+}, '')} premiere=#{premiere.id}")
+  integree = Solution.joins(:integrations_comme_integree).order(:id).first
+  integratrice = integree.integratrices.min_by(&:nom)
+  rechercher(page, integree.nom)
+  noms = lignes_affichees(page).map(&:second)
+  attendus = Solution.recherche(integree.nom).order(:id).limit(50).pluck(:nom)
+  raise "recherche #{noms} != #{attendus}" unless noms == attendus
+
+  Verify.evidence(dossier, page, 'solutions-recherche', "q=#{integree.nom} lignes=#{noms.size} en_base=#{Solution.recherche(integree.nom).count}")
+  page.within(:xpath, "//tr[td[2][normalize-space()=#{integree.nom.inspect}]]") { page.click_link integratrice.nom, exact_text: true }
+  page.assert_current_path("/admin/solutions/#{integratrice.id}/edit")
+  Verify.evidence(dossier, page, 'integratrice-ouverte', "integree=#{integree.id} integratrice=#{integratrice.id} url=#{page.current_path}")
+  page.click_link 'Administration', match: :first
+  page.click_link 'Recommandations'
+  reco = Recommandation.includes(:demarche, :solution).order(:id).first
+  rechercher(page, "#{reco.demarche.nom.split.first} #{reco.solution.nom.split.last}")
+  page.assert_selector 'tbody a', text: reco.libelle
+  visibles = page.all('tbody tr').map { |ligne| ligne.all('td')[2].text }.tally
+  Verify.evidence(dossier, page, 'recommandations-recherche', "q=#{page.find_field('Rechercher').value} lignes=#{lignes_affichees(page).size} visible=#{visibles}")
+  Verify.logout(page)
+end
+
+def rechercher(page, texte)
+  page.fill_in 'Rechercher', with: texte
+  page.click_button 'Rechercher'
+  page.assert_current_path(/[?&]q=/, url: true)
+end
+
+def ouvrir_depuis_la_liste(page, nom)
+  rechercher(page, nom)
+  page.within('tbody') { page.click_link nom, exact_text: true }
+end
+
 def ouvrir_fiche(page, nom)
   page.click_link 'Administration', match: :first
   page.click_link 'Démarches'
-  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
+  ouvrir_depuis_la_liste(page, nom)
   page.find_field('Nom', with: nom)
 end
 
@@ -423,7 +472,7 @@ end
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
-  'erreurs' => :erreurs }.each do |nom, fn|
+  'erreurs' => :erreurs, 'listes' => :listes }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
