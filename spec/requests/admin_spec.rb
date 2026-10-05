@@ -27,6 +27,23 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'POST /admin/rafraichissement' do
+    it 'renvoie vers la page de connexion sans admin connecté' do
+      post admin_rafraichissement_path
+      expect(response).to redirect_to(new_admin_session_path)
+      expect(RafraichirCatalogueJob).not_to have_been_enqueued
+    end
+
+    it 'lance le rafraîchissement du catalogue et revient au tableau de bord' do
+      sign_in admin
+      post admin_rafraichissement_path
+      expect(RafraichirCatalogueJob).to have_been_enqueued
+      expect(response).to redirect_to(admin_root_path)
+      follow_redirect!
+      expect(response.body).to include('Rafraîchissement lancé.')
+    end
+  end
+
   describe 'POST /admin/connexion' do
     it 'ouvre la session et mène au tableau de bord' do
       post admin_session_path, params: { admin: { email: admin.email, password: 'mot-de-passe-solide' } }
