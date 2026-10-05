@@ -40,6 +40,6 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   def recommandation_params
-    params.expect(recommandation: %i[demarche_id solution_id niveau ordre description donnees_utiles parametres_a_saisir url_demande_acces visible modifie_le grist_id])
+    params.expect(recommandation: %i[demarche_id solution_id niveau ordre description donnees_utiles parametres_a_saisir url_demande_acces visible grist_id])
   end
 end
