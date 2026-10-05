@@ -33,3 +33,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [contenu-html-grist.md](contenu-html-grist.md) — the HTML typed in Grist markdown fields (DSFR callout, `<hr>`) shows on the public pages, never `raw HTML omitted`.
 - [rafraichissement-nuit.md](rafraichissement-nuit.md) — run the nightly refresh job on a throwaway database and see the 3:00 Paris recurring task registered.
 - [rafraichissement-admin.md](rafraichissement-admin.md) — click the admin button that refreshes the catalogue on a throwaway database; the button stays disabled during the run, the dashboard ends on `terminé`.
+- [admin-dates.md](admin-dates.md) — create then edit a démarche in the administration: `cree_le` and `modifie_le` set by themselves, no date field in the form.

@@ -143,6 +143,33 @@ def saisies(page)
   Verify.logout(page)
 end
 
+def dates(page)
+  nom = "Vérif verify-map #{Verify.browser}"
+  Verify.login(page)
+  page.visit('/admin/demarches/new')
+  page.assert_no_selector "[name='demarche[cree_le]'], [name='demarche[modifie_le]']"
+  page.fill_in 'Nom', with: nom
+  page.click_button 'Enregistrer'
+  page.assert_text 'Enregistré.'
+  demarche = ActiveRecord::Base.uncached { Demarche.find_by!(nom:) }
+  creation = demarche.cree_le
+  raise "dates a la creation #{creation.inspect} #{demarche.modifie_le.inspect}" unless creation&.after?(1.minute.ago) && demarche.modifie_le
+
+  Verify.evidence('admin-dates', page, 'cree', "demarche=#{demarche.id} cree_le=#{creation.iso8601(3)} modifie_le=#{demarche.modifie_le.iso8601(3)}")
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.fill_in 'Nom', with: "#{nom} modifiée"
+  page.click_button 'Enregistrer'
+  page.assert_text 'Enregistré.'
+  demarche.reload
+  raise "modification non datee #{demarche.modifie_le.inspect}" unless demarche.modifie_le > creation && demarche.cree_le == creation
+
+  Verify.evidence('admin-dates', page, 'modifie', "demarche=#{demarche.id} cree_le=#{demarche.cree_le.iso8601(3)} modifie_le=#{demarche.modifie_le.iso8601(3)}")
+  page.within(:xpath, "//tr[td[text()='#{nom} modifiée']]") { page.accept_confirm { page.click_button 'Supprimer' } }
+  page.assert_text 'Supprimé.'
+  Verify.evidence('admin-dates', page, 'supprime', "reste_en_base=#{ActiveRecord::Base.uncached { Demarche.where(id: demarche.id).count }}")
+  Verify.logout(page)
+end
+
 Verify.ensure_admin
 def pages_avec_html
   avec_html = ->(scope, *cols) { scope.where(cols.map { |c| "#{c} LIKE '%<%'" }.join(' OR ')) }
@@ -173,7 +200,8 @@ def contenu_html(page)
 end
 
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
-  'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html }.each do |nom, fn|
+  'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
+  'dates' => :dates }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
