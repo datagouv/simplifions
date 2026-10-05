@@ -143,6 +143,29 @@ def saisies(page)
   Verify.logout(page)
 end
 
+def incoherences(page)
+  Verify.login(page)
+  integration = Integration.order(:id).first!
+  page.visit("/admin/integrations/#{integration.id}/edit")
+  page.select integration.integratrice.nom, from: 'Integree'
+  page.click_button 'Enregistrer'
+  page.assert_text 'Une solution ne peut pas s’intégrer elle-même'
+  Verify.evidence('admin-saisies-controlees', page, 'integration-elle-meme',
+    "integration=#{integration.id} integratrice=#{integration.integratrice_id} integree_en_base=#{integration.reload.integree_id}")
+
+  nom = "Vérif verify-map #{Verify.browser}"
+  page.visit('/admin/vocabulaires/new')
+  page.fill_in 'Nom', with: nom
+  page.select 'usager', from: 'Categorie'
+  page.click_button 'Enregistrer'
+  page.assert_text 'Slug doit être rempli'
+  page.fill_in 'Slug', with: 'Vérif Accents'
+  page.click_button 'Enregistrer'
+  page.assert_text 'Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'
+  Verify.evidence('admin-saisies-controlees', page, 'vocabulaire-sans-slug', "en_base=#{Vocabulaire.where(nom:).count}")
+  Verify.logout(page)
+end
+
 def dates(page)
   nom = "Vérif verify-map #{Verify.browser}"
   Verify.login(page)
@@ -221,7 +244,7 @@ end
 
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
-  'dates' => :dates, 'lecture-seule' => :lecture_seule }.each do |nom, fn|
+  'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

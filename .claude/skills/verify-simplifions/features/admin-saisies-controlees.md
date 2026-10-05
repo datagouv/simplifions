@@ -17,6 +17,7 @@ Four admin fields that used to break the public site in silence: a solution URL 
 - **Statut.** The `Statut` options are `""` + `Integration::STATUTS`; re-select the current one, save, read back.
 - **Public ou privé.** `Public` is checked for a public operator; save; the public solution page still shows `Solution publique | <organisation>`.
 - **Slug.** Fill `Slug` with `Vérif avec espaces/et accents`, save: the error `Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets`, the field keeps the typed value, the database keeps the old slug, `/demarches/<slug>` still answers with its H1.
+- **Incohérences** (`drive.rb incoherences`). On the first intégration, select its intégratrice in `Integree`, save: `Une solution ne peut pas s’intégrer elle-même`, the database keeps the old intégrée. A new vocabulaire with an empty `Slug`: `Slug doit être rempli`; with `Vérif Accents`: the format message; no row created.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-saisies-controlees/`.
 
 ## Gotchas
