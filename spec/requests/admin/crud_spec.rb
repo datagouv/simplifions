@@ -269,6 +269,35 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'champs data.gouv' do
+    let(:solution) do
+      Solution.create!(nom: 'API QF', uid_datagouv: 'abc', datagouv_titre: 'API Quotient familial', datagouv_organisation: 'DINUM',
+        datagouv_logo: 'https://static.data.gouv.fr/dinum.png', datagouv_acces: 'Ouvert', datagouv_acces_acteurs_publics: 'Sous habilitation',
+        datagouv_organisation_badges: %w[public-service certified])
+    end
+
+    before { sign_in admin }
+
+    it 'les affiche en lecture seule, repris de data.gouv.fr' do
+      get "/admin/solutions/#{solution.id}/edit"
+      expect(response.body).to include('Repris de data.gouv.fr')
+      ['API Quotient familial', 'DINUM', 'https://static.data.gouv.fr/dinum.png', 'Ouvert', 'Sous habilitation', 'public-service', 'certified']
+        .each { |valeur| expect(response.body).to include(valeur) }
+      Solution::DATAGOUV.each { |champ| expect(response.body).not_to include("solution[#{champ}]") }
+    end
+
+    it 'ignore une valeur envoyée par le formulaire' do
+      patch "/admin/solutions/#{solution.id}", params: { solution: { datagouv_titre: 'Autre titre', datagouv_organisation_badges: 'autre' } }
+      expect(solution.reload.slice(:datagouv_titre, :datagouv_organisation_badges))
+        .to eq('datagouv_titre' => 'API Quotient familial', 'datagouv_organisation_badges' => %w[public-service certified])
+    end
+
+    it 'n’affiche pas le bloc pour une solution absente de data.gouv' do
+      get "/admin/solutions/#{Solution.create!(nom: 'Bouquet').id}/edit"
+      expect(response.body).not_to include('Repris de data.gouv.fr')
+    end
+  end
+
   describe 'image de solution' do
     it 'attache le fichier envoyé par le formulaire' do
       sign_in admin

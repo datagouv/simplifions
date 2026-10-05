@@ -69,31 +69,19 @@
     <%= f.label :visible, class: "fr-label" %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: solution.grist_id %>
-  <div class="fr-input-group">
-    <%= f.label :datagouv_titre, class: "fr-label" %>
-    <%= f.text_field :datagouv_titre, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
-    <%= f.label :datagouv_organisation, class: "fr-label" %>
-    <%= f.text_field :datagouv_organisation, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
-    <%= f.label :datagouv_logo, class: "fr-label" %>
-    <%= f.text_field :datagouv_logo, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
-    <%= f.label :datagouv_acces, class: "fr-label" %>
-    <%= f.text_field :datagouv_acces, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
-    <%= f.label :datagouv_acces_acteurs_publics, class: "fr-label" %>
-    <%= f.text_field :datagouv_acces_acteurs_publics, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
-    <%= f.label :datagouv_organisation_badges, class: "fr-label" %>
-    <span class="fr-hint-text">Une valeur par ligne</span>
-    <%= f.text_area :datagouv_organisation_badges, value: solution.datagouv_organisation_badges.join("\n"), class: "fr-input", rows: 4 %>
-  </div>
+  <% if solution.uid_datagouv_in_database.present? %>
+    <div class="fr-mb-3w">
+      <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
+      <ul>
+        <li>Titre : <%= solution.datagouv_titre %></li>
+        <li>Organisation : <%= solution.datagouv_organisation %></li>
+        <li>Logo : <%= solution.datagouv_logo %></li>
+        <li>Accès : <%= solution.datagouv_acces %></li>
+        <li>Accès des acteurs publics : <%= solution.datagouv_acces_acteurs_publics %></li>
+        <li>Badges de l’organisation : <%= solution.datagouv_organisation_badges.join(", ") %></li>
+      </ul>
+    </div>
+  <% end %>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Organisations</legend>
     <%= f.collection_check_boxes :organisation_ids, Organisation.order(:nom), :id, :nom do |b| %>
