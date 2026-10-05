@@ -1,0 +1,19 @@
+<%= render "entete_page", titre: "Fournisseur de services" %>
+
+<div class="fr-container fr-mb-6w">
+  <h1><%= nom_en_base %></h1>
+  <dl class="fr-pl-0">
+    <% {
+      "Regroupements" => @type_acteur.regroupements.join(", "),
+      "Ce que cela inclut" => @type_acteur.description.to_s,
+      "Codes juridiques" => @type_acteur.codes_juridiques.to_s,
+      "Démarches" => @type_acteur.demarches.order(:nom).pluck(:nom).join(", "),
+      "Solutions" => @type_acteur.solutions.par_libelle_admin.map(&:libelle_admin).join(", "),
+      "Identifiant Grist" => @type_acteur.grist_id
+    }.compact.each do |terme, valeur| %>
+      <dt class="fr-text--bold fr-mb-0"><%= terme %></dt>
+      <dd class="fr-ml-0 fr-pl-0 fr-mb-2w"><%= valeur.present? ? simple_format(valeur, class: "fr-mb-0") : "Non renseigné" %></dd>
+    <% end %>
+  </dl>
+  <%= link_to "Modifier", edit_admin_type_acteur_path(@type_acteur), class: "fr-btn" %>
+</div>

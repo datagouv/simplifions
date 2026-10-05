@@ -13,7 +13,7 @@ On an admin form, each text area is as tall as its content (rows computed server
 
 - **Text area.** The longest visible contexte: `scrollHeight <= clientHeight`, hint `Markdown accepté`.
 - **Public page.** `Voir la page publique` opens `/demarches/<slug>` in a new window.
-- **Linked items.** One `Voir la fiche <nom>` per checked type d'acteur; filtering on `voir la fiche` shows no box; the link opens the type d'acteur's form.
+- **Linked items.** One `Voir la fiche <nom>` per checked fournisseur de services; filtering on `voir la fiche` shows no box; the link opens the fournisseur's read page (`/admin/types_acteurs/<id>`), the other tables' links open their form.
 - **Recommandation.** `Voir la fiche <solution>` opens the solution's form.
 - **Proof.** `tmp/verify/admin-pages-liees/`, including `etroit-320` (no horizontal scroll).
 

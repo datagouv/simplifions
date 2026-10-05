@@ -13,7 +13,7 @@ class Admin::BaseController < ApplicationController
   end
 
   def redirige_vers_la_fiche(ligne)
-    redirect_to [:edit, :admin, ligne], notice: t('admin.enregistre', nom: nom_de(ligne)), status: :see_other
+    redirect_to helpers.fiche_admin(ligne), notice: t('admin.enregistre', nom: nom_de(ligne)), status: :see_other
   end
 
   def fil_d_ariane

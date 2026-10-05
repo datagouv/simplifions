@@ -17,7 +17,7 @@
         <% @types_acteurs.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= link_to ligne.nom, edit_admin_type_acteur_path(ligne) %></td>
+            <td><%= link_to ligne.nom, admin_type_acteur_path(ligne) %></td>
             <td><%= ligne.regroupements.join(", ") %></td>
           </tr>
         <% end %>

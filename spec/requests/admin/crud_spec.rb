@@ -8,6 +8,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let!(:ligne) { modele.create!(attributs) }
   let(:nom) { attributs[:nom] }
   let(:nom_cree) { nom }
+  let(:fiche) { ->(id) { "/admin/#{chemin}/#{id}/edit" } }
 
   def fil_d_ariane = response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }
 
@@ -16,12 +17,12 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response).to redirect_to(new_admin_session_path)
   end
 
-  it 'liste les lignes avec un lien de modification' do
+  it 'liste les lignes avec un lien vers leur fiche' do
     sign_in admin
     get "/admin/#{chemin}"
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("<td>#{ligne.id}</td>")
-    expect(response.parsed_body.at_css("tbody a[href=\"/admin/#{chemin}/#{ligne.id}/edit\"]").text).to eq(nom)
+    expect(response.parsed_body.at_css("tbody a[href=\"#{fiche.call(ligne.id)}\"]").text).to eq(nom)
     expect(response.body).not_to include('Supprimer')
     expect(response.parsed_body.css('tbody a').map(&:text)).not_to include('Modifier')
   end
@@ -29,10 +30,10 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   it 'filtre la liste sur le nom, sans tenir compte des accents ni de la casse' do
     sign_in admin
     get "/admin/#{chemin}", params: { q: I18n.transliterate(nom.split.first).upcase }
-    expect(response.body).to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
+    expect(response.body).to include("href=\"#{fiche.call(ligne.id)}\"")
     expect(response.parsed_body.at_css('input[name=q]')['value']).to eq(I18n.transliterate(nom.split.first).upcase)
     get "/admin/#{chemin}", params: { q: 'introuvable' }
-    expect(response.body).not_to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
+    expect(response.body).not_to include("href=\"#{fiche.call(ligne.id)}\"")
   end
 
   it 'propose la suppression depuis la fiche, en nommant la ligne' do
@@ -90,7 +91,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   it 'crée une ligne et reste sur sa fiche, en la nommant' do
     sign_in admin
     expect { post "/admin/#{chemin}", params: { cle => nouveaux } }.to change(modele, :count).by(1)
-    expect(response).to redirect_to("/admin/#{chemin}/#{modele.last.id}/edit")
+    expect(response).to redirect_to(fiche.call(modele.last.id))
     follow_redirect!
     expect(response.body).to include("« #{nom_cree} » enregistré.")
   end
@@ -124,7 +125,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   it 'modifie une ligne et reste sur sa fiche, en la nommant' do
     sign_in admin
     patch "/admin/#{chemin}/#{ligne.id}", params: { cle => modification }
-    expect(response).to redirect_to("/admin/#{chemin}/#{ligne.id}/edit")
+    expect(response).to redirect_to(fiche.call(ligne.id))
     expect(ligne.reload.attributes).to include(modification.stringify_keys)
     follow_redirect!
     expect(response.parsed_body.at_css('.fr-alert').text.strip).to eq("« #{modification[:nom] || nom} » enregistré.")
@@ -187,6 +188,7 @@ RSpec.describe 'Administration' do
   it_behaves_like 'un CRUD brut', TypeActeur, 'types_acteurs' do
     let(:collection) { 'Fournisseurs de services' }
     let(:attributs) { { nom: 'Communes' } }
+    let(:fiche) { ->(id) { "/admin/types_acteurs/#{id}" } }
   end
 
   it_behaves_like 'un CRUD brut', Vocabulaire, 'vocabulaires' do
@@ -436,7 +438,7 @@ RSpec.describe 'Administration' do
       usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager', solutions: [api])
 
       expect(liens_vers_les_fiches("/admin/demarches/#{demarche.id}/edit")).to contain_exactly(
-        ['Voir la fiche Communes', "/admin/types_acteurs/#{communes.id}/edit", false],
+        ['Voir la fiche Communes', "/admin/types_acteurs/#{communes.id}", false],
         ['Voir la fiche Bouquet → API QF (API) (intégrée)', "/admin/integrations/#{integration.id}/edit", false]
       )
       expect(liens_vers_les_fiches("/admin/vocabulaires/#{usager.id}/edit")).to eq([['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false]])
@@ -1041,6 +1043,25 @@ RSpec.describe 'Administration' do
     it 'montre dans la liste les regroupements de chaque fournisseur' do
       TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
       expect(colonnes('types_acteurs')).to eq([{ 'Nom' => 'Communes', 'Regroupements' => 'Communes et groupements de communes, Tous les acteurs publics' }])
+    end
+
+    it 'se consulte avant de se modifier' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics], description: 'Mairies', codes_juridiques: '7210',
+        grist_id: 'Fournisseurs_de_services:1', demarches: [Demarche.create!(nom: 'Aides')], solutions: [Solution.create!(nom: 'Bouquet')])
+      get "/admin/types_acteurs/#{communes.id}"
+      page = response.parsed_body
+      expect([page.at_css('h1').text, page.at_css('title').text]).to eq(['Communes', 'Communes — Fournisseur de services | Simplifions.data.gouv.fr'])
+      expect(page.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }).to eq(['Administration', 'Fournisseurs de services', 'Communes'])
+      expect(page.css('dt').map { |terme| [terme.text.strip, terme.next_element.text.squish] }).to eq([
+        ['Regroupements', 'Communes et groupements de communes, Tous les acteurs publics'], ['Ce que cela inclut', 'Mairies'],
+        ['Codes juridiques', '7210'], ['Démarches', 'Aides'], ['Solutions', 'Bouquet'], ['Identifiant Grist', 'Fournisseurs_de_services:1']
+      ])
+      expect(page.at_css('a.fr-btn:contains("Modifier")')['href']).to eq("/admin/types_acteurs/#{communes.id}/edit")
+
+      communes.update!(description: nil, grist_id: nil)
+      get "/admin/types_acteurs/#{communes.id}"
+      expect(response.parsed_body.css('dt').find { |terme| terme.text == 'Ce que cela inclut' }.next_element.text.strip).to eq('Non renseigné')
+      expect(response.body).not_to include('Identifiant Grist')
     end
 
     it 'présente la description et les codes juridiques comme des mémos internes' do

@@ -15,8 +15,8 @@ Rails.application.routes.draw do
   namespace :admin do
     root "dashboard#index"
     resource :rafraichissement, only: :create
-    resources :demarches, :solutions, :recommandations, :integrations, :organisations, :types_acteurs, :vocabulaires,
-      except: :show
+    resources :demarches, :solutions, :recommandations, :integrations, :organisations, :vocabulaires, except: :show
+    resources :types_acteurs
   end
 
   root "pages#home"
