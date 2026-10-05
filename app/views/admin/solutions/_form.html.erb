@@ -22,8 +22,15 @@
   <% end %>
   <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
   <%= champ_de_fiche(f, :image, "fr-upload-group") do |aria| %>
-    <%= f.label :image, class: "fr-label" %>
-    <%= f.file_field :image, class: "fr-upload", accept: "image/*", **aria %>
+    <%= libelle_avec_aide(f, :image, "Formats acceptés : png, jpg, webp") %>
+    <%= f.file_field :image, class: "fr-upload", accept: "image/png,image/jpeg,image/webp", **aria %>
+    <% if en_base&.image&.attached? %>
+      <%= image_tag en_base.image, alt: en_base.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
+      <div class="fr-checkbox-group fr-mt-1w">
+        <%= check_box_tag "solution[retirer_image]", "1", params.dig(:solution, :retirer_image) == "1" %>
+        <%= label_tag "solution_retirer_image", "Retirer l’image", class: "fr-label" %>
+      </div>
+    <% end %>
   <% end %>
   <%= champ_de_fiche(f, :legende_image) do |aria| %>
     <%= f.label :legende_image, class: "fr-label" %>

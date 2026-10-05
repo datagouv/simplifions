@@ -21,6 +21,7 @@ class Admin::SolutionsController < Admin::BaseController
   end
 
   def update
+    @solution.image = nil if params.dig(:solution, :retirer_image) == '1'
     if @solution.update(solution_params.merge(modifie_le: Time.current))
       redirige_vers_la_fiche(@solution)
     else
