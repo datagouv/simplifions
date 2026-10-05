@@ -254,9 +254,84 @@ def contenu_html(page)
   Verify.evidence('contenu-html-grist', page, 'aucun-html-omis', "pages_avec_html=#{chemins.size} omis=0")
 end
 
+def ouvrir_fiche(page, nom)
+  page.click_link 'Administration', match: :first
+  page.click_link 'Démarches'
+  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
+  page.find_field('Nom', with: nom)
+end
+
+def demande_avant_de_partir(page, question, &)
+  message = page.dismiss_confirm(&)
+  raise "confirmation #{message.inspect}" unless message == question
+end
+
+def formulaire_modifie(page)
+  question = 'Quitter sans enregistrer les modifications ?'
+  nom = "Vérif verify-map #{Verify.browser}"
+  demarche = Demarche.create!(nom:)
+  saisie = "#{nom} modifié"
+  Verify.login(page)
+  ouvrir_fiche(page, nom)
+  page.click_link 'Annuler'
+  page.assert_selector 'h1', text: 'Démarches'
+  Verify.evidence('admin-formulaire-modifie', page, 'annuler-sans-saisie', 'confirmation=aucune')
+
+  ouvrir_fiche(page, nom)
+  page.fill_in 'Nom', with: saisie
+  demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
+  demande_avant_de_partir(page, question) { page.go_back }
+  demande_avant_de_partir(page, question) { page.click_button 'Supprimer' }
+  page.find_field('Nom', with: saisie)
+  avertit = page.evaluate_script("(() => { const e = new Event('beforeunload', { cancelable: true }); dispatchEvent(e); return e.defaultPrevented })()")
+  Verify.evidence('admin-formulaire-modifie', page, 'reste-sur-la-fiche',
+    "url=#{page.current_path} champ=#{page.find_field('Nom').value} beforeunload_bloque=#{avertit} " \
+    "en_base_apres_supprimer_refuse=#{Demarche.where(id: demarche.id).count}")
+  page.dismiss_confirm(/^Supprimer/) { page.accept_confirm(question) { page.click_button 'Supprimer' } }
+  demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
+  page.fill_in 'Nom', with: "#{saisie} encore"
+  page.accept_confirm(question) { page.go_back }
+  page.assert_selector 'h1', text: 'Démarches'
+  page.go_forward
+  page.find_field('Nom', with: nom)
+  page.execute_script("window.fetch = () => Promise.reject(new TypeError('réseau coupé'))")
+  page.fill_in 'Nom', with: saisie
+  page.click_button 'Enregistrer'
+  demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
+  Verify.evidence('admin-formulaire-modifie', page, 'reseau-coupe', "champ=#{page.find_field('Nom').value} confirmation=demandee")
+  page.accept_confirm(question) { page.go_back }
+  page.assert_selector 'h1', text: 'Démarches'
+  ActiveRecord::Base.uncached do
+    Verify.evidence('admin-formulaire-modifie', page, 'quitte', "nom_en_base=#{Demarche.find(demarche.id).nom}")
+  end
+
+  ouvrir_fiche(page, nom)
+  page.fill_in 'Nom', with: ''
+  page.click_button 'Enregistrer'
+  page.assert_text 'Nom doit être rempli'
+  demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
+  page.fill_in 'Nom', with: "#{nom} enregistré"
+  page.click_button 'Enregistrer'
+  page.assert_text 'Enregistré.'
+  ActiveRecord::Base.uncached do
+    Verify.evidence('admin-formulaire-modifie', page, 'enregistre', "confirmation=aucune nom_en_base=#{Demarche.find(demarche.id).nom}")
+  end
+
+  ouvrir_fiche(page, "#{nom} enregistré")
+  page.accept_confirm("Supprimer « #{nom} enregistré » ?") { page.click_button 'Supprimer' }
+  page.assert_text "« #{nom} enregistré » supprimé."
+  ActiveRecord::Base.uncached do
+    Verify.evidence('admin-formulaire-modifie', page, 'supprime', "confirmation=suppression_seule en_base=#{Demarche.where(id: demarche.id).count}")
+  end
+  Verify.logout(page)
+ensure
+  Demarche.where(id: demarche&.id).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
-  'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule }.each do |nom, fn|
+  'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
+  'formulaire-modifie' => :formulaire_modifie }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

@@ -37,11 +37,21 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).to include("action=\"/admin/#{chemin}/#{ligne.id}\"")
   end
 
-  it 'nomme la ligne telle qu’en base quand une modification est refusée' do
+  it 'surveille les formulaires pour prévenir avant de quitter une saisie' do
+    sign_in admin
+    get "/admin/#{chemin}/new"
+    expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['action']).to eq("/admin/#{chemin}")
+    get "/admin/#{chemin}/#{ligne.id}/edit"
+    expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['action']).to eq("/admin/#{chemin}/#{ligne.id}")
+    expect(response.parsed_body.at_css('[data-formulaire-modifie-modifie-value="true"]')).to be_nil
+  end
+
+  it 'nomme la ligne telle qu’en base et compte la saisie comme modifiée quand elle est refusée' do
     sign_in admin
     patch "/admin/#{chemin}/#{ligne.id}", params: { cle => invalide.first }
     expect(response).to have_http_status(:unprocessable_content)
     expect(response.parsed_body.at_css('form[data-turbo-confirm]')['data-turbo-confirm']).to start_with("Supprimer « #{nom} » ?")
+    expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['data-formulaire-modifie-modifie-value']).to eq('true')
   end
 
   it 'crée une ligne puis revient à la liste' do
