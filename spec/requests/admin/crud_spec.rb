@@ -119,7 +119,7 @@ RSpec.describe 'Administration' do
   it_behaves_like 'un CRUD brut', Recommandation, 'recommandations' do
     let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
     let(:modification) { { ordre: 3 } }
-    let(:invalide) { [{ demarche_id: '' }, 'Demarche doit exister'] }
+    let(:invalide) { [{ demarche_id: '' }, 'Démarche doit exister'] }
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
     let(:nom) { 'Aides → API QF' }
   end
@@ -129,7 +129,7 @@ RSpec.describe 'Administration' do
       { integratrice_id: Solution.create!(nom: 'Bouquet').id, integree_id: Solution.create!(nom: 'API QF').id, type_integration: 'expose' }
     end
     let(:modification) { { statut: '✅ en production' } }
-    let(:invalide) { [{ integratrice_id: '' }, 'Integratrice doit exister'] }
+    let(:invalide) { [{ integratrice_id: '' }, 'Solution doit exister'] }
     let(:nom) { 'Bouquet → API QF (expose)' }
   end
 
@@ -265,7 +265,7 @@ RSpec.describe 'Administration' do
     it 'refuse un vocabulaire sans catégorie' do
       post '/admin/vocabulaires', params: { vocabulaire: { nom: 'Particuliers', categorie: '' } }
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('Categorie doit être rempli')
+      expect(response.body).to include('Catégorie doit être rempli')
     end
 
     it 'refuse un vocabulaire sans slug, qui ne filtrerait rien sur le site' do
@@ -278,7 +278,7 @@ RSpec.describe 'Administration' do
       bouquet = Solution.create!(nom: 'Bouquet')
       post '/admin/integrations', params: { integration: { integratrice_id: bouquet.id, integree_id: bouquet.id, type_integration: '' } }
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('Type integration doit être rempli')
+      expect(response.body).to include('Type d’intégration doit être rempli')
     end
 
     it 'refuse une intégration d’une solution avec elle-même' do
@@ -321,7 +321,7 @@ RSpec.describe 'Administration' do
 
       patch "/admin/integrations/#{integration.id}", params: { integration: { statut: 'en production' } }
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include('Statut doit être choisi dans la liste')
+      expect(response.body).to include('Statut de l’intégration doit être choisi dans la liste')
     end
 
     it 'propose public ou privé en boutons radio, non renseigné compris' do
@@ -334,6 +334,29 @@ RSpec.describe 'Administration' do
 
       patch "/admin/organisations/#{dinum.id}", params: { organisation: { public_ou_prive: 'Public' } }
       expect(dinum.reload.public_ou_prive).to eq('Public')
+    end
+  end
+
+  describe 'libellés en français' do
+    before { sign_in admin }
+
+    def libelles(chemin)
+      get "/admin/#{chemin}/new"
+      response.parsed_body.css('form label').map { |label| label.xpath('text()').text.strip }
+    end
+
+    it 'nomme les champs avec les mots du Grist et du site' do
+      {
+        'demarches' => ['Icône du titre', 'Description courte', 'Cadre juridique', 'Mots-clés', 'Visible sur simplifions'],
+        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
+                        'Type de solution', 'API FranceConnectée', 'Cette solution ne permet pas'],
+        'recommandations' => ['Démarche', 'Type de recommandation', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
+                              'En quoi cette API ou ce jeu de données est utile'],
+        'integrations' => ['Solution', 'API ou jeu de données', 'Type d’intégration', 'Statut de l’intégration'],
+        'organisations' => ['Nom long', 'Type d’organisation privée'],
+        'types_acteurs' => ['Ce que cela inclut', 'Codes juridiques'],
+        'vocabulaires' => ['Catégorie']
+      }.each { |chemin, attendus| expect(libelles(chemin)).to include(*attendus) }
     end
   end
 

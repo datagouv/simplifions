@@ -10,6 +10,46 @@ fr:
   time:
     formats:
       court: "%d/%m/%Y à %H:%M"
+  activerecord:
+    attributes:
+      demarche:
+        icone: "Icône du titre"
+        mots_clefs: "Mots-clés"
+        visible: "Visible sur simplifions"
+      solution:
+        categorie: "Catégorie de solution"
+        permet: "Cette solution permet"
+        ne_permet_pas: "Cette solution ne permet pas"
+        image: "Image principale"
+        legende_image: "Légende de l’image"
+        url_demande_acces: "URL de demande d’accès"
+        uid_datagouv: "Identifiant data.gouv"
+        types_solution: "Type de solution"
+        france_connectee: "API FranceConnectée"
+        visible: "Visible sur simplifions"
+      organisation:
+        public_ou_prive: "Public ou privé"
+        type_organisation_privee: "Type d’organisation privée"
+      type_acteur:
+        description: "Ce que cela inclut"
+      vocabulaire:
+        categorie: "Catégorie"
+      recommandation:
+        demarche: "Démarche"
+        demarche_id: "Démarche"
+        niveau: "Type de recommandation"
+        description: "En quoi cette API ou ce jeu de données est utile"
+        donnees_utiles: "Données utiles disponibles"
+        parametres_a_saisir: "Paramètres à saisir pour récupérer les données"
+        url_demande_acces: "URL de demande d’accès pour cette démarche"
+        visible: "Visible sur simplifions"
+      integration:
+        integratrice: "Solution"
+        integratrice_id: "Solution"
+        integree: "API ou jeu de données"
+        integree_id: "API ou jeu de données"
+        type_integration: "Type d’intégration"
+        statut: "Statut de l’intégration"
   errors:
     messages:
       blank: "doit être rempli"

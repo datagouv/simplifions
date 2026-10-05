@@ -7,7 +7,7 @@ RSpec.describe Organisation do
     end
     organisation = described_class.new(nom: 'DINUM', public_ou_prive: 'public')
     expect(organisation).not_to be_valid
-    expect(organisation.errors.full_messages).to eq(['Public ou prive doit être choisi dans la liste'])
+    expect(organisation.errors.full_messages).to eq(['Public ou privé doit être choisi dans la liste'])
   end
 
   describe '#solutions_rendues_privees' do

@@ -43,7 +43,7 @@ RSpec.describe Integration do
       end
       integration.statut = 'en production'
       expect(integration).not_to be_valid
-      expect(integration.errors.full_messages).to eq(['Statut doit être choisi dans la liste'])
+      expect(integration.errors.full_messages).to eq(['Statut de l’intégration doit être choisi dans la liste'])
     end
   end
 
