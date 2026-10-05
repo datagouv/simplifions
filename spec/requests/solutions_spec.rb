@@ -56,7 +56,7 @@ RSpec.describe 'Solutions' do
         permet: "d'accéder aux données **certifiées**", ne_permet_pas: 'le revenu fiscal de référence',
         legende_image: 'Swagger API Particulier', organisations: [dinum],
         cree_le: Time.zone.parse('2025-09-29'), modifie_le: Time.zone.parse('2026-08-26'),
-        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', categorie: 'usager')],
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
         types_acteurs: [TypeActeur.create!(nom: 'Communes et groupements de communes')])
       bouquet.image.attach(io: StringIO.new('png'), filename: 'swagger.png', content_type: 'image/png')
 
@@ -82,7 +82,7 @@ RSpec.describe 'Solutions' do
       editeur = Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')
       logiciel = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
         slug: 'acheteza', organisations: [editeur], types_solution: ['Profil acheteur', 'Portail agent'],
-        vocabulaires: [Vocabulaire.create!(nom: 'Dites-le-nous une fois', categorie: 'type_simplification')])
+        vocabulaires: [Vocabulaire.create!(nom: 'Dites-le-nous une fois', slug: 'dites-le-nous-une-fois', categorie: 'type_simplification')])
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
       sans_categorie = Solution.create!(nom: 'Hub sans catégorie', visible: true, slug: 'hub-sans-categorie')

@@ -206,6 +206,20 @@ RSpec.describe Grist::Import do
     expect(Organisation.count).to eq(4)
   end
 
+  it 'calcule le slug d’un vocabulaire vide ou hors format et note celui qui reste sans slug' do
+    usagers = JSON.parse(Rails.root.join('spec/fixtures/grist/Usagers.json').read)
+    usagers['records'] += [{ 'id' => 4, 'fields' => { 'Label' => 'Collectivités', 'slug' => '' } },
+                           { 'id' => 5, 'fields' => { 'Label' => 'Élus', 'slug' => 'Élus locaux' } },
+                           { 'id' => 6, 'fields' => { 'Label' => '💠', 'slug' => nil } }]
+    stub_request(:get, Grist::FetchTables.url('Usagers'))
+      .to_return(status: 200, body: usagers.to_json, headers: { 'Content-Type' => 'application/json' })
+
+    expect(result).to be_a_success
+    expect(Vocabulaire.where(grist_id: %w[Usagers:4 Usagers:5]).pluck(:slug)).to contain_exactly('collectivites', 'elus')
+    expect(result.report[:quarantine].join).to include('Usagers:6 — La validation a échoué : Slug doit être rempli')
+    expect(Vocabulaire.exists?(grist_id: 'Usagers:6')).to be(false)
+  end
+
   it 'quarantines a second Grist source claiming an already imported (demarche, solution) pair' do
     recos = JSON.parse(Rails.root.join('spec/fixtures/grist/Recommandations.json').read)
     recos['records'] << { 'id' => 901, 'fields' => {

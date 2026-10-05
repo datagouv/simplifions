@@ -112,7 +112,7 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Vocabulaire, 'vocabulaires' do
-    let(:attributs) { { nom: 'Particuliers', categorie: 'usager' } }
+    let(:attributs) { { nom: 'Particuliers', slug: 'particuliers', categorie: 'usager' } }
   end
 
   describe 'associations plusieurs-à-plusieurs' do
@@ -120,7 +120,7 @@ RSpec.describe 'Administration' do
 
     it 'coche les vocabulaires et types d’acteurs d’une démarche' do
       demarche = Demarche.create!(nom: 'Aides')
-      usager = Vocabulaire.create!(nom: 'Particuliers', categorie: 'usager')
+      usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       communes = TypeActeur.create!(nom: 'Communes')
 
       get "/admin/demarches/#{demarche.id}/edit"
@@ -190,6 +190,12 @@ RSpec.describe 'Administration' do
       post '/admin/vocabulaires', params: { vocabulaire: { nom: 'Particuliers', categorie: '' } }
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('Categorie doit être rempli')
+    end
+
+    it 'refuse un vocabulaire sans slug, qui ne filtrerait rien sur le site' do
+      post '/admin/vocabulaires', params: { vocabulaire: { nom: 'Particuliers', slug: '', categorie: 'usager' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Slug doit être rempli')
     end
 
     it 'refuse une intégration sans type' do
