@@ -363,10 +363,52 @@ ensure
   Demarche.where(id: demarche&.id).destroy_all
 end
 
+def erreurs(page)
+  question = 'Quitter sans enregistrer les modifications ?'
+  dossier = 'admin-erreurs-formulaire'
+  avant = Demarche.count
+  Verify.login(page)
+  page.click_link 'Administration', match: :first
+  page.click_link 'Démarches'
+  page.click_link 'Ajouter'
+  raise 'Nom sans required' unless page.find_field('Nom (obligatoire)')[:required]
+
+  page.check 'Visible sur simplifions', allow_label_click: true
+  page.click_button 'Enregistrer'
+  recapitulatif = page.find('.fr-alert--error', text: '2 erreurs à corriger')
+  focus = page.evaluate_script("document.activeElement.matches('.fr-alert--error')")
+  raise 'focus hors du récapitulatif' unless focus
+
+  liens = recapitulatif.all('a').map { |lien| "#{lien[:href].split('#').last}=#{lien.text}" }
+  Verify.evidence(dossier, page, 'recapitulatif',
+    "focus_recapitulatif=#{focus} liens=#{liens.join(' | ')} demarches_creees=#{Demarche.count - avant}")
+  page.send_keys :tab
+  premier = page.evaluate_script('document.activeElement.textContent')
+  page.click_link 'Nom doit être rempli'
+  cible = page.evaluate_script('[location.hash, document.activeElement.id]')
+  champ = page.find_field('Nom (obligatoire)')
+  message = page.find("##{champ['aria-describedby']}").text
+  Verify.evidence(dossier, page, 'champ',
+    "tab=#{premier} hash=#{cible[0]} focus=#{cible[1]} aria_invalid=#{champ['aria-invalid']} message=#{message}")
+  demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
+
+  page.visit('/admin/recommandations/new')
+  page.click_button 'Enregistrer'
+  page.assert_text 'Choisissez une démarche'
+  messages = page.all('.fr-select-group--error .fr-message--error').map(&:text)
+  Verify.evidence(dossier, page, 'recommandation', "messages=#{messages.join(' | ')} recommandations_creees=0")
+  page.current_window.resize_to(640, 1024)
+  Verify.evidence(dossier, page, 'etroit', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+  page.accept_confirm(question) { page.click_button 'Se déconnecter' }
+  page.assert_selector :link, 'Se connecter'
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
-  'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles }.each do |nom, fn|
+  'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
+  'erreurs' => :erreurs }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
