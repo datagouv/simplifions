@@ -75,7 +75,7 @@ RSpec.describe 'Pages' do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("<h1>#{h1 || titre}</h1>")
         expect(response.body).to include("#{ERB::Util.html_escape(titre)} | Simplifions.data.gouv.fr</title>")
-        expect(response.body).to include('fr-breadcrumb')
+        expect(response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }).to eq(['Accueil', titre])
         expect(response.body).not_to include('href="/cas-d-usages"')
       end
     end

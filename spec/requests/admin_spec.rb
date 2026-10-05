@@ -16,6 +16,7 @@ RSpec.describe 'Administration' do
       get admin_root_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('<h1>Administration</h1>')
+      expect(response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }).to eq(['Administration'])
     end
 
     it 'mène à chaque table du catalogue' do

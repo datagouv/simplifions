@@ -9,6 +9,8 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let(:nom) { attributs[:nom] }
   let(:nom_cree) { nom }
 
+  def fil_d_ariane = response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }
+
   it 'exige la connexion' do
     get "/admin/#{chemin}"
     expect(response).to redirect_to(new_admin_session_path)
@@ -28,6 +30,24 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     get "/admin/#{chemin}/#{ligne.id}/edit"
     formulaire = response.parsed_body.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"]:has(input[name=_method][value=delete])")
     expect(formulaire['data-turbo-confirm']).to start_with("Supprimer « #{nom} » ?")
+  end
+
+  it 'situe chaque page dans le fil d’Ariane de l’administration' do
+    sign_in admin
+    get "/admin/#{chemin}"
+    expect(fil_d_ariane).to eq(['Administration', collection])
+    get "/admin/#{chemin}/new"
+    expect(fil_d_ariane).to eq(['Administration', collection, 'Nouvelle ligne'])
+    get "/admin/#{chemin}/#{ligne.id}/edit"
+    expect(fil_d_ariane).to eq(['Administration', collection, nom])
+    expect(response.parsed_body.css('.fr-breadcrumb__list a[href]').pluck('href')).to eq(['/admin', "/admin/#{chemin}"])
+  end
+
+  it 'nomme la ligne dans le titre de la page et de l’onglet' do
+    sign_in admin
+    get "/admin/#{chemin}/#{ligne.id}/edit"
+    expect(response.parsed_body.at_css('h1').text).to eq(nom)
+    expect(response.parsed_body.at_css('title').text).to start_with("#{nom} — ")
   end
 
   it 'affiche les formulaires de création et de modification' do
@@ -53,6 +73,8 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response).to have_http_status(:unprocessable_content)
     expect(response.parsed_body.at_css('form[data-turbo-confirm]')['data-turbo-confirm']).to start_with("Supprimer « #{nom} » ?")
     expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['data-formulaire-modifie-modifie-value']).to eq('true')
+    expect(response.parsed_body.at_css('h1').text).to eq(nom)
+    expect(fil_d_ariane.last).to eq(nom)
   end
 
   it 'crée une ligne et reste sur sa fiche, en la nommant' do
@@ -95,7 +117,8 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response).to redirect_to("/admin/#{chemin}/#{ligne.id}/edit")
     expect(ligne.reload.attributes).to include(modification.stringify_keys)
     follow_redirect!
-    expect(response.body).to include("« #{modification[:nom] || nom} » enregistré.")
+    expect(response.parsed_body.at_css('.fr-alert').text.strip).to eq("« #{modification[:nom] || nom} » enregistré.")
+    expect(response.parsed_body.at_css('title').text).to start_with("« #{modification[:nom] || nom} » enregistré. — ")
   end
 
   it 'supprime une ligne' do
@@ -111,14 +134,17 @@ RSpec.describe 'Administration' do
   let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
 
   it_behaves_like 'un CRUD brut', Demarche, 'demarches' do
+    let(:collection) { 'Démarches' }
     let(:attributs) { { nom: 'Aides publiques' } }
   end
 
   it_behaves_like 'un CRUD brut', Solution, 'solutions' do
+    let(:collection) { 'Solutions' }
     let(:attributs) { { nom: 'Bouquet API Particulier' } }
   end
 
   it_behaves_like 'un CRUD brut', Recommandation, 'recommandations' do
+    let(:collection) { 'Recommandations' }
     let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
     let(:modification) { { ordre: 3 } }
     let(:invalide) { [{ demarche_id: '' }, 'Choisissez une démarche'] }
@@ -128,6 +154,7 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
+    let(:collection) { 'Intégrations' }
     let(:attributs) do
       { integratrice_id: Solution.create!(nom: 'Bouquet').id, integree_id: Solution.create!(nom: 'API QF').id, type_integration: 'expose' }
     end
@@ -137,14 +164,17 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do
+    let(:collection) { 'Organisations' }
     let(:attributs) { { nom: 'DINUM' } }
   end
 
   it_behaves_like 'un CRUD brut', TypeActeur, 'types_acteurs' do
+    let(:collection) { "Types d'acteurs" }
     let(:attributs) { { nom: 'Communes' } }
   end
 
   it_behaves_like 'un CRUD brut', Vocabulaire, 'vocabulaires' do
+    let(:collection) { 'Vocabulaires' }
     let(:attributs) { { nom: 'Particuliers', slug: 'particuliers', categorie: 'usager' } }
   end
 

@@ -1,10 +1,9 @@
 <%= render "entete_page", titre: "Modifier — Vocabulaire" %>
 
 <div class="fr-container fr-mb-6w">
-  <h1>Vocabulaire n°<%= @vocabulaire.id %></h1>
+  <h1><%= nom_en_base %></h1>
   <%= render "form", vocabulaire: @vocabulaire %>
-  <% en_base = Vocabulaire.find(@vocabulaire.id) %>
-  <%= render "admin/supprimer", url: admin_vocabulaire_path(en_base), nom: en_base.nom,
+  <%= render "admin/supprimer", url: admin_vocabulaire_path(en_base), nom: nom_en_base,
   consequences: [t("admin.suppression.demarches_detachees", count: en_base.demarches.count),
     t("admin.suppression.solutions_detachees", count: en_base.solutions.count)] %>
 </div>

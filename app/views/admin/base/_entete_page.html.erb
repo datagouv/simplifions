@@ -1,0 +1,5 @@
+<% content_for :title, [flash[:notice], nom_en_base, titre].compact.join(" — ") %>
+
+<div class="fr-container">
+  <%= render "breadcrumb", id: "breadcrumb-#{titre.parameterize}", liens: fil_d_ariane %>
+</div>
