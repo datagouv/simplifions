@@ -1,25 +1,25 @@
-<%= form_with model: [:admin, recommandation], class: "fr-mt-4w", data: surveille_les_modifications(recommandation) do |f| %>
+<%= form_with model: [:admin, recommandation], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(recommandation) do |f| %>
   <%= render "admin/erreurs", f: f %>
   <div class="fr-checkbox-group fr-mb-3w">
     <%= f.check_box :visible %>
     <%= f.label :visible, class: "fr-label" %>
   </div>
   <%= groupe_de_champ(f, :solution_id, "fr-select-group") do |aria| %>
-    <%= f.label :solution_id, class: "fr-label" %>
-    <%= f.collection_select :solution_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select", **aria %>
+    <%= libelle_obligatoire(f, :solution_id) %>
+    <%= f.collection_select :solution_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select", required: true, **aria %>
   <% end %>
   <div class="fr-input-group">
     <%= f.label :url_demande_acces, class: "fr-label" %>
     <%= f.text_field :url_demande_acces, class: "fr-input" %>
   </div>
   <%= groupe_de_champ(f, :demarche_id, "fr-select-group") do |aria| %>
-    <%= f.label :demarche_id, class: "fr-label" %>
-    <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select", **aria %>
+    <%= libelle_obligatoire(f, :demarche_id) %>
+    <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select", required: true, **aria %>
   <% end %>
-  <div class="fr-select-group">
-    <%= libelle_avec_aide(f, :niveau, "Donnée utile : API ou jeu de données listé sous « Données disponibles » dans les cartes des solutions recommandées. Solution recommandée : carte sur la page du cas d’usage.") %>
-    <%= f.select :niveau, options_traduites(Recommandation, :niveau), { include_blank: true }, class: "fr-select" %>
-  </div>
+  <%= groupe_de_champ(f, :niveau, "fr-select-group") do |aria| %>
+    <%= libelle_avec_aide(f, :niveau, "Donnée utile : API ou jeu de données listé sous « Données disponibles » dans les cartes des solutions recommandées. Solution recommandée : carte sur la page du cas d’usage.", obligatoire: true) %>
+    <%= f.select :niveau, options_traduites(Recommandation, :niveau), { include_blank: true }, class: "fr-select", required: true, **aria %>
+  <% end %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :ordre, "Plus le nombre est petit, plus l’élément apparaît haut sur la page du cas d’usage.") %>
     <%= f.number_field :ordre, class: "fr-input" %>

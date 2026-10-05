@@ -24,10 +24,14 @@ module ApplicationHelper
       action: 'input->formulaire-modifie#marquer change->formulaire-modifie#marquer' }
   end
 
-  def libelle_avec_aide(formulaire, champ, aide)
+  def libelle_avec_aide(formulaire, champ, aide, obligatoire: false)
     formulaire.label(champ, class: 'fr-label') do |libelle|
-      safe_join([libelle.translation, tag.span(aide, class: 'fr-hint-text')])
+      safe_join([libelle_du_champ(libelle, obligatoire), tag.span(aide, class: 'fr-hint-text')])
     end
+  end
+
+  def libelle_obligatoire(formulaire, champ)
+    formulaire.label(champ, class: 'fr-label') { |libelle| libelle_du_champ(libelle, true) }
   end
 
   def groupe_de_champ(formulaire, champ, groupe = 'fr-input-group', &)
@@ -59,6 +63,8 @@ module ApplicationHelper
   end
 
   private
+
+  def libelle_du_champ(libelle, obligatoire) = obligatoire ? "#{libelle.translation} (obligatoire)" : libelle.translation
 
   def erreurs_du_champ(formulaire, champ)
     objet = formulaire.object
