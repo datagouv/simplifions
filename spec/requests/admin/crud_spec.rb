@@ -419,6 +419,55 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'liens vers les éléments liés' do
+    before { sign_in admin }
+
+    def liens_vers_les_fiches(chemin)
+      get chemin
+      response.parsed_body.css('a:contains("Voir la fiche")').map { |lien| [lien['aria-label'], lien['href'], lien.ancestors('label').any?] }
+    end
+
+    it 'mène depuis chaque case cochée à la fiche de l’élément, hors du libellé de la case' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
+      communes = TypeActeur.create!(nom: 'Communes')
+      TypeActeur.create!(nom: 'Départements')
+      demarche = Demarche.create!(nom: 'Aides', integrations: [integration], types_acteurs: [communes])
+      usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager', solutions: [api])
+
+      expect(liens_vers_les_fiches("/admin/demarches/#{demarche.id}/edit")).to contain_exactly(
+        ['Voir la fiche Communes', "/admin/types_acteurs/#{communes.id}/edit", false],
+        ['Voir la fiche Bouquet → API QF (API) (intégrée)', "/admin/integrations/#{integration.id}/edit", false]
+      )
+      expect(liens_vers_les_fiches("/admin/vocabulaires/#{usager.id}/edit")).to eq([['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false]])
+      expect(liens_vers_les_fiches('/admin/demarches/new')).to be_empty
+    end
+
+    it 'mène depuis chaque vocabulaire coché d’une démarche ou d’une solution à sa fiche' do
+      usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager')
+      attendu = [['Voir la fiche Particuliers', "/admin/vocabulaires/#{usager.id}/edit", false]]
+
+      expect(liens_vers_les_fiches("/admin/demarches/#{Demarche.create!(nom: 'Aides', vocabulaires: [usager]).id}/edit")).to eq(attendu)
+      expect(liens_vers_les_fiches("/admin/solutions/#{Solution.create!(nom: 'Bouquet', vocabulaires: [usager]).id}/edit")).to eq(attendu)
+    end
+
+    it 'mène depuis une recommandation à sa solution, depuis une intégration à ses deux solutions' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      bouquet = Solution.create!(nom: 'Bouquet')
+      recommandation = Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api, niveau: :niveau_1)
+      integration = Integration.create!(integratrice: bouquet, integree: api, type_integration: 'consomme')
+
+      expect(liens_vers_les_fiches("/admin/recommandations/#{recommandation.id}/edit"))
+        .to eq([['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false]])
+      expect(liens_vers_les_fiches("/admin/integrations/#{integration.id}/edit")).to eq([
+        ['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false],
+        ['Voir la fiche Bouquet', "/admin/solutions/#{bouquet.id}/edit", false]
+      ])
+      expect(liens_vers_les_fiches('/admin/recommandations/new')).to be_empty
+    end
+  end
+
   describe 'ce que la suppression emporte' do
     let(:aides) { Demarche.create!(nom: 'Aides') }
     let(:bouquet) { Solution.create!(nom: 'Bouquet') }

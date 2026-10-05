@@ -555,12 +555,67 @@ def homonymes(page)
   Verify.logout(page)
 end
 
+def zone_sans_defilement(page, id)
+  page.evaluate_script("(z => [z.rows, z.scrollHeight, z.clientHeight, z.scrollHeight <= z.clientHeight + 2])(document.getElementById('#{id}'))")
+end
+
+def lien_nomme(zone, nom) = zone.all('a').find { |lien| lien['aria-label'] == nom } || raise("aucun lien nommé #{nom}")
+
+def pages_liees(page)
+  dossier = 'admin-pages-liees'
+  demarche = Demarche.visibles.where.not(slug: [nil, '']).max_by { |ligne| ligne.contexte.to_s.size }
+  Verify.login(page)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  zone = zone_sans_defilement(page, 'demarche_contexte')
+  raise "contexte défile #{zone}" unless zone.last
+
+  aide = page.find('label[for=demarche_contexte] .fr-hint-text').text
+  raise "aide #{aide}" unless aide == 'Markdown accepté'
+
+  Verify.evidence(dossier, page, 'zone-de-texte', "caracteres=#{demarche.contexte.size} rows,scrollHeight,clientHeight,sans_defilement=#{zone.join(',')} aide=#{aide}")
+  lien = page.find_link('Voir la page publique')
+  publique = page.window_opened_by { lien.click }
+  titre = page.within_window(publique) do
+    page.assert_current_path("/demarches/#{demarche.slug}")
+    page.find('h1').text
+  end
+  Verify.evidence(dossier, page, 'page-publique', "title=#{lien[:title]} target=#{lien[:target]} ouvert=/demarches/#{demarche.slug} h1=#{titre}")
+  publique.close
+
+  acteur = demarche.types_acteurs.order(:nom).first
+  groupe = page.find('fieldset', text: "Filtrer les types d'acteurs")
+  liens = groupe.all('a', text: 'Voir la fiche').map { |a| a['aria-label'] }
+  raise "liens #{liens} pour #{demarche.types_acteurs.map(&:nom)}" unless liens.sort == demarche.types_acteurs.map { |t| "Voir la fiche #{t.nom}" }.sort
+
+  Verify.evidence(dossier, page, 'liens-cases-cochees', "liens=#{liens.join(' | ')}")
+  lien_nomme(groupe, "Voir la fiche #{acteur.nom}").click
+  page.assert_selector 'h1', text: acteur.nom
+  Verify.evidence(dossier, page, 'fiche-liee', "url=#{page.current_path} h1=#{page.find('h1').text}")
+
+  recommandation = Recommandation.first
+  page.visit("/admin/recommandations/#{recommandation.id}/edit")
+  lien_nomme(page, "Voir la fiche #{recommandation.solution.libelle_admin}").click
+  page.assert_current_path("/admin/solutions/#{recommandation.solution_id}/edit")
+  Verify.evidence(dossier, page, 'recommandation-vers-solution', "url=#{page.current_path} h1=#{page.find('h1').text}")
+  page.current_window.resize_to(320, 1024)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  Verify.evidence(dossier, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  groupe = page.find('fieldset', text: "Filtrer les types d'acteurs")
+  groupe.fill_in "Filtrer les types d'acteurs", with: 'voir la fiche'
+  filtre = cases_affichees(groupe).size
+  raise "le filtre trouve le texte du lien (#{filtre})" unless filtre.zero?
+
+  Verify.evidence(dossier, page, 'filtre-ignore-le-lien', "saisie=voir la fiche cases_affichees=#{filtre}")
+  page.current_window.resize_to(1280, 1024)
+  Verify.logout(page)
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
   'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable,
-  'homonymes' => :homonymes }.each do |nom, fn|
+  'homonymes' => :homonymes, 'pages-liees' => :pages_liees }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

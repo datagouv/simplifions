@@ -46,6 +46,10 @@ module ApplicationHelper
     end
   end
 
+  def lien_vers_la_fiche(ligne, nom)
+    link_to 'Voir la fiche', [:edit, :admin, ligne], class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
+  end
+
   def lignes_pour(texte)
     lignes = Array(texte).join("\n").lines.sum { |ligne| [(ligne.chomp.length / 80.0).ceil, 1].max }
     [lignes + 2, 6].max

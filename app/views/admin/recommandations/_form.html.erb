@@ -7,6 +7,7 @@
   <%= groupe_de_champ(f, :solution_id, "fr-select-group") do |aria| %>
     <%= libelle_obligatoire(f, :solution_id) %>
     <%= f.collection_select :solution_id, Solution.par_libelle_admin, :id, :libelle_admin, { include_blank: true }, class: "fr-select", required: true, **aria %>
+    <%= lien_vers_la_fiche(recommandation.solution, recommandation.solution.libelle_admin) if recommandation.solution %>
   <% end %>
   <div class="fr-input-group">
     <%= f.label :url_demande_acces, class: "fr-label" %>
