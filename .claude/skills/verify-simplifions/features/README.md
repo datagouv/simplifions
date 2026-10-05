@@ -34,3 +34,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [rafraichissement-nuit.md](rafraichissement-nuit.md) — run the nightly refresh job on a throwaway database and see the 3:00 Paris recurring task registered.
 - [rafraichissement-admin.md](rafraichissement-admin.md) — click the admin button that refreshes the catalogue on a throwaway database; the button stays disabled during the run, the dashboard ends on `terminé`.
 - [admin-dates.md](admin-dates.md) — create then edit a démarche in the administration: `cree_le` and `modifie_le` set by themselves, no date field in the form.
+- [admin-lecture-seule.md](admin-lecture-seule.md) — the Grist identifier and a solution's data.gouv fields show as text in the administration, never as fields.
