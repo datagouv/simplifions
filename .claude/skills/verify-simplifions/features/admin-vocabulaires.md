@@ -4,10 +4,10 @@ Admins add, edit and delete rows of every catalogue table from plain DSFR forms;
 
 ## Sub-features
 
-- `admin-liste` table `Id`, `Nom`, `Actions` (buttons `Modifier` and `Supprimer` per row) and an `Ajouter` button.
+- `admin-liste` table `Id`, `Nom`, `Actions` (a `Modifier` button per row, no `Supprimer`) and an `Ajouter` button.
 - `admin-creer` form `Nom`, `Slug`, `Categorie`, `Grist`, checkboxes for linked démarches and solutions.
 - `admin-modifier` same form on `/admin/vocabulaires/<id>/edit`.
-- `admin-supprimer` confirm dialog `Supprimer la ligne <id> ?`, then `Supprimé.`
+- `admin-supprimer` on the edit page, below the form: confirm dialog `Supprimer « <nom> » ?` followed by what goes or is detached with it (`2 démarches en seront détachées.`), then `« <nom> » supprimé.`
 
 ## How to get to it (user POV)
 
@@ -25,7 +25,7 @@ Preconditions:
 - **Reach the table.** `click_link "Vocabulaires"`. H1 `Vocabulaires`.
 - **Add.** `click_link "Ajouter"`, `fill_in "Nom"`, `fill_in "Slug"`, `select "usager", from: "Categorie"`, `click_button "Enregistrer"`. Alert `Enregistré.`, the row appears in the table.
 - **Read back.** `Vocabulaire.find_by!(nom:)` returns the row with `categorie == "usager"`.
-- **Delete.** Within the row (`:xpath, "//tr[td[text()='<nom>']]"`), `accept_confirm { click_button "Supprimer" }`. Alert `Supprimé.`, row gone, `Vocabulaire.where(nom:).count == 0`.
+- **Delete.** No `Supprimer` button on the list. Within the row (`:xpath, "//tr[td[text()='<nom>']]"`), `click_link "Modifier"`, then `accept_confirm("Supprimer « <nom> » ?") { click_button "Supprimer" }`. Alert `« <nom> » supprimé.`, row gone, `Vocabulaire.where(nom:).count == 0`.
 - **Proof.** Screenshots after creation and deletion, both read-backs.
 
 ## Gotchas
