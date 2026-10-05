@@ -174,7 +174,8 @@ def incoherences(page)
   page.click_button 'Enregistrer'
   page.assert_text 'Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'
   Verify.evidence('admin-saisies-controlees', page, 'vocabulaire-sans-slug', "en_base=#{Vocabulaire.where(nom:).count}")
-  Verify.logout(page)
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_button 'Se déconnecter' }
+  page.assert_selector :link, 'Se connecter'
 end
 
 def dates(page)
@@ -222,6 +223,40 @@ def lecture_seule(page)
 
   page.scroll_to(bloc, align: :center)
   Verify.evidence('admin-lecture-seule', page, 'datagouv', "solution=#{solution.id} uid=#{solution.uid_datagouv} titre=#{solution.datagouv_titre} champs=0")
+  Verify.logout(page)
+end
+
+def libelles_de(page)
+  page.evaluate_script(<<~JS)
+    Array.from(document.querySelectorAll('form[data-controller="formulaire-modifie"] :is(label, legend)'))
+      .map((e) => Array.from(e.childNodes).filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim())
+      .filter(Boolean)
+  JS
+end
+
+def libelles(page)
+  Verify.login(page)
+  reco = Recommandation.niveau_1.order(:id).first!
+  page.visit("/admin/recommandations/#{reco.id}/edit")
+  page.assert_selector :select, 'Type de recommandation', selected: 'Donnée utile (API ou jeu de données)'
+  page.find('label', text: 'Type de recommandation').assert_text 'Solution recommandée : carte sur la page du cas d’usage'
+  page.scroll_to(page.find_field('Type de recommandation'), align: :center)
+  Verify.evidence('admin-libelles', page, 'recommandation', "reco=#{reco.id} niveau=#{reco.niveau} ordre=#{libelles_de(page).first(6).join(' | ')}")
+  solution = Solution.where.not(uid_datagouv: [nil, '']).where.not(categorie: nil).order(:id).first!
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  page.assert_selector :field, 'Identifiant data.gouv', with: solution.uid_datagouv
+  categorie = Solution.human_attribute_name("categorie.#{solution.categorie}")
+  page.assert_selector :select, 'Catégorie de solution', selected: categorie
+  page.scroll_to(page.find_field('Identifiant data.gouv'), align: :center)
+  Verify.evidence('admin-libelles', page, 'solution', "solution=#{solution.id} categorie=#{solution.categorie}→#{categorie} ordre=#{libelles_de(page).first(5).join(' | ')}")
+  integration = Integration.consomme.order(:id).first!
+  page.visit("/admin/integrations/#{integration.id}/edit")
+  page.assert_selector :select, 'Type d’intégration', selected: 'Intégrée'
+  Verify.evidence('admin-libelles', page, 'integration', "integration=#{integration.id} type=#{integration.type_integration} ordre=#{libelles_de(page).first(4).join(' | ')}")
+  demarche = Demarche.order(:id).first!
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.assert_selector :field, 'Mots-clés'
+  Verify.evidence('admin-libelles', page, 'demarche', "demarche=#{demarche.id} ordre=#{libelles_de(page).first(8).join(' | ')}")
   Verify.logout(page)
 end
 
@@ -331,7 +366,7 @@ end
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
-  'formulaire-modifie' => :formulaire_modifie }.each do |nom, fn|
+  'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
