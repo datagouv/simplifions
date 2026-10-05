@@ -15,7 +15,7 @@ class Integration < ApplicationRecord
   validate { errors.add(:base, :solution_integree_elle_meme) if integratrice_id && integratrice_id == integree_id }
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
-  def libelle = "#{integratrice.nom} → #{integree.nom} (#{type_integration})"
+  def libelle = "#{integratrice.nom} → #{integree.nom} (#{self.class.human_attribute_name("type_integration.#{type_integration}").downcase})"
 
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
 end

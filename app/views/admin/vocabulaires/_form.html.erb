@@ -18,7 +18,7 @@
   </div>
   <div class="fr-select-group">
     <%= f.label :categorie, class: "fr-label" %>
-    <%= f.select :categorie, Vocabulaire.categories.keys, { include_blank: true }, class: "fr-select" %>
+    <%= f.select :categorie, options_traduites(Vocabulaire, :categorie), { include_blank: true }, class: "fr-select" %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: vocabulaire.grist_id %>
   <fieldset class="fr-fieldset">

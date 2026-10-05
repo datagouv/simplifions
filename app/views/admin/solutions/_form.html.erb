@@ -14,7 +14,7 @@
   </div>
   <div class="fr-select-group">
     <%= f.label :categorie, class: "fr-label" %>
-    <%= f.select :categorie, Solution.categories.keys, { include_blank: true }, class: "fr-select" %>
+    <%= f.select :categorie, options_traduites(Solution, :categorie), { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-input-group">
     <%= f.label :slug, class: "fr-label" do %>

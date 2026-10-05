@@ -59,7 +59,7 @@ def vocabulaires(page)
   page.click_link 'Ajouter'
   page.fill_in 'Nom', with: nom
   page.fill_in 'Slug', with: "verif-verify-map-#{Verify.browser}"
-  page.select 'usager', from: 'Catégorie'
+  page.select 'Usager', from: 'Catégorie'
   page.click_button 'Enregistrer'
   page.assert_text 'Enregistré.'
   page.assert_selector 'td', text: nom
@@ -167,7 +167,7 @@ def incoherences(page)
   nom = "Vérif verify-map #{Verify.browser}"
   page.visit('/admin/vocabulaires/new')
   page.fill_in 'Nom', with: nom
-  page.select 'usager', from: 'Catégorie'
+  page.select 'Usager', from: 'Catégorie'
   page.click_button 'Enregistrer'
   page.assert_text 'Slug doit être rempli'
   page.fill_in 'Slug', with: 'Vérif Accents'

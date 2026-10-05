@@ -23,7 +23,7 @@ Preconditions:
 - No row named `Vérif verify-map <browser>` exists.
 
 - **Reach the table.** `click_link "Vocabulaires"`. H1 `Vocabulaires`.
-- **Add.** `click_link "Ajouter"`, `fill_in "Nom"`, `fill_in "Slug"`, `select "usager", from: "Catégorie"`, `click_button "Enregistrer"`. Alert `Enregistré.`, the row appears in the table.
+- **Add.** `click_link "Ajouter"`, `fill_in "Nom"`, `fill_in "Slug"`, `select "Usager", from: "Catégorie"`, `click_button "Enregistrer"`. Alert `Enregistré.`, the row appears in the table.
 - **Read back.** `Vocabulaire.find_by!(nom:)` returns the row with `categorie == "usager"`.
 - **Delete.** No `Supprimer` button on the list. Within the row (`:xpath, "//tr[td[text()='<nom>']]"`), `click_link "Modifier"`, then `accept_confirm("Supprimer « <nom> » ?") { click_button "Supprimer" }`. Alert `« <nom> » supprimé.`, row gone, `Vocabulaire.where(nom:).count == 0`.
 - **Proof.** Screenshots after creation and deletion, both read-backs.

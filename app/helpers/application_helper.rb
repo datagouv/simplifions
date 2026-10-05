@@ -24,6 +24,10 @@ module ApplicationHelper
       action: 'input->formulaire-modifie#marquer change->formulaire-modifie#marquer' }
   end
 
+  def options_traduites(modele, enum)
+    modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
+  end
+
   def rafraichissement_en_cours?(passage) = passage.present? && !passage.finished? && !passage.failed?
 
   # Contenu Grist semi-confiance : HTML brut autorisé, nettoyé par la liste blanche Rails (ni script, ni on*, ni javascript:/data:)

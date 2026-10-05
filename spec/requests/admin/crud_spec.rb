@@ -130,7 +130,7 @@ RSpec.describe 'Administration' do
     end
     let(:modification) { { statut: '✅ en production' } }
     let(:invalide) { [{ integratrice_id: '' }, 'Solution doit exister'] }
-    let(:nom) { 'Bouquet → API QF (expose)' }
+    let(:nom) { 'Bouquet → API QF (fournie)' }
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do
@@ -342,7 +342,7 @@ RSpec.describe 'Administration' do
 
     def libelles(chemin)
       get "/admin/#{chemin}/new"
-      response.parsed_body.css('form label').map { |label| label.xpath('text()').text.strip }
+      response.parsed_body.css('form[data-controller="formulaire-modifie"] label').map { |label| label.xpath('text()').text.strip }
     end
 
     it 'nomme les champs avec les mots du Grist et du site' do
@@ -357,6 +357,27 @@ RSpec.describe 'Administration' do
         'types_acteurs' => ['Ce que cela inclut', 'Codes juridiques'],
         'vocabulaires' => ['Catégorie']
       }.each { |chemin, attendus| expect(libelles(chemin)).to include(*attendus) }
+    end
+
+    it 'propose les valeurs des listes en français et n’affiche aucune clé brute' do
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'),
+        type_integration: 'consomme')
+      %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
+        get "/admin/#{chemin}/new"
+        expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').text).not_to match(/niveau_\d|_cle_en_main|brique_logicielle|type_simplification|consomme|expose/)
+      end
+
+      get '/admin/recommandations/new'
+      expect(response.parsed_body.css('#recommandation_niveau option').map(&:text))
+        .to eq(['', 'Donnée utile (API ou jeu de données)', 'Solution recommandée'])
+      get '/admin/solutions/new'
+      expect(response.parsed_body.css('#solution_categorie option').map(&:text))
+        .to eq(['', 'Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier'])
+      get '/admin/vocabulaires/new'
+      expect(response.parsed_body.css('#vocabulaire_categorie option').map(&:text))
+        .to eq(['', 'Usager', 'Type de simplification', 'Catégorie de solution'])
+      get "/admin/integrations/#{integration.id}/edit"
+      expect(response.parsed_body.at_css('#integration_type_integration option[selected]').text).to eq('Intégrée')
     end
   end
 

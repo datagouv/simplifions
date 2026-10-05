@@ -19,7 +19,7 @@
   </div>
   <div class="fr-select-group">
     <%= f.label :type_integration, class: "fr-label" %>
-    <%= f.select :type_integration, Integration.type_integrations.keys, { include_blank: true }, class: "fr-select" %>
+    <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
     <%= f.label :statut, class: "fr-label" %>

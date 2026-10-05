@@ -50,6 +50,22 @@ fr:
         integree_id: "API ou jeu de données"
         type_integration: "Type d’intégration"
         statut: "Statut de l’intégration"
+      solution/categorie:
+        brique_logicielle: "Brique technique"
+        api: "API"
+        base_de_donnees: "Jeu de données"
+        site_de_consultation: "Portail de consultation"
+        logiciel_metier_cle_en_main: "Logiciel métier"
+      vocabulaire/categorie:
+        usager: "Usager"
+        type_simplification: "Type de simplification"
+        solution: "Catégorie de solution"
+      recommandation/niveau:
+        niveau_1: "Donnée utile (API ou jeu de données)"
+        niveau_2: "Solution recommandée"
+      integration/type_integration:
+        expose: "Fournie"
+        consomme: "Intégrée"
   errors:
     messages:
       blank: "doit être rempli"

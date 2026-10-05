@@ -18,7 +18,7 @@
   </div>
   <div class="fr-select-group">
     <%= f.label :niveau, class: "fr-label" %>
-    <%= f.select :niveau, Recommandation.niveaus.keys, { include_blank: true }, class: "fr-select" %>
+    <%= f.select :niveau, options_traduites(Recommandation, :niveau), { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-input-group">
     <%= f.label :ordre, class: "fr-label" %>
