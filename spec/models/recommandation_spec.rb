@@ -6,7 +6,7 @@ RSpec.describe Recommandation do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
       solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.example/bouquet')
-      reco = described_class.create!(demarche:, solution:,
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1,
         url_demande_acces: 'https://datapass.example/specifique?habilitation=42')
 
       expect(reco.lien_demande_acces).to eq('https://datapass.example/specifique?habilitation=42&use_case=cantine')
@@ -16,7 +16,7 @@ RSpec.describe Recommandation do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
       solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'javascript:alert(1)')
-      reco = described_class.create!(demarche:, solution:)
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1)
 
       expect(reco.lien_demande_acces).to be_nil
     end
@@ -25,7 +25,7 @@ RSpec.describe Recommandation do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
       solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://exa mple.com')
-      reco = described_class.create!(demarche:, solution:)
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1)
 
       expect(reco.lien_demande_acces).to be_nil
     end
@@ -34,7 +34,7 @@ RSpec.describe Recommandation do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
       solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.example/bouquet#formulaire')
-      reco = described_class.create!(demarche:, solution:)
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1)
 
       expect(reco.lien_demande_acces).to eq('https://datapass.example/bouquet?use_case=cantine#formulaire')
     end
@@ -43,7 +43,7 @@ RSpec.describe Recommandation do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
       solution = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
         url_demande_acces: 'https://datapass.example/bouquet')
-      reco = described_class.create!(demarche:, solution:)
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1)
 
       expect(reco.lien_demande_acces).to eq('https://datapass.example/bouquet?use_case=cantine')
     end
@@ -74,7 +74,7 @@ RSpec.describe Recommandation do
       Integration.create!(integratrice: brouillon, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
 
-      reco = described_class.create!(demarche: cantine, solution: bouquet)
+      reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
 
       expect(reco.moyens_acces).to eq(
         'logiciel_metier_cle_en_main' => [logiciel],
@@ -137,8 +137,15 @@ RSpec.describe Recommandation do
       demarche = Demarche.create!(nom: 'Cantine')
       bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
 
-      expect(described_class.create!(demarche:, solution: bouquet).couvertures).to eq({})
+      expect(described_class.create!(demarche:, solution: bouquet, niveau: :niveau_2).couvertures).to eq({})
     end
+  end
+
+  it 'exige un type de recommandation' do
+    reco = described_class.new(demarche: Demarche.create!(nom: 'Cantine'), solution: Solution.create!(nom: 'API QF', categorie: 'api'))
+
+    expect(reco).not_to be_valid
+    expect(reco.errors).to be_added(:niveau, :blank)
   end
 
   describe 'contrainte politique' do
@@ -151,7 +158,7 @@ RSpec.describe Recommandation do
       sans_operateur = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
 
       expect(described_class.new(demarche:, solution: privee)).not_to be_valid
-      expect(described_class.new(demarche:, solution: publique)).to be_valid
+      expect(described_class.new(demarche:, solution: publique, niveau: :niveau_2)).to be_valid
       expect(described_class.new(demarche:, solution: sans_operateur, niveau: :niveau_1)).to be_valid
     end
   end
@@ -159,8 +166,8 @@ RSpec.describe Recommandation do
   describe '.visibles' do
     it 'returns only visible recommandations' do
       demarche = Demarche.create!(nom: 'Démarche')
-      visible = described_class.create!(demarche:, solution: Solution.create!(nom: 'Publiée', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]), visible: true)
-      described_class.create!(demarche:, solution: Solution.create!(nom: 'Brouillon', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]), visible: false)
+      visible = described_class.create!(demarche:, solution: Solution.create!(nom: 'Publiée', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]), niveau: :niveau_2, visible: true)
+      described_class.create!(demarche:, solution: Solution.create!(nom: 'Brouillon', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]), niveau: :niveau_2, visible: false)
 
       expect(described_class.visibles).to contain_exactly(visible)
     end

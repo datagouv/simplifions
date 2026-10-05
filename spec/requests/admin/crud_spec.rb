@@ -187,14 +187,14 @@ RSpec.describe 'Administration' do
     end
 
     it 'compte les recommandations et intégrations détachées d’une démarche' do
-      [api_qf, Solution.create!(nom: 'API Entreprise', categorie: 'api')].each { |solution| Recommandation.create!(demarche: aides, solution:) }
+      [api_qf, Solution.create!(nom: 'API Entreprise', categorie: 'api')].each { |solution| Recommandation.create!(demarche: aides, solution:, niveau: :niveau_1) }
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme', demarches: [aides])
       expect(confirmation("/admin/demarches/#{aides.id}/edit"))
         .to eq('Supprimer « Aides » ? 2 recommandations seront supprimées. 1 intégration en sera détachée.')
     end
 
     it 'compte les recommandations et intégrations d’une solution, n’annonce rien quand rien ne part' do
-      Recommandation.create!(demarche: aides, solution: api_qf)
+      Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
       expect(confirmation("/admin/solutions/#{api_qf.id}/edit"))
         .to eq('Supprimer « API QF » ? 1 recommandation sera supprimée. 1 intégration sera supprimée.')
@@ -350,12 +350,12 @@ RSpec.describe 'Administration' do
         'demarches' => ['Icône du titre', 'Description courte', 'Cadre juridique', 'Mots-clés', 'Visible sur simplifions'],
         'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
                         'Type de solution', 'API FranceConnectée', 'Cette solution ne permet pas'],
-        'recommandations' => ['Démarche', 'Type de recommandation', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
+        'recommandations' => ['Démarche (obligatoire)', 'Type de recommandation (obligatoire)', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
-        'integrations' => ['Solution', 'API ou jeu de données', 'Type d’intégration', 'Statut de l’intégration'],
+        'integrations' => ['Solution (obligatoire)', 'API ou jeu de données (obligatoire)', 'Type d’intégration (obligatoire)', 'Statut de l’intégration'],
         'organisations' => ['Nom long', 'Type d’organisation privée'],
         'types_acteurs' => ['Ce que cela inclut', 'Codes juridiques'],
-        'vocabulaires' => ['Catégorie']
+        'vocabulaires' => ['Catégorie (obligatoire)']
       }.each { |chemin, attendus| expect(libelles(chemin)).to include(*attendus) }
     end
 
@@ -393,6 +393,29 @@ RSpec.describe 'Administration' do
       end
     end
 
+    it 'annonce les champs obligatoires et laisse le serveur signaler ceux qui manquent' do
+      {
+        'demarches' => %w[demarche_nom], 'solutions' => %w[solution_nom], 'organisations' => %w[organisation_nom],
+        'types_acteurs' => %w[type_acteur_nom], 'vocabulaires' => %w[vocabulaire_nom vocabulaire_slug vocabulaire_categorie],
+        'recommandations' => %w[recommandation_solution_id recommandation_demarche_id recommandation_niveau],
+        'integrations' => %w[integration_integree_id integration_integratrice_id integration_type_integration]
+      }.each do |chemin, obligatoires|
+        get "/admin/#{chemin}/new"
+        formulaire = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')
+        expect(formulaire['novalidate']).not_to be_nil
+        expect(formulaire.css('label').select { |libelle| libelle.text.include?('(obligatoire)') }.pluck('for')).to eq(obligatoires)
+        expect(formulaire.css('[required]').pluck('id')).to eq(obligatoires)
+      end
+    end
+
+    it 'dit dans l’aide les règles qui dépendent d’un autre champ' do
+      %w[demarche solution].each do |cle|
+        get "/admin/#{cle}s/new"
+        expect(response.parsed_body.at_css("label[for=#{cle}_slug] .fr-hint-text").text).to include('Obligatoire')
+      end
+      expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
+    end
+
     it 'renvoie les slugs d’un type d’acteur au filtre « Démarches gérées par » du site' do
       get '/admin/types_acteurs/new'
       expect(response.parsed_body.at_css('label[for=type_acteur_slugs] .fr-hint-text').text).to include('« Démarches gérées par »')
@@ -400,16 +423,16 @@ RSpec.describe 'Administration' do
 
     it 'range les champs dans l’ordre des fiches Grist' do
       {
-        'demarches' => ['Visible sur simplifions', 'Icône du titre', 'Nom', 'Slug', 'Description courte', 'Contexte',
+        'demarches' => ['Visible sur simplifions', 'Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
                         'Cadre juridique', "Types d'acteurs", 'Mots-clés', 'Vocabulaires', 'Intégrations'],
-        'solutions' => ['Visible sur simplifions', 'Nom', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
+        'solutions' => ['Visible sur simplifions', 'Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
                         'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
                         'Catégorie de solution', 'Vocabulaires', "Types d'acteurs", 'Cette solution permet',
                         'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
-        'recommandations' => ['Visible sur simplifions', 'Solution', 'URL de demande d’accès pour cette démarche', 'Démarche',
-                              'Type de recommandation', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
+        'recommandations' => ['Visible sur simplifions', 'Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
+                              'Type de recommandation (obligatoire)', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
-        'integrations' => ['API ou jeu de données', 'Solution', 'Type d’intégration', 'Statut de l’intégration', 'Démarches']
+        'integrations' => ['API ou jeu de données (obligatoire)', 'Solution (obligatoire)', 'Type d’intégration (obligatoire)', 'Statut de l’intégration', 'Démarches']
       }.each { |chemin, attendus| expect(libelles(chemin) & attendus).to eq(attendus) }
     end
   end
@@ -461,7 +484,7 @@ RSpec.describe 'Administration' do
     end
 
     it 'explique qu’une solution est déjà recommandée pour la démarche' do
-      reco = Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: Solution.create!(nom: 'API QF', categorie: 'api'))
+      reco = Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1)
       post '/admin/recommandations', params: { recommandation: { demarche_id: reco.demarche_id, solution_id: reco.solution_id } }
       expect(message_du_champ('recommandation_solution_id')).to eq('Cette solution est déjà recommandée pour cette démarche')
     end
@@ -496,7 +519,7 @@ RSpec.describe 'Administration' do
     it 'annonce le format attendu sous le champ et garde la saisie refusée' do
       sign_in admin
       get '/admin/solutions/new'
-      expect(response.body).to include('<span class="fr-hint-text">Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>')
+      expect(response.body).to include('Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>')
 
       post '/admin/demarches', params: { demarche: { nom: 'Aides', slug: 'Aides publiques' } }
       expect(response).to have_http_status(:unprocessable_content)

@@ -166,7 +166,7 @@ RSpec.describe Grist::Import do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
     fantome = Solution.create!(nom: 'Solution disparue', grist_id: 'Solutions:999')
-    paire_fantome = Recommandation.create!(demarche: cantine, solution: Solution.find_by!(grist_id: 'APIs_et_datasets:45'))
+    paire_fantome = Recommandation.create!(demarche: cantine, solution: Solution.find_by!(grist_id: 'APIs_et_datasets:45'), niveau: :niveau_1)
 
     relance = described_class.call
 
