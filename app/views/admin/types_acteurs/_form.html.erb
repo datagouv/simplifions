@@ -1,3 +1,4 @@
+<% memo_interne = "Mémo interne, non affiché sur le site" %>
 <%= form_with model: [:admin, type_acteur], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(type_acteur) do |f| %>
   <%= render "admin/erreurs", f: f %>
   <%= groupe_de_champ(f, :nom) do |aria| %>
@@ -5,15 +6,15 @@
     <%= f.text_field :nom, class: "fr-input", required: true, **aria %>
   <% end %>
   <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :slugs, "Une valeur par ligne : les filtres « Démarches gérées par » du site qui retiennent ce type d’acteur, ex. : communes, tout-acteurs-publics") %>
+    <%= libelle_avec_aide(f, :slugs, "Une valeur par ligne : les filtres « Démarches gérées par » du site qui retiennent ce fournisseur de services, ex. : communes, tout-acteurs-publics") %>
     <%= f.text_area :slugs, value: type_acteur.slugs.join("\n"), class: "fr-input", rows: lignes_pour(f.object.slugs) %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :description, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :description, memo_interne) %>
     <%= f.text_area :description, class: "fr-input", rows: lignes_pour(f.object.description) %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :codes_juridiques, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :codes_juridiques, memo_interne) %>
     <%= f.text_area :codes_juridiques, class: "fr-input", rows: lignes_pour(f.object.codes_juridiques) %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: type_acteur.grist_id %>

@@ -4,7 +4,7 @@ On an admin form, each text area is as tall as its content (rows computed server
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit` of a visible démarche: `Contexte`, `Voir la page publique`, `Types d'acteurs` checked boxes.
+- `/admin/demarches/<id>/edit` of a visible démarche: `Contexte`, `Voir la page publique`, `Fournisseurs de services` checked boxes.
 - `/admin/recommandations/<id>/edit`: link next to `Solution`. Admin only.
 
 ## Driving it with Capybara
