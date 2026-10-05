@@ -142,6 +142,39 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'dates de création et de modification' do
+    include ActiveSupport::Testing::TimeHelpers
+
+    let(:saisie) { Time.zone.local(2001, 1, 1) }
+    let(:maintenant) { Time.zone.local(2026, 10, 5, 14, 30) }
+
+    before { sign_in admin }
+
+    {
+      Demarche => -> { { nom: 'Aides' } },
+      Solution => -> { { nom: 'Bouquet' } },
+      Recommandation => -> { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
+    }.each do |modele, fabrique|
+      context modele.model_name.human do
+        let(:chemin) { "/admin/#{modele.model_name.route_key}" }
+        let(:cle) { modele.model_name.param_key }
+        let(:dates) { modele.column_names & %w[cree_le modifie_le] }
+        let(:dates_saisies) { dates.index_with(saisie) }
+
+        it 'date la création à l’enregistrement, sans tenir compte d’une date envoyée' do
+          travel_to(maintenant) { post chemin, params: { cle => fabrique.call.merge(dates_saisies) } }
+          expect(modele.last.slice(*dates)).to eq(dates.index_with(maintenant))
+        end
+
+        it 'date la modification à chaque enregistrement et garde la date de création' do
+          ligne = modele.create!(fabrique.call.merge(dates_saisies))
+          travel_to(maintenant) { patch "#{chemin}/#{ligne.id}", params: { cle => { visible: '0' } } }
+          expect(ligne.reload.slice(*dates)).to eq(dates_saisies.merge('modifie_le' => maintenant))
+        end
+      end
+    end
+  end
+
   describe 'colonnes obligatoires en base' do
     before { sign_in admin }
 
