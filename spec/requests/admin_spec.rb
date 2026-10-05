@@ -27,6 +27,48 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'dernier rafraîchissement sur le tableau de bord' do
+    let(:passage) { SolidQueue::Job.create!(class_name: 'RafraichirCatalogueJob', queue_name: 'default') }
+
+    before { sign_in admin }
+
+    it 'propose de rafraîchir en prévenant que le Grist remplace les saisies' do
+      get admin_root_path
+      assert_select 'button:not([disabled])', text: 'Rafraîchir depuis Grist et data.gouv'
+      expect(response.body).to include('Le contenu du Grist remplacera les modifications faites dans l’administration.')
+    end
+
+    it 'signale l’absence de passage récent' do
+      get admin_root_path
+      expect(response.body).to include('Aucun rafraîchissement récent.')
+    end
+
+    it 'signale un passage en cours' do
+      passage
+      get admin_root_path
+      expect(response.body).to include('Dernier rafraîchissement : en cours.')
+    end
+
+    it 'désactive le bouton tant qu’un passage est en cours' do
+      passage
+      get admin_root_path
+      assert_select 'button[disabled]', text: 'Rafraîchissement en cours…'
+      assert_select 'button:not([disabled])', text: 'Rafraîchir depuis Grist et data.gouv', count: 0
+    end
+
+    it 'donne l’heure de Paris d’un passage terminé' do
+      passage.update!(finished_at: Time.utc(2026, 10, 5, 12, 30))
+      get admin_root_path
+      expect(response.body).to include('Dernier rafraîchissement : terminé le 05/10/2026 à 14:30.')
+    end
+
+    it 'donne le message d’un passage échoué' do
+      passage.failed_with(RuntimeError.new('Grist injoignable'))
+      get admin_root_path
+      expect(response.body).to include('Dernier rafraîchissement : échoué (Grist injoignable).')
+    end
+  end
+
   describe 'POST /admin/rafraichissement' do
     it 'renvoie vers la page de connexion sans admin connecté' do
       post admin_rafraichissement_path
