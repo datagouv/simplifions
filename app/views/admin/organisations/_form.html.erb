@@ -1,4 +1,4 @@
-<%= form_with model: [:admin, organisation], class: "fr-mt-4w" do |f| %>
+<%= form_with model: [:admin, organisation], class: "fr-mt-4w", data: surveille_les_modifications(organisation) do |f| %>
   <% if organisation.errors.any? %>
     <div class="fr-alert fr-alert--error">
       <ul>

@@ -19,6 +19,11 @@ module ApplicationHelper
     "Dernier rafraîchissement : #{etat_du_passage(passage)}."
   end
 
+  def surveille_les_modifications(objet)
+    { controller: 'formulaire-modifie', formulaire_modifie_modifie_value: objet.errors.any?,
+      action: 'input->formulaire-modifie#marquer change->formulaire-modifie#marquer' }
+  end
+
   def rafraichissement_en_cours?(passage) = passage.present? && !passage.finished? && !passage.failed?
 
   # Contenu Grist semi-confiance : HTML brut autorisé, nettoyé par la liste blanche Rails (ni script, ni on*, ni javascript:/data:)
