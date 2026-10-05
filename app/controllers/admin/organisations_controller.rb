@@ -40,6 +40,6 @@ class Admin::OrganisationsController < Admin::BaseController
   end
 
   def organisation_params
-    params.expect(organisation: [:nom, :nom_long, :public_ou_prive, :type_organisation_privee, :site_internet, :grist_id, { solution_ids: [] }])
+    params.expect(organisation: [:nom, :nom_long, :public_ou_prive, :type_organisation_privee, :site_internet, { solution_ids: [] }])
   end
 end

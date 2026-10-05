@@ -68,10 +68,7 @@
     <%= f.check_box :visible %>
     <%= f.label :visible, class: "fr-label" %>
   </div>
-  <div class="fr-input-group">
-    <%= f.label :grist_id, class: "fr-label" %>
-    <%= f.text_field :grist_id, class: "fr-input" %>
-  </div>
+  <%= render "admin/identifiant_grist", grist_id: solution.grist_id %>
   <div class="fr-input-group">
     <%= f.label :datagouv_titre, class: "fr-label" %>
     <%= f.text_field :datagouv_titre, class: "fr-input" %>

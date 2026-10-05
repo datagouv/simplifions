@@ -40,6 +40,6 @@ class Admin::VocabulairesController < Admin::BaseController
   end
 
   def vocabulaire_params
-    params.expect(vocabulaire: [:nom, :slug, :categorie, :grist_id, { demarche_ids: [], solution_ids: [] }])
+    params.expect(vocabulaire: [:nom, :slug, :categorie, { demarche_ids: [], solution_ids: [] }])
   end
 end

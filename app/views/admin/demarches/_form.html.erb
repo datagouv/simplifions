@@ -44,10 +44,7 @@
     <%= f.check_box :visible %>
     <%= f.label :visible, class: "fr-label" %>
   </div>
-  <div class="fr-input-group">
-    <%= f.label :grist_id, class: "fr-label" %>
-    <%= f.text_field :grist_id, class: "fr-input" %>
-  </div>
+  <%= render "admin/identifiant_grist", grist_id: demarche.grist_id %>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Vocabulaires</legend>
     <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.order(:nom), :id, :nom do |b| %>

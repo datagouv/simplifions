@@ -44,20 +44,23 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).to include(invalide.last)
   end
 
-  it 'laisse vides les identifiants Grist et slugs non renseignés, sans collision entre lignes' do
-    sign_in admin
-    vides = modele.column_names.include?('slug') ? { grist_id: '', slug: '' } : { grist_id: '' }
-    patch "/admin/#{chemin}/#{ligne.id}", params: { cle => vides }
-    expect(ligne.reload.grist_id).to be_nil
-    expect { post "/admin/#{chemin}", params: { cle => nouveaux.merge(vides) } }.to change(modele, :count).by(1)
-  end
-
-  it 'refuse un identifiant Grist déjà pris plutôt que de casser sur l’index unique' do
+  it 'montre l’identifiant Grist en texte sans le laisser modifier' do
     sign_in admin
     ligne.update!(grist_id: 'Table:1')
-    post "/admin/#{chemin}", params: { cle => nouveaux.merge(grist_id: 'Table:1') }
-    expect(response).to have_http_status(:unprocessable_content)
-    expect(response.body).to include('Grist est déjà utilisé')
+    get "/admin/#{chemin}/#{ligne.id}/edit"
+    expect(response.body).to include('Identifiant Grist : Table:1')
+    expect(response.body).not_to include("#{cle}[grist_id]")
+
+    patch "/admin/#{chemin}/#{ligne.id}", params: { cle => modification.merge(grist_id: 'Table:2') }
+    expect(ligne.reload.grist_id).to eq('Table:1')
+    post "/admin/#{chemin}", params: { cle => nouveaux.merge(grist_id: 'Table:3') }
+    expect(modele.last.grist_id).to be_nil
+  end
+
+  it 'n’affiche pas d’identifiant Grist sur une ligne qui n’en a pas' do
+    sign_in admin
+    get "/admin/#{chemin}/new"
+    expect(response.body).not_to include('Identifiant Grist')
   end
 
   it 'modifie une ligne' do
@@ -246,6 +249,14 @@ RSpec.describe 'Administration' do
   end
 
   describe 'slug' do
+    it 'laisse vides les slugs non renseignés, sans collision entre fiches' do
+      sign_in admin
+      { demarches: Demarche, solutions: Solution }.each do |chemin, modele|
+        2.times { post "/admin/#{chemin}", params: { modele.model_name.param_key => { nom: 'Aides', slug: '' } } }
+        expect(modele.where(slug: nil).count).to eq(2)
+      end
+    end
+
     it 'annonce le format attendu sous le champ et garde la saisie refusée' do
       sign_in admin
       get '/admin/solutions/new'
