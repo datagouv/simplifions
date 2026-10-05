@@ -66,8 +66,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     sign_in admin
     post "/admin/#{chemin}", params: { cle => invalide.first }
     expect(response).to have_http_status(:unprocessable_content)
-    expect(response.body).to include('<div class="fr-alert fr-alert--error">')
-    expect(response.body).to include(invalide.last)
+    expect(response.parsed_body.at_css('.fr-alert--error a').text).to eq(invalide.last)
   end
 
   it 'montre l’identifiant Grist en texte sans le laisser modifier' do
@@ -430,6 +429,28 @@ RSpec.describe 'Administration' do
       expect(message_du_champ('demarche_nom')).to eq('Nom doit être rempli')
       expect(response.body).not_to include('field_with_errors')
       expect(response.parsed_body.at_css('#demarche_slug')['aria-invalid']).to be_nil
+    end
+
+    it 'récapitule les erreurs en tête du formulaire, avec un lien vers chaque champ, et y place le focus' do
+      post '/admin/demarches', params: { demarche: { nom: '', visible: '1', slug: '' } }
+      recapitulatif = response.parsed_body.at_css('form .fr-alert--error')
+      expect(recapitulatif.to_h.slice('tabindex', 'autofocus')).to eq('tabindex' => '-1', 'autofocus' => '')
+      expect(recapitulatif.at_css('.fr-alert__title').text).to eq('2 erreurs à corriger')
+      expect(recapitulatif.css('a').map { |lien| [lien['href'], lien.text] })
+        .to eq([['#demarche_nom', 'Nom doit être rempli'], ['#demarche_slug', 'Slug doit être rempli']])
+      expect(recapitulatif.css('a').pluck('data-turbo')).to all(eq('false'))
+    end
+
+    it 'relie l’erreur d’une association à sa liste et laisse sans lien une erreur d’ensemble' do
+      post '/admin/recommandations', params: { recommandation: { demarche_id: '' } }
+      expect(response.parsed_body.css('.fr-alert--error a').pluck('href')).to include('#recommandation_demarche_id')
+
+      bouquet = Solution.create!(nom: 'Bouquet')
+      post '/admin/integrations', params: { integration: { integratrice_id: bouquet.id, integree_id: bouquet.id, type_integration: 'expose' } }
+      recapitulatif = response.parsed_body.at_css('.fr-alert--error')
+      expect(recapitulatif.at_css('.fr-alert__title').text).to eq('1 erreur à corriger')
+      expect(recapitulatif.at_css('li').text.strip).to eq('Une solution ne peut pas s’intégrer elle-même')
+      expect(recapitulatif.at_css('a')).to be_nil
     end
 
     it 'demande de choisir la démarche et la solution d’une recommandation' do

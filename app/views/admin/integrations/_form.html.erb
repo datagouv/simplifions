@@ -1,14 +1,6 @@
 <% solutions = Solution.order(:nom) %>
 <%= form_with model: [:admin, integration], class: "fr-mt-4w", data: surveille_les_modifications(integration) do |f| %>
-  <% if integration.errors.any? %>
-    <div class="fr-alert fr-alert--error">
-      <ul>
-        <% integration.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <%= render "admin/erreurs", f: f %>
   <%= groupe_de_champ(f, :integree_id, "fr-select-group") do |aria| %>
     <%= f.label :integree_id, class: "fr-label" %>
     <%= f.collection_select :integree_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select", **aria %>

@@ -1,0 +1,10 @@
+<% if f.object.errors.any? %>
+  <div class="fr-alert fr-alert--error fr-mb-4w" tabindex="-1" autofocus>
+    <h2 class="fr-alert__title"><%= t("admin.erreurs", count: f.object.errors.count) %></h2>
+    <ul>
+      <% f.object.errors.each do |erreur| %>
+        <li><%= erreur.attribute == :base ? erreur.full_message : link_to(erreur.full_message, "##{id_du_champ(f, erreur.attribute)}", data: { turbo: false }) %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
