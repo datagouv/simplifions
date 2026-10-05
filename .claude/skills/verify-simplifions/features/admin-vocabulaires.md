@@ -4,7 +4,7 @@ Admins add, edit and delete rows of every catalogue table from plain DSFR forms;
 
 ## Sub-features
 
-- `admin-liste` table with `Id`, `Nom`, `Modifier`, `Supprimer` per row and an `Ajouter` button.
+- `admin-liste` table `Id`, `Nom`, `Actions` (buttons `Modifier` and `Supprimer` per row) and an `Ajouter` button.
 - `admin-creer` form `Nom`, `Slug`, `Categorie`, `Grist`, checkboxes for linked démarches and solutions.
 - `admin-modifier` same form on `/admin/vocabulaires/<id>/edit`.
 - `admin-supprimer` confirm dialog `Supprimer la ligne <id> ?`, then `Supprimé.`
