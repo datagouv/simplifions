@@ -9,22 +9,22 @@
       </ul>
     </div>
   <% end %>
-  <div class="fr-select-group">
+  <%= groupe_de_champ(f, :integree_id, "fr-select-group") do |aria| %>
     <%= f.label :integree_id, class: "fr-label" %>
-    <%= f.collection_select :integree_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
-  </div>
-  <div class="fr-select-group">
+    <%= f.collection_select :integree_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :integratrice_id, "fr-select-group") do |aria| %>
     <%= f.label :integratrice_id, class: "fr-label" %>
-    <%= f.collection_select :integratrice_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
-  </div>
-  <div class="fr-select-group">
+    <%= f.collection_select :integratrice_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :type_integration, "fr-select-group") do |aria| %>
     <%= libelle_avec_aide(f, :type_integration, "Fournie : la solution met l’API ou le jeu de données à disposition. Intégrée : la solution l’utilise.") %>
-    <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select" %>
-  </div>
-  <div class="fr-select-group">
+    <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :statut, "fr-select-group") do |aria| %>
     <%= f.label :statut, class: "fr-label" %>
-    <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select" %>
-  </div>
+    <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", **aria %>
+  <% end %>
   <%= render "admin/identifiant_grist", grist_id: integration.grist_id %>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Démarches</legend>

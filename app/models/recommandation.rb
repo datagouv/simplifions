@@ -60,6 +60,6 @@ class Recommandation < ApplicationRecord
   def utiles = demarche.recommandations.niveau_1.where(solution: solution.fournies)
 
   def ne_recommande_pas_de_solution_privee
-    errors.add(:solution, 'une solution privée ne peut pas être mise en avant') if solution&.privee?
+    errors.add(:solution, :privee) if solution&.privee?
   end
 end

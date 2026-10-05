@@ -17,6 +17,8 @@ module Simplifions
     config.autoload_lib(ignore: %w[assets tasks])
 
     config.i18n.default_locale = :fr
+    config.active_model.i18n_customize_full_message = true
+    config.action_view.field_error_proc = ->(html_tag, _instance) { html_tag }
 
     config.active_storage.service = :db
 

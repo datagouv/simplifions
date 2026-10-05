@@ -30,6 +30,18 @@ module ApplicationHelper
     end
   end
 
+  def groupe_de_champ(formulaire, champ, groupe = 'fr-input-group', &)
+    messages = erreurs_du_champ(formulaire, champ)
+    return tag.div(capture({}, &), class: groupe) if messages.none?
+
+    id = "#{formulaire.field_id(champ)}-messages"
+    tag.div(class: "#{groupe} #{groupe}--error") do
+      safe_join([capture({ aria: { invalid: true, describedby: id } }, &), tag.div(id:, class: 'fr-messages-group', aria: { live: 'polite' }) do
+        safe_join(messages.map { |message| tag.p(message, class: 'fr-message fr-message--error') })
+      end])
+    end
+  end
+
   def options_traduites(modele, enum)
     modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
   end
@@ -45,6 +57,13 @@ module ApplicationHelper
   end
 
   private
+
+  def erreurs_du_champ(formulaire, champ)
+    objet = formulaire.object
+    objet.errors.select { |erreur| champ_de_l_erreur(objet, erreur.attribute) == champ.to_s }.map(&:full_message)
+  end
+
+  def champ_de_l_erreur(objet, attribut) = (objet.class.reflect_on_association(attribut)&.foreign_key || attribut).to_s
 
   def etat_du_passage(passage)
     if passage.failed?

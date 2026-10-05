@@ -12,22 +12,22 @@
     <%= f.check_box :visible %>
     <%= f.label :visible, class: "fr-label" %>
   </div>
-  <div class="fr-input-group">
+  <%= groupe_de_champ(f, :nom) do |aria| %>
     <%= f.label :nom, class: "fr-label" %>
-    <%= f.text_field :nom, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
+    <%= f.text_field :nom, class: "fr-input", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :slug) do |aria| %>
     <%= libelle_avec_aide(f, :slug, "Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire") %>
-    <%= f.text_field :slug, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
+    <%= f.text_field :slug, class: "fr-input", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :site_internet) do |aria| %>
     <%= f.label :site_internet, class: "fr-label" %>
-    <%= f.text_field :site_internet, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
+    <%= f.text_field :site_internet, class: "fr-input", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :url_demande_acces) do |aria| %>
     <%= f.label :url_demande_acces, class: "fr-label" %>
-    <%= f.text_field :url_demande_acces, class: "fr-input" %>
-  </div>
+    <%= f.text_field :url_demande_acces, class: "fr-input", **aria %>
+  <% end %>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Organisations</legend>
     <%= f.collection_check_boxes :organisation_ids, Organisation.order(:nom), :id, :nom do |b| %>
@@ -39,18 +39,18 @@
       </div>
     <% end %>
   </fieldset>
-  <div class="fr-upload-group">
+  <%= groupe_de_champ(f, :image, "fr-upload-group") do |aria| %>
     <%= f.label :image, class: "fr-label" %>
-    <%= f.file_field :image, class: "fr-upload", accept: "image/*" %>
-  </div>
-  <div class="fr-input-group">
+    <%= f.file_field :image, class: "fr-upload", accept: "image/*", **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :legende_image) do |aria| %>
     <%= f.label :legende_image, class: "fr-label" %>
-    <%= f.text_area :legende_image, class: "fr-input", rows: 6 %>
-  </div>
-  <div class="fr-input-group">
+    <%= f.text_area :legende_image, class: "fr-input", rows: 6, **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :description_courte) do |aria| %>
     <%= f.label :description_courte, class: "fr-label" %>
-    <%= f.text_area :description_courte, class: "fr-input", rows: 6 %>
-  </div>
+    <%= f.text_area :description_courte, class: "fr-input", rows: 6, **aria %>
+  <% end %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :types_solution, "Une valeur par ligne, affichées sous le nom de la solution, ex. : Portail agent") %>
     <%= f.text_area :types_solution, value: solution.types_solution.join("\n"), class: "fr-input", rows: 4 %>
@@ -81,14 +81,14 @@
       </div>
     <% end %>
   </fieldset>
-  <div class="fr-input-group">
+  <%= groupe_de_champ(f, :permet) do |aria| %>
     <%= f.label :permet, class: "fr-label" %>
-    <%= f.text_area :permet, class: "fr-input", rows: 6 %>
-  </div>
-  <div class="fr-input-group">
+    <%= f.text_area :permet, class: "fr-input", rows: 6, **aria %>
+  <% end %>
+  <%= groupe_de_champ(f, :ne_permet_pas) do |aria| %>
     <%= f.label :ne_permet_pas, class: "fr-label" %>
-    <%= f.text_area :ne_permet_pas, class: "fr-input", rows: 6 %>
-  </div>
+    <%= f.text_area :ne_permet_pas, class: "fr-input", rows: 6, **aria %>
+  <% end %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :uid_datagouv, "Pour une API ou un jeu de données : identifiant de sa fiche data.gouv.fr, d’où sont repris son titre, son organisation et son accès.") %>
     <%= f.text_field :uid_datagouv, class: "fr-input" %>

@@ -119,7 +119,7 @@ RSpec.describe 'Administration' do
   it_behaves_like 'un CRUD brut', Recommandation, 'recommandations' do
     let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
     let(:modification) { { ordre: 3 } }
-    let(:invalide) { [{ demarche_id: '' }, 'Démarche doit exister'] }
+    let(:invalide) { [{ demarche_id: '' }, 'Choisissez une démarche'] }
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
     let(:nom) { 'Aides → API QF' }
   end
@@ -129,7 +129,7 @@ RSpec.describe 'Administration' do
       { integratrice_id: Solution.create!(nom: 'Bouquet').id, integree_id: Solution.create!(nom: 'API QF').id, type_integration: 'expose' }
     end
     let(:modification) { { statut: '✅ en production' } }
-    let(:invalide) { [{ integratrice_id: '' }, 'Solution doit exister'] }
+    let(:invalide) { [{ integratrice_id: '' }, 'Choisissez une solution'] }
     let(:nom) { 'Bouquet → API QF (fournie)' }
   end
 
@@ -412,6 +412,54 @@ RSpec.describe 'Administration' do
                               'En quoi cette API ou ce jeu de données est utile'],
         'integrations' => ['API ou jeu de données', 'Solution', 'Type d’intégration', 'Statut de l’intégration', 'Démarches']
       }.each { |chemin, attendus| expect(libelles(chemin) & attendus).to eq(attendus) }
+    end
+  end
+
+  describe 'erreurs de saisie' do
+    before { sign_in admin }
+
+    def message_du_champ(id)
+      champ = response.parsed_body.at_css("##{id}")
+      expect(champ['aria-invalid']).to eq('true')
+      response.parsed_body.at_css("##{champ['aria-describedby']}").text.strip
+    end
+
+    it 'signale l’erreur sous le champ concerné, sans l’envelopper façon Rails' do
+      post '/admin/demarches', params: { demarche: { nom: '' } }
+      expect(response.parsed_body.at_css('.fr-input-group--error #demarche_nom')).to be_present
+      expect(message_du_champ('demarche_nom')).to eq('Nom doit être rempli')
+      expect(response.body).not_to include('field_with_errors')
+      expect(response.parsed_body.at_css('#demarche_slug')['aria-invalid']).to be_nil
+    end
+
+    it 'demande de choisir la démarche et la solution d’une recommandation' do
+      post '/admin/recommandations', params: { recommandation: { demarche_id: '', solution_id: '' } }
+      expect(response.parsed_body.at_css('.fr-select-group--error #recommandation_demarche_id')).to be_present
+      expect(message_du_champ('recommandation_demarche_id')).to eq('Choisissez une démarche')
+      expect(message_du_champ('recommandation_solution_id')).to eq('Choisissez une solution')
+    end
+
+    it 'explique qu’une solution est déjà recommandée pour la démarche' do
+      reco = Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: Solution.create!(nom: 'API QF', categorie: 'api'))
+      post '/admin/recommandations', params: { recommandation: { demarche_id: reco.demarche_id, solution_id: reco.solution_id } }
+      expect(message_du_champ('recommandation_solution_id')).to eq('Cette solution est déjà recommandée pour cette démarche')
+    end
+
+    it 'refuse de mettre en avant une solution privée' do
+      post '/admin/recommandations', params: { recommandation: { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'Bouquet').id } }
+      expect(message_du_champ('recommandation_solution_id')).to eq('Une solution privée ne peut pas être mise en avant')
+    end
+
+    it 'demande de choisir les deux solutions d’une intégration' do
+      post '/admin/integrations', params: { integration: { integratrice_id: '', integree_id: '', type_integration: 'expose' } }
+      expect(message_du_champ('integration_integratrice_id')).to eq('Choisissez une solution')
+      expect(message_du_champ('integration_integree_id')).to eq('Choisissez une API ou un jeu de données')
+    end
+
+    it 'explique pourquoi un champ de fiche doit rester vide pour une API' do
+      post '/admin/solutions', params: { solution: { nom: 'API QF', categorie: 'api', description_courte: 'Texte' } }
+      expect(message_du_champ('solution_description_courte'))
+        .to eq('Description courte doit rester vide : une API ou un jeu de données n’a pas de fiche sur le site')
     end
   end
 

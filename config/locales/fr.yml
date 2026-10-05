@@ -66,6 +66,30 @@ fr:
       integration/type_integration:
         expose: "Fournie"
         consomme: "Intégrée"
+    errors:
+      models:
+        recommandation:
+          attributes:
+            demarche:
+              format: "%{message}"
+              required: "Choisissez une démarche"
+            solution:
+              format: "%{message}"
+              required: "Choisissez une solution"
+              privee: "Une solution privée ne peut pas être mise en avant"
+            solution_id:
+              format: "%{message}"
+              taken: "Cette solution est déjà recommandée pour cette démarche"
+        integration:
+          attributes:
+            integratrice:
+              format: "%{message}"
+              required: "Choisissez une solution"
+            integree:
+              format: "%{message}"
+              required: "Choisissez une API ou un jeu de données"
+        solution:
+          present: "doit rester vide : une API ou un jeu de données n’a pas de fiche sur le site"
   errors:
     messages:
       blank: "doit être rempli"
