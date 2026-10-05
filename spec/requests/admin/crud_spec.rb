@@ -198,6 +198,9 @@ RSpec.describe 'Administration' do
     it 'cherche une solution par son nom' do
       ['Impôt particulier', 'Bouquet'].each { |nom| Solution.create!(nom:) }
       expect(noms_listes('solutions', 'impot')).to eq(['Impôt particulier'])
+      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('1 ligne')
+      noms_listes('solutions', '')
+      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('2 lignes')
     end
 
     it 'cherche une recommandation ou une intégration par les noms qu’elle relie, chaque mot quelque part' do
@@ -210,6 +213,24 @@ RSpec.describe 'Administration' do
       expect(noms_listes('recommandations', 'aides qf')).to eq(['Aides → API QF'])
       expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet → API QF (intégrée)'])
       expect(noms_listes('integrations', 'entreprise')).to be_empty
+    end
+  end
+
+  describe 'pagination des listes' do
+    before { sign_in admin }
+
+    it 'montre 50 lignes par page et garde la recherche d’une page à l’autre' do
+      Demarche.create!(Array.new(60) { |n| { nom: "Aides #{n}" } } + [{ nom: 'Autre' }])
+
+      get '/admin/demarches', params: { q: 'aides' }
+      expect(response.parsed_body.css('tbody tr').size).to eq(50)
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/demarches?page=2&q=aides')
+
+      get '/admin/demarches', params: { q: 'aides', page: 2 }
+      expect(response.parsed_body.css('tbody tr').size).to eq(10)
+
+      get '/admin/demarches', params: { page: ['2'] }
+      expect(response.parsed_body.css('tbody tr').size).to eq(50)
     end
   end
 

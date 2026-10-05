@@ -2,7 +2,7 @@ class Admin::RecommandationsController < Admin::BaseController
   before_action :set_recommandation, only: %i[edit update destroy]
 
   def index
-    @recommandations = Recommandation.nom_contient(params[:q]).includes(:demarche, :solution).order(:id)
+    @recommandations = paginer(Recommandation.nom_contient(params[:q]).includes(:demarche, :solution).order(:id))
   end
 
   def new

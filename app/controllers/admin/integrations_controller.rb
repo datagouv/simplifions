@@ -2,7 +2,7 @@ class Admin::IntegrationsController < Admin::BaseController
   before_action :set_integration, only: %i[edit update destroy]
 
   def index
-    @integrations = Integration.nom_contient(params[:q]).includes(:integratrice, :integree).order(:id)
+    @integrations = paginer(Integration.nom_contient(params[:q]).includes(:integratrice, :integree).order(:id))
   end
 
   def new

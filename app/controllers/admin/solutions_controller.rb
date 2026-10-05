@@ -2,7 +2,7 @@ class Admin::SolutionsController < Admin::BaseController
   before_action :set_solution, only: %i[edit update destroy]
 
   def index
-    @solutions = Solution.recherche(params[:q]).order(:id)
+    @solutions = paginer(Solution.recherche(params[:q]).order(:id))
   end
 
   def new

@@ -3,8 +3,7 @@
    titre, carte, chemin = types.fetch(@catalogue.klass)
    content_for :title, titre
    total = @catalogue.count
-   pages = [(total / 20.0).ceil, 1].max
-   page = @filtres[:page].to_i.clamp(1, pages)
+   page, pages = page_et_pages(total, @filtres[:page], 20)
    resultats = @catalogue.offset((page - 1) * 20).limit(20)
    requete = @filtres.to_h.except('page').compact_blank
    facettes = [['fournisseurs-de-service', 'Démarches gérées par :', "Tous les types d'acteurs", TypeActeur::FILTRES.to_a],
