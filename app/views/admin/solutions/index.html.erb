@@ -10,17 +10,18 @@
         <tr>
           <th>Id</th>
           <th>Nom</th>
-          <th>Actions</th>
+          <th>Visible</th>
+          <th>Modifié le</th>
+          <th>Intégrée par</th>
         </tr>
       </thead>
       <tbody>
         <% @solutions.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= ligne.nom %></td>
-            <td>
-              <%= link_to "Modifier", edit_admin_solution_path(ligne), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
-            </td>
+            <td><%= link_to ligne.nom, edit_admin_solution_path(ligne) %></td>
+            <%= render "visible_et_modifie_le", ligne: %>
+            <td><%= safe_join(ligne.integratrices.sort_by { |integratrice| integratrice.nom.downcase }.map { |integratrice| link_to integratrice.nom, edit_admin_solution_path(integratrice) }, ", ") %></td>
           </tr>
         <% end %>
       </tbody>

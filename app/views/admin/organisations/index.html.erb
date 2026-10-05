@@ -10,17 +10,13 @@
         <tr>
           <th>Id</th>
           <th>Nom</th>
-          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <% @organisations.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= ligne.nom %></td>
-            <td>
-              <%= link_to "Modifier", edit_admin_organisation_path(ligne), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
-            </td>
+            <td><%= link_to ligne.nom, edit_admin_organisation_path(ligne) %></td>
           </tr>
         <% end %>
       </tbody>

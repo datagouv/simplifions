@@ -21,8 +21,9 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     get "/admin/#{chemin}"
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("<td>#{ligne.id}</td>")
-    expect(response.body).to include("href=\"/admin/#{chemin}/#{ligne.id}/edit\"")
+    expect(response.parsed_body.at_css("tbody a[href=\"/admin/#{chemin}/#{ligne.id}/edit\"]").text).to eq(nom)
     expect(response.body).not_to include('Supprimer')
+    expect(response.parsed_body.css('tbody a').map(&:text)).not_to include('Modifier')
   end
 
   it 'filtre la liste sur le nom, sans tenir compte des accents ni de la casse' do
@@ -231,6 +232,37 @@ RSpec.describe 'Administration' do
 
       get '/admin/demarches', params: { page: ['2'] }
       expect(response.parsed_body.css('tbody tr').size).to eq(50)
+    end
+  end
+
+  describe 'colonnes des listes' do
+    before { sign_in admin }
+
+    def colonnes(chemin)
+      get "/admin/#{chemin}"
+      entetes = response.parsed_body.css('thead th').map(&:text)
+      response.parsed_body.css('tbody tr').map { |ligne| entetes.zip(ligne.css('td').map { |cellule| cellule.text.squish }).to_h.except('Id') }
+    end
+
+    it 'montre si la démarche, la solution ou la recommandation est visible, et sa date de modification' do
+      aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, modifie_le: Time.zone.local(2026, 10, 4, 23, 30))
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1, visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
+
+      expect(colonnes('demarches')).to eq([{ 'Nom' => 'Aides', 'Visible' => 'Oui', 'Modifié le' => '05/10/2026' }])
+      expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
+      expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
+    end
+
+    it 'nomme les solutions qui intègrent chaque solution, avec un lien vers leur fiche' do
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      bouquet = Solution.create!(nom: 'Bouquet')
+      [[bouquet, 'consomme'], [bouquet, 'expose'], [Solution.create!(nom: 'Mes Aides'), 'consomme'], [Solution.create!(nom: 'eTicket'), 'consomme']].each do |integratrice, type_integration|
+        Integration.create!(integratrice:, integree: api_qf, type_integration:)
+      end
+
+      expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'API QF' }['Intégrée par']).to eq('Bouquet, eTicket, Mes Aides')
+      expect(response.parsed_body.css('tbody td:last-child a').pluck('href')).to include("/admin/solutions/#{bouquet.id}/edit")
     end
   end
 

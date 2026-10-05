@@ -10,17 +10,16 @@
         <tr>
           <th>Id</th>
           <th>Ligne</th>
-          <th>Actions</th>
+          <th>Visible</th>
+          <th>Modifié le</th>
         </tr>
       </thead>
       <tbody>
         <% @recommandations.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= ligne.demarche.nom %> → <%= ligne.solution.nom %></td>
-            <td>
-              <%= link_to "Modifier", edit_admin_recommandation_path(ligne), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
-            </td>
+            <td><%= link_to ligne.libelle, edit_admin_recommandation_path(ligne) %></td>
+            <%= render "visible_et_modifie_le", ligne: %>
           </tr>
         <% end %>
       </tbody>
