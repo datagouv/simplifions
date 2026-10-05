@@ -56,8 +56,13 @@ module ApplicationHelper
     end
   end
 
+  def fiche_admin(ligne)
+    consultable = "Admin::#{ligne.model_name.route_key.camelize}Controller".constantize.action_methods.include?('show')
+    consultable ? [:admin, ligne] : [:edit, :admin, ligne]
+  end
+
   def lien_vers_la_fiche(ligne, nom)
-    link_to 'Voir la fiche', [:edit, :admin, ligne], class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
+    link_to 'Voir la fiche', fiche_admin(ligne), class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
   end
 
   def lignes_pour(texte)

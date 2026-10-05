@@ -590,6 +590,7 @@ def pages_liees(page)
   Verify.evidence(dossier, page, 'liens-cases-cochees', "liens=#{liens.join(' | ')}")
   lien_nomme(groupe, "Voir la fiche #{acteur.nom}").click
   page.assert_selector 'h1', text: acteur.nom
+  page.assert_current_path("/admin/types_acteurs/#{acteur.id}")
   Verify.evidence(dossier, page, 'fiche-liee', "url=#{page.current_path} h1=#{page.find('h1').text}")
 
   recommandation = Recommandation.first
@@ -714,13 +715,71 @@ ensure
   Solution.where(id: solution&.id).destroy_all
 end
 
+def definition(page, terme) = page.find('dt', text: terme, exact_text: true).find(:xpath, 'following-sibling::dd[1]').text
+
+def cases_cochees(page) = page.find('fieldset', text: 'Regroupements', match: :first).all('input[type=checkbox]', visible: :all).select(&:checked?).map(&:value)
+
+def fournisseurs(page)
+  dossier = 'admin-fournisseurs-de-services'
+  nom = "Vérif verify-map #{Verify.browser}"
+  Verify.login(page)
+  page.click_link 'Fournisseurs de services'
+  page.assert_selector 'h1', text: 'Fournisseurs de services'
+  reel = TypeActeur.where.not(slugs: []).order(:id).first
+  ouvrir_depuis_la_liste(page, reel.nom)
+  page.assert_current_path("/admin/types_acteurs/#{reel.id}")
+  lu = definition(page, 'Regroupements')
+  raise "fiche #{lu}" unless lu == reel.regroupements.join(', ')
+
+  Verify.evidence(dossier, page, 'consultation', "url=#{page.current_path} regroupements=#{lu} base=#{reel.slugs.join(',')}")
+  page.click_link 'Modifier'
+  page.assert_current_path("/admin/types_acteurs/#{reel.id}/edit")
+  raise "cochées #{cases_cochees(page)} != #{reel.slugs}" unless cases_cochees(page).sort == (reel.slugs & TypeActeur::FILTRES.values).sort
+
+  memos = %w[description codes_juridiques].map { |champ| page.find("label[for=type_acteur_#{champ}] .fr-hint-text").text }
+  raise "mémos #{memos}" unless memos.uniq == ['Mémo interne, non affiché sur le site']
+
+  Verify.evidence(dossier, page, 'formulaire', "cochees=#{cases_cochees(page).join(',')} memos=#{memos.uniq.first}")
+  page.visit('/admin/types_acteurs/new')
+  page.fill_in 'Nom', with: nom
+  page.check 'Régions', allow_label_click: true
+  page.check 'Tous les acteurs publics', allow_label_click: true
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} » enregistré."
+  ligne = TypeActeur.find_by!(nom:)
+  page.assert_current_path("/admin/types_acteurs/#{ligne.id}")
+  Verify.evidence(dossier, page, 'cree', "url=#{page.current_path} slugs=#{ligne.slugs.join(',')} affiche=#{definition(page, 'Regroupements')} onglet=#{page.title}")
+  page.click_link 'Modifier'
+  page.uncheck 'Régions', allow_label_click: true
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} » enregistré."
+  slugs = ActiveRecord::Base.uncached { TypeActeur.find(ligne.id).slugs }
+  raise "slugs #{slugs}" unless slugs == %w[tout-acteurs-publics]
+
+  Verify.evidence(dossier, page, 'decoche', "url=#{page.current_path} slugs=#{slugs.join(',')} affiche=#{definition(page, 'Regroupements')}")
+  page.click_link 'Fournisseurs de services', match: :first
+  rechercher(page, nom)
+  colonne = page.find('tbody tr', text: nom).all('td').last.text
+  raise "colonne #{colonne}" unless colonne == 'Tous les acteurs publics'
+
+  Verify.evidence(dossier, page, 'liste', "regroupements=#{colonne}")
+  page.visit("/admin/types_acteurs/#{ligne.id}/edit")
+  page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
+  page.assert_text "« #{nom} » supprimé."
+  Verify.evidence(dossier, page, 'supprime', "reste_en_base=#{TypeActeur.where(nom:).count}")
+  Verify.logout(page)
+ensure
+  TypeActeur.where(nom:).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
   'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable,
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
-  'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution }.each do |nom, fn|
+  'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
+  'fournisseurs' => :fournisseurs }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
