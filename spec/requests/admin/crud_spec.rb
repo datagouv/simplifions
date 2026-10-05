@@ -392,6 +392,33 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'lien vers la page publique' do
+    before { sign_in admin }
+
+    def lien_public(chemin)
+      get chemin
+      response.parsed_body.at_css('a:contains("Voir la page publique")')
+    end
+
+    it 'mène à la page publique d’une démarche ou d’une solution visible, annonce le nouvel onglet' do
+      demarche = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true)
+      solution = Solution.create!(nom: 'Bouquet', slug: 'bouquet', visible: true)
+
+      lien = lien_public("/admin/demarches/#{demarche.id}/edit")
+      expect(lien.to_h.slice('href', 'target', 'title')).to eq('href' => '/demarches/aides', 'target' => '_blank', 'title' => 'Voir la page publique de Aides - nouvelle fenêtre')
+      expect(lien_public("/admin/solutions/#{solution.id}/edit")['href']).to eq('/solutions/bouquet')
+    end
+
+    it 'ne propose aucun lien quand la page publique n’existe pas' do
+      expect(lien_public("/admin/demarches/#{Demarche.create!(nom: 'Aides', slug: 'aides').id}/edit")).to be_nil
+      expect(lien_public("/admin/solutions/#{Solution.create!(nom: 'API QF', categorie: 'api', visible: true).id}/edit")).to be_nil
+
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { slug: 'Mauvais slug' } }
+      expect(response.parsed_body.at_css('a:contains("Voir la page publique")')['href']).to eq('/demarches/cantine')
+    end
+  end
+
   describe 'ce que la suppression emporte' do
     let(:aides) { Demarche.create!(nom: 'Aides') }
     let(:bouquet) { Solution.create!(nom: 'Bouquet') }

@@ -2,6 +2,9 @@
 
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
+  <% if en_base.visible? && en_base.slug.present? %>
+    <p><%= link_to demarche_path(en_base.slug), class: "fr-link", target: "_blank", rel: "noopener", title: "Voir la page publique de #{nom_en_base} - nouvelle fenêtre" do %>Voir la page publique<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %></p>
+  <% end %>
   <%= render "form", demarche: @demarche %>
   <%= render "admin/supprimer", url: admin_demarche_path(en_base), nom: nom_en_base,
   consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
