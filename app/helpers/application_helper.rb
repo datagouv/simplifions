@@ -46,6 +46,11 @@ module ApplicationHelper
     end
   end
 
+  def lignes_pour(texte)
+    lignes = Array(texte).join("\n").lines.sum { |ligne| [(ligne.chomp.length / 80.0).ceil, 1].max }
+    [lignes + 2, 6].max
+  end
+
   def id_du_champ(formulaire, attribut) = formulaire.field_id(champ_de_l_erreur(formulaire.object, attribut))
 
   def options_traduites(modele, enum)

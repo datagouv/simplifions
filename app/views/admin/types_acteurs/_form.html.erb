@@ -6,15 +6,15 @@
   <% end %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :slugs, "Une valeur par ligne : les filtres « Démarches gérées par » du site qui retiennent ce type d’acteur, ex. : communes, tout-acteurs-publics") %>
-    <%= f.text_area :slugs, value: type_acteur.slugs.join("\n"), class: "fr-input", rows: 4 %>
+    <%= f.text_area :slugs, value: type_acteur.slugs.join("\n"), class: "fr-input", rows: lignes_pour(f.object.slugs) %>
   </div>
   <div class="fr-input-group">
     <%= f.label :description, class: "fr-label" %>
-    <%= f.text_area :description, class: "fr-input", rows: 6 %>
+    <%= f.text_area :description, class: "fr-input", rows: lignes_pour(f.object.description) %>
   </div>
   <div class="fr-input-group">
     <%= f.label :codes_juridiques, class: "fr-label" %>
-    <%= f.text_area :codes_juridiques, class: "fr-input", rows: 6 %>
+    <%= f.text_area :codes_juridiques, class: "fr-input", rows: lignes_pour(f.object.codes_juridiques) %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: type_acteur.grist_id %>
   <%= render "admin/cases_filtrables", f: f, attribut: :demarche_ids, collection: Demarche.order(:nom), libelle: :nom, legende: "Démarches" %>

@@ -25,16 +25,16 @@
     <%= f.number_field :ordre, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :donnees_utiles, class: "fr-label" %>
-    <%= f.text_area :donnees_utiles, class: "fr-input", rows: 6 %>
+    <%= libelle_avec_aide(f, :donnees_utiles, "Markdown accepté") %>
+    <%= f.text_area :donnees_utiles, class: "fr-input", rows: lignes_pour(f.object.donnees_utiles) %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :parametres_a_saisir, class: "fr-label" %>
-    <%= f.text_area :parametres_a_saisir, class: "fr-input", rows: 6 %>
+    <%= libelle_avec_aide(f, :parametres_a_saisir, "Markdown accepté") %>
+    <%= f.text_area :parametres_a_saisir, class: "fr-input", rows: lignes_pour(f.object.parametres_a_saisir) %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :description, class: "fr-label" %>
-    <%= f.text_area :description, class: "fr-input", rows: 6 %>
+    <%= libelle_avec_aide(f, :description, "Markdown accepté") %>
+    <%= f.text_area :description, class: "fr-input", rows: lignes_pour(f.object.description) %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: recommandation.grist_id %>
   <ul class="fr-btns-group fr-btns-group--inline">

@@ -27,15 +27,15 @@
   <% end %>
   <%= groupe_de_champ(f, :legende_image) do |aria| %>
     <%= f.label :legende_image, class: "fr-label" %>
-    <%= f.text_area :legende_image, class: "fr-input", rows: 6, **aria %>
+    <%= f.text_area :legende_image, class: "fr-input", rows: lignes_pour(f.object.legende_image), **aria %>
   <% end %>
   <%= groupe_de_champ(f, :description_courte) do |aria| %>
     <%= f.label :description_courte, class: "fr-label" %>
-    <%= f.text_area :description_courte, class: "fr-input", rows: 6, **aria %>
+    <%= f.text_area :description_courte, class: "fr-input", rows: lignes_pour(f.object.description_courte), **aria %>
   <% end %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :types_solution, "Une valeur par ligne, affichées sous le nom de la solution, ex. : Portail agent") %>
-    <%= f.text_area :types_solution, value: solution.types_solution.join("\n"), class: "fr-input", rows: 4 %>
+    <%= f.text_area :types_solution, value: solution.types_solution.join("\n"), class: "fr-input", rows: lignes_pour(f.object.types_solution) %>
   </div>
   <div class="fr-select-group">
     <%= libelle_avec_aide(f, :categorie, "Une API ou un jeu de données n’a pas de fiche sur le site : slug, site internet, URL de demande d’accès, image, légende, description courte, « permet » et « ne permet pas » restent vides.") %>
@@ -61,12 +61,12 @@
   </fieldset>
   <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Types d'acteurs" %>
   <%= groupe_de_champ(f, :permet) do |aria| %>
-    <%= f.label :permet, class: "fr-label" %>
-    <%= f.text_area :permet, class: "fr-input", rows: 6, **aria %>
+    <%= libelle_avec_aide(f, :permet, "Markdown accepté") %>
+    <%= f.text_area :permet, class: "fr-input", rows: lignes_pour(f.object.permet), **aria %>
   <% end %>
   <%= groupe_de_champ(f, :ne_permet_pas) do |aria| %>
-    <%= f.label :ne_permet_pas, class: "fr-label" %>
-    <%= f.text_area :ne_permet_pas, class: "fr-input", rows: 6, **aria %>
+    <%= libelle_avec_aide(f, :ne_permet_pas, "Markdown accepté") %>
+    <%= f.text_area :ne_permet_pas, class: "fr-input", rows: lignes_pour(f.object.ne_permet_pas), **aria %>
   <% end %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :uid_datagouv, "Pour une API ou un jeu de données : identifiant de sa fiche data.gouv.fr, d’où sont repris son titre, son organisation et son accès.") %>
