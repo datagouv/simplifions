@@ -24,3 +24,24 @@ fr:
     enregistre: "Enregistré."
     supprime: "« %{nom} » supprimé."
     rafraichissement_lance: "Rafraîchissement lancé."
+    suppression:
+      recommandations:
+        zero: ""
+        one: "1 recommandation sera supprimée."
+        other: "%{count} recommandations seront supprimées."
+      integrations:
+        zero: ""
+        one: "1 intégration sera supprimée."
+        other: "%{count} intégrations seront supprimées."
+      demarches_detachees:
+        zero: ""
+        one: "1 démarche en sera détachée."
+        other: "%{count} démarches en seront détachées."
+      integrations_detachees:
+        zero: ""
+        one: "1 intégration en sera détachée."
+        other: "%{count} intégrations en seront détachées."
+      solutions_detachees:
+        zero: ""
+        one: "1 solution en sera détachée."
+        other: "%{count} solutions en seront détachées."

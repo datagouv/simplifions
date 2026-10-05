@@ -4,5 +4,7 @@
   <h1>Type d'acteur n°<%= @type_acteur.id %></h1>
   <%= render "form", type_acteur: @type_acteur %>
   <% en_base = TypeActeur.find(@type_acteur.id) %>
-  <%= render "admin/supprimer", url: admin_type_acteur_path(en_base), nom: en_base.nom %>
+  <%= render "admin/supprimer", url: admin_type_acteur_path(en_base), nom: en_base.nom,
+  consequences: [t("admin.suppression.demarches_detachees", count: en_base.demarches.count),
+    t("admin.suppression.solutions_detachees", count: en_base.solutions.count)] %>
 </div>
