@@ -342,7 +342,8 @@ RSpec.describe 'Administration' do
 
     def libelles(chemin)
       get "/admin/#{chemin}/new"
-      response.parsed_body.css('form[data-controller="formulaire-modifie"] label').map { |label| label.xpath('text()').text.strip }
+      response.parsed_body.css('form[data-controller="formulaire-modifie"] label, form[data-controller="formulaire-modifie"] legend')
+        .map { |libelle| libelle.xpath('text()').text.strip }
     end
 
     it 'nomme les champs avec les mots du Grist et du site' do
@@ -396,6 +397,21 @@ RSpec.describe 'Administration' do
     it 'renvoie les slugs d’un type d’acteur au filtre « Démarches gérées par » du site' do
       get '/admin/types_acteurs/new'
       expect(response.parsed_body.at_css('label[for=type_acteur_slugs] .fr-hint-text').text).to include('« Démarches gérées par »')
+    end
+
+    it 'range les champs dans l’ordre des fiches Grist' do
+      {
+        'demarches' => ['Visible sur simplifions', 'Icône du titre', 'Nom', 'Slug', 'Description courte', 'Contexte',
+                        'Cadre juridique', "Types d'acteurs", 'Mots-clés', 'Vocabulaires', 'Intégrations'],
+        'solutions' => ['Visible sur simplifions', 'Nom', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
+                        'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
+                        'Catégorie de solution', 'Vocabulaires', "Types d'acteurs", 'Cette solution permet',
+                        'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
+        'recommandations' => ['Visible sur simplifions', 'Solution', 'URL de demande d’accès pour cette démarche', 'Démarche',
+                              'Type de recommandation', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
+                              'En quoi cette API ou ce jeu de données est utile'],
+        'integrations' => ['API ou jeu de données', 'Solution', 'Type d’intégration', 'Statut de l’intégration', 'Démarches']
+      }.each { |chemin, attendus| expect(libelles(chemin) & attendus).to eq(attendus) }
     end
   end
 

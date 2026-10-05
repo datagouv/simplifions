@@ -8,13 +8,21 @@
       </ul>
     </div>
   <% end %>
-  <div class="fr-select-group">
-    <%= f.label :demarche_id, class: "fr-label" %>
-    <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
+  <div class="fr-checkbox-group fr-mb-3w">
+    <%= f.check_box :visible %>
+    <%= f.label :visible, class: "fr-label" %>
   </div>
   <div class="fr-select-group">
     <%= f.label :solution_id, class: "fr-label" %>
     <%= f.collection_select :solution_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
+  </div>
+  <div class="fr-input-group">
+    <%= f.label :url_demande_acces, class: "fr-label" %>
+    <%= f.text_field :url_demande_acces, class: "fr-input" %>
+  </div>
+  <div class="fr-select-group">
+    <%= f.label :demarche_id, class: "fr-label" %>
+    <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
     <%= libelle_avec_aide(f, :niveau, "Donnée utile : API ou jeu de données listé sous « Données disponibles » dans les cartes des solutions recommandées. Solution recommandée : carte sur la page du cas d’usage.") %>
@@ -25,10 +33,6 @@
     <%= f.number_field :ordre, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :description, class: "fr-label" %>
-    <%= f.text_area :description, class: "fr-input", rows: 6 %>
-  </div>
-  <div class="fr-input-group">
     <%= f.label :donnees_utiles, class: "fr-label" %>
     <%= f.text_area :donnees_utiles, class: "fr-input", rows: 6 %>
   </div>
@@ -37,12 +41,8 @@
     <%= f.text_area :parametres_a_saisir, class: "fr-input", rows: 6 %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :url_demande_acces, class: "fr-label" %>
-    <%= f.text_field :url_demande_acces, class: "fr-input" %>
-  </div>
-  <div class="fr-checkbox-group">
-    <%= f.check_box :visible %>
-    <%= f.label :visible, class: "fr-label" %>
+    <%= f.label :description, class: "fr-label" %>
+    <%= f.text_area :description, class: "fr-input", rows: 6 %>
   </div>
   <%= render "admin/identifiant_grist", grist_id: recommandation.grist_id %>
   <ul class="fr-btns-group fr-btns-group--inline">
