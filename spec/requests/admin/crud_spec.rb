@@ -295,6 +295,22 @@ RSpec.describe 'Administration' do
       expect(dinum.reload.solutions).to eq([bouquet])
     end
 
+    it 'groupe les vocabulaires par catégorie, dans l’ordre du Grist' do
+      proactivite = Vocabulaire.create!(nom: 'Proactivité', slug: 'proactivite', categorie: 'type_simplification')
+      particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      api = Vocabulaire.create!(nom: 'API', slug: 'api', categorie: 'solution')
+      acces = Vocabulaire.create!(nom: 'Accès facile', slug: 'acces-facile', categorie: 'type_simplification')
+
+      %w[demarches solutions].each do |chemin|
+        get "/admin/#{chemin}/new"
+        vocabulaires = response.parsed_body.at_css('fieldset:has(> legend:contains("Vocabulaires"))')
+        groupes = vocabulaires.css('fieldset').to_h do |groupe|
+          [groupe.at_css('legend').text.strip, groupe.css('input[type=checkbox]').map { |case_a_cocher| case_a_cocher['value'].to_i }]
+        end
+        expect(groupes).to eq('Usager' => [particuliers.id], 'Type de simplification' => [proactivite.id, acces.id], 'Catégorie de solution' => [api.id])
+      end
+    end
+
     it 'range chaque longue liste de cases dans un groupe filtrable, sans champ envoyé avec le formulaire' do
       {
         'demarches' => ["Types d'acteurs", 'Intégrations'], 'solutions' => ['Organisations', "Types d'acteurs"],

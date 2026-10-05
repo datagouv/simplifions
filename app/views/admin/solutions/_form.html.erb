@@ -43,12 +43,19 @@
   </div>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Vocabulaires</legend>
-    <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.order(:nom), :id, :nom do |b| %>
+    <% options_traduites(Vocabulaire, :categorie).each do |legende, categorie| %>
       <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
+        <fieldset class="fr-fieldset">
+          <legend class="fr-fieldset__legend fr-text--regular"><%= legende %></legend>
+          <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.where(categorie:).order(:id), :id, :nom do |b| %>
+            <div class="fr-fieldset__element">
+              <div class="fr-checkbox-group">
+                <%= b.check_box %>
+                <%= b.label(class: "fr-label") %>
+              </div>
+            </div>
+          <% end %>
+        </fieldset>
       </div>
     <% end %>
   </fieldset>
