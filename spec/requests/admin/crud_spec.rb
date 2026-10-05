@@ -726,7 +726,7 @@ RSpec.describe 'Administration' do
     it 'explique les champs ambigus dans leur libellé' do
       {
         Recommandation => %w[niveau ordre], Solution => %w[uid_datagouv france_connectee types_solution slug],
-        TypeActeur => %w[slugs], Demarche => %w[mots_clefs slug], Integration => %w[type_integration]
+        Demarche => %w[mots_clefs slug], Integration => %w[type_integration]
       }.each do |modele, champs|
         get "/admin/#{modele.model_name.route_key}/new"
         champs.each do |champ|
@@ -757,11 +757,6 @@ RSpec.describe 'Administration' do
         expect(response.parsed_body.at_css("label[for=#{cle}_slug] .fr-hint-text").text).to include('Obligatoire')
       end
       expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
-    end
-
-    it 'renvoie les slugs d’un type d’acteur au filtre « Démarches gérées par » du site' do
-      get '/admin/types_acteurs/new'
-      expect(response.parsed_body.at_css('label[for=type_acteur_slugs] .fr-hint-text').text).to include('« Démarches gérées par »')
     end
 
     it 'range les champs dans l’ordre des fiches Grist' do
@@ -1026,6 +1021,26 @@ RSpec.describe 'Administration' do
       end
       get "/admin/types_acteurs/#{fournisseur.id}/edit"
       expect(response.parsed_body.at_css('title').text).to start_with('Communes — Modifier — Fournisseur de services')
+    end
+
+    it 'fait cocher ses regroupements parmi les filtres « Démarches gérées par » du site' do
+      fournisseur = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      get "/admin/types_acteurs/#{fournisseur.id}/edit"
+      regroupements = response.parsed_body.at_css('fieldset:has(> legend:contains("Regroupements"))')
+      expect(regroupements.at_css('legend .fr-hint-text').text).to include('« Démarches gérées par »')
+      cases = regroupements.css('input[type=checkbox]')
+      expect(cases.map { |case_a_cocher| regroupements.at_css("label[for=#{case_a_cocher['id']}]").text.strip }).to eq(TypeActeur::FILTRES.keys)
+      expect(cases.select { |case_a_cocher| case_a_cocher['checked'] }.pluck('value')).to eq(%w[communes])
+
+      patch "/admin/types_acteurs/#{fournisseur.id}", params: { type_acteur: { slugs: ['', 'tout-acteurs-publics', 'regions'] } }
+      expect(fournisseur.reload.slugs).to eq(%w[tout-acteurs-publics regions])
+      patch "/admin/types_acteurs/#{fournisseur.id}", params: { type_acteur: { slugs: [''] } }
+      expect(fournisseur.reload.slugs).to eq([])
+    end
+
+    it 'montre dans la liste les regroupements de chaque fournisseur' do
+      TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
+      expect(colonnes('types_acteurs')).to eq([{ 'Nom' => 'Communes', 'Regroupements' => 'Communes et groupements de communes, Tous les acteurs publics' }])
     end
 
     it 'présente la description et les codes juridiques comme des mémos internes' do

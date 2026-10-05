@@ -20,6 +20,8 @@ class TypeActeur < ApplicationRecord
   has_and_belongs_to_many :solutions
 
   def slugs=(valeur)
-    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+    super(Array(valeur) & FILTRES.values)
   end
+
+  def regroupements = slugs.filter_map { |slug| FILTRES.key(slug) }
 end

@@ -10,6 +10,7 @@
         <tr>
           <th>Id</th>
           <th>Nom</th>
+          <th>Regroupements</th>
         </tr>
       </thead>
       <tbody>
@@ -17,6 +18,7 @@
           <tr>
             <td><%= ligne.id %></td>
             <td><%= link_to ligne.nom, edit_admin_type_acteur_path(ligne) %></td>
+            <td><%= ligne.regroupements.join(", ") %></td>
           </tr>
         <% end %>
       </tbody>

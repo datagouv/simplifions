@@ -5,10 +5,20 @@
     <%= libelle_obligatoire(f, :nom) %>
     <%= f.text_field :nom, class: "fr-input", required: true, **aria %>
   <% end %>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :slugs, "Une valeur par ligne : les filtres « Démarches gérées par » du site qui retiennent ce fournisseur de services, ex. : communes, tout-acteurs-publics") %>
-    <%= f.text_area :slugs, value: type_acteur.slugs.join("\n"), class: "fr-input", rows: lignes_pour(f.object.slugs) %>
-  </div>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend">
+      Regroupements
+      <span class="fr-hint-text">Les filtres « Démarches gérées par » du site qui retiennent ce fournisseur de services</span>
+    </legend>
+    <%= f.collection_check_boxes :slugs, TypeActeur::FILTRES, :last, :first do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :description, memo_interne) %>
     <%= f.text_area :description, class: "fr-input", rows: lignes_pour(f.object.description) %>
