@@ -10,17 +10,16 @@
         <tr>
           <th>Id</th>
           <th>Nom</th>
-          <th>Actions</th>
+          <th>Visible</th>
+          <th>Modifié le</th>
         </tr>
       </thead>
       <tbody>
         <% @demarches.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= ligne.nom %></td>
-            <td>
-              <%= link_to "Modifier", edit_admin_demarche_path(ligne), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
-            </td>
+            <td><%= link_to ligne.nom, edit_admin_demarche_path(ligne) %></td>
+            <%= render "visible_et_modifie_le", ligne: %>
           </tr>
         <% end %>
       </tbody>

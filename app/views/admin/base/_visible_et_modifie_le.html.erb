@@ -1,0 +1,2 @@
+<td><p class="fr-badge fr-badge--sm fr-badge--no-icon <%= "fr-badge--success" if ligne.visible? %>"><%= ligne.visible? ? "Oui" : "Non" %></p></td>
+<td><% if ligne.modifie_le %><time datetime="<%= ligne.modifie_le.iso8601 %>"><%= l ligne.modifie_le.in_time_zone("Europe/Paris").to_date %></time><% end %></td>
