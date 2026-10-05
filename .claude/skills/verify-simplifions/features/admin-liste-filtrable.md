@@ -1,0 +1,29 @@
+# Choisir les éléments liés dans une liste filtrable
+
+Every long list of linked rows in an admin form (intégrations, démarches, solutions, organisations, types d'acteurs) shows only its checked boxes, with a `Filtrer les <liste>` field that shows the matching boxes as you type. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
+
+## Sub-features
+
+- `liste-filtrable` field `Filtrer les <legend in lowercase>`, hint `Sans filtre, seuls les éléments cochés sont affichés.`; every word must match, accents and case ignored; a polite live line `2 cochés sur 474` (empty filter) or `1 résultat sur 474, 3 cochés`. The boxes stay native: Tab reaches the shown ones, Space checks.
+- The filter field has no `name`: typing in it does not count as a change (no `Quitter sans enregistrer ?`) and Enter in it does not submit the form.
+- `vocabulaires-groupes` nested fieldsets inside `Vocabulaires`, démarche and solution forms.
+
+## How to get to it (user POV)
+
+- `/admin/demarches/<id>/edit` (Types d'acteurs, Intégrations), solutions (Organisations, Types d'acteurs), intégrations (Démarches), organisations (Solutions), types d'acteurs and vocabulaires (Démarches, Solutions). Admin only.
+
+## Driving it with Capybara
+
+`drive.rb liste-filtrable`. Creates `Vérif verify-map <browser>` linked to the first two intégrations, removed at the end; no catalogue row is touched.
+
+- **Groups.** Legends inside `Vocabulaires` are the three categories in order.
+- **Checked only.** Under `Intégrations`, 2 boxes shown, both checked; live line `2 cochés sur <Integration.count>`.
+- **Filter and keyboard.** Fill `Filtrer les intégrations` with the last intégration's libelle, transliterated and upcased; Enter does not save; Tab until its box has focus, Space; live line `1 résultat sur …, 3 cochés`.
+- **Save.** Clear the filter: the new box is still shown, checked. `Enregistrer`: `integration_ids` in base has 3 ids, the target among them.
+- **Leave.** Type in the filter, `Annuler`: no confirm, back on `Démarches`.
+- **Proof.** `tmp/verify/admin-liste-filtrable/`.
+
+## Gotchas
+
+- DSFR checkboxes are opacity 0: read them with `visible: :all` under `[data-liste-filtrable-target=element]:not(.fr-hidden)`, find a shown one by its `label`.
+- `I18n.transliterate` turns `→` into `?`: keep only the alphanumeric words when typing a libelle.

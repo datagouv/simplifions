@@ -427,6 +427,61 @@ ensure
   Demarche.where(id: demarche&.id).destroy_all
 end
 
+def cases_affichees(groupe) = groupe.all('[data-liste-filtrable-target=element]:not(.fr-hidden) input', visible: :all)
+
+def liste_filtrable(page)
+  dossier = 'admin-liste-filtrable'
+  nom = "Vérif verify-map #{Verify.browser}"
+  integrations = Integration.includes(:integratrice, :integree).order(:id).to_a
+  demarche = Demarche.create!(nom:, integrations: integrations.first(2))
+  cible = integrations.last
+  Verify.login(page)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  categories = page.all('fieldset fieldset > legend').map(&:text)
+  raise "groupes de vocabulaires #{categories}" unless categories == ['Usager', 'Type de simplification', 'Catégorie de solution']
+
+  groupe = page.find('fieldset', text: 'Filtrer les intégrations')
+  coches = cases_affichees(groupe)
+  raise "cases visibles sans filtre #{coches.size}" unless coches.size == 2 && coches.all?(&:checked?)
+
+  compte = groupe.find('[aria-live=polite]').text
+  raise "compte #{compte}" unless compte == "2 cochés sur #{integrations.size}"
+
+  Verify.evidence(dossier, page, 'cochees-seules', "visibles=#{coches.size} compte=#{compte} en_base=#{demarche.integration_ids.size} vocabulaires=#{categories.join(' | ')}")
+  saisie = I18n.transliterate(cible.libelle).upcase.scan(/[[:alnum:]]+/).join(' ')
+  groupe.fill_in 'Filtrer les intégrations', with: saisie
+  groupe.find('label', text: cible.libelle, exact_text: true)
+  page.send_keys :enter
+  raise 'Entrée a envoyé le formulaire' if page.has_text?('enregistré', wait: 1)
+
+  case_cible = "demarche_integration_ids_#{cible.id}"
+  20.times do
+    break if page.evaluate_script('document.activeElement.id') == case_cible
+
+    page.send_keys :tab
+  end
+  raise 'case cible jamais atteinte au clavier' unless page.evaluate_script('document.activeElement.id') == case_cible
+
+  page.send_keys :space
+  compte = groupe.find('[aria-live=polite]').text
+  Verify.evidence(dossier, page, 'filtre-et-coche-au-clavier', "saisie=#{saisie} compte=#{compte}")
+  groupe.fill_in 'Filtrer les intégrations', with: ''
+  raise 'cible cachée après effacement' unless cases_affichees(groupe).select(&:checked?).map { |c| c[:id] }.include?(case_cible)
+
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} » enregistré."
+  ActiveRecord::Base.uncached do
+    Verify.evidence(dossier, page, 'enregistre', "en_base=#{Demarche.find(demarche.id).integration_ids.sort} cible=#{cible.id}")
+  end
+  page.find('fieldset', text: 'Filtrer les intégrations').fill_in 'Filtrer les intégrations', with: 'texte sans nom'
+  page.click_link 'Annuler'
+  page.assert_selector 'h1', text: 'Démarches'
+  Verify.evidence(dossier, page, 'filtre-ignore-en-partant', 'confirmation=aucune')
+  Verify.logout(page)
+ensure
+  Demarche.where(id: demarche&.id).destroy_all
+end
+
 def erreurs(page)
   question = 'Quitter sans enregistrer les modifications ?'
   dossier = 'admin-erreurs-formulaire'
@@ -472,7 +527,7 @@ end
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
-  'erreurs' => :erreurs, 'listes' => :listes }.each do |nom, fn|
+  'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
