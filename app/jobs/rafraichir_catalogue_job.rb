@@ -1,4 +1,6 @@
 class RafraichirCatalogueJob < ApplicationJob
+  limits_concurrency key: 'rafraichir_catalogue', duration: 1.hour, on_conflict: :discard
+
   def perform
     result = Grist::Import.call
     journaliser(result.report[:quarantine] + result.report[:notes])
