@@ -959,6 +959,43 @@ RSpec.describe 'Administration' do
       expect(response).to redirect_to("/admin/solutions/#{Solution.last.id}/edit")
       expect(Solution.last.image).to be_attached
     end
+
+    def avec_image(**attributs)
+      Solution.new(nom: 'Bouquet', **attributs).tap do |solution|
+        solution.image.attach(io: StringIO.new('img'), filename: 'bouquet.png', content_type: 'image/png')
+        solution.save!(validate: false)
+      end
+    end
+
+    it 'montre l’image actuelle, décrite par sa légende, et les formats acceptés' do
+      sign_in admin
+      get "/admin/solutions/#{avec_image(legende_image: 'Écran d’accueil').id}/edit"
+      expect(response.parsed_body.at_css('.fr-upload-group img')['alt']).to eq('Écran d’accueil')
+      expect(response.parsed_body.at_css('label[for=solution_image] .fr-hint-text').text).to include('Formats acceptés : png, jpg, webp')
+      expect(response.parsed_body.at_css('input[name="solution[retirer_image]"]')).to be_present
+      get "/admin/solutions/#{Solution.create!(nom: 'API QF').id}/edit"
+      expect(response.parsed_body.at_css('.fr-upload-group img, input[name="solution[retirer_image]"]')).to be_nil
+    end
+
+    it 'retire l’image quand la case est cochée, même sur une API où elle était restée' do
+      sign_in admin
+      [avec_image, avec_image(categorie: 'api')].each do |solution|
+        patch "/admin/solutions/#{solution.id}", params: { solution: { nom: 'Bouquet', retirer_image: '1' } }
+        expect(response).to redirect_to("/admin/solutions/#{solution.id}/edit")
+        expect(solution.reload.image).not_to be_attached
+      end
+    end
+
+    it 'garde l’image si l’enregistrement échoue, case cochée et visible même sur une API' do
+      sign_in admin
+      [avec_image, avec_image(categorie: 'api')].each do |solution|
+        patch "/admin/solutions/#{solution.id}", params: { solution: { nom: '', retirer_image: '1' } }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(solution.reload.image).to be_attached
+        case_retirer = response.parsed_body.at_css('input[name="solution[retirer_image]"][type=checkbox]')
+        expect([case_retirer['checked'], case_retirer['disabled'], case_retirer.ancestors('.fr-hidden').any?]).to eq(['checked', nil, false])
+      end
+    end
   end
 
   describe 'colonnes tableau' do
