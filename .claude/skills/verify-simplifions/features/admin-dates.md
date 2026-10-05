@@ -13,7 +13,7 @@ The administration dates a démarche, a solution or a recommandation by itself: 
 
 - **Create.** `/admin/demarches/new`: no input named `demarche[cree_le]` or `demarche[modifie_le]`. Fill `Nom`, save: `Enregistré.`, read back `cree_le` within the last minute and `modifie_le` set.
 - **Edit.** Rename to `<nom> modifiée`, save: `modifie_le` later than the creation, `cree_le` unchanged.
-- **Delete.** From the list row, `Supprimer`, `Supprimé.`, read back 0 rows.
+- **Delete.** From the edit page, `Supprimer`, `« <nom> modifiée » supprimé.`, read back 0 rows.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-dates/`.
 
 ## Gotchas

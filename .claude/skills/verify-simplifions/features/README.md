@@ -27,7 +27,7 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [fiche-cas-usage.md](fiche-cas-usage.md) — open a cas d'usage from the list and unfold a recommended data source.
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
-- [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete a démarche the drive created; its recommandations go with it.
+- [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete from the edit page: the confirmation names the row and what goes with it (démarche drive created, organisation cancelled).
 - [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused.
 - [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.
 - [contenu-html-grist.md](contenu-html-grist.md) — the HTML typed in Grist markdown fields (DSFR callout, `<hr>`) shows on the public pages, never `raw HTML omitted`.

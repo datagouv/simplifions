@@ -65,8 +65,10 @@ def vocabulaires(page)
   page.assert_selector 'td', text: nom
   ligne = Vocabulaire.find_by!(nom:)
   Verify.evidence('admin-vocabulaires', page, 'cree', "id=#{ligne.id} nom=#{ligne.nom} categorie=#{ligne.categorie}")
-  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.accept_confirm { page.click_button 'Supprimer' } }
-  page.assert_text 'Supprimé.'
+  page.assert_no_selector :button, 'Supprimer'
+  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
+  page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
+  page.assert_text "« #{nom} » supprimé."
   page.assert_no_selector 'td', text: nom
   Verify.evidence('admin-vocabulaires', page, 'supprime', "reste_en_base=#{Vocabulaire.where(nom:).count}")
   Verify.logout(page)
@@ -83,14 +85,23 @@ def cascade(page)
   page.assert_selector 'td', text: nom
   Verify.evidence('admin-supprimer-demarche', page, 'avant',
     "demarche=#{demarche.id} recommandations=#{Recommandation.where(demarche:).count} solution=#{solution.id}")
-  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.accept_confirm { page.click_button 'Supprimer' } }
-  page.assert_text 'Supprimé.'
+  page.within(:xpath, "//tr[td[text()='#{nom}']]") { page.click_link 'Modifier' }
+  page.accept_confirm("Supprimer « #{nom} » ? 1 recommandation sera supprimée.") { page.click_button 'Supprimer' }
+  page.assert_text "« #{nom} » supprimé."
   page.assert_no_selector 'td', text: nom
   ActiveRecord::Base.uncached do
     Verify.evidence('admin-supprimer-demarche', page, 'apres',
       "demarche_en_base=#{Demarche.where(nom:).count} recommandations=#{Recommandation.where(demarche:).count} " \
       "solution_en_base=#{Solution.where(id: solution.id).count}")
   end
+  organisation = Organisation.order(:id).find { |o| o.solutions_rendues_privees.exists? }
+  privees = organisation.solutions_rendues_privees.order(:nom).pluck(:nom)
+  page.visit("/admin/organisations/#{organisation.id}/edit")
+  message = page.dismiss_confirm { page.click_button 'Supprimer' }
+  raise "confirmation #{message}" unless message.include?(privees.join(', '))
+
+  Verify.evidence('admin-supprimer-demarche', page, 'organisation-annulee',
+    "organisation=#{organisation.id} privees=#{privees.size} en_base=#{Organisation.where(id: organisation.id).count} confirmation=#{message}")
   Verify.logout(page)
 end
 
@@ -187,8 +198,9 @@ def dates(page)
   raise "modification non datee #{demarche.modifie_le.inspect}" unless demarche.modifie_le > creation && demarche.cree_le == creation
 
   Verify.evidence('admin-dates', page, 'modifie', "demarche=#{demarche.id} cree_le=#{demarche.cree_le.iso8601(3)} modifie_le=#{demarche.modifie_le.iso8601(3)}")
-  page.within(:xpath, "//tr[td[text()='#{nom} modifiée']]") { page.accept_confirm { page.click_button 'Supprimer' } }
-  page.assert_text 'Supprimé.'
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.accept_confirm("Supprimer « #{nom} modifiée » ?") { page.click_button 'Supprimer' }
+  page.assert_text "« #{nom} modifiée » supprimé."
   Verify.evidence('admin-dates', page, 'supprime', "reste_en_base=#{ActiveRecord::Base.uncached { Demarche.where(id: demarche.id).count }}")
   Verify.logout(page)
 end
