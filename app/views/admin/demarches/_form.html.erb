@@ -28,7 +28,7 @@
     <%= libelle_avec_aide(f, :cadre_juridique, "Markdown accepté") %>
     <%= f.text_area :cadre_juridique, class: "fr-input", rows: lignes_pour(f.object.cadre_juridique) %>
   </div>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Types d'acteurs" %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services" %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :mots_clefs, "Une valeur par ligne, utilisés pour la recherche et le référencement") %>
     <%= f.text_area :mots_clefs, value: demarche.mots_clefs.join("\n"), class: "fr-input", rows: lignes_pour(f.object.mots_clefs) %>

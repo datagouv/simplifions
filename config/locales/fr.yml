@@ -28,8 +28,8 @@ fr:
         one: "Organisation"
         other: "Organisations"
       type_acteur:
-        one: "Type d'acteur"
-        other: "Types d'acteurs"
+        one: "Fournisseur de services"
+        other: "Fournisseurs de services"
       vocabulaire:
         one: "Vocabulaire"
         other: "Vocabulaires"

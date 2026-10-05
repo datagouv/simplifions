@@ -583,7 +583,7 @@ def pages_liees(page)
   publique.close
 
   acteur = demarche.types_acteurs.order(:nom).first
-  groupe = page.find('fieldset', text: "Filtrer les types d'acteurs")
+  groupe = page.find('fieldset', text: 'Filtrer les fournisseurs de services')
   liens = groupe.all('a', text: 'Voir la fiche').map { |a| a['aria-label'] }
   raise "liens #{liens} pour #{demarche.types_acteurs.map(&:nom)}" unless liens.sort == demarche.types_acteurs.map { |t| "Voir la fiche #{t.nom}" }.sort
 
@@ -600,8 +600,8 @@ def pages_liees(page)
   page.current_window.resize_to(320, 1024)
   page.visit("/admin/demarches/#{demarche.id}/edit")
   Verify.evidence(dossier, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
-  groupe = page.find('fieldset', text: "Filtrer les types d'acteurs")
-  groupe.fill_in "Filtrer les types d'acteurs", with: 'voir la fiche'
+  groupe = page.find('fieldset', text: 'Filtrer les fournisseurs de services')
+  groupe.fill_in 'Filtrer les fournisseurs de services', with: 'voir la fiche'
   filtre = cases_affichees(groupe).size
   raise "le filtre trouve le texte du lien (#{filtre})" unless filtre.zero?
 

@@ -68,7 +68,7 @@
       </div>
     <% end %>
   </fieldset>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Types d'acteurs" %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services" %>
   <%= champ_de_fiche(f, :permet) do |aria| %>
     <%= libelle_avec_aide(f, :permet, "Markdown accepté") %>
     <%= f.text_area :permet, class: "fr-input", rows: lignes_pour(f.object.permet), **aria %>

@@ -185,7 +185,7 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', TypeActeur, 'types_acteurs' do
-    let(:collection) { "Types d'acteurs" }
+    let(:collection) { 'Fournisseurs de services' }
     let(:attributs) { { nom: 'Communes' } }
   end
 
@@ -343,7 +343,7 @@ RSpec.describe 'Administration' do
 
     it 'range chaque longue liste de cases dans un groupe filtrable, sans champ envoyé avec le formulaire' do
       {
-        'demarches' => ["Types d'acteurs", 'Intégrations'], 'solutions' => ['Organisations', "Types d'acteurs"],
+        'demarches' => ['Fournisseurs de services', 'Intégrations'], 'solutions' => ['Organisations', 'Fournisseurs de services'],
         'integrations' => ['Démarches'], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
         'vocabulaires' => %w[Démarches Solutions]
       }.each do |chemin, groupes|
@@ -767,10 +767,10 @@ RSpec.describe 'Administration' do
     it 'range les champs dans l’ordre des fiches Grist' do
       {
         'demarches' => ['Visible sur simplifions', 'Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
-                        'Cadre juridique', "Types d'acteurs", 'Mots-clés', 'Vocabulaires', 'Intégrations'],
+                        'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires', 'Intégrations'],
         'solutions' => ['Visible sur simplifions', 'Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
                         'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
-                        'Catégorie de solution', 'Vocabulaires', "Types d'acteurs", 'Cette solution permet',
+                        'Catégorie de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
                         'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
         'recommandations' => ['Visible sur simplifions', 'Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
@@ -1009,6 +1009,29 @@ RSpec.describe 'Administration' do
         expect(solution.reload.image).to be_attached
         case_retirer = response.parsed_body.at_css('input[name="solution[retirer_image]"][type=checkbox]')
         expect([case_retirer['checked'], case_retirer['disabled'], case_retirer.ancestors('.fr-hidden').any?]).to eq(['checked', nil, false])
+      end
+    end
+  end
+
+  describe 'fournisseurs de services' do
+    before { sign_in admin }
+
+    it 'nomme les types d’acteurs « Fournisseurs de services », comme la table Grist' do
+      fournisseur = TypeActeur.create!(nom: 'Communes')
+      get '/admin'
+      expect(response.parsed_body.at_css('a[href="/admin/types_acteurs"]').text).to eq('Fournisseurs de services')
+      { '/admin/types_acteurs' => 'Fournisseurs de services', '/admin/types_acteurs/new' => 'Fournisseur de services : nouvelle ligne' }.each do |chemin, titre|
+        get chemin
+        expect(response.parsed_body.at_css('h1').text).to eq(titre)
+      end
+      get "/admin/types_acteurs/#{fournisseur.id}/edit"
+      expect(response.parsed_body.at_css('title').text).to start_with('Communes — Modifier — Fournisseur de services')
+    end
+
+    it 'présente la description et les codes juridiques comme des mémos internes' do
+      get '/admin/types_acteurs/new'
+      %w[description codes_juridiques].each do |champ|
+        expect(response.parsed_body.at_css("label[for=type_acteur_#{champ}] .fr-hint-text").text).to eq('Mémo interne, non affiché sur le site')
       end
     end
   end

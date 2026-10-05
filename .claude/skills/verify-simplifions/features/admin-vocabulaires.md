@@ -12,7 +12,7 @@ Admins add, edit and delete rows of every catalogue table from plain DSFR forms;
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → link `Vocabulaires` (also Démarches, Solutions, Recommandations, Intégrations, Organisations, Types d'acteurs).
+- Dashboard `/admin` → link `Vocabulaires` (also Démarches, Solutions, Recommandations, Intégrations, Organisations, Fournisseurs de services).
 - URL `/admin/vocabulaires`, `/admin/vocabulaires/new`.
 - Admin only.
 

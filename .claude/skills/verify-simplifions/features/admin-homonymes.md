@@ -4,7 +4,7 @@ Wherever the admin offers or lists a solution (checkbox lists, select menus, int
 
 ## How to get to it (user POV)
 
-- `/admin/recommandations/new` (Solution), `/admin/integrations/new` (both selects), types d'acteurs, organisations and vocabulaires forms (`Solutions` list), `/admin/integrations` and `/admin/recommandations` (row names), `/admin/solutions` (`Nom`, `Intégrée par`; `drive.rb listes` reads them). Admin only.
+- `/admin/recommandations/new` (Solution), `/admin/integrations/new` (both selects), fournisseurs de services, organisations and vocabulaires forms (`Solutions` list), `/admin/integrations` and `/admin/recommandations` (row names), `/admin/solutions` (`Nom`, `Intégrée par`; `drive.rb listes` reads them). Admin only.
 
 ## Driving it with Capybara
 

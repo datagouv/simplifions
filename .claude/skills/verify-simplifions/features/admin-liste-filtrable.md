@@ -1,6 +1,6 @@
 # Choisir les éléments liés dans une liste filtrable
 
-Every long list of linked rows in an admin form (intégrations, démarches, solutions, organisations, types d'acteurs) shows only its checked boxes, with a `Filtrer les <liste>` field that shows the matching boxes as you type. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
+Every long list of linked rows in an admin form (intégrations, démarches, solutions, organisations, fournisseurs de services) shows only its checked boxes, with a `Filtrer les <liste>` field that shows the matching boxes as you type. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
 
 ## Sub-features
 
@@ -10,7 +10,7 @@ Every long list of linked rows in an admin form (intégrations, démarches, solu
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit` (Types d'acteurs, Intégrations), solutions (Organisations, Types d'acteurs), intégrations (Démarches), organisations (Solutions), types d'acteurs and vocabulaires (Démarches, Solutions). Admin only.
+- `/admin/demarches/<id>/edit` (Fournisseurs de services, Intégrations), solutions (Organisations, Fournisseurs de services), intégrations (Démarches), organisations (Solutions), fournisseurs de services and vocabulaires (Démarches, Solutions). Admin only.
 
 ## Driving it with Capybara
 
