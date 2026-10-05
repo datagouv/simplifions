@@ -8,28 +8,28 @@
     <%= libelle_obligatoire(f, :nom) %>
     <%= f.text_field :nom, class: "fr-input", required: true, **aria %>
   <% end %>
-  <%= groupe_de_champ(f, :slug) do |aria| %>
+  <%= champ_de_fiche(f, :slug) do |aria| %>
     <%= libelle_avec_aide(f, :slug, "Obligatoire si la solution est visible sur simplifions, sauf pour une API ou un jeu de données. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire") %>
     <%= f.text_field :slug, class: "fr-input", **aria %>
   <% end %>
-  <%= groupe_de_champ(f, :site_internet) do |aria| %>
+  <%= champ_de_fiche(f, :site_internet) do |aria| %>
     <%= f.label :site_internet, class: "fr-label" %>
     <%= f.text_field :site_internet, class: "fr-input", **aria %>
   <% end %>
-  <%= groupe_de_champ(f, :url_demande_acces) do |aria| %>
+  <%= champ_de_fiche(f, :url_demande_acces) do |aria| %>
     <%= f.label :url_demande_acces, class: "fr-label" %>
     <%= f.text_field :url_demande_acces, class: "fr-input", **aria %>
   <% end %>
   <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
-  <%= groupe_de_champ(f, :image, "fr-upload-group") do |aria| %>
+  <%= champ_de_fiche(f, :image, "fr-upload-group") do |aria| %>
     <%= f.label :image, class: "fr-label" %>
     <%= f.file_field :image, class: "fr-upload", accept: "image/*", **aria %>
   <% end %>
-  <%= groupe_de_champ(f, :legende_image) do |aria| %>
+  <%= champ_de_fiche(f, :legende_image) do |aria| %>
     <%= f.label :legende_image, class: "fr-label" %>
     <%= f.text_area :legende_image, class: "fr-input", rows: lignes_pour(f.object.legende_image), **aria %>
   <% end %>
-  <%= groupe_de_champ(f, :description_courte) do |aria| %>
+  <%= champ_de_fiche(f, :description_courte) do |aria| %>
     <%= f.label :description_courte, class: "fr-label" %>
     <%= f.text_area :description_courte, class: "fr-input", rows: lignes_pour(f.object.description_courte), **aria %>
   <% end %>
@@ -39,7 +39,7 @@
   </div>
   <div class="fr-select-group">
     <%= libelle_avec_aide(f, :categorie, "Une API ou un jeu de données n’a pas de fiche sur le site : slug, site internet, URL de demande d’accès, image, légende, description courte, « permet » et « ne permet pas » restent vides.") %>
-    <%= f.select :categorie, options_traduites(Solution, :categorie), { include_blank: true }, class: "fr-select" %>
+    <%= f.select :categorie, options_traduites(Solution, :categorie), { include_blank: true }, class: "fr-select", data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
   </div>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">Vocabulaires</legend>
@@ -62,11 +62,11 @@
     <% end %>
   </fieldset>
   <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Types d'acteurs" %>
-  <%= groupe_de_champ(f, :permet) do |aria| %>
+  <%= champ_de_fiche(f, :permet) do |aria| %>
     <%= libelle_avec_aide(f, :permet, "Markdown accepté") %>
     <%= f.text_area :permet, class: "fr-input", rows: lignes_pour(f.object.permet), **aria %>
   <% end %>
-  <%= groupe_de_champ(f, :ne_permet_pas) do |aria| %>
+  <%= champ_de_fiche(f, :ne_permet_pas) do |aria| %>
     <%= libelle_avec_aide(f, :ne_permet_pas, "Markdown accepté") %>
     <%= f.text_area :ne_permet_pas, class: "fr-input", rows: lignes_pour(f.object.ne_permet_pas), **aria %>
   <% end %>

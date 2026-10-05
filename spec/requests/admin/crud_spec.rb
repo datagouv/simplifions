@@ -900,6 +900,57 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'formulaire solution selon sa catégorie' do
+    let(:champs_fiche) { %w[slug site_internet url_demande_acces image legende_image description_courte permet ne_permet_pas] }
+
+    before { sign_in admin }
+
+    def champs_masques(solution)
+      get "/admin/solutions/#{solution.id}/edit"
+      response.parsed_body.css('form [name^="solution["]').select { |champ| champ.ancestors('.fr-hidden').any? }
+        .map { |champ| [champ['name'][/\[(\w+)\]/, 1], champ.key?('disabled')] }
+    end
+
+    it 'masque et désactive les champs de fiche d’une API ou d’un jeu de données' do
+      %w[api base_de_donnees].each do |categorie|
+        expect(champs_masques(Solution.create!(nom: categorie, categorie:))).to match_array(champs_fiche.map { |champ| [champ, true] })
+      end
+    end
+
+    it 'montre les champs de fiche des autres catégories' do
+      [nil, 'brique_logicielle'].each { |categorie| expect(champs_masques(Solution.create!(nom: 'Bouquet', categorie:))).to be_empty }
+    end
+
+    it 'laisse visible un champ de fiche déjà rempli, pour qu’on puisse le vider' do
+      api = Solution.new(nom: 'API QF', categorie: 'api', description_courte: 'Ancienne description')
+      api.save!(validate: false)
+      expect(champs_masques(api).map(&:first)).to match_array(champs_fiche - ['description_courte'])
+    end
+
+    it 'laisse visible un champ vidé quand l’enregistrement échoue, pour qu’il parte vide la fois suivante' do
+      api = Solution.new(nom: 'API QF', categorie: 'api', description_courte: 'Ancienne description')
+      api.save!(validate: false)
+      patch "/admin/solutions/#{api.id}", params: { solution: { nom: '', description_courte: '' } }
+      champ = response.parsed_body.at_css('[name="solution[description_courte]"]')
+      expect([champ['disabled'], champ.ancestors('.fr-hidden').any?]).to eq([nil, false])
+    end
+
+    it 'marque les champs remplis en base, que la bascule vers API garde visibles même vidés après un refus' do
+      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description')
+      patch "/admin/solutions/#{brique.id}", params: { solution: { nom: '', description_courte: '' } }
+      expect(response.parsed_body.css('[data-rempli-en-base]').map { |groupe| groupe.at_css('[name^="solution["]')['name'] })
+        .to eq(['solution[description_courte]'])
+    end
+
+    it 'bascule les champs quand la catégorie change' do
+      get '/admin/solutions/new'
+      categorie = response.parsed_body.at_css('select[name="solution[categorie]"]')
+      expect(categorie.to_h.slice('data-controller', 'data-action')).to eq('data-controller' => 'champs-fiche', 'data-action' => 'champs-fiche#basculer')
+      expect(JSON.parse(categorie['data-champs-fiche-hors-fiches-value'])).to eq(Solution::HORS_FICHES)
+      expect(response.parsed_body.css('form [data-champ-fiche]').size).to eq(champs_fiche.size)
+    end
+  end
+
   describe 'image de solution' do
     it 'attache le fichier envoyé par le formulaire' do
       sign_in admin

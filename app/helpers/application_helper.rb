@@ -34,15 +34,25 @@ module ApplicationHelper
     formulaire.label(champ, class: 'fr-label') { |libelle| libelle_du_champ(libelle, true) }
   end
 
-  def groupe_de_champ(formulaire, champ, groupe = 'fr-input-group', &)
+  def groupe_de_champ(formulaire, champ, groupe = 'fr-input-group', classe: nil, **attributs, &)
     messages = erreurs_du_champ(formulaire, champ)
-    return tag.div(capture({}, &), class: groupe) if messages.none?
+    return tag.div(capture({}, &), class: [groupe, classe], **attributs) if messages.none?
 
     id = "#{formulaire.field_id(champ)}-messages"
-    tag.div(class: "#{groupe} #{groupe}--error") do
+    tag.div(class: [groupe, "#{groupe}--error", classe], **attributs) do
       safe_join([capture({ aria: { invalid: true, describedby: id } }, &), tag.div(id:, class: 'fr-messages-group', aria: { live: 'polite' }) do
         safe_join(messages.map { |message| tag.p(message, class: 'fr-message fr-message--error') })
       end])
+    end
+  end
+
+  def champ_de_fiche(formulaire, champ, groupe = 'fr-input-group', &)
+    solution = formulaire.object
+    masque = !solution.fiche? && solution.public_send(champ).blank? &&
+             !solution.will_save_change_to_attribute?(champ) && !solution.attachment_changes.key?(champ.to_s)
+    groupe_de_champ(formulaire, champ, groupe, classe: ('fr-hidden' if masque),
+      data: { champ_fiche: true, rempli_en_base: rempli_en_base?(solution, champ) }) do |aria|
+      capture(aria.merge(disabled: masque), &)
     end
   end
 
@@ -77,6 +87,8 @@ module ApplicationHelper
   end
 
   private
+
+  def rempli_en_base?(objet, champ) = (true if objet.attribute_in_database(champ).present?)
 
   def libelle_du_champ(libelle, obligatoire) = obligatoire ? "#{libelle.translation} (obligatoire)" : libelle.translation
 
