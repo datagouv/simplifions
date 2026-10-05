@@ -2,7 +2,7 @@ class Demarche < ApplicationRecord
   validates :nom, presence: true
   normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
   validates :grist_id, :slug, uniqueness: true, allow_nil: true
-  validates :slug, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: :format_slug }, allow_nil: true
+  validates :slug, format: { with: FORMAT_SLUG, message: :format_slug }, allow_nil: true
   validates :slug, presence: true, if: :visible?
 
   has_many :recommandations, dependent: :delete_all

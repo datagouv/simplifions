@@ -150,8 +150,8 @@ RSpec.describe 'Demarches' do
         description_courte: 'Communes, simplifiez la mise en œuvre du dispositif.',
         contexte: 'Une grille tarifaire **progressive** est requise.',
         cadre_juridique: 'Voir [R.531-52](https://legifrance.gouv.fr/codes/article_lc/LEGIARTI000039036672).',
-        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', categorie: 'usager'),
-                       Vocabulaire.create!(nom: 'Dites-le-nous une fois', categorie: 'type_simplification')],
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager'),
+                       Vocabulaire.create!(nom: 'Dites-le-nous une fois', slug: 'dites-le-nous-une-fois', categorie: 'type_simplification')],
         types_acteurs: [TypeActeur.create!(nom: 'Communes et groupements de communes')])
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
