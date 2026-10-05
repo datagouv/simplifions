@@ -90,6 +90,14 @@ RSpec.describe Grist::Import do
     expect(bouquet.types_solution).to eq([])
   end
 
+  it 'note les slugs d’un fournisseur de services absents des filtres du site, écartés' do
+    stub_grist_champ('Fournisseurs_de_services', 1, 'slugs', %w[L communes comunes inconnu])
+
+    expect(result.report[:notes]).to include('Fournisseurs_de_services:1 — slugs hors des filtres du site, écartés : comunes, inconnu')
+    expect(result.report[:notes].grep(/slugs hors des filtres/).size).to eq(1)
+    expect(TypeActeur.find_by!(grist_id: 'Fournisseurs_de_services:1').slugs).to eq(%w[communes])
+  end
+
   it 'reports unmappable categories instead of guessing' do
     result
     expect(Solution.find_by!(grist_id: 'APIs_et_datasets:51').categorie).to be_nil

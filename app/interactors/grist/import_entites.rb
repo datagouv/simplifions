@@ -28,9 +28,12 @@ class Grist::ImportEntites < Grist::ImportStep
 
   def import_types_acteurs
     each_record('Fournisseurs_de_services') do |gid, fields|
+      slugs = list(fields['slugs'])
+      ecartes = slugs - TypeActeur::FILTRES.values
+      note("#{gid} — slugs hors des filtres du site, écartés : #{ecartes.join(', ')}") if ecartes.any?
       synchronise(TypeActeur, gid, {
         nom: fields['Label'], description: fields['Ce_que_cela_inclut'],
-        codes_juridiques: fields['Codes_juridiques'], slugs: list(fields['slugs'])
+        codes_juridiques: fields['Codes_juridiques'], slugs:
       })
     end
   end
