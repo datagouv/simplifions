@@ -69,7 +69,7 @@ def vocabulaires(page)
   page.assert_text 'Supprimé.'
   page.assert_no_selector 'td', text: nom
   Verify.evidence('admin-vocabulaires', page, 'supprime', "reste_en_base=#{Vocabulaire.where(nom:).count}")
-  page.click_button 'Se déconnecter'
+  Verify.logout(page)
 end
 
 def cascade(page)
@@ -91,7 +91,7 @@ def cascade(page)
       "demarche_en_base=#{Demarche.where(nom:).count} recommandations=#{Recommandation.where(demarche:).count} " \
       "solution_en_base=#{Solution.where(id: solution.id).count}")
   end
-  page.click_button 'Se déconnecter'
+  Verify.logout(page)
 end
 
 def saisies(page)
@@ -140,7 +140,7 @@ def saisies(page)
   page.visit("/demarches/#{demarche.slug}")
   page.assert_selector 'h1', text: demarche.nom
   Verify.evidence('admin-saisies-controlees', page, 'page-publique', "path=#{page.current_path}")
-  page.click_button 'Se déconnecter'
+  Verify.logout(page)
 end
 
 Verify.ensure_admin
