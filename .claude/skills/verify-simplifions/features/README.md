@@ -37,3 +37,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-lecture-seule.md](admin-lecture-seule.md) — the Grist identifier and a solution's data.gouv fields show as text in the administration, never as fields.
 - [admin-formulaire-modifie.md](admin-formulaire-modifie.md) — leaving a changed admin form (Annuler, link, back) asks first; saving does not; a 422 form counts as changed.
 - [admin-libelles.md](admin-libelles.md) — admin forms in the Grist words: French labels and list values, hints inside labels, fields in the Grist record-card order.
+- [admin-erreurs-formulaire.md](admin-erreurs-formulaire.md) — a refused admin form: titled summary with focus and links to the fields, DSFR error under each field, French messages, required fields marked.
