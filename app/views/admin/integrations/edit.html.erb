@@ -1,8 +1,7 @@
 <%= render "entete_page", titre: "Modifier — Intégration" %>
 
 <div class="fr-container fr-mb-6w">
-  <h1>Intégration n°<%= @integration.id %></h1>
+  <h1><%= nom_en_base %></h1>
   <%= render "form", integration: @integration %>
-  <% en_base = Integration.find(@integration.id) %>
-  <%= render "admin/supprimer", url: admin_integration_path(en_base), nom: en_base.libelle %>
+  <%= render "admin/supprimer", url: admin_integration_path(en_base), nom: nom_en_base %>
 </div>

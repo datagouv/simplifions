@@ -11,6 +11,28 @@ fr:
     formats:
       court: "%d/%m/%Y à %H:%M"
   activerecord:
+    models:
+      demarche:
+        one: "Démarche"
+        other: "Démarches"
+      solution:
+        one: "Solution"
+        other: "Solutions"
+      recommandation:
+        one: "Recommandation"
+        other: "Recommandations"
+      integration:
+        one: "Intégration"
+        other: "Intégrations"
+      organisation:
+        one: "Organisation"
+        other: "Organisations"
+      type_acteur:
+        one: "Type d'acteur"
+        other: "Types d'acteurs"
+      vocabulaire:
+        one: "Vocabulaire"
+        other: "Vocabulaires"
     attributes:
       demarche:
         icone: "Icône du titre"
