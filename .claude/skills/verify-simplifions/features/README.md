@@ -40,3 +40,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-erreurs-formulaire.md](admin-erreurs-formulaire.md) — a refused admin form: titled summary with focus and links to the fields, DSFR error under each field, French messages, required fields marked.
 - [admin-listes.md](admin-listes.md) — admin lists: search, 50 rows per page, name links to the edit page, Visible / Modifié le / Intégrée par columns.
 - [admin-liste-filtrable.md](admin-liste-filtrable.md) — long lists of linked rows in admin forms show only checked boxes and filter as you type; vocabulaires grouped by category.
+- [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — list and add a démarche's recommandations from its form; a recommandation keeps its démarche in view.

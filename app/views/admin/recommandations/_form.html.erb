@@ -1,3 +1,19 @@
+<% if (demarche = recommandation.demarche) %>
+  <aside class="fr-callout fr-mt-4w" aria-labelledby="demarche-de-la-recommandation">
+    <h2 id="demarche-de-la-recommandation" class="fr-callout__title">Démarche : <%= demarche.nom %></h2>
+    <%= simple_format(demarche.description_courte, class: "fr-callout__text") if demarche.description_courte.present? %>
+    <p><%= lien_vers_la_fiche(demarche, demarche.nom) %></p>
+    <% autres = demarche.recommandations.where.not(id: recommandation.id) %>
+    <section class="fr-accordion">
+      <h3 id="autres-recommandations" class="fr-accordion__title">
+        <button type="button" class="fr-accordion__btn" aria-expanded="false" aria-controls="tableau-autres-recommandations">Autres recommandations de la démarche (<%= autres.count %>)</button>
+      </h3>
+      <div class="fr-collapse" id="tableau-autres-recommandations">
+        <%= render "tableau", recommandations: autres, titre_id: "autres-recommandations" %>
+      </div>
+    </section>
+  </aside>
+<% end %>
 <%= form_with model: [:admin, recommandation], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(recommandation) do |f| %>
   <%= render "admin/erreurs", f: f %>
   <div class="fr-checkbox-group fr-mb-3w">
