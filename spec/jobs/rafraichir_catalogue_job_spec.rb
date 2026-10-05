@@ -19,4 +19,20 @@ RSpec.describe RafraichirCatalogueJob do
     expect { described_class.perform_now }.to raise_error(RuntimeError, /Solutions/)
     expect(a_request(:get, %r{data\.gouv\.fr/api/})).not_to have_been_made
   end
+
+  describe 'un seul passage à la fois' do
+    around do |example|
+      adaptateur = described_class.queue_adapter
+      described_class.queue_adapter = :solid_queue
+      example.run
+    ensure
+      described_class.queue_adapter = adaptateur
+    end
+
+    it 'écarte une demande arrivée pendant un passage en cours' do
+      2.times { described_class.perform_later }
+
+      expect(SolidQueue::Job.where(class_name: described_class.name).count).to eq(1)
+    end
+  end
 end
