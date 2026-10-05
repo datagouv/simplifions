@@ -202,7 +202,7 @@ RSpec.describe Grist::Import do
       .to_return(status: 200, body: operateurs.to_json, headers: { 'Content-Type' => 'application/json' })
 
     expect(result).to be_a_success
-    expect(result.report[:quarantine].join).to include('Operateurs:999')
+    expect(result.report[:quarantine].join).to include('Operateurs:999 — La validation a échoué : Nom doit être rempli')
     expect(Organisation.count).to eq(4)
   end
 
