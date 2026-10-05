@@ -6,7 +6,7 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   def new
-    @recommandation = Recommandation.new
+    @recommandation = Recommandation.new(demarche_id: params[:demarche_id])
   end
 
   def edit; end

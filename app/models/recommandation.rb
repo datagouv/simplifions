@@ -10,6 +10,7 @@ class Recommandation < ApplicationRecord
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
   scope :visibles, -> { where(visible: true) }
+  scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
   def libelle = "#{demarche.nom} → #{solution.libelle_admin}"
 
   scope :nom_contient, lambda { |q|

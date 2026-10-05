@@ -468,6 +468,40 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'recommandations depuis la démarche' do
+    let(:aides) { Demarche.create!(nom: 'Aides') }
+
+    before { sign_in admin }
+
+    def recommandations_de(chemin)
+      get chemin
+      tableau = response.parsed_body.at_css('table[aria-labelledby]')
+      entetes = tableau.css('thead th').map(&:text)
+      tableau.css('tbody tr').map { |ligne| entetes.zip(ligne.css('td').map { |cellule| cellule.text.squish }).to_h.slice('Solution', 'Type de recommandation', 'Ordre') }
+    end
+
+    it 'liste les recommandations de la démarche par type puis ordre, avec un lien pour en ajouter' do
+      recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2', ordre: 1)
+      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', ordre: 2)
+      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API Impôt', categorie: 'api'), niveau: 'niveau_1', ordre: 1)
+      Recommandation.create!(demarche: Demarche.create!(nom: 'Autre'), solution: Solution.create!(nom: 'Ailleurs', categorie: 'api'), niveau: :niveau_1)
+
+      expect(recommandations_de("/admin/demarches/#{aides.id}/edit")).to eq([
+        { 'Solution' => 'API Impôt (API)', 'Type de recommandation' => 'Donnée utile (API ou jeu de données)', 'Ordre' => '1' },
+        { 'Solution' => 'API QF (API)', 'Type de recommandation' => 'Donnée utile (API ou jeu de données)', 'Ordre' => '2' },
+        { 'Solution' => 'Mes Aides (API)', 'Type de recommandation' => 'Solution recommandée', 'Ordre' => '1' }
+      ])
+      expect(response.parsed_body.at_css('a:contains("Mes Aides")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
+      expect(response.parsed_body.at_css('a:contains("Ajouter une recommandation")')['href'])
+        .to eq("/admin/recommandations/new?demarche_id=#{aides.id}")
+    end
+
+    it 'pré-remplit la démarche d’une nouvelle recommandation' do
+      get '/admin/recommandations/new', params: { demarche_id: aides.id }
+      expect(response.parsed_body.at_css('#recommandation_demarche_id option[selected]').text).to eq('Aides')
+    end
+  end
+
   describe 'ce que la suppression emporte' do
     let(:aides) { Demarche.create!(nom: 'Aides') }
     let(:bouquet) { Solution.create!(nom: 'Bouquet') }
