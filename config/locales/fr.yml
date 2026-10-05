@@ -45,3 +45,7 @@ fr:
         zero: ""
         one: "1 solution en sera détachée."
         other: "%{count} solutions en seront détachées."
+      solutions_privees:
+        zero: ""
+        one: "La solution %{noms} deviendra privée."
+        other: "Ces solutions deviendront privées : %{noms}."
