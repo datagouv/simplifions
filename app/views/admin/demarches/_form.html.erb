@@ -28,17 +28,7 @@
     <%= f.label :cadre_juridique, class: "fr-label" %>
     <%= f.text_area :cadre_juridique, class: "fr-input", rows: 6 %>
   </div>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend">Types d'acteurs</legend>
-    <%= f.collection_check_boxes :type_acteur_ids, TypeActeur.order(:nom), :id, :nom do |b| %>
-      <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Types d'acteurs" %>
   <div class="fr-input-group">
     <%= libelle_avec_aide(f, :mots_clefs, "Une valeur par ligne, utilisés pour la recherche et le référencement") %>
     <%= f.text_area :mots_clefs, value: demarche.mots_clefs.join("\n"), class: "fr-input", rows: 4 %>
@@ -54,17 +44,7 @@
       </div>
     <% end %>
   </fieldset>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend">Intégrations</legend>
-    <%= f.collection_check_boxes :integration_ids, Integration.includes(:integratrice, :integree).order(:id), :id, :libelle do |b| %>
-      <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: Integration.includes(:integratrice, :integree).order(:id), libelle: :libelle, legende: "Intégrations" %>
   <%= render "admin/identifiant_grist", grist_id: demarche.grist_id %>
   <ul class="fr-btns-group fr-btns-group--inline">
     <li><button type="submit" class="fr-btn">Enregistrer</button></li>

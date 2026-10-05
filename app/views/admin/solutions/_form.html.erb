@@ -20,17 +20,7 @@
     <%= f.label :url_demande_acces, class: "fr-label" %>
     <%= f.text_field :url_demande_acces, class: "fr-input", **aria %>
   <% end %>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend">Organisations</legend>
-    <%= f.collection_check_boxes :organisation_ids, Organisation.order(:nom), :id, :nom do |b| %>
-      <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
   <%= groupe_de_champ(f, :image, "fr-upload-group") do |aria| %>
     <%= f.label :image, class: "fr-label" %>
     <%= f.file_field :image, class: "fr-upload", accept: "image/*", **aria %>
@@ -62,17 +52,7 @@
       </div>
     <% end %>
   </fieldset>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend">Types d'acteurs</legend>
-    <%= f.collection_check_boxes :type_acteur_ids, TypeActeur.order(:nom), :id, :nom do |b| %>
-      <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Types d'acteurs" %>
   <%= groupe_de_champ(f, :permet) do |aria| %>
     <%= f.label :permet, class: "fr-label" %>
     <%= f.text_area :permet, class: "fr-input", rows: 6, **aria %>
