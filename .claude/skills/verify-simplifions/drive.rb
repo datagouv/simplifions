@@ -172,7 +172,7 @@ def incoherences(page)
   Verify.login(page)
   integration = Integration.order(:id).first!
   page.visit("/admin/integrations/#{integration.id}/edit")
-  page.select integration.integratrice.nom, from: 'API ou jeu de données'
+  page.select integration.integratrice.libelle_admin, from: 'API ou jeu de données'
   page.click_button 'Enregistrer'
   page.assert_text 'Une solution ne peut pas s’intégrer elle-même'
   Verify.evidence('admin-saisies-controlees', page, 'integration-elle-meme',
@@ -311,7 +311,7 @@ def listes(page)
   page.click_link 'Solutions'
   page.assert_selector 'thead th', text: 'Intégrée par'
   entetes = page.all('thead th').map(&:text)
-  raise "entetes #{entetes}" unless entetes == ['Id', 'Nom', 'Visible', 'Modifié le', 'Intégrée par']
+  raise "entetes #{entetes}" unless entetes == ['Id', 'Nom', 'Privée', 'Visible', 'Modifié le', 'Intégrée par']
 
   attendu = [(Solution.count / 50.0).ceil, 50].min
   raise "lignes page 1 #{lignes_affichees(page).size}" unless lignes_affichees(page).size == [Solution.count, 50].min
@@ -656,13 +656,71 @@ def recommandations_demarche(page)
   Verify.logout(page)
 end
 
+def champ_masque(page, id)
+  page.evaluate_script("(c => [!!c.closest('.fr-hidden'), c.disabled])(document.getElementById('#{id}'))")
+end
+
+def formulaire_solution(page)
+  dossier = 'admin-formulaire-solution'
+  nom = "Vérif verify-map #{Verify.browser}"
+  solution = Solution.new(nom:, categorie: 'brique_logicielle', legende_image: 'Écran de vérification')
+  solution.image.attach(io: Rails.root.join('app/assets/images/solutions/bouquet-api-entreprise.png').open, filename: 'verif.png')
+  solution.save!
+  Verify.login(page)
+  page.visit('/admin/solutions')
+  rechercher(page, nom)
+  privee = page.find('tbody tr', text: nom).all('td')[2][:textContent].strip
+  Verify.evidence(dossier, page, 'liste', "colonne_privee=#{privee} en_base=#{solution.privee?}")
+  page.click_link solution.libelle_admin
+  badge = page.find('h1 + .fr-badge')[:textContent].strip
+  alt = page.find('.fr-upload-group img')['alt']
+  aide = page.find('label[for=solution_image] .fr-hint-text').text
+  raise "badge=#{badge} alt=#{alt} aide=#{aide}" unless badge == 'Privée' && alt == solution.legende_image && aide.include?('png, jpg, webp')
+
+  Verify.evidence(dossier, page, 'fiche', "badge=#{badge} alt=#{alt} aide=#{aide} description_masquee,desactivee=#{champ_masque(page, 'solution_description_courte')}")
+  page.select 'API', from: 'Catégorie de solution'
+  etat = %w[solution_slug solution_description_courte solution_legende_image solution_retirer_image].to_h { |id| [id, champ_masque(page, id)] }
+  attendu = { 'solution_slug' => [true, true], 'solution_description_courte' => [true, true],
+              'solution_legende_image' => [false, false], 'solution_retirer_image' => [false, false] }
+  raise "API : #{etat}" unless etat == attendu
+
+  demande_avant_de_partir(page, 'Quitter sans enregistrer les modifications ?') { page.click_link 'Annuler' }
+  Verify.evidence(dossier, page, 'api-choisie', "masque,desactive=#{etat} confirmation=demandee")
+  page.select 'Brique technique', from: 'Catégorie de solution'
+  masque = champ_masque(page, 'solution_description_courte')
+  raise "brique : description #{masque}" unless masque == [false, false]
+
+  Verify.evidence(dossier, page, 'brique-rechoisie', "description_masquee,desactivee=#{masque}")
+  page.fill_in 'Légende de l’image', with: ''
+  page.check 'Retirer l’image', allow_label_click: true
+  page.select 'API', from: 'Catégorie de solution'
+  etat = %w[solution_legende_image solution_retirer_image].to_h { |id| [id, champ_masque(page, id)] }
+  raise "vidés puis API : #{etat}" unless etat.values.all?([false, false])
+
+  Verify.evidence(dossier, page, 'vides-puis-api', "masque,desactive=#{etat}")
+  page.click_button 'Enregistrer'
+  page.assert_text 'enregistré'
+  ActiveRecord::Base.uncached do
+    en_base = Solution.find(solution.id)
+    Verify.evidence(dossier, page, 'api-enregistree', "categorie=#{en_base.categorie} legende=#{en_base.legende_image.inspect} image=#{en_base.image.attached?} " \
+      "legende_masquee,desactivee=#{champ_masque(page, 'solution_legende_image')} badge=#{page.has_css?('h1 + .fr-badge', wait: 0)}")
+  end
+  page.current_window.resize_to(320, 1024)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  Verify.evidence(dossier, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+  Verify.logout(page)
+ensure
+  Solution.where(id: solution&.id).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
   'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable,
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
-  'recommandations-demarche' => :recommandations_demarche }.each do |nom, fn|
+  'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

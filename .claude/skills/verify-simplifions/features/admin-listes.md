@@ -6,7 +6,7 @@ Each admin list has a DSFR search bar, 50 rows per page with the site's paginati
 
 - `admin-recherche` field `Rechercher` + button `Rechercher` (GET `?q=`), accents and case ignored, every word must match. Démarches and solutions reuse the public catalogue search (name, short description, keywords for démarches); recommandations and intégrations match the names of the démarche and solutions they link; the other tables match the name.
 - `admin-pagination` 50 rows, `Page 2` link keeps `q`.
-- `admin-colonnes` headers `Id`, `Nom` (or `Ligne`), `Visible`, `Modifié le`, `Intégrée par` (solutions only).
+- `admin-colonnes` headers `Id`, `Nom` (or `Ligne`), `Privée` (solutions only, badge `Oui` / `Non`), `Visible`, `Modifié le`, `Intégrée par` (solutions only).
 
 ## How to get to it (user POV)
 
