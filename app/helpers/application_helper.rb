@@ -13,11 +13,31 @@ module ApplicationHelper
     safe_join(parts)
   end
 
+  def statut_rafraichissement(passage)
+    return 'Aucun rafraîchissement récent.' unless passage
+
+    "Dernier rafraîchissement : #{etat_du_passage(passage)}."
+  end
+
+  def rafraichissement_en_cours?(passage) = passage.present? && !passage.finished? && !passage.failed?
+
   # Contenu Grist semi-confiance : HTML brut autorisé, nettoyé par la liste blanche Rails (ni script, ni on*, ni javascript:/data:)
   def markdown(texte)
     return '' if texte.blank?
 
     html = Commonmarker.to_html(texte, options: { render: { unsafe: true }, extension: { header_ids: nil } })
     sanitize(html, tags: MARKDOWN_TAGS)
+  end
+
+  private
+
+  def etat_du_passage(passage)
+    if passage.failed?
+      "échoué (#{passage.failed_execution.message})"
+    elsif passage.finished?
+      "terminé le #{l(passage.finished_at.in_time_zone('Europe/Paris'), format: :court)}"
+    else
+      'en cours'
+    end
   end
 end

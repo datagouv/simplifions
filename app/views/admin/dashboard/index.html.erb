@@ -11,4 +11,12 @@
     <li><%= link_to "Types d'acteurs", admin_types_acteurs_path, class: "fr-link" %></li>
     <li><%= link_to "Vocabulaires", admin_vocabulaires_path, class: "fr-link" %></li>
   </ul>
+
+  <h2>Rafraîchir le catalogue</h2>
+  <p><%= statut_rafraichissement(@dernier_rafraichissement) %></p>
+  <% en_cours = rafraichissement_en_cours?(@dernier_rafraichissement) %>
+  <%= button_to en_cours ? "Rafraîchissement en cours…" : "Rafraîchir depuis Grist et data.gouv", admin_rafraichissement_path,
+    disabled: en_cours,
+    class: "fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-refresh-line",
+    form: { data: { turbo_confirm: "Rafraîchir le catalogue depuis Grist et data.gouv ? Le contenu du Grist remplacera les modifications faites dans l’administration." } } %>
 </div>
