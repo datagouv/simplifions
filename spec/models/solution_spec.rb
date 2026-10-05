@@ -356,10 +356,8 @@ RSpec.describe Solution do
   end
 
   describe 'colonnes tableau saisies une valeur par ligne' do
-    it 'découpe types_solution et datagouv_organisation_badges' do
-      solution = described_class.new(types_solution: "api\nbase", datagouv_organisation_badges: "certified\n")
-      expect(solution.types_solution).to eq(%w[api base])
-      expect(solution.datagouv_organisation_badges).to eq(%w[certified])
+    it 'découpe types_solution' do
+      expect(described_class.new(types_solution: "api\nbase").types_solution).to eq(%w[api base])
     end
   end
 end

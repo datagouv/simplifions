@@ -126,10 +126,6 @@ class Solution < ApplicationRecord
     super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
   end
 
-  def datagouv_organisation_badges=(valeur)
-    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
-  end
-
   private
 
   def fiche_datagouv
