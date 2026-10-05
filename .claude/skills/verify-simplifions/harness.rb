@@ -52,6 +52,11 @@ module Verify
     page.assert_text 'Connecté.'
   end
 
+  def self.logout(page)
+    page.click_button 'Se déconnecter'
+    page.assert_selector :link, 'Se connecter'
+  end
+
   def self.evidence(feature, page, name, read_back = nil)
     dir = ROOT.join(feature)
     dir.mkpath
