@@ -171,6 +171,11 @@ RSpec.describe 'Administration' do
           travel_to(maintenant) { patch "#{chemin}/#{ligne.id}", params: { cle => { visible: '0' } } }
           expect(ligne.reload.slice(*dates)).to eq(dates_saisies.merge('modifie_le' => maintenant))
         end
+
+        it 'ne propose plus les dates à la saisie' do
+          get "#{chemin}/new"
+          dates.each { |date| expect(response.body).not_to include("#{cle}[#{date}]") }
+        end
       end
     end
   end
