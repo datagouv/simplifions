@@ -17,11 +17,11 @@
     <%= f.collection_select :solution_id, Solution.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
-    <%= f.label :niveau, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :niveau, "Donnée utile : API ou jeu de données listé sous « Données disponibles » dans les cartes des solutions recommandées. Solution recommandée : carte sur la page du cas d’usage.") %>
     <%= f.select :niveau, options_traduites(Recommandation, :niveau), { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :ordre, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :ordre, "Plus le nombre est petit, plus l’élément apparaît haut sur la page du cas d’usage.") %>
     <%= f.number_field :ordre, class: "fr-input" %>
   </div>
   <div class="fr-input-group">

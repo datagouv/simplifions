@@ -17,10 +17,7 @@
     <%= f.select :categorie, options_traduites(Solution, :categorie), { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :slug, class: "fr-label" do %>
-      Slug
-      <span class="fr-hint-text">Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>
-    <% end %>
+    <%= libelle_avec_aide(f, :slug, "Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire") %>
     <%= f.text_field :slug, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
@@ -52,17 +49,16 @@
     <%= f.text_field :url_demande_acces, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :uid_datagouv, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :uid_datagouv, "Pour une API ou un jeu de données : identifiant de sa fiche data.gouv.fr, d’où sont repris son titre, son organisation et son accès.") %>
     <%= f.text_field :uid_datagouv, class: "fr-input" %>
   </div>
   <div class="fr-input-group">
-    <%= f.label :types_solution, class: "fr-label" %>
-    <span class="fr-hint-text">Une valeur par ligne</span>
+    <%= libelle_avec_aide(f, :types_solution, "Une valeur par ligne, affichées sous le nom de la solution, ex. : Portail agent") %>
     <%= f.text_area :types_solution, value: solution.types_solution.join("\n"), class: "fr-input", rows: 4 %>
   </div>
   <div class="fr-checkbox-group">
     <%= f.check_box :france_connectee %>
-    <%= f.label :france_connectee, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :france_connectee, "L’API est accessible avec FranceConnect : elle figure dans l’article sur les API FranceConnectées.") %>
   </div>
   <div class="fr-checkbox-group">
     <%= f.check_box :visible %>

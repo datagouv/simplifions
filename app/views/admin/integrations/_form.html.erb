@@ -18,7 +18,7 @@
     <%= f.collection_select :integree_id, solutions, :id, :nom, { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
-    <%= f.label :type_integration, class: "fr-label" %>
+    <%= libelle_avec_aide(f, :type_integration, "Fournie : la solution met l’API ou le jeu de données à disposition. Intégrée : la solution l’utilise.") %>
     <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select" %>
   </div>
   <div class="fr-select-group">
