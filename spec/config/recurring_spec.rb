@@ -19,4 +19,34 @@ RSpec.describe 'config/recurring.yml' do
   it 'fait le ménage des jobs terminés' do
     expect(taches.fetch('clear_solid_queue_finished_jobs')).to be_valid
   end
+
+  describe 'seul l’hôte frontal planifie les tâches' do
+    around do |example|
+      avant = ENV.slice('FRONTAL', 'SOLID_QUEUE_SKIP_RECURRING')
+      example.run
+    ensure
+      ENV.delete('FRONTAL')
+      ENV.delete('SOLID_QUEUE_SKIP_RECURRING')
+      ENV.update(avant)
+    end
+
+    def processus_avec(frontal:)
+      ENV.delete('SOLID_QUEUE_SKIP_RECURRING')
+      ENV['FRONTAL'] = frontal
+      load Rails.root.join('config/initializers/solid_queue_frontal.rb')
+      SolidQueue::Configuration.new.configured_processes.map(&:kind)
+    end
+
+    it 'ne planifie rien sur l’hôte de secours' do
+      expect(processus_avec(frontal: 'false')).not_to include(:scheduler)
+    end
+
+    it 'planifie sur l’hôte frontal' do
+      expect(processus_avec(frontal: 'true')).to include(:scheduler)
+    end
+
+    it 'planifie quand FRONTAL est absent (local, CI)' do
+      expect(processus_avec(frontal: nil)).to include(:scheduler)
+    end
+  end
 end
