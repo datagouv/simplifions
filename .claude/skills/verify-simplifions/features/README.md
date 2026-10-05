@@ -36,3 +36,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-dates.md](admin-dates.md) — create then edit a démarche in the administration: `cree_le` and `modifie_le` set by themselves, no date field in the form.
 - [admin-lecture-seule.md](admin-lecture-seule.md) — the Grist identifier and a solution's data.gouv fields show as text in the administration, never as fields.
 - [admin-formulaire-modifie.md](admin-formulaire-modifie.md) — leaving a changed admin form (Annuler, link, back) asks first; saving does not; a 422 form counts as changed.
+- [admin-libelles.md](admin-libelles.md) — admin forms in the Grist words: French labels and list values, hints inside labels, fields in the Grist record-card order.
