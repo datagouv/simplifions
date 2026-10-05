@@ -12,7 +12,7 @@ class Admin::RecommandationsController < Admin::BaseController
   def edit; end
 
   def create
-    @recommandation = Recommandation.new(recommandation_params)
+    @recommandation = Recommandation.new(recommandation_params.merge(modifie_le: Time.current))
     if @recommandation.save
       redirect_to admin_recommandations_path, notice: t('admin.enregistre'), status: :see_other
     else
@@ -21,7 +21,7 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   def update
-    if @recommandation.update(recommandation_params)
+    if @recommandation.update(recommandation_params.merge(modifie_le: Time.current))
       redirect_to admin_recommandations_path, notice: t('admin.enregistre'), status: :see_other
     else
       render :edit, status: :unprocessable_content

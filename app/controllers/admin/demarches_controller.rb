@@ -12,7 +12,7 @@ class Admin::DemarchesController < Admin::BaseController
   def edit; end
 
   def create
-    @demarche = Demarche.new(demarche_params)
+    @demarche = Demarche.new(demarche_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
     if @demarche.save
       redirect_to admin_demarches_path, notice: t('admin.enregistre'), status: :see_other
     else
@@ -21,7 +21,7 @@ class Admin::DemarchesController < Admin::BaseController
   end
 
   def update
-    if @demarche.update(demarche_params)
+    if @demarche.update(demarche_params.merge(modifie_le: Time.current))
       redirect_to admin_demarches_path, notice: t('admin.enregistre'), status: :see_other
     else
       render :edit, status: :unprocessable_content

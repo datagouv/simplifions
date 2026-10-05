@@ -12,7 +12,7 @@ class Admin::SolutionsController < Admin::BaseController
   def edit; end
 
   def create
-    @solution = Solution.new(solution_params)
+    @solution = Solution.new(solution_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
     if @solution.save
       redirect_to admin_solutions_path, notice: t('admin.enregistre'), status: :see_other
     else
@@ -21,7 +21,7 @@ class Admin::SolutionsController < Admin::BaseController
   end
 
   def update
-    if @solution.update(solution_params)
+    if @solution.update(solution_params.merge(modifie_le: Time.current))
       redirect_to admin_solutions_path, notice: t('admin.enregistre'), status: :see_other
     else
       render :edit, status: :unprocessable_content
