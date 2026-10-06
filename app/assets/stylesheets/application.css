@@ -140,3 +140,10 @@ form :target {
   align-items: baseline;
   gap: 0.5rem;
 }
+
+.contact-adresse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}

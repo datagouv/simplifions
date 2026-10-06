@@ -85,6 +85,18 @@ RSpec.describe 'Contact' do
       expect(response.body).to include('href="/contact/contenu"')
     end
 
+    it 'propose de copier l’adresse, l’objet et le modèle, boutons cachés jusqu’au chargement du script' do
+      get contact_path('autre')
+
+      boutons = response.parsed_body.css('[data-controller="copier"] button[data-action="copier#copier"]')
+      expect(boutons.map(&:text)).to eq(["Copier l'adresse", "Copier l'objet du message", 'Copier le modèle de message'])
+      expect(boutons).to all(satisfy { |bouton| bouton['class'].include?('fr-hidden') })
+      expect(boutons.first['data-copier-texte-param']).to eq(email)
+      expect(boutons[1]['data-copier-texte-param']).to eq('[Simplifions.data] Prise de contact - autre sujet')
+      expect(response.parsed_body.at('textarea#modele-message')['data-copier-target']).to eq('source')
+      expect(response.parsed_body.at('[aria-live="polite"][data-copier-target="statut"]')).to be_present
+    end
+
     it 'garde chaque lien e-mail sous 2 000 caractères, les options restant dans le modèle à copier' do
       30.times { |rang| TypeActeur.create!(nom: "Établissements publics nationaux à caractère administratif #{rang}") }
 
