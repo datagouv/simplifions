@@ -2,7 +2,7 @@ class Admin::OrganisationsController < Admin::BaseController
   before_action :set_organisation, only: %i[edit update destroy]
 
   def index
-    @organisations = paginer(Organisation.nom_contient(params[:q]).order(:id))
+    @organisations = paginer(Organisation.rechercher(params[:q], :nom_sans_accent_cont).order(:id))
   end
 
   def new

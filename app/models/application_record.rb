@@ -7,5 +7,12 @@ class ApplicationRecord < ActiveRecord::Base
     recherche.to_s.split.reduce(all) { |liste, terme| liste.where(condition, motif: "%#{sanitize_sql_like(terme)}%") }
   end
 
-  scope :nom_contient, ->(q) { chaque_mot_dans('unaccent(nom) ILIKE unaccent(:motif)', q) }
+  def self.rechercher(recherche, *conditions)
+    ransack(g: recherche.to_s.split.map { |mot| conditions.index_with(mot).merge(m: 'or') }).result
+  end
+
+  ransacker(:nom) { |parent| Arel::Nodes::NamedFunction.new('unaccent', [parent.table[:nom]]) }
+
+  def self.ransackable_attributes(_auth_object = nil) = []
+  def self.ransackable_associations(_auth_object = nil) = []
 end

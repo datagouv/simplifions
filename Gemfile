@@ -35,6 +35,9 @@ gem "devise"
 
 gem "strong_migrations"
 
+# Recherche des listes de l'administration, comme DataPass
+gem "ransack", "~> 4.4"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
