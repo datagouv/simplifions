@@ -265,6 +265,15 @@ RSpec.describe 'Administration' do
       get '/admin/demarches', params: { page: ['2'] }
       expect(response.parsed_body.css('tbody tr').size).to eq(50)
     end
+
+    it 'montre toutes les organisations sur une page, pour les chercher avec Ctrl+F' do
+      Organisation.create!(Array.new(51) { |n| { nom: "Orga #{n}" } })
+
+      get '/admin/organisations'
+      expect(response.parsed_body.css('tbody tr').size).to eq(51)
+      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('51 lignes')
+      expect(response.parsed_body.at_css('.fr-pagination')).to be_nil
+    end
   end
 
   describe 'colonnes des listes' do
@@ -279,6 +288,11 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('tbody time')['datetime']).to eq('2026-10-05T01:30:00+02:00')
       expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
       expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
+    end
+
+    it 'montre le nom court et le nom long des organisations' do
+      Organisation.create!(nom: 'DINUM', nom_long: 'Direction interministérielle du numérique')
+      expect(colonnes('organisations')).to eq([{ 'Nom court' => 'DINUM', 'Nom long' => 'Direction interministérielle du numérique' }])
     end
 
     it 'nomme les solutions qui intègrent chaque solution, avec un lien vers leur fiche' do
