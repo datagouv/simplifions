@@ -342,6 +342,39 @@ def listes(page)
   Verify.logout(page)
 end
 
+def listes_lisibles(page)
+  dossier = 'admin-listes'
+  Verify.login(page)
+  rubriques = %w[Catalogue Référentiels].to_h { |titre| [titre, page.find('h2', text: titre).find(:xpath, 'following-sibling::ul[1]').all('a').map(&:text)] }
+  raise "rubriques #{rubriques}" unless rubriques['Référentiels'] == ['Fournisseurs de services', 'Vocabulaires']
+
+  Verify.evidence(dossier, page, 'accueil-rubriques', rubriques.map { |titre, liens| "#{titre}=#{liens.join('|')}" }.join(' '))
+  page.click_link 'Organisations'
+  raise 'pagination organisations' if page.has_css?('.fr-pagination', wait: 0)
+  raise "organisations #{lignes_affichees(page).size} != #{Organisation.count}" unless lignes_affichees(page).size == Organisation.count
+
+  organisation = Organisation.where.not(nom_long: [nil, '']).order(:id).first
+  page.assert_selector 'tbody tr', text: "#{organisation.nom} #{organisation.nom_long}"
+  Verify.evidence(dossier, page, 'organisations-une-page', "lignes=#{lignes_affichees(page).size} en_base=#{Organisation.count} nom_long=#{organisation.nom_long}")
+  page.click_link 'Administration', match: :first
+  page.click_link 'Intégrations'
+  integration = Integration.includes(:integratrice, :integree).order(:id).first
+  attendu = [integration.id.to_s, integration.integratrice.libelle_admin, integration.integree.libelle_admin, integration.type_libelle, integration.statut.to_s]
+  raise "entetes #{page.all('thead th').map(&:text)}" unless page.all('thead th').map(&:text) == %w[Id Intégratrice Intégrée Type Statut]
+  raise "intégration #{lignes_affichees(page).first} != #{attendu}" unless lignes_affichees(page).first == attendu
+
+  Verify.evidence(dossier, page, 'integrations-colonnes', "premiere=#{attendu.join(' | ')}")
+  page.click_link 'Administration', match: :first
+  page.click_link 'Démarches'
+  demarche = Demarche.where.not(icone: [nil, '']).order(:id).first
+  rechercher(page, demarche.nom)
+  cellule = page.find(:xpath, "//tbody//td[a[normalize-space()=#{demarche.nom.inspect}]]")
+  raise "icône #{cellule.text}" unless cellule.text == "#{demarche.icone} #{demarche.nom}" && cellule.has_css?('[aria-hidden=true]', text: demarche.icone)
+
+  Verify.evidence(dossier, page, 'demarche-icone', "demarche=#{demarche.id} cellule=#{cellule.text}")
+  Verify.logout(page)
+end
+
 def rechercher(page, texte)
   page.fill_in 'Rechercher', with: texte
   page.click_button 'Rechercher'
@@ -776,7 +809,7 @@ end
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
-  'erreurs' => :erreurs, 'listes' => :listes, 'liste-filtrable' => :liste_filtrable,
+  'erreurs' => :erreurs, 'listes' => :listes, 'listes-lisibles' => :listes_lisibles, 'liste-filtrable' => :liste_filtrable,
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'fournisseurs' => :fournisseurs }.each do |nom, fn|
