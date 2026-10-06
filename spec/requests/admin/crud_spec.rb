@@ -397,7 +397,7 @@ RSpec.describe 'Administration' do
         .to end_with('La solution API Impôt particulier (Logiciel métier) deviendra privée.')
     end
 
-    it 'range chaque longue liste de cases dans un groupe filtrable, sans champ envoyé avec le formulaire' do
+    it 'range chaque longue liste de cases dans un groupe filtrable qui montre tous les choix à l’entrée, sans champ envoyé' do
       {
         'demarches' => ['Fournisseurs de services', 'Intégrations'], 'solutions' => ['Organisations', 'Fournisseurs de services'],
         'integrations' => ['Démarches'], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
@@ -408,7 +408,8 @@ RSpec.describe 'Administration' do
         expect(filtrables.map { |groupe| groupe.at_css('legend').text.strip }).to eq(groupes)
         filtrables.each do |groupe|
           filtre = groupe.at_css('input[type=search]')
-          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer')
+          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer', 'entrer dans le champ affiche tous les choix')
+          expect(filtre['data-action'].split).to include('focus->liste-filtrable#ouvrir:once')
           expect(filtre['name']).to be_nil
           expect(groupe.at_css('[aria-live=polite]')).to be_present
           expect(groupe.css('input[type=checkbox]')).to all(satisfy { |case_a_cocher| case_a_cocher['name'].end_with?('_ids][]') })
