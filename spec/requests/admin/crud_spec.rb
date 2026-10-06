@@ -1072,7 +1072,8 @@ RSpec.describe 'Administration' do
       get "/admin/solutions/#{avec_image(legende_image: 'Écran d’accueil').id}/edit"
       expect(response.parsed_body.at_css('.fr-upload-group img')['alt']).to eq('Écran d’accueil')
       expect(response.parsed_body.at_css('label[for=solution_image] .fr-hint-text').text).to include('Formats acceptés : png, jpg, webp')
-      expect(response.parsed_body.at_css('input[name="solution[retirer_image]"]')).to be_present
+      expect(response.parsed_body.at_css('label[for=solution_retirer_image] .fr-hint-text').text).to eq('L’image sera retirée à l’enregistrement.')
+      expect(response.parsed_body.at_css('#solution_legende_image').to_h.slice('type', 'value')).to eq('type' => 'text', 'value' => 'Écran d’accueil')
       get "/admin/solutions/#{Solution.create!(nom: 'API QF').id}/edit"
       expect(response.parsed_body.at_css('.fr-upload-group img, input[name="solution[retirer_image]"]')).to be_nil
     end
