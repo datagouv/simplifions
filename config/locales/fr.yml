@@ -88,6 +88,32 @@ fr:
       integration/type_integration:
         expose: "Fournie"
         consomme: "Intégrée"
+    hints:
+      demarche:
+        slug: "Obligatoire si la démarche est visible sur simplifions. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
+        contexte: "Markdown accepté"
+        cadre_juridique: "Markdown accepté"
+        mots_clefs: "Une valeur par ligne, utilisés pour la recherche et le référencement"
+      solution:
+        slug: "Obligatoire si la solution est visible sur simplifions, sauf pour une API ou un jeu de données. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
+        image: "Formats acceptés : png, jpg, webp"
+        types_solution: "Une valeur par ligne, affichées sous le nom de la solution, ex. : Portail agent"
+        categorie: "Une API ou un jeu de données n’a pas de fiche sur le site : slug, site internet, URL de demande d’accès, image, légende, description courte, « permet » et « ne permet pas » restent vides."
+        permet: "Markdown accepté"
+        ne_permet_pas: "Markdown accepté"
+        uid_datagouv: "Pour une API ou un jeu de données : identifiant de sa fiche data.gouv.fr, d’où sont repris son titre, son organisation et son accès."
+        france_connectee: "L’API est accessible avec FranceConnect : elle figure dans l’article sur les API FranceConnectées."
+      recommandation:
+        niveau: "Donnée utile : API ou jeu de données listé sous « Données disponibles » dans les cartes des solutions recommandées. Solution recommandée : carte sur la page du cas d’usage."
+        ordre: "Plus le nombre est petit, plus l’élément apparaît haut sur la page du cas d’usage."
+        donnees_utiles: "Markdown accepté"
+        parametres_a_saisir: "Markdown accepté"
+        description: "Markdown accepté"
+      integration:
+        type_integration: "Fournie : la solution met l’API ou le jeu de données à disposition. Intégrée : la solution l’utilise."
+      type_acteur:
+        description: "Mémo interne, non affiché sur le site"
+        codes_juridiques: "Mémo interne, non affiché sur le site"
     errors:
       models:
         recommandation:

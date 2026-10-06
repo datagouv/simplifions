@@ -1,17 +1,8 @@
 <%= form_with model: [:admin, vocabulaire], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(vocabulaire) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= groupe_de_champ(f, :nom) do |aria| %>
-    <%= libelle_obligatoire(f, :nom) %>
-    <%= f.text_field :nom, class: "fr-input", required: true, **aria %>
-  <% end %>
-  <%= groupe_de_champ(f, :slug) do |aria| %>
-    <%= libelle_obligatoire(f, :slug) %>
-    <%= f.text_field :slug, class: "fr-input", required: true, **aria %>
-  <% end %>
-  <%= groupe_de_champ(f, :categorie, "fr-select-group") do |aria| %>
-    <%= libelle_obligatoire(f, :categorie) %>
-    <%= f.select :categorie, options_traduites(Vocabulaire, :categorie), { include_blank: true }, class: "fr-select", required: true, **aria %>
-  <% end %>
+  <%= f.dsfr_text_field :nom %>
+  <%= f.dsfr_text_field :slug %>
+  <%= f.dsfr_select :categorie, options_traduites(Vocabulaire, :categorie) %>
   <%= render "admin/identifiant_grist", grist_id: vocabulaire.grist_id %>
   <%= render "admin/cases_filtrables", f: f, attribut: :demarche_ids, collection: Demarche.order(:nom), libelle: :nom, legende: "Démarches" %>
   <%= render "admin/cases_filtrables", f: f, attribut: :solution_ids, collection: Solution.par_libelle_admin, libelle: :libelle_admin, legende: "Solutions" %>
