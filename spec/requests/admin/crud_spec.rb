@@ -196,6 +196,16 @@ RSpec.describe 'Administration' do
     let(:attributs) { { nom: 'Particuliers', slug: 'particuliers', categorie: 'usager' } }
   end
 
+  it 'range à part, sur l’accueil, les tables modifiées rarement' do
+    sign_in admin
+    get '/admin'
+    rubriques = response.parsed_body.css('h2').to_h { |titre| [titre.text, titre.next_element.css('a').map(&:text)] }
+    expect(rubriques.slice('Catalogue', 'Référentiels')).to eq(
+      'Catalogue' => %w[Démarches Solutions Recommandations Intégrations Organisations],
+      'Référentiels' => ['Fournisseurs de services', 'Vocabulaires']
+    )
+  end
+
   describe 'recherche dans les listes' do
     before { sign_in admin }
 
