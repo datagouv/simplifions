@@ -131,6 +131,41 @@ RSpec.describe 'Contact' do
     end
   end
 
+  describe 'fiche d’origine' do
+    it 'cite le cas d’usage dans l’objet et le message' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+
+      get contact_path('modifier-cas-usage', demarche: 'cantine')
+
+      expect(response.body).to include('Fiche concernée : <a href="http://www.example.com/demarches/cantine">Cantine à 1€</a>')
+      expect(response.body).to include('Fiche concernée : Cantine à 1€ – http://www.example.com/demarches/cantine')
+      expect(response.body).to include('.data] Modification d&#39;un cas d&#39;usage : Cantine à 1€')
+    end
+
+    it 'cite la solution dans l’objet et le message' do
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+
+      get contact_path('modifier-solution', solution: 'babily')
+
+      expect(response.body).to include('Fiche concernée : Babily – http://www.example.com/solutions/babily')
+      expect(response.body).to include('.data] Modification d&#39;une fiche solution : Babily')
+    end
+
+    it 'ignore une fiche inconnue, non publiée, d’un autre type ou qui n’est pas un texte' do
+      Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
+      Solution.create!(nom: 'Solution homonyme', slug: 'cantine', visible: true, categorie: 'brique_logicielle')
+
+      ['/contact/modifier-cas-usage?demarche=brouillon', '/contact/modifier-cas-usage?demarche=inconnue',
+       '/contact/modifier-cas-usage?solution=cantine', '/contact/modifier-cas-usage?demarche[x]=1',
+       '/contact/modifier-solution?solution[]=cantine'].each do |chemin|
+        get chemin
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include('Fiche concernée', 'Brouillon', 'Solution homonyme')
+      end
+    end
+  end
+
   describe 'GET /contact/autre' do
     it 'rappelle les autres sujets, avec un lien, avant les informations à transmettre' do
       get contact_path('autre')

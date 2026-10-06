@@ -1,6 +1,6 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
 <%= render "pages/contact/titre", titre: "Proposer une modification d'un cas d'usage existant" %>
-<%= render "pages/contact/ecrire", objet: "Modification d'un cas d'usage", informations: [
+<%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.nom, demarche_url(@fiche.slug)], objet: "Modification d'un cas d'usage", informations: [
       "Votre organisation et votre fonction",
       "Le nom et l'URL du cas d'usage concerné",
       "Vos propositions pour améliorer la fiche"

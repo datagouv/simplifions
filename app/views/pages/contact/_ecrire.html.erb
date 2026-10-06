@@ -1,9 +1,13 @@
+<% fiche = local_assigns[:fiche] %>
 <% email = Rails.configuration.x.contact_email %>
-<% sujet = objet_du_message(objet) %>
-<% corps = corps_du_message(informations) %>
-<% corps_du_lien = corps_du_message(informations.map { |libelle, _options| libelle }) %>
+<% sujet = objet_du_message(objet, fiche) %>
+<% corps = corps_du_message(informations, fiche) %>
+<% corps_du_lien = corps_du_message(informations.map { |libelle, _options| libelle }, fiche) %>
 <h3 class="fr-h6">Informations à nous transmettre :</h3>
 <ul class="fr-mb-4w">
+  <% if fiche %>
+    <li>Fiche concernée : <%= link_to(*fiche) %></li>
+  <% end %>
   <% informations.each do |libelle, _options| %>
     <li><%= libelle %></li>
   <% end %>
