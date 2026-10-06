@@ -2,7 +2,7 @@ class Admin::DemarchesController < Admin::BaseController
   before_action :set_demarche, only: %i[edit update destroy]
 
   def index
-    @demarches = paginer(Demarche.recherche(params[:q]).order(:id))
+    @demarches = paginer(Demarche.ransack(recherche: params[:q].to_s).result.order(:id))
   end
 
   def new

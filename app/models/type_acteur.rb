@@ -13,6 +13,7 @@ class TypeActeur < ApplicationRecord
   }.freeze
 
   validates :nom, presence: true
+  def self.ransackable_attributes(_auth_object = nil) = %w[nom]
   normalizes :grist_id, with: ->(valeur) { valeur.presence }
   validates :grist_id, uniqueness: true, allow_nil: true
 

@@ -2,6 +2,7 @@ class Organisation < ApplicationRecord
   PUBLIC_OU_PRIVE = %w[Public Privé].freeze
 
   validates :nom, presence: true
+  def self.ransackable_attributes(_auth_object = nil) = %w[nom]
   normalizes :grist_id, with: ->(valeur) { valeur.presence }
   validates :grist_id, uniqueness: true, allow_nil: true
   validates :public_ou_prive, inclusion: { in: PUBLIC_OU_PRIVE }, allow_blank: true

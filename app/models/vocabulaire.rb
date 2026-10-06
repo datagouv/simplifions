@@ -10,6 +10,7 @@ class Vocabulaire < ApplicationRecord
   }.freeze
 
   validates :nom, presence: true
+  def self.ransackable_attributes(_auth_object = nil) = %w[nom]
   normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
   validates :grist_id, uniqueness: true, allow_nil: true
   validates :slug, presence: true, format: { with: FORMAT_SLUG, message: :format_slug, allow_nil: true }

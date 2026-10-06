@@ -223,6 +223,17 @@ RSpec.describe 'Administration' do
       expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet → API QF (API) (intégrée)'])
       expect(noms_listes('integrations', 'entreprise')).to be_empty
     end
+
+    it 'cherche une démarche par sa description, un nombre comme du texte, et ignore les accents saisis' do
+      Demarche.create!(nom: 'Étape 1', description_courte: 'Cantine')
+      Demarche.create!(nom: 'Autre')
+      Organisation.create!(nom: 'Prefecture')
+
+      expect(noms_listes('demarches', '1')).to eq(['Étape 1'])
+      expect(noms_listes('demarches', 'cantine etape')).to eq(['Étape 1'])
+      expect(noms_listes('organisations', 'PRÉFECTURE')).to eq(['Prefecture'])
+      expect(noms_listes('organisations', '%')).to be_empty
+    end
   end
 
   describe 'pagination des listes' do

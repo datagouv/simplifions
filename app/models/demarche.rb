@@ -17,6 +17,8 @@ class Demarche < ApplicationRecord
   def acteurs = types_acteurs.map(&:nom).sort
 
   scope :recherche, ->(q) { chaque_mot_dans("unaccent(concat_ws(' ', nom, description_courte, array_to_string(mots_clefs, ' '))) ILIKE unaccent(:motif)", q) }
+  def self.ransackable_attributes(_auth_object = nil) = %w[nom]
+  def self.ransackable_scopes(_auth_object = nil) = %w[recherche]
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 

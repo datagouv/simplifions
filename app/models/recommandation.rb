@@ -13,11 +13,7 @@ class Recommandation < ApplicationRecord
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
   def libelle = "#{demarche.nom} → #{solution.libelle_admin}"
 
-  scope :nom_contient, lambda { |q|
-    q.to_s.split.reduce(all) do |liste, terme|
-      liste.where(demarche: Demarche.nom_contient(terme)).or(liste.where(solution: Solution.nom_contient(terme)))
-    end
-  }
+  def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 
   validate :ne_recommande_pas_de_solution_privee
 

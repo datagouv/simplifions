@@ -2,7 +2,7 @@ class Admin::TypesActeursController < Admin::BaseController
   before_action :set_type_acteur, only: %i[show edit update destroy]
 
   def index
-    @types_acteurs = paginer(TypeActeur.nom_contient(params[:q]).order(:id))
+    @types_acteurs = paginer(TypeActeur.rechercher(params[:q], :nom_sans_accent_cont).order(:id))
   end
 
   def show; end

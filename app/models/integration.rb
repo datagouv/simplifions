@@ -17,11 +17,6 @@ class Integration < ApplicationRecord
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
   def libelle = "#{integratrice.libelle_admin} → #{integree.libelle_admin} (#{self.class.human_attribute_name("type_integration.#{type_integration}").downcase})"
 
-  scope :nom_contient, lambda { |q|
-    q.to_s.split.reduce(all) do |liste, terme|
-      solutions = Solution.nom_contient(terme)
-      liste.where(integratrice: solutions).or(liste.where(integree: solutions))
-    end
-  }
+  def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
 end

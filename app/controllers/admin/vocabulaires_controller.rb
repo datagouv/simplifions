@@ -2,7 +2,7 @@ class Admin::VocabulairesController < Admin::BaseController
   before_action :set_vocabulaire, only: %i[edit update destroy]
 
   def index
-    @vocabulaires = paginer(Vocabulaire.nom_contient(params[:q]).order(:id))
+    @vocabulaires = paginer(Vocabulaire.rechercher(params[:q], :nom_sans_accent_cont).order(:id))
   end
 
   def new
