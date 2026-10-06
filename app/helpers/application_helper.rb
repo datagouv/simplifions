@@ -41,13 +41,13 @@ module ApplicationHelper
     link_to 'Voir la fiche', fiche_admin(ligne), class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
   end
 
-  def options_traduites(modele, enum)
-    modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
+  def pagination(liste, filtres)
+    gardes = [*filtres, *request.path_parameters.keys, *Kaminari::Helpers::PARAM_KEY_EXCEPT_LIST].map(&:to_s)
+    paginate liste, params: (request.query_parameters.keys - gardes).index_with(nil)
   end
 
-  def page_et_pages(total, page, par_page)
-    pages = [(total / par_page.to_f).ceil, 1].max
-    [page.to_i.clamp(1, pages), pages]
+  def options_traduites(modele, enum)
+    modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
   end
 
   def rafraichissement_en_cours?(passage) = passage.present? && !passage.finished? && !passage.failed?

@@ -79,6 +79,12 @@ RSpec.describe 'Demarches' do
       expect(response.body).to match(/aria-current="page"[^>]*title="Page 1"|title="Page 1"[^>]*aria-current="page"/)
     end
 
+    it 'ne reprend dans les liens de pagination que les filtres du catalogue' do
+      get '/demarches?q=demarche&params[q]=autre&foo=bar'
+
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/demarches?page=2&q=demarche')
+    end
+
     it 'remplace la liste vide par l’invitation à réinitialiser les filtres, comme le site' do
       get demarches_path(q: 'zzzz', 'target-users' => 'particuliers')
 

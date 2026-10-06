@@ -1,0 +1,2 @@
+<% classe = "fr-pagination__link fr-pagination__link--prev fr-pagination__link--lg-label" %>
+<li><%= current_page.first? ? tag.a(t("views.pagination.previous"), class: classe, role: "link", aria: { disabled: true }) : link_to(t("views.pagination.previous"), url, class: classe) %></li>

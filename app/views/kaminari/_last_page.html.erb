@@ -1,0 +1,2 @@
+<% classe = "fr-pagination__link fr-pagination__link--last" %>
+<li><%= current_page.last? ? tag.a(t("views.pagination.last"), class: classe, role: "link", aria: { disabled: true }) : link_to(t("views.pagination.last"), url, class: classe) %></li>

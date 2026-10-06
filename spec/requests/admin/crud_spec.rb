@@ -249,6 +249,9 @@ RSpec.describe 'Administration' do
       get '/admin/demarches', params: { q: 'aides', page: 2 }
       expect(response.parsed_body.css('tbody tr').size).to eq(10)
 
+      get '/admin/demarches', params: { q: 'aides', foo: 'bar', params: { q: 'autre' } }
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/demarches?page=2&q=aides')
+
       get '/admin/demarches', params: { page: ['2'] }
       expect(response.parsed_body.css('tbody tr').size).to eq(50)
     end

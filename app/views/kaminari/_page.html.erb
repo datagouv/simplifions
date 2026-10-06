@@ -1,0 +1,1 @@
+<li><%= page.current? ? tag.a(page, class: "fr-pagination__link", title: "Page #{page}", role: "link", aria: { current: "page" }) : link_to(page, url, class: "fr-pagination__link", title: "Page #{page}") %></li>

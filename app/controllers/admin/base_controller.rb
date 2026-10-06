@@ -1,17 +1,11 @@
 class Admin::BaseController < ApplicationController
-  PAR_PAGE = 50
-
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   helper_method :en_base, :nom_en_base, :fil_d_ariane
 
   private
 
-  def paginer(liste)
-    @total = liste.count
-    @page, @pages = helpers.page_et_pages(@total, params[:page].to_s, PAR_PAGE)
-    liste.offset((@page - 1) * PAR_PAGE).limit(PAR_PAGE)
-  end
+  def paginer(liste) = super(liste, 50)
 
   def redirige_vers_la_fiche(ligne)
     redirect_to helpers.fiche_admin(ligne), notice: t('admin.enregistre', nom: nom_de(ligne)), status: :see_other

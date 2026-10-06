@@ -3,7 +3,7 @@
 <div class="fr-container fr-mb-6w">
   <h1>Démarches</h1>
   <%= link_to "Ajouter", new_admin_demarche_path, class: "fr-btn fr-mb-3w" %>
-  <%= render "recherche" %>
+  <%= render "recherche", total: @demarches.total_count %>
   <div class="fr-table">
     <table>
       <thead>
@@ -25,5 +25,5 @@
       </tbody>
     </table>
   </div>
-  <%= render "pagination" %>
+  <%= pagination @demarches, %w[q] %>
 </div>
