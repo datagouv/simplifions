@@ -108,7 +108,7 @@ module ApplicationHelper
     if passage.failed?
       "échoué (#{passage.failed_execution.message})"
     elsif passage.finished?
-      "terminé le #{l(passage.finished_at.in_time_zone('Europe/Paris'), format: :court)}"
+      "terminé le #{l(passage.finished_at, format: :court)}"
     else
       'en cours'
     end

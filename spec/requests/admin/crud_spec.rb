@@ -247,11 +247,12 @@ RSpec.describe 'Administration' do
     before { sign_in admin }
 
     it 'montre si la démarche, la solution ou la recommandation est visible, et sa date de modification' do
-      aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, modifie_le: Time.zone.local(2026, 10, 4, 23, 30))
+      aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, modifie_le: Time.utc(2026, 10, 4, 23, 30))
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
       Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1, visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
 
       expect(colonnes('demarches')).to eq([{ 'Nom' => 'Aides', 'Visible' => 'Oui', 'Modifié le' => '05/10/2026' }])
+      expect(response.parsed_body.at_css('tbody time')['datetime']).to eq('2026-10-05T01:30:00+02:00')
       expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
       expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
     end

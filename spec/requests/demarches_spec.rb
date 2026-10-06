@@ -235,6 +235,12 @@ RSpec.describe 'Demarches' do
       expect(response.body).to match(%r{Modifié le <time[^>]*>26 août 2026\.</time>})
     end
 
+    it 'date la modification à l’heure de Paris, lendemain d’une modification à 23 h 30 UTC' do
+      Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, modifie_le: Time.utc(2026, 8, 26, 23, 30))
+      get '/demarches/aides'
+      expect(response.body).to include('Modifié le <time datetime="2026-08-27T01:30:00+02:00">27 août 2026.</time>')
+    end
+
     it 'liste les API et données utiles du niveau 1 avec leurs descriptions, filtrables' do
       expect(response.body).to include('API Quotient familial')
       expect(response.body).to include('Le quotient familial du mois courant.')
