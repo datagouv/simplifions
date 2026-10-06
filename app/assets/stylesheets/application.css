@@ -141,3 +141,16 @@ form :target {
 .lignes-integrations td:nth-child(2) .fr-select {
   min-width: 12rem;
 }
+
+#modele-message {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.contact-groupe {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}

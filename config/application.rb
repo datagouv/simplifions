@@ -24,6 +24,8 @@ module Simplifions
 
     config.active_job.queue_adapter = :solid_queue
 
+    config.x.contact_email = "contact-simplifions@data.gouv.fr"
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

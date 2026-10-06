@@ -1,0 +1,8 @@
+<%= render "pages/contact/retour", vers: contact_path("contenu") %>
+<%= render "pages/contact/titre", titre: "Proposer un nouvel article" %>
+<%= render "pages/contact/avant_ecrire", liens: [["Consulter les articles existants", articles_path]] %>
+<%= render "pages/contact/ecrire", objet: "Proposition d'un nouvel article", informations: [
+      "Votre organisation et votre fonction",
+      "Le sujet de l'article et le public visé",
+      "Un plan ou un premier contenu, si vous en avez un"
+    ] %>
