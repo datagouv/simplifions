@@ -19,9 +19,9 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('alt="numerique.gouv - L’alliance du numérique de l’État"')
     end
 
-    it 'présente le formulaire, et non des espaces de discussion disparus, comme moyen de contribuer' do
+    it 'présente la page de contact, et non des espaces de discussion disparus, comme moyen de contribuer' do
       get root_path
-      expect(response.body).to include('Un formulaire est mis à disposition pour permettre aux usagers')
+      expect(response.body).to include('Une page de contact guidée permet aux usagers')
       expect(response.body).not_to include('De nombreux espaces sont disponibles')
     end
   end
@@ -53,7 +53,8 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('href="/about"')
       expect(response.body).to include('href="/doctrine-referencement-cas-usages"')
       expect(response.body).to include('href="/doctrine-referencement-solutions"')
-      expect(response.body).to include('href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions"')
+      expect(response.body).to include('href="/contact/contenu"')
+      expect(response.body).not_to include('demarches-simplifiees.fr')
       expect(response.body).to include('Explorer le catalogue des démarches')
       expect(response.body).to include('href="/sitemap">Plan du site</a>')
       expect(response.body).to include('href="/terms">Conditions générales')
@@ -101,9 +102,9 @@ RSpec.describe 'Pages' do
       end
     end
 
-    it 'signale la nouvelle fenêtre du formulaire de contenu' do
-      get root_path
-      expect(response.body).to include('title="Formulaire pour proposer un contenu - nouvelle fenêtre"')
+    it 'mène l’about vers la demande de modification de contenu' do
+      get about_path
+      expect(response.body).to include('<a href="/contact/contenu">proposer des modifications</a>')
     end
 
     it 'relie les doctrines et l’about au catalogue et aux niveaux' do
