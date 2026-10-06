@@ -93,7 +93,7 @@ def cascade(page)
   nom = "Vérif verify-map #{Verify.browser}"
   solution = Solution.order(:id).find { |s| !s.privee? }
   demarche = Demarche.create!(nom:)
-  Recommandation.create!(demarche:, solution:)
+  Recommandation.create!(demarche:, solution:, niveau: :niveau_1)
   Verify.login(page)
   page.click_link 'Démarches'
   page.assert_selector 'h1', text: 'Démarches'
@@ -109,10 +109,10 @@ def cascade(page)
       "solution_en_base=#{Solution.where(id: solution.id).count}")
   end
   organisation = Organisation.order(:id).find { |o| o.solutions_rendues_privees.exists? }
-  privees = organisation.solutions_rendues_privees.order(:nom).pluck(:nom)
+  privees = organisation.solutions_rendues_privees.map(&:libelle_admin)
   page.visit("/admin/organisations/#{organisation.id}/edit")
   message = page.dismiss_confirm { page.click_button 'Supprimer' }
-  raise "confirmation #{message}" unless message.include?(privees.join(', '))
+  raise "confirmation #{message}" unless privees.all? { |libelle| message.include?(libelle) }
 
   Verify.evidence('admin-supprimer-demarche', page, 'organisation-annulee',
     "organisation=#{organisation.id} privees=#{privees.size} en_base=#{Organisation.where(id: organisation.id).count} confirmation=#{message}")
@@ -126,7 +126,7 @@ def saisies(page)
   page.visit("/admin/solutions/#{solution.id}/edit")
   page.fill_in 'Site internet', with: 'www.exemple-verif.fr'
   page.click_button 'Enregistrer'
-  page.assert_text "« #{solution.nom} » enregistré."
+  page.assert_text "« #{solution.libelle_admin} » enregistré."
   page.visit("/solutions/#{solution.slug}")
   page.assert_selector :link, 'Site de la solution', href: 'https://www.exemple-verif.fr'
   Verify.evidence('admin-saisies-controlees', page, 'url-completee',
