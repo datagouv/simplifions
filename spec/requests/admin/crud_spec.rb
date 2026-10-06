@@ -292,6 +292,12 @@ RSpec.describe 'Administration' do
       expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
     end
 
+    it 'place l’icône d’une démarche devant son nom, sans la lire aux lecteurs d’écran' do
+      Demarche.create!(nom: 'Eau', icone: '💧')
+      expect(colonnes('demarches').first['Nom']).to eq('💧 Eau')
+      expect(response.parsed_body.at_css('tbody [aria-hidden=true]').text).to eq('💧')
+    end
+
     it 'montre l’intégratrice, l’intégrée, le type et le statut d’une intégration dans des colonnes séparées' do
       Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF', categorie: 'api'),
         type_integration: 'consomme', statut: '✅ en production')

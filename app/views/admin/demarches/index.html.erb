@@ -18,7 +18,7 @@
         <% @demarches.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= link_to ligne.nom, edit_admin_demarche_path(ligne) %></td>
+            <td><%= tag.span(ligne.icone, aria: { hidden: true }) if ligne.icone.present? %> <%= link_to ligne.nom, edit_admin_demarche_path(ligne) %></td>
             <%= render "visible_et_modifie_le", ligne: %>
           </tr>
         <% end %>
