@@ -11,11 +11,14 @@
       <%= image_tag en_base.image, alt: en_base.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
       <div class="fr-checkbox-group fr-mt-1w">
         <%= check_box_tag "solution[retirer_image]", "1", params.dig(:solution, :retirer_image) == "1" %>
-        <%= label_tag "solution_retirer_image", "Retirer l’image", class: "fr-label" %>
+        <%= label_tag "solution_retirer_image", class: "fr-label" do %>
+          Retirer l’image
+          <span class="fr-hint-text">L’image sera retirée à l’enregistrement.</span>
+        <% end %>
       </div>
     <% end %>
   <% end %>
-  <%= f.dsfr_text_area :legende_image, **champ_de_fiche(f, :legende_image) %>
+  <%= f.dsfr_text_field :legende_image, **champ_de_fiche(f, :legende_image) %>
   <%= f.dsfr_text_area :description_courte, **champ_de_fiche(f, :description_courte) %>
   <fieldset class="fr-fieldset" id="<%= f.field_id(:types_solution) %>">
     <legend class="fr-fieldset__legend">
