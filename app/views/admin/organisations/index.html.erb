@@ -3,13 +3,14 @@
 <div class="fr-container fr-mb-6w">
   <h1>Organisations</h1>
   <%= link_to "Ajouter", new_admin_organisation_path, class: "fr-btn fr-mb-3w" %>
-  <%= render "recherche", total: @organisations.total_count %>
+  <%= render "recherche", total: @organisations.length %>
   <div class="fr-table">
     <table>
       <thead>
         <tr>
           <th>Id</th>
-          <th>Nom</th>
+          <th>Nom court</th>
+          <th>Nom long</th>
         </tr>
       </thead>
       <tbody>
@@ -17,10 +18,10 @@
           <tr>
             <td><%= ligne.id %></td>
             <td><%= link_to ligne.nom, edit_admin_organisation_path(ligne) %></td>
+            <td><%= ligne.nom_long %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   </div>
-  <%= pagination @organisations, %w[q] %>
 </div>
