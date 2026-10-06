@@ -500,13 +500,11 @@ RSpec.describe 'Administration' do
       expect(liens_vers_les_fiches('/admin/demarches/new')).to be_empty
     end
 
-    it 'mène depuis chaque vocabulaire coché d’une démarche ou d’une solution à sa fiche' do
+    it 'ne propose aucun lien sous un vocabulaire coché d’une démarche ou d’une solution' do
       usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
-      Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager')
-      attendu = [['Voir la fiche Particuliers', "/admin/vocabulaires/#{usager.id}/edit", false]]
 
-      expect(liens_vers_les_fiches("/admin/demarches/#{Demarche.create!(nom: 'Aides', vocabulaires: [usager]).id}/edit")).to eq(attendu)
-      expect(liens_vers_les_fiches("/admin/solutions/#{Solution.create!(nom: 'Bouquet', vocabulaires: [usager]).id}/edit")).to eq(attendu)
+      expect(liens_vers_les_fiches("/admin/demarches/#{Demarche.create!(nom: 'Aides', vocabulaires: [usager]).id}/edit")).to be_empty
+      expect(liens_vers_les_fiches("/admin/solutions/#{Solution.create!(nom: 'Bouquet', vocabulaires: [usager]).id}/edit")).to be_empty
     end
 
     it 'mène depuis une recommandation à sa démarche et sa solution, depuis une intégration à ses deux solutions' do
