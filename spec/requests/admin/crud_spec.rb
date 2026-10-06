@@ -298,10 +298,11 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('tbody [aria-hidden=true]').text).to eq('💧')
     end
 
-    it 'montre l’intégratrice, l’intégrée, le type et le statut d’une intégration dans des colonnes séparées' do
+    it 'titre les colonnes des intégrations avec les libellés du formulaire' do
       Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF', categorie: 'api'),
         type_integration: 'consomme', statut: '✅ en production')
-      expect(colonnes('integrations')).to eq([{ 'Intégratrice' => 'Bouquet', 'Intégrée' => 'API QF (API)', 'Type' => 'Intégrée', 'Statut' => '✅ en production' }])
+      expect(colonnes('integrations')).to eq([{ 'Solution' => 'Bouquet', 'API ou jeu de données' => 'API QF (API)', 'Type d’intégration' => 'Intégrée',
+                                                'Statut de l’intégration' => '✅ en production' }])
       expect(response.parsed_body.at_css('tbody a')['aria-label']).to eq('Bouquet → API QF (API) (intégrée)')
     end
 
