@@ -3,7 +3,7 @@
 <div class="fr-container fr-mb-6w">
   <h1>Organisations</h1>
   <%= link_to "Ajouter", new_admin_organisation_path, class: "fr-btn fr-mb-3w" %>
-  <%= render "recherche" %>
+  <%= render "recherche", total: @organisations.total_count %>
   <div class="fr-table">
     <table>
       <thead>
@@ -22,5 +22,5 @@
       </tbody>
     </table>
   </div>
-  <%= render "pagination" %>
+  <%= pagination @organisations, %w[q] %>
 </div>

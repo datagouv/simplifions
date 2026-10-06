@@ -2,10 +2,8 @@
              Solution => ['Solutions', SolutionCardComponent, :solutions_path] }
    titre, carte, chemin = types.fetch(@catalogue.klass)
    content_for :title, titre
-   total = @catalogue.count
-   page, pages = page_et_pages(total, @filtres[:page], 20)
-   resultats = @catalogue.offset((page - 1) * 20).limit(20)
-   requete = @filtres.to_h.except('page').compact_blank
+   total = @catalogue.total_count
+   requete = @filtres.to_h.compact_blank
    facettes = [['fournisseurs-de-service', 'Démarches gérées par :', "Tous les types d'acteurs", TypeActeur::FILTRES.to_a],
                ['target-users', 'Démarches à destination des :', 'Tous les usagers', Vocabulaire.categorie_usager.choix],
                ['categorie-de-solution', 'Catégorie de solution :', 'Toutes les catégories', Vocabulaire.categorie_solution.choix],
@@ -75,11 +73,11 @@
           </div>
 
           <ul class="list-none fr-p-0 fr-mt-1w">
-            <% resultats.each do |resultat| %>
+            <% @catalogue.each do |resultat| %>
               <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
             <% end %>
           </ul>
-          <%= render "pagination", page:, pages:, chemin:, requete: %>
+          <%= pagination @catalogue, ApplicationController::FILTRES_CATALOGUE %>
         <% end %>
       </section>
     </div>

@@ -3,7 +3,7 @@
 <div class="fr-container fr-mb-6w">
   <h1>Fournisseurs de services</h1>
   <%= link_to "Ajouter", new_admin_type_acteur_path, class: "fr-btn fr-mb-3w" %>
-  <%= render "recherche" %>
+  <%= render "recherche", total: @types_acteurs.total_count %>
   <div class="fr-table">
     <table>
       <thead>
@@ -24,5 +24,5 @@
       </tbody>
     </table>
   </div>
-  <%= render "pagination" %>
+  <%= pagination @types_acteurs, %w[q] %>
 </div>

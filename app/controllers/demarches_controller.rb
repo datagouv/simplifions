@@ -1,7 +1,7 @@
 class DemarchesController < ApplicationController
   def index
     @filtres = filtres_catalogue
-    @catalogue = Demarche.catalogue(@filtres).includes(:vocabulaires, :types_acteurs)
+    @catalogue = paginer(Demarche.catalogue(@filtres).includes(:vocabulaires, :types_acteurs), 20)
   end
 
   def show

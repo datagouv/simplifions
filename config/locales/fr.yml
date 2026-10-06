@@ -148,6 +148,13 @@ fr:
       record_invalid: "La validation a échoué : %{errors}"
       format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
+  views:
+    pagination:
+      first: "Première page"
+      previous: "Page précédente"
+      next: "Page suivante"
+      last: "Dernière page"
+      truncate: "…"
   admin:
     enregistre: "« %{nom} » enregistré."
     erreurs:
