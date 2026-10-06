@@ -1051,6 +1051,33 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'éléments liés à une solution' do
+    before { sign_in admin }
+
+    def elements_lies(solution)
+      get "/admin/solutions/#{solution.id}/edit"
+      response.parsed_body.css('#elements-lies h3').to_h do |titre|
+        [titre.text, titre.next_element.css('a').map { |lien| [lien.text, lien['href']] }]
+      end
+    end
+
+    it 'montre en lecture les démarches qui la recommandent, ses intégratrices et ce qu’elle intègre, avec un lien' do
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle')
+      aides = Demarche.create!(nom: 'Aides')
+      Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
+      %w[consomme expose].each { |type_integration| Integration.create!(integratrice: bouquet, integree: api_qf, type_integration:) }
+
+      expect(elements_lies(api_qf)).to eq(
+        'Démarches qui la recommandent' => [['Aides', "/admin/demarches/#{aides.id}/edit"]],
+        'Solutions qui l’intègrent' => [['Bouquet (Brique technique)', "/admin/solutions/#{bouquet.id}/edit"]]
+      )
+      expect(elements_lies(bouquet)).to eq('Ce qu’elle intègre' => [['API QF (API)', "/admin/solutions/#{api_qf.id}/edit"]])
+      get "/admin/solutions/#{Solution.create!(nom: 'Seule').id}/edit"
+      expect(response.parsed_body.at_css('#elements-lies')).to be_nil
+    end
+  end
+
   describe 'image de solution' do
     it 'attache le fichier envoyé par le formulaire' do
       sign_in admin
