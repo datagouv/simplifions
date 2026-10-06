@@ -33,6 +33,7 @@ Rails.application.routes.draw do
   get "niveaux-simplification" => "pages#niveaux_simplification"
   get "terms" => "pages#terms"
   get "accessibility" => "pages#accessibility"
+  get "contact(/:besoin)" => "pages#contact", as: :contact
   get "sitemap" => "pages#sitemap"
 
   get "articles" => "articles#index", as: :articles

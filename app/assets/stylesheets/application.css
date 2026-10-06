@@ -127,3 +127,16 @@ form :target {
 .lignes-modifiables .fr-input {
   width: 5rem;
 }
+
+#modele-message {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.contact-groupe {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}

@@ -68,7 +68,8 @@ RSpec.describe 'Pages' do
       '/doctrine-referencement-solutions' => 'Doctrine de référencement des solutions',
       '/niveaux-simplification' => ['Guide pour la simplification', 'Niveaux de simplification'],
       '/terms' => "Conditions générales d'utilisation",
-      '/accessibility' => 'Accessibilité' }.each do |chemin, (titre, h1)|
+      '/accessibility' => 'Accessibilité',
+      '/contact' => 'Nous contacter' }.each do |chemin, (titre, h1)|
       it "rend #{chemin} avec son titre" do
         get chemin
 
@@ -116,7 +117,7 @@ RSpec.describe 'Pages' do
   end
 
   describe 'GET /sitemap' do
-    it 'liste les sept entrées du site actuel, sans « Jeux de données »' do
+    it 'liste les huit entrées du site actuel, sans « Jeux de données »' do
       get '/sitemap'
 
       expect(response).to have_http_status(:ok)
@@ -125,7 +126,7 @@ RSpec.describe 'Pages' do
       entrees = response.body.scan(%r{<h2><a href="([^"]+)">([^<]+)</a></h2>})
         .map { |chemin, nom| [chemin, CGI.unescapeHTML(nom)] }
       expect(entrees).to eq([['/', 'Accueil'], ['/demarches', "Cas d'usages"], ['/articles', 'Articles'],
-                             ['/solutions', 'Solutions'], ['/about', 'À propos'],
+                             ['/solutions', 'Solutions'], ['/about', 'À propos'], ['/contact', 'Nous contacter'],
                              ['/terms', "Conditions générales d'utilisation"], ['/accessibility', 'Accessibilité']])
       expect(response.body).not_to include('Jeux de données')
     end

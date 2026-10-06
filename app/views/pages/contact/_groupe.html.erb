@@ -1,0 +1,7 @@
+<div class="contact-groupe fr-mt-3w fr-mb-1w">
+  <h3 class="fr-text--lg fr-mb-0"><%= titre %></h3>
+  <% if local_assigns[:catalogue] %>
+    <%= link_to catalogue.first, catalogue.last, class: "fr-link fr-link--sm", target: "_blank", rel: "noopener",
+          title: "#{catalogue.first} - nouvelle fenêtre" %>
+  <% end %>
+</div>
