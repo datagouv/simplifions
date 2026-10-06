@@ -16,43 +16,17 @@
 <% end %>
 <%= form_with model: [:admin, recommandation], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(recommandation) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <div class="fr-checkbox-group fr-mb-3w">
-    <%= f.check_box :visible %>
-    <%= f.label :visible, class: "fr-label" %>
-  </div>
-  <%= groupe_de_champ(f, :solution_id, "fr-select-group") do |aria| %>
-    <%= libelle_obligatoire(f, :solution_id) %>
-    <%= f.collection_select :solution_id, Solution.par_libelle_admin, :id, :libelle_admin, { include_blank: true }, class: "fr-select", required: true, **aria %>
+  <%= f.dsfr_check_box :visible %>
+  <%= f.dsfr_select :solution_id, Solution.par_libelle_admin.map { |solution| [solution.libelle_admin, solution.id] } do %>
     <%= lien_vers_la_fiche(recommandation.solution, recommandation.solution.libelle_admin) if recommandation.solution %>
   <% end %>
-  <div class="fr-input-group">
-    <%= f.label :url_demande_acces, class: "fr-label" %>
-    <%= f.text_field :url_demande_acces, class: "fr-input" %>
-  </div>
-  <%= groupe_de_champ(f, :demarche_id, "fr-select-group") do |aria| %>
-    <%= libelle_obligatoire(f, :demarche_id) %>
-    <%= f.collection_select :demarche_id, Demarche.order(:nom), :id, :nom, { include_blank: true }, class: "fr-select", required: true, **aria %>
-  <% end %>
-  <%= groupe_de_champ(f, :niveau, "fr-select-group") do |aria| %>
-    <%= libelle_avec_aide(f, :niveau, "Donnée utile : API ou jeu de données listé sous « Données disponibles » dans les cartes des solutions recommandées. Solution recommandée : carte sur la page du cas d’usage.", obligatoire: true) %>
-    <%= f.select :niveau, options_traduites(Recommandation, :niveau), { include_blank: true }, class: "fr-select", required: true, **aria %>
-  <% end %>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :ordre, "Plus le nombre est petit, plus l’élément apparaît haut sur la page du cas d’usage.") %>
-    <%= f.number_field :ordre, class: "fr-input" %>
-  </div>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :donnees_utiles, "Markdown accepté") %>
-    <%= f.text_area :donnees_utiles, class: "fr-input", rows: lignes_pour(f.object.donnees_utiles) %>
-  </div>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :parametres_a_saisir, "Markdown accepté") %>
-    <%= f.text_area :parametres_a_saisir, class: "fr-input", rows: lignes_pour(f.object.parametres_a_saisir) %>
-  </div>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :description, "Markdown accepté") %>
-    <%= f.text_area :description, class: "fr-input", rows: lignes_pour(f.object.description) %>
-  </div>
+  <%= f.dsfr_text_field :url_demande_acces %>
+  <%= f.dsfr_select :demarche_id, Demarche.order(:nom).pluck(:nom, :id) %>
+  <%= f.dsfr_select :niveau, options_traduites(Recommandation, :niveau) %>
+  <%= f.dsfr_number_field :ordre %>
+  <%= f.dsfr_text_area :donnees_utiles %>
+  <%= f.dsfr_text_area :parametres_a_saisir %>
+  <%= f.dsfr_text_area :description %>
   <%= render "admin/identifiant_grist", grist_id: recommandation.grist_id %>
   <ul class="fr-btns-group fr-btns-group--inline">
     <li><button type="submit" class="fr-btn">Enregistrer</button></li>

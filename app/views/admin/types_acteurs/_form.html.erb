@@ -1,10 +1,6 @@
-<% memo_interne = "Mémo interne, non affiché sur le site" %>
 <%= form_with model: [:admin, type_acteur], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(type_acteur) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= groupe_de_champ(f, :nom) do |aria| %>
-    <%= libelle_obligatoire(f, :nom) %>
-    <%= f.text_field :nom, class: "fr-input", required: true, **aria %>
-  <% end %>
+  <%= f.dsfr_text_field :nom %>
   <fieldset class="fr-fieldset">
     <legend class="fr-fieldset__legend">
       Regroupements
@@ -19,14 +15,8 @@
       </div>
     <% end %>
   </fieldset>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :description, memo_interne) %>
-    <%= f.text_area :description, class: "fr-input", rows: lignes_pour(f.object.description) %>
-  </div>
-  <div class="fr-input-group">
-    <%= libelle_avec_aide(f, :codes_juridiques, memo_interne) %>
-    <%= f.text_area :codes_juridiques, class: "fr-input", rows: lignes_pour(f.object.codes_juridiques) %>
-  </div>
+  <%= f.dsfr_text_area :description %>
+  <%= f.dsfr_text_area :codes_juridiques %>
   <%= render "admin/identifiant_grist", grist_id: type_acteur.grist_id %>
   <%= render "admin/cases_filtrables", f: f, attribut: :demarche_ids, collection: Demarche.order(:nom), libelle: :nom, legende: "Démarches" %>
   <%= render "admin/cases_filtrables", f: f, attribut: :solution_ids, collection: Solution.par_libelle_admin, libelle: :libelle_admin, legende: "Solutions" %>

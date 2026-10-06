@@ -1,6 +1,7 @@
 class Admin::BaseController < ApplicationController
   PAR_PAGE = 50
 
+  default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   helper_method :en_base, :nom_en_base, :fil_d_ariane
 
