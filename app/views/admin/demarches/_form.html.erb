@@ -9,26 +9,7 @@
   <%= f.dsfr_text_area :cadre_juridique %>
   <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services" %>
   <%= f.dsfr_text_area :mots_clefs %>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend">Vocabulaires</legend>
-    <% vocabulaires_coches = f.object.vocabulaire_ids %>
-    <% options_traduites(Vocabulaire, :categorie).each do |legende, categorie| %>
-      <div class="fr-fieldset__element">
-        <fieldset class="fr-fieldset">
-          <legend class="fr-fieldset__legend fr-text--regular"><%= legende %></legend>
-          <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.where(categorie:).order(:id), :id, :nom do |b| %>
-            <div class="fr-fieldset__element">
-              <div class="fr-checkbox-group">
-                <%= b.check_box %>
-                <%= b.label(class: "fr-label") %>
-              </div>
-              <%= lien_vers_la_fiche(b.object, b.text) if vocabulaires_coches.include?(b.value) %>
-            </div>
-          <% end %>
-        </fieldset>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/vocabulaires", f: f %>
   <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: Integration.includes(:integratrice, :integree).order(:id), libelle: :libelle, legende: "Intégrations" %>
   <%= render "admin/identifiant_grist", grist_id: demarche.grist_id %>
   <ul class="fr-btns-group fr-btns-group--inline">
