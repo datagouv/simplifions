@@ -97,7 +97,7 @@ fr:
       solution:
         slug: "Obligatoire si la solution est visible sur simplifions, sauf pour une API ou un jeu de données. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
         image: "Formats acceptés : png, jpg, webp"
-        types_solution: "Une valeur par ligne, affichées sous le nom de la solution, ex. : Portail agent"
+        types_solution: "Affichés sous le nom de la solution"
         categorie: "Une API ou un jeu de données n’a pas de fiche sur le site : slug, site internet, URL de demande d’accès, image, légende, description courte, « permet » et « ne permet pas » restent vides."
         permet: "Markdown accepté"
         ne_permet_pas: "Markdown accepté"

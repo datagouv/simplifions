@@ -90,6 +90,13 @@ RSpec.describe Grist::Import do
     expect(bouquet.types_solution).to eq([])
   end
 
+  it 'écarte avec une note les types de solution hors de la liste fixe et importe la solution' do
+    stub_grist_champ('Solutions', 32, 'Type_de_solution', ['L', 'Profil acheteur', 'Logiciel', 'Inconnu'])
+
+    expect(result.report[:notes]).to include('Solutions:32 — types de solution hors liste, écartés : Logiciel, Inconnu')
+    expect(Solution.find_by!(grist_id: 'Solutions:32').types_solution).to eq(['Profil acheteur'])
+  end
+
   it 'note les slugs d’un fournisseur de services absents des filtres du site, écartés' do
     stub_grist_champ('Fournisseurs_de_services', 1, 'slugs', %w[L communes comunes inconnu])
 

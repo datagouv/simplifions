@@ -19,6 +19,10 @@ class Solution < ApplicationRecord
 
   has_one_attached :image
 
+  TYPES_SOLUTION = ['Portail usagers', 'Portail agent', 'Profil acheteur', 'API', 'Formulaire en ligne', 'Base de tiers',
+                    "Service d'authentification", "Hub d'échange", 'Annuaire en ligne'].freeze
+  validates :types_solution, inclusion: { in: TYPES_SOLUTION }
+
   DATAGOUV = %i[datagouv_titre datagouv_organisation datagouv_logo datagouv_organisation_badges datagouv_acces
                 datagouv_acces_acteurs_publics].freeze
   before_save -> { assign_attributes(datagouv_vides) }, if: -> { uid_datagouv_changed? && uid_datagouv_was.present? }
@@ -123,7 +127,7 @@ class Solution < ApplicationRecord
   end
 
   def types_solution=(valeur)
-    super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+    super(Array(valeur).compact_blank)
   end
 
   private
