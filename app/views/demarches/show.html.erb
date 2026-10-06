@@ -43,5 +43,5 @@
     <% end %>
   </div>
 
-  <%= render "bloc_modification", sujet: "ce cas d'usage" %>
+  <%= render "bloc_modification", sujet: "ce cas d'usage", lien: contact_path("modifier-cas-usage", demarche: @demarche.slug) %>
 </div>
