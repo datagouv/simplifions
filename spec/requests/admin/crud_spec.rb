@@ -8,6 +8,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let!(:ligne) { modele.create!(attributs) }
   let(:nom) { attributs[:nom] }
   let(:nom_cree) { nom }
+  let(:nom_liste) { nom }
   let(:fiche) { ->(id) { "/admin/#{chemin}/#{id}/edit" } }
 
   def fil_d_ariane = response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }
@@ -22,7 +23,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     get "/admin/#{chemin}"
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("<td>#{ligne.id}</td>")
-    expect(response.parsed_body.at_css("tbody a[href=\"#{fiche.call(ligne.id)}\"]").text).to eq(nom)
+    expect(response.parsed_body.at_css("tbody a[href=\"#{fiche.call(ligne.id)}\"]").text).to eq(nom_liste)
     expect(response.body).not_to include('Supprimer')
     expect(response.parsed_body.css('tbody a').map(&:text)).not_to include('Modifier')
   end
@@ -178,6 +179,7 @@ RSpec.describe 'Administration' do
     let(:modification) { { statut: '✅ en production' } }
     let(:invalide) { [{ integratrice_id: '' }, 'Choisissez une solution'] }
     let(:nom) { 'Bouquet → API QF (fournie)' }
+    let(:nom_liste) { 'Bouquet' }
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do
@@ -230,7 +232,7 @@ RSpec.describe 'Administration' do
       Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api_qf, type_integration: 'consomme')
 
       expect(noms_listes('recommandations', 'aides qf')).to eq(['Aides → API QF (API)'])
-      expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet → API QF (API) (intégrée)'])
+      expect(noms_listes('integrations', 'bouquet qf')).to eq(['Bouquet'])
       expect(noms_listes('integrations', 'entreprise')).to be_empty
     end
 
@@ -288,6 +290,13 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('tbody time')['datetime']).to eq('2026-10-05T01:30:00+02:00')
       expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
       expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
+    end
+
+    it 'montre l’intégratrice, l’intégrée, le type et le statut d’une intégration dans des colonnes séparées' do
+      Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF', categorie: 'api'),
+        type_integration: 'consomme', statut: '✅ en production')
+      expect(colonnes('integrations')).to eq([{ 'Intégratrice' => 'Bouquet', 'Intégrée' => 'API QF (API)', 'Type' => 'Intégrée', 'Statut' => '✅ en production' }])
+      expect(response.parsed_body.at_css('tbody a')['aria-label']).to eq('Bouquet → API QF (API) (intégrée)')
     end
 
     it 'montre le nom court et le nom long des organisations' do

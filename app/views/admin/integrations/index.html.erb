@@ -9,14 +9,20 @@
       <thead>
         <tr>
           <th>Id</th>
-          <th>Ligne</th>
+          <th>Intégratrice</th>
+          <th>Intégrée</th>
+          <th>Type</th>
+          <th>Statut</th>
         </tr>
       </thead>
       <tbody>
         <% @integrations.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= link_to ligne.libelle, edit_admin_integration_path(ligne) %></td>
+            <td><%= link_to ligne.integratrice.libelle_admin, edit_admin_integration_path(ligne), aria: { label: ligne.libelle } %></td>
+            <td><%= ligne.integree.libelle_admin %></td>
+            <td><%= ligne.type_libelle %></td>
+            <td><%= ligne.statut %></td>
           </tr>
         <% end %>
       </tbody>

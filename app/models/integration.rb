@@ -15,7 +15,8 @@ class Integration < ApplicationRecord
   validate { errors.add(:base, :solution_integree_elle_meme) if integratrice_id && integratrice_id == integree_id }
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
-  def libelle = "#{integratrice.libelle_admin} → #{integree.libelle_admin} (#{self.class.human_attribute_name("type_integration.#{type_integration}").downcase})"
+  def libelle = "#{integratrice.libelle_admin} → #{integree.libelle_admin} (#{type_libelle.downcase})"
+  def type_libelle = self.class.human_attribute_name("type_integration.#{type_integration}")
 
   def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
