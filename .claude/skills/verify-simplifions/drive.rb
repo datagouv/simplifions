@@ -473,6 +473,8 @@ def liste_filtrable(page)
   categories = page.all('fieldset fieldset > legend').map(&:text)
   raise "groupes de vocabulaires #{categories}" unless categories == ['Usager', 'Type de simplification', 'Catégorie de solution']
 
+  raise 'lien sous un vocabulaire' if page.find('fieldset', text: 'Vocabulaires', match: :first).has_link?('Voir la fiche', wait: 0)
+
   groupe = page.find('fieldset', text: 'Filtrer les intégrations')
   coches = cases_affichees(groupe)
   raise "cases visibles sans filtre #{coches.size}" unless coches.size == 2 && coches.all?(&:checked?)
@@ -481,6 +483,15 @@ def liste_filtrable(page)
   raise "compte #{compte}" unless compte == "2 cochés sur #{integrations.size}"
 
   Verify.evidence(dossier, page, 'cochees-seules', "visibles=#{coches.size} compte=#{compte} en_base=#{demarche.integration_ids.size} vocabulaires=#{categories.join(' | ')}")
+  page.execute_script("document.querySelectorAll('input[name=\"demarche[vocabulaire_ids][]\"]:not([type=hidden])').forEach((c, i, l) => i === l.length - 1 && c.focus())")
+  page.send_keys :tab
+  raise 'Tab n’entre pas dans le filtre' unless page.evaluate_script('document.activeElement.id') == 'demarche_integration_ids_filtre'
+
+  tous = cases_affichees(groupe).size
+  raise "cases visibles à l’entrée #{tous}" unless tous == integrations.size
+  raise 'compte changé à l’entrée' unless groupe.find('[aria-live=polite]').text == compte
+
+  Verify.evidence(dossier, page, 'tous-a-l-entree', "visibles=#{tous} total=#{integrations.size} compte=#{compte}")
   saisie = I18n.transliterate(cible.libelle).upcase.scan(/[[:alnum:]]+/).join(' ')
   groupe.fill_in 'Filtrer les intégrations', with: saisie
   groupe.find('label', text: cible.libelle, exact_text: true)
