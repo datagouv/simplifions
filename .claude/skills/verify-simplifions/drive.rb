@@ -360,7 +360,7 @@ def listes_lisibles(page)
   page.click_link 'Intégrations'
   integration = Integration.includes(:integratrice, :integree).order(:id).first
   attendu = [integration.id.to_s, integration.integratrice.libelle_admin, integration.integree.libelle_admin, integration.type_libelle, integration.statut.to_s]
-  raise "entetes #{page.all('thead th').map(&:text)}" unless page.all('thead th').map(&:text) == %w[Id Intégratrice Intégrée Type Statut]
+  raise "entetes #{page.all('thead th').map(&:text)}" unless page.all('thead th').map(&:text) == ['Id', 'Solution', 'API ou jeu de données', 'Type d’intégration', 'Statut de l’intégration']
   raise "intégration #{lignes_affichees(page).first} != #{attendu}" unless lignes_affichees(page).first == attendu
 
   Verify.evidence(dossier, page, 'integrations-colonnes', "premiere=#{attendu.join(' | ')}")
