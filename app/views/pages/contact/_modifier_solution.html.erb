@@ -1,6 +1,6 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
 <%= render "pages/contact/titre", titre: "Proposer une modification d'une fiche solution existante" %>
-<%= render "pages/contact/ecrire", objet: "Modification d'une fiche solution", informations: [
+<%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.nom, solution_url(@fiche.slug)], objet: "Modification d'une fiche solution", informations: [
       "Votre organisation et votre fonction",
       "Le nom de la solution et l'URL de sa fiche",
       "Vos propositions pour améliorer la fiche"
