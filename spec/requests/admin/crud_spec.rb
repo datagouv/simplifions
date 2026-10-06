@@ -781,7 +781,7 @@ RSpec.describe 'Administration' do
 
     it 'explique les champs ambigus dans leur libellé' do
       {
-        Recommandation => %w[niveau ordre], Solution => %w[uid_datagouv france_connectee types_solution slug],
+        Recommandation => %w[niveau ordre], Solution => %w[uid_datagouv france_connectee slug],
         Demarche => %w[mots_clefs slug], Integration => %w[type_integration]
       }.each do |modele, champs|
         get "/admin/#{modele.model_name.route_key}/new"
@@ -790,6 +790,8 @@ RSpec.describe 'Administration' do
           expect(aide).to be_present, "#{modele}.#{champ}"
         end
       end
+      get '/admin/solutions/new'
+      expect(response.parsed_body.at_css('#solution_types_solution legend .fr-hint-text')).to be_present
     end
 
     it 'annonce les champs obligatoires et laisse le serveur signaler ceux qui manquent' do
@@ -1014,6 +1016,38 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('h1 + .fr-badge').text.strip).to eq('Privée')
       get "/admin/solutions/#{publique.id}/edit"
       expect(response.parsed_body.at_css('h1 + .fr-badge')).to be_nil
+    end
+  end
+
+  describe 'type de solution' do
+    before { sign_in admin }
+
+    def cases_cochees(solution)
+      get "/admin/solutions/#{solution.id}/edit"
+      response.parsed_body.css('input[type=checkbox][name="solution[types_solution][]"][checked]').pluck('value')
+    end
+
+    it 'propose les types de la liste fixe en cases à cocher et enregistre ceux cochés' do
+      get '/admin/solutions/new'
+      expect(response.parsed_body.css('input[type=checkbox][name="solution[types_solution][]"]').pluck('value'))
+        .to eq(Solution::TYPES_SOLUTION)
+
+      solution = Solution.create!(nom: 'Acheteza', types_solution: ['Portail agent'])
+      patch "/admin/solutions/#{solution.id}", params: { solution: { types_solution: ['', 'Profil acheteur', "Hub d'échange"] } }
+      expect(solution.reload.types_solution).to eq(['Profil acheteur', "Hub d'échange"])
+      expect(cases_cochees(solution)).to eq(['Profil acheteur', "Hub d'échange"])
+
+      patch "/admin/solutions/#{solution.id}", params: { solution: { types_solution: [''] } }
+      expect(solution.reload.types_solution).to eq([])
+    end
+
+    it 'refuse un type hors liste et le signale' do
+      solution = Solution.create!(nom: 'Acheteza')
+      patch "/admin/solutions/#{solution.id}", params: { solution: { types_solution: ['Logiciel'] } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.at_css('.fr-alert--error a[href="#solution_types_solution"]').text)
+        .to eq('Type de solution doit être choisi dans la liste')
+      expect(response.parsed_body.at_css('fieldset#solution_types_solution')).to be_present
     end
   end
 

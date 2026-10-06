@@ -17,7 +17,20 @@
   <% end %>
   <%= f.dsfr_text_area :legende_image, **champ_de_fiche(f, :legende_image) %>
   <%= f.dsfr_text_area :description_courte, **champ_de_fiche(f, :description_courte) %>
-  <%= f.dsfr_text_area :types_solution %>
+  <fieldset class="fr-fieldset" id="<%= f.field_id(:types_solution) %>">
+    <legend class="fr-fieldset__legend">
+      <%= Solution.human_attribute_name(:types_solution) %>
+      <span class="fr-hint-text"><%= t("activerecord.hints.solution.types_solution") %></span>
+    </legend>
+    <%= f.collection_check_boxes :types_solution, Solution::TYPES_SOLUTION, :itself, :itself do |b| %>
+      <div class="fr-fieldset__element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+      </div>
+    <% end %>
+  </fieldset>
   <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
         data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
   <%= render "admin/vocabulaires", f: f %>

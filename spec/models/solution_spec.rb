@@ -367,9 +367,16 @@ RSpec.describe Solution do
     end
   end
 
-  describe 'colonnes tableau saisies une valeur par ligne' do
-    it 'découpe types_solution' do
-      expect(described_class.new(types_solution: "api\nbase").types_solution).to eq(%w[api base])
+  describe 'types de solution' do
+    it 'refuse un type hors de la liste fixe en le disant' do
+      expect(described_class.new(nom: 'Acheteza', types_solution: Solution::TYPES_SOLUTION)).to be_valid
+      ligne = described_class.new(nom: 'Acheteza', types_solution: ['Portail agent', 'Logiciel'])
+      expect(ligne).not_to be_valid
+      expect(ligne.errors.full_messages).to eq(['Type de solution doit être choisi dans la liste'])
+    end
+
+    it 'ignore la valeur vide envoyée avec les cases' do
+      expect(described_class.new(types_solution: ['', 'API']).types_solution).to eq(['API'])
     end
   end
 end
