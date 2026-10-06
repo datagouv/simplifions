@@ -53,3 +53,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-brouillon.md](admin-brouillon.md) — on a published démarche or solution, Enregistrer keeps a draft off the public site; Publier puts it online, Abandonner le brouillon drops it.
 - [admin-image-refusee.md](admin-image-refusee.md) — a solution image whose content is not png, jpg or webp is refused, on a hidden and on a published solution, with no file or draft kept.
 - [admin-onglets.md](admin-onglets.md) — démarche and solution edit pages in tabs inside one form; a save reopens its tab, an error opens the tab of the first error.
+- [contact.md](contact.md) — reach /contact/<besoin> from a cas d'usage page: the page is cited in the subject and the e-mail, copy works, the answer-only steps give no address.
