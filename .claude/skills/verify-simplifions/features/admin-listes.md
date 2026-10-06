@@ -1,12 +1,13 @@
 # Chercher et lire les listes de l'admin
 
-Each admin list has a DSFR search bar, 50 rows per page with the site's pagination, and the row's name as the link to its edit page (no `Modifier` button). Démarches, solutions and recommandations also show `Visible` (badge `Oui` / `Non`) and `Modifié le` (Paris date); solutions show `Intégrée par`, the integrating solutions linked to their own edit page.
+Each admin list has a DSFR search bar, 50 rows per page with the site's pagination (organisations: every row on one page, so Ctrl+F finds one), and the row's name as the link to its edit page (no `Modifier` button). Démarches, solutions and recommandations also show `Visible` (badge `Oui` / `Non`) and `Modifié le` (Paris date); solutions show `Intégrée par`, the integrating solutions linked to their own edit page.
 
 ## Sub-features
 
 - `admin-recherche` field `Rechercher` + button `Rechercher` (GET `?q=`), accents and case ignored, every word must match. Démarches and solutions reuse the public catalogue search (name, short description, keywords for démarches); recommandations and intégrations match the names of the démarche and solutions they link; the other tables match the name.
 - `admin-pagination` 50 rows, `Page 2` link keeps `q`.
-- `admin-colonnes` headers `Id`, `Nom` (or `Ligne`), `Privée` (solutions only, badge `Oui` / `Non`), `Visible`, `Modifié le`, `Intégrée par` (solutions only).
+- `admin-colonnes` headers `Id`, `Nom` (or `Ligne`), `Privée` (solutions only, badge `Oui` / `Non`), `Visible`, `Modifié le`, `Intégrée par` (solutions only). Organisations: `Nom court`, `Nom long`. Intégrations: `Intégratrice` (the link), `Intégrée`, `Type`, `Statut`. Démarches: the icon (`aria-hidden`) before the name link.
+- `admin-accueil` `/admin` groups the links under `Catalogue` and `Référentiels` (Fournisseurs de services, Vocabulaires).
 
 ## How to get to it (user POV)
 
@@ -22,6 +23,13 @@ Each admin list has a DSFR search bar, 50 rows per page with the site's paginati
 - **Integrator link.** In that row, click an `Intégrée par` name: lands on `/admin/solutions/<integratrice id>/edit`.
 - **Joined search.** Recommandations, search `<first word of the démarche> <last word of the solution>`: the recommandation's link is listed.
 - **Proof.** `tmp/verify/admin-listes/`.
+
+`drive.rb listes-lisibles`, read-only, same preconditions.
+
+- **Dashboard.** `/admin`: links under `Référentiels` are `Fournisseurs de services`, `Vocabulaires`.
+- **Organisations.** `click_link "Organisations"`: no `.fr-pagination`, rows = `Organisation.count`; the first organisation with a `nom_long` shows both names in its row.
+- **Intégrations.** `click_link "Intégrations"`: headers `Id Intégratrice Intégrée Type Statut`; first row equals the first integration by id read from the database.
+- **Démarches.** Search the first démarche with an `icone`: its name cell reads `<icone> <nom>`, the icon in an `aria-hidden` span.
 
 ## Gotchas
 
