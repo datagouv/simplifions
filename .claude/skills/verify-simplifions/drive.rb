@@ -759,6 +759,72 @@ ensure
   Solution.where(id: solution&.id).destroy_all
 end
 
+def elements_lies(page)
+  page.all('#elements-lies h3').to_h { |titre| [titre.text, titre.find(:xpath, 'following-sibling::ul[1]').all('a').map(&:text)] }
+end
+
+def types_coches(page) = page.all('input[name="solution[types_solution][]"]', visible: :all).select(&:checked?).map(&:value)
+
+def saisie_solution(page)
+  dossier = 'admin-saisie-solution'
+  nom = "Vérif verify-map #{Verify.browser}"
+  api = Solution.visibles.categorie_api.joins(:integrations_comme_integree).distinct.order(:id).first
+  demarche = Demarche.visibles.order(:id).first
+  solution = Solution.new(nom:, categorie: 'brique_logicielle', legende_image: 'Écran de vérification',
+                          organisations: [Organisation.where(public_ou_prive: 'Public').order(:id).first])
+  solution.image.attach(io: Rails.root.join('app/assets/images/solutions/bouquet-api-entreprise.png').open, filename: 'verif.png')
+  solution.save!
+  Integration.create!(integratrice: solution, integree: api, type_integration: 'consomme')
+  Recommandation.create!(demarche:, solution:, niveau: :niveau_2)
+  Verify.login(page)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  legende = page.find_field('Légende de l’image')
+  aide = page.find('label[for=solution_retirer_image] .fr-hint-text').text
+  lies = elements_lies(page)
+  attendu = { 'Démarches qui la recommandent' => [demarche.nom], 'Ce qu’elle intègre' => [api.libelle_admin] }
+  raise "legende=#{legende.tag_name}/#{legende[:type]} aide=#{aide} lies=#{lies}" unless
+    legende[:type] == 'text' && aide == 'L’image sera retirée à l’enregistrement.' && lies == attendu
+
+  Verify.evidence(dossier, page, 'fiche', "legende=#{legende.tag_name}[type=#{legende[:type]}] aide_retirer=#{aide} lies=#{lies}")
+  page.find('#elements-lies').click_link api.libelle_admin
+  page.assert_selector 'h1', text: api.libelle_admin
+  integratrices = elements_lies(page)['Solutions qui l’intègrent']
+  base = api.integratrices.par_libelle_admin.map { |integratrice| integratrice.libelle_admin.squish }
+  raise "integratrices #{integratrices} != #{base}" unless integratrices == base && integratrices.include?(solution.libelle_admin)
+
+  Verify.evidence(dossier, page, 'api-liee', "url=#{page.current_path} integratrices_page=#{integratrices.size} base=#{base.size} inclut_verif=true")
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  libelles = page.all('#solution_types_solution .fr-label', visible: :all).map { |label| label[:textContent].strip }
+  raise "cases #{libelles}" unless libelles == Solution::TYPES_SOLUTION
+
+  page.check 'Portail agent', allow_label_click: true
+  page.check "Hub d'échange", allow_label_click: true
+  page.find('#solution_types_solution input[value="Portail agent"]', visible: :all).execute_script('this.focus()')
+  page.send_keys(:tab)
+  focus = page.evaluate_script('document.activeElement.value')
+  Verify.evidence(dossier, page, 'cases-cochees', "cases=#{libelles.size} cochees=#{types_coches(page)} tab_apres_portail_agent=#{focus}")
+  page.click_button 'Enregistrer'
+  page.assert_text 'enregistré'
+  enregistres = ActiveRecord::Base.uncached { Solution.find(solution.id).types_solution }
+  raise "base #{enregistres}" unless enregistres == ['Portail agent', "Hub d'échange"]
+
+  Verify.evidence(dossier, page, 'enregistre', "base=#{enregistres} cochees_page=#{types_coches(page)}")
+  page.uncheck 'Portail agent', allow_label_click: true
+  page.click_button 'Enregistrer'
+  page.assert_text 'enregistré'
+  enregistres = ActiveRecord::Base.uncached { Solution.find(solution.id).types_solution }
+  raise "base apres decoche #{enregistres}" unless enregistres == ["Hub d'échange"]
+
+  Verify.evidence(dossier, page, 'decoche', "base=#{enregistres} cochees_page=#{types_coches(page)}")
+  page.current_window.resize_to(320, 1024)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  Verify.evidence(dossier, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+  Verify.logout(page)
+ensure
+  Solution.where(id: solution&.id).destroy_all
+end
+
 def definition(page, terme) = page.find('dt', text: terme, exact_text: true).find(:xpath, 'following-sibling::dd[1]').text
 
 def cases_cochees(page) = page.find('fieldset', text: 'Regroupements', match: :first).all('input[type=checkbox]', visible: :all).select(&:checked?).map(&:value)
@@ -823,6 +889,7 @@ end
   'erreurs' => :erreurs, 'listes' => :listes, 'listes-lisibles' => :listes_lisibles, 'liste-filtrable' => :liste_filtrable,
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
+  'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs }.each do |nom, fn|
   next if only && only != nom
 

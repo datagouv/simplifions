@@ -43,3 +43,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — list and add a démarche's recommandations from its form; a recommandation keeps its démarche in view.
 - [admin-formulaire-solution.md](admin-formulaire-solution.md) — a solution form shows only the fields of its catégorie, its image (removable) and whether it is private.
 - [admin-fournisseurs-de-services.md](admin-fournisseurs-de-services.md) — fournisseurs de services (types d'acteurs): read page first, regroupements ticked from the public filters, memo hints.
+- [admin-saisie-solution.md](admin-saisie-solution.md) — a solution's types as checkboxes on a fixed list, one-line légende, image removal announced, linked démarches and intégrations shown with links.
