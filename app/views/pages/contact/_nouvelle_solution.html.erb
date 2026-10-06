@@ -1,0 +1,13 @@
+<%= render "pages/contact/retour", vers: contact_path("contenu") %>
+<%= render "pages/contact/titre", titre: "Référencer une nouvelle solution" %>
+<%= render "pages/contact/avant_ecrire", liens: [["Rechercher parmi les solutions existantes", solutions_path],
+                                                 ["Lire la doctrine de référencement des solutions", doctrine_referencement_solutions_path]] %>
+<%= render "pages/contact/ecrire", objet: "Référencement d'une nouvelle solution", informations: [
+      "Votre organisation et votre fonction",
+      "Le nom, le site internet et le fournisseur de la solution",
+      "Le type de solution : API, jeu de données, portail usagers, portail agent, formulaire en ligne, hub d'échange, service d'authentification…",
+      ["Les types d'administrations concernées", TypeActeur.order(:id).pluck(:nom)],
+      ["Le public concerné", Vocabulaire.categorie_usager.order(:id).pluck(:nom)],
+      "Les données qui ne sont plus redemandées aux usagers grâce à la solution",
+      "Les cas d'usages couverts par la solution (URL des fiches existantes, ou description)"
+    ] %>

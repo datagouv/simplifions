@@ -1,0 +1,20 @@
+<div class="fr-col-12">
+  <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
+    <div class="fr-tile__body">
+      <div class="fr-tile__content">
+        <%= content_tag local_assigns.fetch(:niveau, :h3), link_to(titre, contact_path(besoin)), class: "fr-tile__title" %>
+        <p class="fr-tile__detail"><%= description %></p>
+      </div>
+    </div>
+    <div class="fr-tile__header">
+      <div class="fr-tile__pictogram">
+        <% chemin = asset_path("artwork/pictograms/#{pictogramme}.svg") %>
+        <svg aria-hidden="true" class="fr-artwork" viewBox="0 0 80 80" width="80" height="80">
+          <use class="fr-artwork-decorative fr-artwork-decorative--blue-france" href="<%= chemin %>#artwork-decorative"></use>
+          <use class="fr-artwork-minor fr-artwork-minor--red-marianne" href="<%= chemin %>#artwork-minor"></use>
+          <use class="fr-artwork-major fr-artwork-major--blue-france" href="<%= chemin %>#artwork-major"></use>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,8 @@
+<%= render "pages/contact/retour", vers: contact_path %>
+<%= render "pages/contact/titre", titre: "J'ai une question sur une API ou un jeu de données" %>
+<p>Simplifions.data.gouv.fr recense les API et les jeux de données mais ne les produit pas. Les demandes d'accès, les habilitations et les incidents sont traités par le fournisseur de chaque API ou jeu de données.</p>
+<p>Retrouvez les coordonnées de contact du fournisseur de données depuis la fiche dédiée sur data.gouv.fr :</p>
+<ul class="fr-mb-4w">
+  <li><%= link_to "Directement depuis la recherche data.gouv.fr", "https://www.data.gouv.fr", target: "_blank", rel: "noopener external", title: "Directement depuis la recherche data.gouv.fr - nouvelle fenêtre" %></li>
+  <li><%= link_to "ou via les démarches référencées sur simplifions.data.gouv.fr", demarches_path %></li>
+</ul>

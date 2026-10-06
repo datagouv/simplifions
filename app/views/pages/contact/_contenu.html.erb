@@ -1,0 +1,33 @@
+<% content_for :etape, "Proposer ou corriger un contenu du site" %>
+<%= render "pages/contact/retour", vers: contact_path %>
+<h2 class="fr-sr-only">Précisez votre demande</h2>
+
+<%= render "pages/contact/groupe", titre: "Cas d'usages", catalogue: ["Voir les cas d'usages", demarches_path] %>
+<div class="fr-grid-row fr-grid-row--gutters">
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouveau-cas-usage", titre: "Proposer un nouveau cas d'usage", pictogramme: "digital/innovation",
+        description: "Une démarche qui peut être simplifiée grâce à la donnée n'est pas encore sur le site." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-cas-usage", titre: "Proposer une modification d'un cas d'usage existant", pictogramme: "document/sign-document",
+        description: "Une information est manquante, obsolète ou erronée sur une fiche cas d'usage." %>
+</div>
+
+<%= render "pages/contact/groupe", titre: "Solutions", catalogue: ["Voir les solutions", solutions_path] %>
+<div class="fr-grid-row fr-grid-row--gutters">
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouvelle-solution", titre: "Référencer une nouvelle solution", pictogramme: "digital/innovation",
+        description: "Un logiciel, un portail, une API ou un jeu de données permet de simplifier une démarche." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-solution", titre: "Proposer une modification d'une fiche solution existante", pictogramme: "document/sign-document",
+        description: "Une information est manquante, obsolète ou erronée sur une fiche solution." %>
+</div>
+
+<%= render "pages/contact/groupe", titre: "Articles", catalogue: ["Voir les articles", articles_path] %>
+<div class="fr-grid-row fr-grid-row--gutters">
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouvel-article", titre: "Proposer un nouvel article", pictogramme: "digital/innovation",
+        description: "Un guide utile aux administrations qui simplifient leurs démarches." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-article", titre: "Proposer une modification d'un article existant", pictogramme: "document/sign-document",
+        description: "Une information est manquante, obsolète ou erronée dans un article." %>
+</div>
+
+<%= render "pages/contact/groupe", titre: "Autre contenu" %>
+<div class="fr-grid-row fr-grid-row--gutters">
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "autre-contenu", titre: "Proposer la modification d'un autre contenu", pictogramme: "leisure/book",
+        description: "Une autre page du site, un lien cassé." %>
+</div>

@@ -1,0 +1,11 @@
+<%= render "pages/contact/retour", vers: contact_path("contenu") %>
+<%= render "pages/contact/titre", titre: "Proposer un nouveau cas d'usage" %>
+<%= render "pages/contact/avant_ecrire", liens: [["Vérifiez que votre cas d'usage n'existe pas déjà", demarches_path],
+                                                 ["Consultez la doctrine de référencement des cas d'usages", doctrine_referencement_cas_usages_path]] %>
+<%= render "pages/contact/ecrire", objet: "Proposition d'un nouveau cas d'usage", informations: [
+      "Votre organisation et votre fonction",
+      "La description de la démarche à simplifier",
+      ["Le public concerné", Vocabulaire.categorie_usager.order(:id).pluck(:nom)],
+      ["Les types d'administrations concernées", TypeActeur.order(:id).pluck(:nom)],
+      "Les API et jeux de données utiles (nom et URL sur Data.gouv.fr si possible)"
+    ] %>
