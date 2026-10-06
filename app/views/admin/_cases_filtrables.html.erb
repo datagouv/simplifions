@@ -6,10 +6,10 @@
     <div class="fr-input-group fr-mb-1w">
       <label class="fr-label" for="<%= filtre %>">
         Filtrer les <%= legende.downcase %>
-        <span class="fr-hint-text">Sans filtre, seuls les éléments cochés sont affichés.</span>
+        <span class="fr-hint-text">Sans filtre, seuls les éléments cochés sont affichés ; entrer dans le champ affiche tous les choix.</span>
       </label>
       <input type="search" id="<%= filtre %>" class="fr-input" autocomplete="off" data-liste-filtrable-target="filtre"
-             data-action="input->liste-filtrable#filtrer keydown.enter->liste-filtrable#filtrer:prevent">
+             data-action="focus->liste-filtrable#ouvrir:once input->liste-filtrable#filtrer keydown.enter->liste-filtrable#filtrer:prevent">
     </div>
     <p class="fr-text--sm fr-mb-0" aria-live="polite" data-liste-filtrable-target="compte"></p>
   </div>
