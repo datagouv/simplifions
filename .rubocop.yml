@@ -170,3 +170,7 @@ RSpec/RepeatedDescription:
 
 Rails/HasAndBelongsToMany:
   Enabled: false
+
+Rails/SkipsModelValidations:
+  Exclude:
+    - "app/models/concerns/brouillonnable.rb"

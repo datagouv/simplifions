@@ -1,7 +1,9 @@
 require 'net/http'
 
 class Solution < ApplicationRecord
-  has_paper_trail ignore: %i[modifie_le]
+  include Brouillonnable
+
+  has_paper_trail ignore: %i[modifie_le brouillon]
 
   validates :nom, presence: true
   normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
