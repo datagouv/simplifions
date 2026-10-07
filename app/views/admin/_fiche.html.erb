@@ -23,7 +23,7 @@
         <% end %>
       <% end %>
       <ul class="fr-btns-group fr-btns-group--sm">
-        <li><button type="submit" form="formulaire-fiche" class="fr-btn">Enregistrer</button></li>
+        <li><button type="submit" form="formulaire-fiche" class="fr-btn" data-enregistrer>Enregistrer</button></li>
         <% if modele.has_attribute?(:visible) %>
           <% publiee = en_base&.visible? %>
           <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="<%= publiee ? 0 : 1 %>" class="fr-btn fr-btn--secondary"><%= publiee ? "Masquer" : "Publier" %></button></li>

@@ -1210,6 +1210,13 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button, input[name="demarche[visible]"]')).to be_empty
     end
 
+    it 'désigne Enregistrer au script qui le grise tant que rien n’a changé, sans le griser côté serveur' do
+      demarche = Demarche.create!(nom: 'Aides')
+      get "/admin/demarches/#{demarche.id}/edit"
+
+      expect(colonne.css('button[data-enregistrer]').map { |bouton| [bouton.text.strip, bouton['disabled']] }).to eq([['Enregistrer', nil]])
+    end
+
     it 'publie en enregistrant les autres champs, masque de même, et laisse l’état tel quel à l’enregistrement' do
       demarche = Demarche.create!(nom: 'Aides')
 
