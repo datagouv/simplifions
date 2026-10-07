@@ -47,3 +47,4 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-colonne-actions.md](admin-colonne-actions.md) — the sticky `État et actions` column of admin forms: save from anywhere, publish or hide, Enter keeps the state, mobile layout.
 - [admin-historique.md](admin-historique.md) — who changed a fiche last and its history page: author (admin, Import Grist, data.gouv), each changed field before → after.
 - [admin-navigation.md](admin-navigation.md) — under `/admin` the header bar lists the seven admin rubriques, the current one marked; the public bar elsewhere.
+- [admin-integrations-de-l-api.md](admin-integrations-de-l-api.md) — an intégration only offers the démarches that recommend its API, and the reverse; an out-of-rule link is marked, refused by the server, dropped by the import.
