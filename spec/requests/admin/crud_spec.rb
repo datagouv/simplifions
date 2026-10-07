@@ -543,7 +543,7 @@ RSpec.describe 'Administration' do
       expect(lien_public("/admin/solutions/#{Solution.create!(nom: 'API QF', categorie: 'api', visible: true).id}/edit")).to be_nil
 
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
-      patch "/admin/demarches/#{demarche.id}", params: { demarche: { slug: 'Mauvais slug' } }
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { slug: 'Mauvais slug', visible: '1' } }
       expect(response.parsed_body.at_css('a:contains("Voir la page publique")')['href']).to eq('/demarches/cantine')
     end
   end
@@ -1331,7 +1331,7 @@ RSpec.describe 'Administration' do
       expect(colonne.css('button[data-enregistrer]').map { |bouton| [bouton.text.strip, bouton['disabled']] }).to eq([['Enregistrer', nil]])
     end
 
-    it 'publie en enregistrant les autres champs, masque de même, et laisse l’état tel quel à l’enregistrement' do
+    it 'publie en enregistrant les autres champs, masque en les gardant en brouillon, et laisse l’état tel quel à l’enregistrement' do
       demarche = Demarche.create!(nom: 'Aides')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
@@ -1345,7 +1345,8 @@ RSpec.describe 'Administration' do
       expect(colonne.at_css('a:contains("Voir la page publique")')['href']).to eq('/demarches/aides')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides', visible: '0' } }
-      expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides', 'visible' => false)
+      expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides locales', 'visible' => false)
+      expect(demarche.brouillon).to include('nom' => 'Aides')
     end
 
     it 'propose de publier tant que la démarche en base est masquée, même si la publication a été refusée' do
@@ -1392,6 +1393,79 @@ RSpec.describe 'Administration' do
         get "/admin/#{chemin}/new"
         expect(boutons_du_formulaire).to eq(boutons), chemin
       end
+    end
+  end
+
+  describe 'brouillon d’une fiche publiée' do
+    let!(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+
+    before { sign_in admin }
+
+    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+    def page_publique = get('/demarches/aides').then { response.parsed_body.at_css('h1').text.squish }
+    def nom_dans_le_formulaire = get("/admin/demarches/#{demarche.id}/edit").then { response.parsed_body.at_css('#demarche_nom')['value'] }
+
+    def actions
+      get "/admin/demarches/#{demarche.id}/edit"
+      colonne.css('button').map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
+    end
+
+    it 'garde Enregistrer en brouillon hors du site, rouvre le formulaire dessus, et le publie' do
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
+      follow_redirect!
+      expect(response.body).to include('« Aides » : brouillon enregistré, non publié.')
+      expect(colonne.text.squish).to include('Publiée', 'Brouillon non publié')
+      expect(page_publique).to include('Aides')
+      expect(page_publique).not_to include('sociales')
+      expect(nom_dans_le_formulaire).to eq('Aides sociales')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales', visible: '1' } }
+      expect(page_publique).to include('Aides sociales')
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text).not_to include('Brouillon')
+    end
+
+    it 'abandonne le brouillon pour revenir au publié' do
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+
+      patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
+      expect(nom_dans_le_formulaire).to eq('Aides')
+      expect(colonne.text).not_to include('Brouillon')
+    end
+
+    it 'enregistre un brouillon incomplet et en refuse la publication avec l’erreur' do
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: '' } }
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Nom doit être rempli')
+      expect(page_publique).to include('Aides')
+    end
+
+    it 'annonce le masquage d’une démarche publiée, sans parler du brouillon gardé' do
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales', visible: '0' } }
+      follow_redirect!
+
+      expect(response.body).to include('« Aides » enregistré.')
+      expect(colonne.text.squish).to include('Masquée', 'Brouillon non publié')
+    end
+
+    it 'écrit directement une démarche masquée' do
+      demarche.update!(visible: false)
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+
+      expect(demarche.reload.slice(:nom, :brouillon)).to eq('nom' => 'Aides sociales', 'brouillon' => nil)
+    end
+
+    it 'propose Publier et Masquer sur une fiche publiée, Abandonner seulement avec un brouillon' do
+      expect(actions).to eq([['Enregistrer', nil, nil], ['Publier', 'demarche[visible]', '1'], ['Masquer', 'demarche[visible]', '0'], ['Supprimer', nil, nil]])
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+      expect(actions.map(&:first)).to eq(['Enregistrer', 'Publier', 'Masquer', 'Abandonner le brouillon', 'Supprimer'])
+      expect(colonne.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to eq('Abandonner le brouillon de « Aides » ? Les modifications non publiées seront perdues.')
     end
   end
 

@@ -4,6 +4,11 @@ class Admin::BaseController < ApplicationController
   before_action :set_paper_trail_whodunnit
   helper_method :modele, :en_base, :nom_en_base, :fil_d_ariane
 
+  def abandonner_brouillon
+    en_base.abandonner_brouillon!
+    redirect_to [:edit, :admin, en_base], notice: t('admin.brouillon_abandonne', nom: nom_en_base), status: :see_other
+  end
+
   private
 
   def paginer(liste) = super(liste, 50)
@@ -11,7 +16,8 @@ class Admin::BaseController < ApplicationController
   def user_for_paper_trail = current_admin.id
 
   def redirige_vers_la_fiche(ligne)
-    redirect_to helpers.fiche_admin(ligne), notice: t('admin.enregistre', nom: nom_de(ligne)), status: :see_other
+    cle = ligne.try(:brouillon?) && ligne.visible? ? 'admin.brouillon_enregistre' : 'admin.enregistre'
+    redirect_to helpers.fiche_admin(ligne), notice: t(cle, nom: nom_de(ligne)), status: :see_other
   end
 
   def fil_d_ariane

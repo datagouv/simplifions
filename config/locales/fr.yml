@@ -160,6 +160,8 @@ fr:
       last: "Dernière page"
       truncate: "…"
   admin:
+    brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
+    brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
     enregistre: "« %{nom} » enregistré."
     erreurs:
       one: "1 erreur à corriger"
