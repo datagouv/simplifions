@@ -1,4 +1,4 @@
-<%# locals: (page_publique: nil, consequences: []) -%>
+<%# locals: (page_publique: nil, consequences: [], en_brouillon: nil) -%>
 <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
   <aside class="fr-col-12 fr-col-md-4 admin-panneau" aria-labelledby="etat-et-actions">
     <div class="fr-p-3w fr-background-alt--grey">
@@ -12,6 +12,9 @@
           <% if (date = en_base.date_du_brouillon) %>
             <p class="fr-text--sm fr-mt-1w fr-mb-0">Brouillon du <time datetime="<%= date.iso8601 %>"><%= l date, format: :court %></time></p>
           <% end %>
+        <% end %>
+        <% if en_brouillon.present? %>
+          <p class="fr-text--sm fr-mt-1w fr-mb-0"><%= en_brouillon %></p>
         <% end %>
         <dl class="fr-pl-0 fr-mt-2w fr-text--sm">
           <% { "Création" => modele.has_attribute?(:cree_le) ? en_base.cree_le : en_base.created_at,

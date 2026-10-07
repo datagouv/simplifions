@@ -16,6 +16,7 @@ class Recommandation < ApplicationRecord
   scope :visibles, -> { where(visible: true) }
   scope :a_publier_avec_la_demarche, -> { where("recommandations.brouillon->>'visible' = '1'") }
   scope :parues, -> { where.not(id: a_publier_avec_la_demarche) }
+  scope :en_brouillon, -> { where.not(brouillon: nil).where(visible: true).or(a_publier_avec_la_demarche) }
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
   def libelle = "#{demarche.nom} → #{solution.libelle_admin}"
 

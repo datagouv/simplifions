@@ -152,6 +152,7 @@ fr:
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
       demarche_hors_regle: "La démarche « %{nom} » ne recommande pas l’API ou le jeu de données intégré"
       integration_hors_regle: "L’intégration « %{libelle} » porte sur une API ou un jeu de données que la démarche ne recommande pas"
+      recommandation_refusee: "La recommandation « %{libelle} » ne peut pas être publiée : %{erreurs}"
   views:
     pagination:
       first: "Première page"
@@ -162,6 +163,10 @@ fr:
   admin:
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
     brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
+    recommandations_en_brouillon:
+      zero: ""
+      one: "1 recommandation en brouillon"
+      other: "%{count} recommandations en brouillon"
     enregistre: "« %{nom} » enregistré."
     erreurs:
       one: "1 erreur à corriger"
