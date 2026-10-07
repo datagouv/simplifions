@@ -1226,11 +1226,51 @@ def brouillon(page)
 
   Verify.evidence(dossier, page, 'abandonne', "base=#{base}")
   brouillon_image(page, dossier, nom, slug)
+  brouillon_recommandations(page, dossier, nom, slug)
   page.visit('/admin')
   Verify.logout(page)
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b"])).destroy_all
+end
+
+def cartes_publiques(page, slug)
+  page.visit("/demarches/#{slug}")
+  page.all('.reco-card').map { it.text.squish }.tap { page.visit('/admin') }
+end
+
+def brouillon_recommandations(page, dossier, nom, slug)
+  demarche = Demarche.find_by!(slug:)
+  modifiee, ajoutee = %w[a b].map { Solution.create!(nom: "#{nom} #{it}", categorie: 'api') }
+  reco = Recommandation.create!(demarche:, solution: modifiee, niveau: :niveau_2, donnees_utiles: 'Avant', visible: true)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.click_link modifiee.libelle_admin
+  page.fill_in 'Données utiles disponibles', with: 'Après'
+  page.click_button 'Enregistrer'
+  page.assert_selector 'aside.admin-panneau', text: /Brouillon — sera publiée avec la démarche/i
+  Verify.evidence(dossier, page, 'reco-modifiee', "base=#{ActiveRecord::Base.uncached { reco.reload.slice(:donnees_utiles, :visible) }} brouillon=#{reco.brouillon&.slice('donnees_utiles')}")
+  page.visit("/admin/recommandations/new?demarche_id=#{demarche.id}")
+  page.select ajoutee.libelle_admin, from: 'Solution (obligatoire)'
+  page.select 'Solution recommandée', from: 'Type de recommandation'
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{demarche.nom} → #{ajoutee.libelle_admin} » : brouillon enregistré, non publié."
+  page.assert_selector 'aside.admin-panneau', text: /Masquée.*Brouillon — sera publiée avec la démarche/im
+  nouvelle = ActiveRecord::Base.uncached { demarche.recommandations.find_by!(solution: ajoutee) }
+  Verify.evidence(dossier, page, 'reco-ajoutee', "visible=#{nouvelle.visible} brouillon=#{nouvelle.brouillon.slice('visible')}")
+  cartes = cartes_publiques(page, slug)
+  raise "page publique avant : #{cartes}" unless cartes.size == 1 && cartes.first.include?('Avant')
+
+  Verify.evidence(dossier, page, 'page-publique-avant', "cartes=#{cartes.size}")
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.assert_selector 'aside.admin-panneau', text: '2 recommandations en brouillon'
+  Verify.evidence(dossier, page, 'demarche-2-en-brouillon', "en_base=#{demarche.recommandations_en_brouillon.count}")
+  page.click_button 'Publier'
+  page.assert_text "« #{demarche.nom} » enregistré."
+  page.assert_no_selector 'aside.admin-panneau', text: 'en brouillon'
+  cartes = cartes_publiques(page, slug)
+  raise "page publique après : #{cartes}" unless cartes.size == 2 && cartes.join.include?('Après')
+
+  Verify.evidence(dossier, page, 'page-publique-apres', "cartes=#{cartes.size} brouillons=#{ActiveRecord::Base.uncached { demarche.recommandations_en_brouillon.count }}")
 end
 
 def brouillon_image(page, dossier, nom, slug)
