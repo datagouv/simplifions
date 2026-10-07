@@ -196,6 +196,7 @@ RSpec.describe 'Administration' do
   it_behaves_like 'un CRUD brut', Vocabulaire, 'vocabulaires' do
     let(:collection) { 'Vocabulaires' }
     let(:attributs) { { nom: 'Particuliers', slug: 'particuliers', categorie: 'usager' } }
+    let(:fiche) { ->(id) { "/admin/vocabulaires/#{id}" } }
   end
 
   it 'range à part, sur l’accueil, les tables modifiées rarement' do
@@ -1188,6 +1189,23 @@ RSpec.describe 'Administration' do
       %w[description codes_juridiques].each do |champ|
         expect(response.parsed_body.at_css("label[for=type_acteur_#{champ}] .fr-hint-text").text).to eq('Mémo interne, non affiché sur le site')
       end
+    end
+  end
+
+  describe 'vocabulaires' do
+    before { sign_in admin }
+
+    it 'se consultent avant de se modifier' do
+      usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager',
+        demarches: [Demarche.create!(nom: 'Aides')], solutions: [Solution.create!(nom: 'Bouquet')])
+      get "/admin/vocabulaires/#{usager.id}"
+      page = response.parsed_body
+      expect([page.at_css('h1').text, page.at_css('title').text]).to eq(['Particuliers', 'Particuliers — Vocabulaire | Simplifions.data.gouv.fr'])
+      expect(page.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }).to eq(%w[Administration Vocabulaires Particuliers])
+      expect(page.css('dt').map { |terme| [terme.text.strip, terme.next_element.text.squish] }).to eq([
+        %w[Slug particuliers], %w[Catégorie Usager], %w[Démarches Aides], %w[Solutions Bouquet]
+      ])
+      expect(page.at_css('a.fr-btn:contains("Modifier")')['href']).to eq("/admin/vocabulaires/#{usager.id}/edit")
     end
   end
 

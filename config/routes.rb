@@ -15,8 +15,8 @@ Rails.application.routes.draw do
   namespace :admin do
     root "dashboard#index"
     resource :rafraichissement, only: :create
-    resources :demarches, :solutions, :recommandations, :integrations, :organisations, :vocabulaires, except: :show
-    resources :types_acteurs
+    resources :demarches, :solutions, :recommandations, :integrations, :organisations, except: :show
+    resources :types_acteurs, :vocabulaires
     get "historique/:type/:id" => "historiques#show", as: :historique
   end
 
