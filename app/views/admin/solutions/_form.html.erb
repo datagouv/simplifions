@@ -6,8 +6,9 @@
   <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
   <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
   <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_fiche(f, :image) do %>
-    <% if en_base&.image&.attached? %>
-      <%= image_tag en_base.image, alt: en_base.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
+    <% image = en_base&.brouillon.to_h.key?("image") ? solution.image : en_base&.image %>
+    <% if image&.attached? && image.blob.persisted? %>
+      <%= image_tag image, alt: solution.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
       <div class="fr-checkbox-group fr-mt-1w">
         <%= check_box_tag "solution[retirer_image]", "1", params.dig(:solution, :retirer_image) == "1" %>
         <%= label_tag "solution_retirer_image", class: "fr-label" do %>
