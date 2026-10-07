@@ -16,7 +16,7 @@ class Admin::BaseController < ApplicationController
   def user_for_paper_trail = current_admin.id
 
   def redirige_vers_la_fiche(ligne)
-    cle = ligne.try(:brouillon?) && ligne.visible? ? 'admin.brouillon_enregistre' : 'admin.enregistre'
+    cle = ligne.try(:brouillon?) && ligne.passe_par_un_brouillon? ? 'admin.brouillon_enregistre' : 'admin.enregistre'
     redirect_to helpers.fiche_admin(ligne), notice: t(cle, nom: nom_de(ligne)), status: :see_other
   end
 

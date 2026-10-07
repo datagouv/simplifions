@@ -1580,6 +1580,26 @@ RSpec.describe 'Administration' do
       expect(colonne.text).not_to include('en brouillon')
     end
 
+    it 'annonce dans sa colonne la recommandation qui paraîtra avec la démarche, la publie seule sur son Publier' do
+      ajouter_bouquet
+      follow_redirect!
+      expect(response.body).to include('« Aides → Bouquet (API) » : brouillon enregistré, non publié.')
+      expect(colonne.text.squish).to include('Masquée', 'Brouillon — sera publiée avec la démarche')
+
+      patch "/admin/recommandations/#{nouvelle.id}", params: { recommandation: { niveau: 'niveau_2', visible: '1' } }
+      expect(cartes_publiques.size).to eq(2)
+      expect(nouvelle.reload.brouillon).to be_nil
+    end
+
+    it 'laisse masquée la nouvelle recommandation dont on abandonne le brouillon' do
+      ajouter_bouquet
+
+      patch "/admin/recommandations/#{nouvelle.id}/abandonner_brouillon"
+      expect(nouvelle.reload.slice(:visible, :brouillon)).to eq('visible' => false, 'brouillon' => nil)
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(cartes_publiques.size).to eq(1)
+    end
+
     it 'laisse masquée la recommandation masquée avec un brouillon quand on publie la démarche' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal', visible: '0' } }
       follow_redirect!
