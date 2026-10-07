@@ -6,7 +6,7 @@
   <%= f.dsfr_text_area :description_courte %>
   <%= f.dsfr_text_area :contexte %>
   <%= f.dsfr_text_area :cadre_juridique %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services" %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
   <%= f.dsfr_text_area :mots_clefs %>
   <%= render "admin/vocabulaires", f: f %>
   <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: Integration.includes(:integratrice, :integree).order(:id), libelle: :libelle, legende: "Intégrations" %>
