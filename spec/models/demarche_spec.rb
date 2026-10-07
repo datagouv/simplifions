@@ -81,4 +81,88 @@ RSpec.describe Demarche do
       expect(described_class.new(mots_clefs: %w[aides subventions]).mots_clefs).to eq(%w[aides subventions])
     end
   end
+
+  describe 'brouillon' do
+    let(:particuliers) { Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
+    let!(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }
+    let!(:demarche) { described_class.create!(nom: 'Cantine', slug: 'cantine', visible: true, vocabulaires: [particuliers]) }
+
+    def en_base = described_class.find(demarche.id)
+
+    it 'garde Enregistrer d’une démarche publiée à part, sans toucher ses colonnes, ses liaisons ni son historique' do
+      expect {
+        expect(demarche.enregistrer('nom' => '', 'vocabulaire_ids' => ['', entreprises.id.to_s])).to be(true)
+      }.not_to change(PaperTrail::Version, :count)
+
+      expect(en_base.slice(:nom, :visible)).to eq('nom' => 'Cantine', 'visible' => true)
+      expect(en_base.vocabulaires).to eq([particuliers])
+      expect(en_base).to be_brouillon
+    end
+
+    it 'rouvre la démarche sur son brouillon, cases cochées comprises, sans écrire la table de liaison' do
+      demarche.enregistrer('nom' => 'Cantine scolaire', 'vocabulaire_ids' => ['', entreprises.id.to_s])
+
+      copie = en_base.appliquer_brouillon
+      expect([copie.nom, copie.vocabulaire_ids, copie.vocabulaires.map(&:nom)]).to eq(['Cantine scolaire', [entreprises.id], ['Entreprises']])
+      expect(en_base.vocabulaires).to eq([particuliers])
+    end
+
+    it 'publie le brouillon complété par le formulaire, avec une version, et le vide' do
+      demarche.enregistrer('nom' => 'Cantine scolaire', 'vocabulaire_ids' => [entreprises.id.to_s])
+
+      expect { en_base.enregistrer('description_courte' => 'Repas', 'visible' => '1') }.to change(PaperTrail::Version, :count).by(1)
+      expect(en_base.slice(:nom, :description_courte, :visible, :brouillon)).to eq('nom' => 'Cantine scolaire', 'description_courte' => 'Repas', 'visible' => true, 'brouillon' => nil)
+      expect(en_base.vocabulaires).to eq([entreprises])
+    end
+
+    it 'enregistre un brouillon incomplet et refuse de le publier' do
+      demarche.enregistrer('nom' => '')
+      ligne = en_base
+
+      expect(ligne.enregistrer('visible' => '1')).to be(false)
+      expect(ligne.errors.full_messages).to eq(['Nom doit être rempli'])
+      expect(en_base.nom).to eq('Cantine')
+      expect(en_base.brouillon).to include('nom' => '')
+    end
+
+    it 'masque la démarche publiée en gardant les modifications en brouillon' do
+      en_base.enregistrer('nom' => 'Cantine scolaire', 'visible' => '0')
+
+      expect(en_base.slice(:nom, :visible)).to eq('nom' => 'Cantine', 'visible' => false)
+      expect(en_base.brouillon).to include('nom' => 'Cantine scolaire')
+    end
+
+    it 'ne garde aucun brouillon identique à la version publiée' do
+      demarche.enregistrer('nom' => 'Cantine', 'mots_clefs' => '', 'vocabulaire_ids' => ['', particuliers.id.to_s], 'visible' => '0')
+
+      expect(en_base.slice(:visible, :brouillon)).to eq('visible' => false, 'brouillon' => nil)
+    end
+
+    it 'compte les retours à la ligne envoyés par le navigateur comme ceux du publié' do
+      demarche.update!(contexte: "Repas\nGoûter")
+      demarche.enregistrer('contexte' => "Repas\r\nGoûter", 'visible' => '0')
+
+      expect(en_base.brouillon).to be_nil
+    end
+
+    it 'compte un champ vide du formulaire comme le champ vide en base' do
+      demarche.enregistrer('nom' => 'Cantine', 'contexte' => '', 'cadre_juridique' => '', 'visible' => '0')
+
+      expect(en_base.brouillon).to be_nil
+    end
+
+    it 'écrit directement une démarche masquée, brouillon compris, et le vide' do
+      demarche.enregistrer('nom' => 'Cantine scolaire', 'description_courte' => 'Repas', 'visible' => '0')
+
+      en_base.enregistrer('description_courte' => 'Repas du midi')
+      expect(en_base.slice(:nom, :description_courte, :visible, :brouillon)).to eq('nom' => 'Cantine scolaire', 'description_courte' => 'Repas du midi', 'visible' => false, 'brouillon' => nil)
+    end
+
+    it 'abandonne le brouillon pour revenir à la version publiée' do
+      demarche.enregistrer('nom' => 'Cantine scolaire')
+
+      en_base.abandonner_brouillon!
+      expect(en_base.slice(:nom, :brouillon)).to eq('nom' => 'Cantine', 'brouillon' => nil)
+    end
+  end
 end
