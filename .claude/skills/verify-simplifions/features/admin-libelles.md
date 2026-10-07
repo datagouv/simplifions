@@ -4,10 +4,10 @@ The seven admin forms name their fields with the Grist words (`Identifiant data.
 
 ## How to get to it (user POV)
 
-- `/admin/recommandations/<id>/edit`: select `Type de recommandation` with its hint; `Visible sur simplifions` first.
+- `/admin/recommandations/<id>/edit`: select `Type de recommandation` with its hint.
 - `/admin/solutions/<id>/edit`: field `Identifiant data.gouv`, select `Catégorie de solution`.
 - `/admin/integrations/<id>/edit`: `API ou jeu de données`, then `Solution`, then `Type d’intégration`.
-- `/admin/demarches/<id>/edit`: `Visible sur simplifions`, `Icône du titre`, `Nom`…
+- `/admin/demarches/<id>/edit`: `Icône du titre`, `Nom`… (the state is no longer a field: see admin-colonne-actions.md).
 
 ## Driving it with Capybara
 

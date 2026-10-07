@@ -536,8 +536,7 @@ def erreurs(page)
   page.click_link 'Ajouter'
   raise 'Nom sans required' unless page.find_field('Nom (obligatoire)')[:required]
 
-  page.check 'Visible sur simplifions', allow_label_click: true
-  page.click_button 'Enregistrer'
+  page.click_button 'Publier'
   recapitulatif = page.find('.fr-alert--error', text: '2 erreurs à corriger')
   focus = page.evaluate_script("document.activeElement.matches('.fr-alert--error')")
   raise 'focus hors du récapitulatif' unless focus
@@ -679,7 +678,7 @@ def recommandations_demarche(page)
   page.assert_text 'enregistré'
   creee = ActiveRecord::Base.uncached { demarche.recommandations.find_by!(solution:) }
   page.assert_current_path("/admin/recommandations/#{creee.id}/edit")
-  encart = page.find('aside')
+  encart = page.find('aside.fr-callout')
   encart.find('button', text: 'Autres recommandations de la démarche').click
   encart.assert_selector('table[aria-labelledby=autres-recommandations]', visible: true)
   Verify.evidence(dossier, page, 'enregistree', "url=#{page.current_path} encart=#{encart.find('h2').text} autres=#{encart.all('tbody tr', visible: :all).size} en_base=#{ActiveRecord::Base.uncached { demarche.recommandations.count }}")
@@ -882,6 +881,76 @@ ensure
   TypeActeur.where(nom:).destroy_all
 end
 
+def visible_a_l_ecran?(page, bouton)
+  page.evaluate_script(<<~JS, bouton)
+    (function(el) { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) === el })(arguments[0])
+  JS
+end
+
+def colonne(page)
+  dossier = 'admin-colonne-actions'
+  nom = "Vérif verify-map #{Verify.browser}"
+  slug = "verif-verify-map-#{Verify.browser}"
+  Verify.login(page)
+  longue = Demarche.find(1)
+  page.visit("/admin/demarches/#{longue.id}/edit")
+  hauteur = page.evaluate_script('document.documentElement.scrollHeight')
+  page.scroll_to(0, 14_000)
+  page.assert_selector 'aside.admin-panneau', text: /Publiée/i
+  enregistrer = page.find_button('Enregistrer')
+  defilement = page.evaluate_script('window.scrollY')
+  raise "Enregistrer hors écran à #{defilement}" unless visible_a_l_ecran?(page, enregistrer)
+
+  Verify.evidence(dossier, page, 'defile', "demarche=#{longue.id} hauteur=#{hauteur} scrollY=#{defilement} enregistrer_a_l_ecran=true")
+
+  demarche = Demarche.create!(nom:, slug:)
+  ouvrir_fiche(page, nom)
+  page.fill_in 'Nom', with: "#{nom} saisie"
+  page.find_field('Nom').send_keys(:enter)
+  page.assert_text "« #{nom} saisie » enregistré."
+  etat = ActiveRecord::Base.uncached { demarche.reload.slice(:nom, :visible) }
+  raise "entrée #{etat}" unless etat == { 'nom' => "#{nom} saisie", 'visible' => false }
+
+  page.assert_selector 'aside.admin-panneau', text: /Masquée/i
+  Verify.evidence(dossier, page, 'entree', "entree_garde_l_etat=#{etat}")
+  page.fill_in 'Nom', with: nom
+  page.scroll_to(0, 2_000)
+  page.click_button 'Publier'
+  page.assert_text "« #{nom} » enregistré."
+  page.assert_selector 'aside.admin-panneau', text: /Publiée/i
+  etat = ActiveRecord::Base.uncached { demarche.reload.slice(:nom, :visible) }
+  raise "publier #{etat}" unless etat == { 'nom' => nom, 'visible' => true }
+
+  Verify.evidence(dossier, page, 'publiee', "base=#{etat}")
+  publique = page.window_opened_by { page.click_link 'Voir la page publique' }
+  titre = page.within_window(publique) do
+    page.assert_current_path("/demarches/#{slug}")
+    page.find('h1').text
+  end
+  publique.close
+  Verify.evidence(dossier, page, 'page-publique', "h1=#{titre}")
+  page.click_button 'Masquer'
+  page.assert_selector 'aside.admin-panneau', text: /Masquée/i
+  etat = ActiveRecord::Base.uncached { demarche.reload.visible }
+  raise "masquer #{etat}" if etat
+
+  Verify.evidence(dossier, page, 'masquee', "visible=#{etat}")
+
+  page.current_window.resize_to(375, 800)
+  debord = page.evaluate_script('document.documentElement.scrollWidth - document.documentElement.clientWidth')
+  ordre = page.evaluate_script("document.querySelector('aside.admin-panneau').getBoundingClientRect().top < document.getElementById('formulaire-fiche').getBoundingClientRect().top")
+  raise "375 px : débord #{debord}, colonne avant le formulaire #{ordre}" unless debord <= 0 && ordre
+
+  Verify.evidence(dossier, page, 'mobile', "debord=#{debord} colonne_sous_le_titre=#{ordre}")
+  page.current_window.resize_to(1280, 1024)
+  page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
+  page.assert_text "« #{nom} » supprimé."
+  Verify.evidence(dossier, page, 'supprimee', "reste_en_base=#{ActiveRecord::Base.uncached { Demarche.where(nom:).count }}")
+ensure
+  page.current_window.resize_to(1280, 1024)
+  Demarche.where(slug:).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -890,7 +959,7 @@ end
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'saisie-solution' => :saisie_solution,
-  'fournisseurs' => :fournisseurs }.each do |nom, fn|
+  'fournisseurs' => :fournisseurs, 'colonne' => :colonne }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

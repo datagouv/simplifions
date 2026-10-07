@@ -1,6 +1,6 @@
 # Relire les textes longs et rejoindre les pages liées
 
-On an admin form, each text area is as tall as its content (rows computed server-side, no JS) and the fields rendered as Markdown on the site say `Markdown accepté`. A visible démarche or solution with a slug offers `Voir la page publique` (new tab, announced in the `title`). Each checked box of a filterable list (not the vocabulaires), the recommandation's solution and the intégration's two solutions offer `Voir la fiche`, named `Voir la fiche <libellé>`, outside the checkbox label.
+On an admin form, each text area is as tall as its content (rows computed server-side, no JS) and the fields rendered as Markdown on the site say `Markdown accepté`. A visible démarche or solution with a slug offers `Voir la page publique` in the `État et actions` column (new tab, announced in the `title`). Each checked box of a filterable list (not the vocabulaires), the recommandation's solution and the intégration's two solutions offer `Voir la fiche`, named `Voir la fiche <libellé>`, outside the checkbox label.
 
 ## How to get to it (user POV)
 
