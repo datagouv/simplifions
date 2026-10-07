@@ -143,6 +143,8 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 end
 
 RSpec.describe 'Administration' do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:admin) { Admin.create!(email: 'dorine@example.gouv.fr', password: 'mot-de-passe-solide') }
 
   def colonnes(chemin)
@@ -717,8 +719,6 @@ RSpec.describe 'Administration' do
   end
 
   describe 'dates de création et de modification' do
-    include ActiveSupport::Testing::TimeHelpers
-
     let(:saisie) { Time.zone.local(2001, 1, 1) }
     let(:maintenant) { Time.zone.local(2026, 10, 5, 14, 30) }
 
@@ -1365,8 +1365,6 @@ RSpec.describe 'Administration' do
   end
 
   describe 'colonne d’état et d’actions' do
-    include ActiveSupport::Testing::TimeHelpers
-
     before { sign_in admin }
 
     def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
@@ -1486,6 +1484,18 @@ RSpec.describe 'Administration' do
       expect(page_publique).to include('Aides sociales')
       get "/admin/demarches/#{demarche.id}/edit"
       expect(colonne.text).not_to include('Brouillon')
+    end
+
+    it 'date le brouillon à part de la dernière modification, et ne versionne que la publication, au nom de l’admin' do
+      demarche.update!(modifie_le: Time.zone.local(2026, 10, 5))
+      travel_to(Time.zone.local(2026, 10, 7, 9, 30)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } } }
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text.squish).to include('Dernière modification 05/10/2026', 'Brouillon du 07/10/2026 à 09:30')
+      expect(demarche.versions.count).to eq(1)
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(demarche.versions.last.whodunnit).to eq(admin.id.to_s)
+      expect(demarche.versions.last.changeset.keys).to contain_exactly('nom', 'updated_at')
     end
 
     it 'abandonne le brouillon pour revenir au publié' do
