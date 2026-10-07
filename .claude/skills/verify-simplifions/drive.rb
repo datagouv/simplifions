@@ -1,5 +1,12 @@
 require_relative 'harness'
 
+def rubrique(page, nom)
+  lien = page.find("nav[aria-label='Menu de l’administration']").find_link(nom)
+  chemin = URI(lien[:href]).path
+  lien.click
+  page.assert_current_path(chemin)
+end
+
 page = Verify.session
 only = ARGV.first
 
@@ -54,7 +61,7 @@ end
 def vocabulaires(page)
   nom = "Vérif verify-map #{Verify.browser}"
   Verify.login(page)
-  page.click_link 'Vocabulaires'
+  rubrique(page, 'Vocabulaires')
   page.assert_selector 'h1', text: 'Vocabulaires'
   page.click_link 'Ajouter'
   page.fill_in 'Nom', with: nom
@@ -83,7 +90,7 @@ def vocabulaires(page)
   page.fill_in 'Nom', with: nom
   page.click_button 'Enregistrer'
   page.assert_text "« #{nom} » enregistré."
-  page.click_link 'Vocabulaires'
+  rubrique(page, 'Vocabulaires')
   page.assert_no_selector :button, 'Supprimer'
   ouvrir_depuis_la_liste(page, nom)
   page.click_link 'Modifier'
@@ -100,7 +107,7 @@ def cascade(page)
   demarche = Demarche.create!(nom:)
   Recommandation.create!(demarche:, solution:, niveau: :niveau_1)
   Verify.login(page)
-  page.click_link 'Démarches'
+  rubrique(page, 'Démarches')
   page.assert_selector 'h1', text: 'Démarches'
   Verify.evidence('admin-supprimer-demarche', page, 'avant',
     "demarche=#{demarche.id} recommandations=#{Recommandation.where(demarche:).count} solution=#{solution.id}")
@@ -315,7 +322,7 @@ def lignes_affichees(page) = page.all('tbody tr').map { |ligne| ligne.all('td').
 def listes(page)
   dossier = 'admin-listes'
   Verify.login(page)
-  page.click_link 'Solutions'
+  rubrique(page, 'Solutions')
   page.assert_selector 'thead th', text: 'Intégrée par'
   entetes = page.all('thead th').map(&:text)
   raise "entetes #{entetes}" unless entetes == ['Id', 'Nom', 'Privée', 'Visible', 'Modifié le', 'Intégrée par']
@@ -339,8 +346,7 @@ def listes(page)
   page.within(:xpath, "//tr[td[2][normalize-space()=#{integree.libelle_admin.inspect}]]") { page.click_link integratrice.libelle_admin, exact_text: true }
   page.assert_current_path("/admin/solutions/#{integratrice.id}/edit")
   Verify.evidence(dossier, page, 'integratrice-ouverte', "integree=#{integree.id} integratrice=#{integratrice.id} url=#{page.current_path}")
-  page.click_link 'Administration', match: :first
-  page.click_link 'Recommandations'
+  rubrique(page, 'Recommandations')
   reco = Recommandation.includes(:demarche, :solution).order(:id).first
   rechercher(page, "#{reco.demarche.nom.split.first} #{reco.solution.nom.split.last}")
   page.assert_selector 'tbody a', text: reco.libelle
@@ -356,23 +362,21 @@ def listes_lisibles(page)
   raise "rubriques #{rubriques}" unless rubriques['Référentiels'] == ['Fournisseurs de services', 'Vocabulaires']
 
   Verify.evidence(dossier, page, 'accueil-rubriques', rubriques.map { |titre, liens| "#{titre}=#{liens.join('|')}" }.join(' '))
-  page.click_link 'Organisations'
+  rubrique(page, 'Organisations')
   raise 'pagination organisations' if page.has_css?('.fr-pagination', wait: 0)
   raise "organisations #{lignes_affichees(page).size} != #{Organisation.count}" unless lignes_affichees(page).size == Organisation.count
 
   organisation = Organisation.where.not(nom_long: [nil, '']).order(:id).first
   page.assert_selector 'tbody tr', text: "#{organisation.nom} #{organisation.nom_long}"
   Verify.evidence(dossier, page, 'organisations-une-page', "lignes=#{lignes_affichees(page).size} en_base=#{Organisation.count} nom_long=#{organisation.nom_long}")
-  page.click_link 'Administration', match: :first
-  page.click_link 'Intégrations'
+  rubrique(page, 'Intégrations')
   integration = Integration.includes(:integratrice, :integree).order(:id).first
   attendu = [integration.id.to_s, integration.integratrice.libelle_admin, integration.integree.libelle_admin, integration.type_libelle, integration.statut.to_s]
   raise "entetes #{page.all('thead th').map(&:text)}" unless page.all('thead th').map(&:text) == ['Id', 'Solution', 'API ou jeu de données', 'Type d’intégration', 'Statut de l’intégration']
   raise "intégration #{lignes_affichees(page).first} != #{attendu}" unless lignes_affichees(page).first == attendu
 
   Verify.evidence(dossier, page, 'integrations-colonnes', "premiere=#{attendu.join(' | ')}")
-  page.click_link 'Administration', match: :first
-  page.click_link 'Démarches'
+  rubrique(page, 'Démarches')
   demarche = Demarche.where.not(icone: [nil, '']).order(:id).first
   rechercher(page, demarche.nom)
   cellule = page.find(:xpath, "//tbody//td[a[normalize-space()=#{demarche.nom.inspect}]]")
@@ -394,8 +398,7 @@ def ouvrir_depuis_la_liste(page, nom)
 end
 
 def ouvrir_fiche(page, nom)
-  page.click_link 'Administration', match: :first
-  page.click_link 'Démarches'
+  rubrique(page, 'Démarches')
   ouvrir_depuis_la_liste(page, nom)
   page.find_field('Nom', with: nom)
 end
@@ -566,8 +569,7 @@ def erreurs(page)
   dossier = 'admin-erreurs-formulaire'
   avant = Demarche.count
   Verify.login(page)
-  page.click_link 'Administration', match: :first
-  page.click_link 'Démarches'
+  rubrique(page, 'Démarches')
   page.click_link 'Ajouter'
   raise 'Nom sans required' unless page.find_field('Nom (obligatoire)')[:required]
 
@@ -897,7 +899,7 @@ def fournisseurs(page)
   dossier = 'admin-fournisseurs-de-services'
   nom = "Vérif verify-map #{Verify.browser}"
   Verify.login(page)
-  page.click_link 'Fournisseurs de services'
+  rubrique(page, 'Fournisseurs de services')
   page.assert_selector 'h1', text: 'Fournisseurs de services'
   reel = TypeActeur.where.not(slugs: []).order(:id).first
   ouvrir_depuis_la_liste(page, reel.nom)
@@ -931,7 +933,7 @@ def fournisseurs(page)
   raise "slugs #{slugs}" unless slugs == %w[tout-acteurs-publics]
 
   Verify.evidence(dossier, page, 'decoche', "url=#{page.current_path} slugs=#{slugs.join(',')} affiche=#{definition(page, 'Regroupements')}")
-  page.click_link 'Fournisseurs de services', match: :first
+  rubrique(page, 'Fournisseurs de services')
   rechercher(page, nom)
   colonne = page.find('tbody tr', text: nom).all('td').last.text
   raise "colonne #{colonne}" unless colonne == 'Tous les acteurs publics'
@@ -1070,6 +1072,62 @@ ensure
   PaperTrail::Version.where(item_type: 'Demarche', item_id: ids).delete_all
 end
 
+def barre(page, nom)
+  page.all("nav[aria-label='#{nom}'] .fr-nav__link", visible: :all).map { |lien| [lien.text(:all).strip, lien['aria-current']] }
+end
+
+def rubrique_en_cours(page) = barre(page, 'Menu de l’administration').select(&:last)
+
+RUBRIQUES_ADMIN = ['Démarches', 'Solutions', 'Recommandations', 'Intégrations', 'Organisations',
+                   'Fournisseurs de services', 'Vocabulaires'].freeze
+
+def navigation(page)
+  dossier = 'admin-navigation'
+  Verify.login(page)
+  page.visit('/admin')
+  rubriques = barre(page, 'Menu de l’administration').map(&:first)
+  raise "rubriques #{rubriques}" unless rubriques == RUBRIQUES_ADMIN && rubrique_en_cours(page).empty?
+  raise 'barre publique sous /admin' unless barre(page, 'Menu principal').empty?
+
+  Verify.evidence(dossier, page, 'tableau-de-bord', "rubriques=#{rubriques.size} en_cours=#{rubrique_en_cours(page)}")
+  rubrique(page, 'Solutions')
+  page.assert_current_path('/admin/solutions')
+  raise "en cours #{rubrique_en_cours(page)}" unless rubrique_en_cours(page) == [%w[Solutions page]]
+
+  solution = Solution.first
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  raise "fiche : en cours #{rubrique_en_cours(page)}" unless rubrique_en_cours(page) == [%w[Solutions true]]
+
+  Verify.evidence(dossier, page, 'fiche-solution', "solution=#{solution.id} en_cours=#{rubrique_en_cours(page)}")
+  page.visit("/admin/historique/solutions/#{solution.id}")
+  raise "historique : en cours #{rubrique_en_cours(page)}" unless rubrique_en_cours(page) == [%w[Solutions true]]
+
+  Verify.evidence(dossier, page, 'historique', "chemin=#{page.current_path} en_cours=#{rubrique_en_cours(page)}")
+  page.current_window.resize_to(375, 800)
+  page.visit('/admin')
+  page.click_button 'Menu'
+  page.within('#modal-menu') do
+    visibles = page.all('.fr-nav__link').map(&:text)
+    raise "mobile #{visibles}" unless visibles == RUBRIQUES_ADMIN
+
+    Verify.evidence(dossier, page, 'menu-375', "rubriques=#{visibles.size}")
+    page.click_link 'Vocabulaires'
+  end
+  page.assert_current_path('/admin/vocabulaires')
+  debord = page.evaluate_script('document.documentElement.scrollWidth - document.documentElement.clientWidth')
+  raise "375 px : débord #{debord}" if debord.positive? || rubrique_en_cours(page) != [%w[Vocabulaires page]]
+
+  Verify.evidence(dossier, page, 'vocabulaires-375', "en_cours=#{rubrique_en_cours(page)} debord=#{debord}")
+  page.current_window.resize_to(1280, 1024)
+  page.visit('/')
+  publique = barre(page, 'Menu principal').map(&:first)
+  raise "public #{publique}" unless publique == ['Accueil', "Cas d'usages", 'Articles', 'À propos'] && barre(page, 'Menu de l’administration').empty?
+
+  Verify.evidence(dossier, page, 'site-public', "barre=#{publique}")
+ensure
+  page.current_window.resize_to(1280, 1024)
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1078,7 +1136,8 @@ end
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'saisie-solution' => :saisie_solution,
-  'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique }.each do |nom, fn|
+  'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
+  'navigation' => :navigation }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
