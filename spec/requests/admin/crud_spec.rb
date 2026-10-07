@@ -398,7 +398,7 @@ RSpec.describe 'Administration' do
         .to end_with('La solution API Impôt particulier (Logiciel métier) deviendra privée.')
     end
 
-    it 'range chaque longue liste de cases dans un groupe filtrable qui montre tous les choix à l’entrée, sans champ envoyé' do
+    it 'range chaque longue liste de cases dans un groupe filtrable qui montre tous les choix au clic, sans champ envoyé' do
       {
         'demarches' => ['Fournisseurs de services', 'Intégrations'], 'solutions' => ['Organisations', 'Fournisseurs de services'],
         'integrations' => ['Démarches'], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
@@ -408,9 +408,12 @@ RSpec.describe 'Administration' do
         filtrables = response.parsed_body.css('fieldset[data-controller="liste-filtrable"]')
         expect(filtrables.map { |groupe| groupe.at_css('legend').text.strip }).to eq(groupes)
         filtrables.each do |groupe|
-          filtre = groupe.at_css('input[type=search]')
-          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer', 'entrer dans le champ affiche tous les choix')
-          expect(filtre['data-action'].split).to include('focus->liste-filtrable#ouvrir:once')
+          filtre = groupe.at_css('input[type=text][data-liste-filtrable-target=filtre]')
+          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer', 'cliquer dans le champ', 'flèche bas')
+          expect(filtre['data-action'].split).to include('click->liste-filtrable#ouvrir', 'keydown.down->liste-filtrable#ouvrir')
+          expect(groupe.at_css('button[type=button][data-action="liste-filtrable#effacer"]').text.strip).to eq("Effacer le filtre des #{groupe.at_css('legend').text.strip.downcase}")
+          expect(groupe['data-action']).to eq('focusout->liste-filtrable#quitter')
+          expect(groupe.css('[data-liste-filtrable-target=resultats] input[type=checkbox]').size).to eq(groupe.css('input[type=checkbox]').size)
           expect(filtre['name']).to be_nil
           expect(groupe.at_css('[aria-live=polite]')).to be_present
           expect(groupe.css('input[type=checkbox]')).to all(satisfy { |case_a_cocher| case_a_cocher['name'].end_with?('_ids][]') })
@@ -1207,7 +1210,7 @@ RSpec.describe 'Administration' do
       expect(colonne.text.squish).to include('Masquée', 'Création 02/01/2026', 'Dernière modification 05/10/2026', 'Identifiant Grist : Cas_d_usages:1')
       expect(boutons_du_formulaire).to eq([['Enregistrer', nil, nil], ['Publier', 'demarche[visible]', '1']])
       expect(colonne.at_css('a:contains("Annuler")')['href']).to eq('/admin/demarches')
-      expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button, input[name="demarche[visible]"]')).to be_empty
+      expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button:not([type=button]), input[name="demarche[visible]"]')).to be_empty
     end
 
     it 'désigne Enregistrer au script qui le grise tant que rien n’a changé, sans le griser côté serveur' do
