@@ -9,11 +9,13 @@ class Admin::RecommandationsController < Admin::BaseController
     @recommandation = Recommandation.new(demarche_id: params[:demarche_id])
   end
 
-  def edit; end
+  def edit
+    @recommandation.appliquer_brouillon
+  end
 
   def create
-    @recommandation = Recommandation.new(recommandation_params.merge(modifie_le: Time.current))
-    if @recommandation.save
+    @recommandation = Recommandation.new
+    if @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
       redirige_vers_la_fiche(@recommandation)
     else
       render :new, status: :unprocessable_content
@@ -21,7 +23,7 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   def update
-    if @recommandation.update(recommandation_params.merge(modifie_le: Time.current))
+    if @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
       redirige_vers_la_fiche(@recommandation)
     else
       render :edit, status: :unprocessable_content

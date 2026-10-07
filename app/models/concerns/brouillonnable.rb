@@ -7,9 +7,11 @@ module Brouillonnable
 
   def date_du_brouillon = brouillon&.dig('modifie_le')&.to_time
 
+  def passe_par_un_brouillon? = visible? || brouillon.to_h['visible'] == '1'
+
   def enregistrer(attributs)
     attributs = attributs.to_h.stringify_keys
-    return ecrire(attributs) unless visible? && attributs['visible'] != '1'
+    return ecrire(attributs) unless passe_par_un_brouillon? && !publication_demandee?(attributs)
 
     enregistrer_brouillon(attributs.except('visible'))
     attributs['visible'] == '0' ? update(attributs.slice('visible', 'modifie_le')) : true
@@ -30,6 +32,8 @@ module Brouillonnable
   end
 
   private
+
+  def publication_demandee?(attributs) = attributs.to_h.stringify_keys['visible'] == '1'
 
   def ecrire(attributs)
     remplaces = brouillon.to_h.slice(*attributs.keys)

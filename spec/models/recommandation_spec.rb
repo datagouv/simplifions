@@ -173,4 +173,69 @@ RSpec.describe Recommandation do
       expect(described_class.visibles).to contain_exactly(visible)
     end
   end
+
+  describe 'brouillon' do
+    let(:demarche) { Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true) }
+    let(:solution) { Solution.create!(nom: 'Bouquet', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]) }
+
+    def en_base(reco) = described_class.find(reco.id)
+
+    it 'garde Enregistrer d’une recommandation publiée à part' do
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1, description: 'Avant', visible: true)
+
+      expect(reco.enregistrer('description' => 'Après')).to be(true)
+      expect(en_base(reco).slice(:description, :visible)).to eq('description' => 'Avant', 'visible' => true)
+      expect(en_base(reco).brouillon).to include('description' => 'Après')
+    end
+
+    it 'écrit directement une recommandation masquée' do
+      reco = described_class.create!(demarche:, solution:, niveau: :niveau_1, description: 'Avant')
+
+      reco.enregistrer('description' => 'Après')
+      expect(en_base(reco).slice(:description, :visible, :brouillon)).to eq('description' => 'Après', 'visible' => false, 'brouillon' => nil)
+    end
+
+    it 'crée masquée, à publier avec elle, une recommandation enregistrée sur une démarche publiée' do
+      reco = described_class.new
+      expect(reco.enregistrer('demarche_id' => demarche.id.to_s, 'solution_id' => solution.id.to_s, 'niveau' => 'niveau_1', 'description' => 'Nouvelle')).to be(true)
+
+      expect(en_base(reco).slice(:description, :visible)).to eq('description' => 'Nouvelle', 'visible' => false)
+      expect(en_base(reco).brouillon).to include('visible' => '1')
+    end
+
+    it 'garde en brouillon les modifications d’une recommandation à publier, et la publie seule sur son Publier' do
+      reco = described_class.new
+      reco.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_1')
+
+      en_base(reco).enregistrer('description' => 'Complétée')
+      expect(en_base(reco).slice(:description, :visible)).to eq('description' => nil, 'visible' => false)
+      expect(en_base(reco).brouillon).to include('visible' => '1', 'description' => 'Complétée')
+
+      en_base(reco).enregistrer('visible' => '1')
+      expect(en_base(reco).slice(:description, :visible, :brouillon)).to eq('description' => 'Complétée', 'visible' => true, 'brouillon' => nil)
+    end
+
+    it 'garde hors des données utiles publiées une recommandation qui attend la démarche' do
+      api_qf, api_statut = ['API QF', 'API Statut'].map { Solution.create!(nom: it, categorie: 'api') }
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      [api_qf, api_statut].each { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      mise_en_avant = described_class.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      described_class.create!(demarche:, solution: api_qf, niveau: :niveau_1)
+      described_class.new.enregistrer('demarche_id' => demarche.id, 'solution_id' => api_statut.id, 'niveau' => 'niveau_1')
+
+      expect(mise_en_avant.apis_utiles.map(&:solution)).to eq([api_qf])
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      expect(Solution.find(bouquet.id).couvertures[logiciel.id]).to eq(demarche => [1, 1])
+    end
+
+    it 'publie aussitôt une nouvelle recommandation créée avec Publier, et écrit celle d’une démarche masquée' do
+      publiee = described_class.new
+      publiee.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_1', 'visible' => '1')
+      masquee = described_class.new
+      masquee.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_1')
+
+      expect([en_base(publiee), en_base(masquee)].map { it.slice(:visible, :brouillon) }).to eq([{ 'visible' => true, 'brouillon' => nil }, { 'visible' => false, 'brouillon' => nil }])
+    end
+  end
 end
