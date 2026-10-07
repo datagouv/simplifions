@@ -4,7 +4,7 @@ The administration shows a row's Grist identifier as text (`Identifiant Grist : 
 
 ## How to get to it (user POV)
 
-- Any `edit` page of the seven admin tables: `Identifiant Grist : …` under the fields, absent on `new` and on rows created in the admin.
+- Any `edit` page of the seven admin tables: `Identifiant Grist : …` in the `État et actions` column, absent on `new` and on rows created in the admin.
 - `/admin/solutions/<id>/edit` of a solution with a data.gouv UID: the `Repris de data.gouv.fr` list (titre, organisation, logo URL, accès, accès des acteurs publics, badges).
 
 ## Driving it with Capybara

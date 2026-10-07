@@ -4,7 +4,7 @@ Deleting a démarche from the administration removes its recommandations with it
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → link `Démarches` → search the name → click it → `Supprimer` below the form, confirm `Supprimer « <nom> » ? 1 recommandation sera supprimée.`
+- Dashboard `/admin` → link `Démarches` → search the name → click it → `Supprimer` in the `État et actions` column, confirm `Supprimer « <nom> » ? 1 recommandation sera supprimée.`
 - Same button on the six other edit pages; an organisation's says `Ces solutions deviendront privées : <noms>.`
 - Admin only.
 
