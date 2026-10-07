@@ -62,4 +62,34 @@ RSpec.describe 'Historique des fiches' do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe 'colonne de droite' do
+    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+
+    it 'dit qui a modifié chaque fiche en dernier et mène à son historique' do
+      lignes = PaperTrail.request(whodunnit: admin.id.to_s) do
+        api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+        { 'demarches' => Demarche.create!(nom: 'Aides'), 'solutions' => api_qf,
+          'recommandations' => Recommandation.create!(demarche: Demarche.create!(nom: 'Cantine'), solution: api_qf, niveau: :niveau_1),
+          'integrations' => Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api_qf, type_integration: 'consomme'),
+          'organisations' => Organisation.create!(nom: 'DINUM'), 'types_acteurs' => TypeActeur.create!(nom: 'Communes'),
+          'vocabulaires' => Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
+      end
+      PaperTrail.request(whodunnit: 'Import Grist') { lignes['demarches'].update!(nom: 'Aides sociales') }
+
+      lignes.each do |chemin, ligne|
+        get "/admin/#{chemin}/#{ligne.id}/edit"
+        auteur = chemin == 'demarches' ? 'Modifiée par Import Grist le' : 'Créée par dorine@example.gouv.fr le'
+        expect(colonne.text.squish).to include(auteur), chemin
+        expect(colonne.at_css('a:contains("Historique")')['href']).to eq("/admin/historique/#{chemin}/#{ligne.id}"), chemin
+      end
+    end
+
+    it 'ne dit rien d’une fiche sans version' do
+      demarche = PaperTrail.request(enabled: false) { Demarche.create!(nom: 'Aides') }
+      get "/admin/demarches/#{demarche.id}/edit"
+
+      expect(colonne.text).not_to include('Modifiée par', 'Historique')
+    end
+  end
 end

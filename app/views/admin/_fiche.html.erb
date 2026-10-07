@@ -14,6 +14,10 @@
             <dd class="fr-ml-0 fr-pl-0 fr-mb-1w"><time datetime="<%= date.iso8601 %>"><%= l date.to_date %></time></dd>
           <% end %>
         </dl>
+        <% if (version = en_base.versions.last) %>
+          <p class="fr-text--sm fr-mb-1w"><%= titre_de_version(version, version.event == "create" ? "Créée" : "Modifiée") %></p>
+          <p class="fr-text--sm"><%= link_to "Historique", admin_historique_path(modele.model_name.route_key, en_base), class: "fr-link fr-link--sm" %></p>
+        <% end %>
         <% if en_base.grist_id.present? %>
           <p class="fr-text--sm">Identifiant Grist : <%= en_base.grist_id %></p>
         <% end %>
