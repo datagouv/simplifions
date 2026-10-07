@@ -1,7 +1,7 @@
 class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
-  helper_method :en_base, :nom_en_base, :fil_d_ariane
+  helper_method :modele, :en_base, :nom_en_base, :fil_d_ariane
 
   private
 

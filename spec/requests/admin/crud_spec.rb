@@ -746,7 +746,7 @@ RSpec.describe 'Administration' do
 
     it 'nomme les champs avec les mots du Grist et du site' do
       {
-        'demarches' => ['Icône du titre', 'Description courte', 'Cadre juridique', 'Mots-clés', 'Visible sur simplifions'],
+        'demarches' => ['Icône du titre', 'Description courte', 'Cadre juridique', 'Mots-clés'],
         'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
                         'Type de solution', 'API FranceConnectée', 'Cette solution ne permet pas'],
         'recommandations' => ['Démarche (obligatoire)', 'Type de recommandation (obligatoire)', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
@@ -819,7 +819,7 @@ RSpec.describe 'Administration' do
 
     it 'range les champs dans l’ordre des fiches Grist' do
       {
-        'demarches' => ['Visible sur simplifions', 'Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
+        'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
                         'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires', 'Intégrations'],
         'solutions' => ['Visible sur simplifions', 'Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
                         'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
@@ -1185,6 +1185,65 @@ RSpec.describe 'Administration' do
       %w[description codes_juridiques].each do |champ|
         expect(response.parsed_body.at_css("label[for=type_acteur_#{champ}] .fr-hint-text").text).to eq('Mémo interne, non affiché sur le site')
       end
+    end
+  end
+
+  describe 'colonne d’état et d’actions' do
+    include ActiveSupport::Testing::TimeHelpers
+
+    before { sign_in admin }
+
+    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+
+    def boutons_du_formulaire
+      identifiant = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['id']
+      response.parsed_body.css("button[type=submit][form=\"#{identifiant}\"]").map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
+    end
+
+    it 'montre l’état, les dates et l’identifiant Grist d’une démarche, et l’enregistre depuis la colonne' do
+      demarche = Demarche.create!(nom: 'Aides', grist_id: 'Cas_d_usages:1', cree_le: Time.zone.local(2026, 1, 2), modifie_le: Time.zone.local(2026, 10, 5))
+      get "/admin/demarches/#{demarche.id}/edit"
+
+      expect(colonne.text.squish).to include('Masquée', 'Création 02/01/2026', 'Dernière modification 05/10/2026', 'Identifiant Grist : Cas_d_usages:1')
+      expect(boutons_du_formulaire).to eq([['Enregistrer', nil, nil], ['Publier', 'demarche[visible]', '1']])
+      expect(colonne.at_css('a:contains("Annuler")')['href']).to eq('/admin/demarches')
+      expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button, input[name="demarche[visible]"]')).to be_empty
+    end
+
+    it 'publie en enregistrant les autres champs, masque de même, et laisse l’état tel quel à l’enregistrement' do
+      demarche = Demarche.create!(nom: 'Aides')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+      expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides sociales', 'visible' => false)
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides locales', slug: 'aides', visible: '1' } }
+      expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides locales', 'visible' => true)
+      follow_redirect!
+      expect(colonne.text).to include('Publiée')
+      expect(boutons_du_formulaire.last).to eq(['Masquer', 'demarche[visible]', '0'])
+      expect(colonne.at_css('a:contains("Voir la page publique")')['href']).to eq('/demarches/aides')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides', visible: '0' } }
+      expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides', 'visible' => false)
+    end
+
+    it 'propose de publier tant que la démarche en base est masquée, même si la publication a été refusée' do
+      demarche = Demarche.create!(nom: 'Aides')
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(colonne.text).to include('Masquée')
+      expect(boutons_du_formulaire.map(&:first)).to eq(%w[Enregistrer Publier])
+    end
+
+    it 'garde Supprimer dans la colonne, à part du formulaire, et rien d’autre qu’Enregistrer et Publier sur une nouvelle démarche' do
+      demarche = Demarche.create!(nom: 'Aides')
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.at_css('form:has(input[name=_method][value=delete])')['action']).to eq("/admin/demarches/#{demarche.id}")
+
+      get '/admin/demarches/new'
+      expect(boutons_du_formulaire.map(&:first)).to eq(%w[Enregistrer Publier])
+      expect(colonne.text).not_to include('Supprimer', 'Création')
     end
   end
 
