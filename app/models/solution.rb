@@ -164,7 +164,7 @@ class Solution < ApplicationRecord
 
   # [demarche_id, solution_id] des données fournies marquées utiles pour une démarche (le « y » attendu)
   def paires_utiles
-    @paires_utiles ||= Recommandation.niveau_1.where(solution: fournies).pluck(:demarche_id, :solution_id).to_set
+    @paires_utiles ||= Recommandation.niveau_1.parues.where(solution: fournies).pluck(:demarche_id, :solution_id).to_set
   end
 
   def y_par_demarche

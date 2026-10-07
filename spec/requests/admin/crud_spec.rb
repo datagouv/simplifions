@@ -1541,6 +1541,32 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'recommandations d’une démarche publiée' do
+    let!(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let!(:publiee) { Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: :niveau_2, donnees_utiles: 'Quotient', visible: true) }
+    let(:nouvelle) { Recommandation.find_by!(solution: Solution.find_by!(nom: 'Bouquet')) }
+
+    before { sign_in admin }
+
+    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+    def cartes_publiques = get('/demarches/aides').then { response.parsed_body.css('.reco-card').map { it.text.squish } }
+
+    def ajouter_bouquet
+      post '/admin/recommandations', params: { recommandation: { demarche_id: demarche.id, solution_id: Solution.create!(nom: 'Bouquet', categorie: 'api').id, niveau: 'niveau_2' } }
+    end
+
+    it 'garde hors du site la modification d’une recommandation publiée et l’ajout d’une nouvelle' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      ajouter_bouquet
+
+      expect(cartes_publiques.size).to eq(1)
+      expect(cartes_publiques.first).to include('Quotient')
+      expect(nouvelle.visible).to be(false)
+      get "/admin/recommandations/#{publiee.id}/edit"
+      expect(response.parsed_body.at_css('#recommandation_donnees_utiles').text.strip).to eq('Revenu fiscal')
+    end
+  end
+
   describe 'colonnes tableau' do
     it 'affiche et enregistre les mots-clefs une valeur par ligne' do
       sign_in admin

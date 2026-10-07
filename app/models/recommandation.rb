@@ -1,5 +1,7 @@
 class Recommandation < ApplicationRecord
-  has_paper_trail ignore: %i[modifie_le]
+  include Brouillonnable
+
+  has_paper_trail ignore: %i[modifie_le brouillon]
 
   belongs_to :demarche
   belongs_to :solution
@@ -12,10 +14,20 @@ class Recommandation < ApplicationRecord
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
   scope :visibles, -> { where(visible: true) }
+  scope :a_publier_avec_la_demarche, -> { where("recommandations.brouillon->>'visible' = '1'") }
+  scope :parues, -> { where.not(id: a_publier_avec_la_demarche) }
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
   def libelle = "#{demarche.nom} → #{solution.libelle_admin}"
 
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
+
+  def enregistrer(attributs)
+    return super unless new_record? && !publication_demandee?(attributs)
+
+    assign_attributes(attributs)
+    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le } if demarche&.visible?
+    save
+  end
 
   validate :ne_recommande_pas_de_solution_privee
 
@@ -63,7 +75,7 @@ class Recommandation < ApplicationRecord
 
   private
 
-  def utiles = demarche.recommandations.niveau_1.where(solution: solution.fournies)
+  def utiles = demarche.recommandations.niveau_1.parues.where(solution: solution.fournies)
 
   def ne_recommande_pas_de_solution_privee
     errors.add(:solution, :privee) if solution&.privee?

@@ -15,10 +15,10 @@ Rails.application.routes.draw do
   namespace :admin do
     root "dashboard#index"
     resource :rafraichissement, only: :create
-    resources :demarches, :solutions, except: :show do
+    resources :demarches, :solutions, :recommandations, except: :show do
       patch :abandonner_brouillon, on: :member
     end
-    resources :recommandations, :integrations, :organisations, except: :show
+    resources :integrations, :organisations, except: :show
     resources :types_acteurs, :vocabulaires
     get "historique/:type/:id" => "historiques#show", as: :historique
   end
