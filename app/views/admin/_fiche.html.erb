@@ -9,6 +9,9 @@
         <% end %>
         <% if en_base.try(:brouillon?) %>
           <p class="fr-badge fr-badge--no-icon fr-badge--new">Brouillon non publié</p>
+          <% if (date = en_base.date_du_brouillon) %>
+            <p class="fr-text--sm fr-mt-1w fr-mb-0">Brouillon du <time datetime="<%= date.iso8601 %>"><%= l date, format: :court %></time></p>
+          <% end %>
         <% end %>
         <dl class="fr-pl-0 fr-mt-2w fr-text--sm">
           <% { "Création" => modele.has_attribute?(:cree_le) ? en_base.cree_le : en_base.created_at,
