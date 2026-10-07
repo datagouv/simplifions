@@ -1,6 +1,5 @@
-<%= form_with model: [:admin, solution], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(solution) do |f| %>
+<%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_check_box :visible %>
   <%= f.dsfr_text_field :nom %>
   <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>
   <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
@@ -55,9 +54,4 @@
       </ul>
     </div>
   <% end %>
-  <%= render "admin/identifiant_grist", grist_id: solution.grist_id %>
-  <ul class="fr-btns-group fr-btns-group--inline">
-    <li><button type="submit" class="fr-btn">Enregistrer</button></li>
-    <li><%= link_to "Annuler", admin_solutions_path, class: "fr-btn fr-btn--secondary" %></li>
-  </ul>
 <% end %>

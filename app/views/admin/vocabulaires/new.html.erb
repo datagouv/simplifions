@@ -2,5 +2,7 @@
 
 <div class="fr-container fr-mb-6w">
   <h1>Vocabulaire : nouvelle ligne</h1>
-  <%= render "form", vocabulaire: @vocabulaire %>
+  <%= render layout: "admin/fiche" do %>
+    <%= render "form", vocabulaire: @vocabulaire %>
+  <% end %>
 </div>

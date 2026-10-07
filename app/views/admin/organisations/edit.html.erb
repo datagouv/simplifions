@@ -2,8 +2,8 @@
 
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
-  <%= render "form", organisation: @organisation %>
   <% privees = en_base.solutions_rendues_privees.par_libelle_admin.map(&:libelle_admin) %>
-  <%= render "admin/supprimer", url: admin_organisation_path(en_base), nom: nom_en_base,
-  consequences: [t("admin.suppression.solutions_privees", count: privees.size, noms: privees.join(", "))] %>
+  <%= render layout: "admin/fiche", locals: { consequences: [t("admin.suppression.solutions_privees", count: privees.size, noms: privees.join(", "))] } do %>
+    <%= render "form", organisation: @organisation %>
+  <% end %>
 </div>

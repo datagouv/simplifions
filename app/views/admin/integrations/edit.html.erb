@@ -2,6 +2,7 @@
 
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
-  <%= render "form", integration: @integration %>
-  <%= render "admin/supprimer", url: admin_integration_path(en_base), nom: nom_en_base %>
+  <%= render layout: "admin/fiche" do %>
+    <%= render "form", integration: @integration %>
+  <% end %>
 </div>

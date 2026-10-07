@@ -2,5 +2,7 @@
 
 <div class="fr-container fr-mb-6w">
   <h1>Fournisseur de services : nouvelle ligne</h1>
-  <%= render "form", type_acteur: @type_acteur %>
+  <%= render layout: "admin/fiche" do %>
+    <%= render "form", type_acteur: @type_acteur %>
+  <% end %>
 </div>
