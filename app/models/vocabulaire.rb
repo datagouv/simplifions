@@ -1,4 +1,6 @@
 class Vocabulaire < ApplicationRecord
+  has_paper_trail
+
   # Libellés affichés par le site actuel (noms des tags data.gouv) là où le Label Grist porte des emojis.
   LIBELLES = {
     'acces-facile' => 'Accès facile',

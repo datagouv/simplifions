@@ -1,6 +1,8 @@
 require 'net/http'
 
 class Solution < ApplicationRecord
+  has_paper_trail ignore: %i[modifie_le]
+
   validates :nom, presence: true
   normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
   validates :grist_id, :slug, uniqueness: true, allow_nil: true
@@ -30,7 +32,7 @@ class Solution < ApplicationRecord
   has_and_belongs_to_many :organisations
   has_and_belongs_to_many :vocabulaires
   has_and_belongs_to_many :types_acteurs, class_name: 'TypeActeur'
-  has_many :recommandations, dependent: :delete_all
+  has_many :recommandations, dependent: :destroy
   has_many :demarches_recommandantes, -> { distinct }, through: :recommandations, source: :demarche
 
   has_many :integrations_comme_integratrice, class_name: 'Integration', foreign_key: :integratrice_id,

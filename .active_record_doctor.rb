@@ -9,7 +9,8 @@ ActiveRecordDoctor.configure do
     "schema_migrations",
     # tables d'Active Storage et d'active_storage_db : leur schéma n'est pas le nôtre
     /\Aactive_storage_/,
-    /\Asolid_queue_/
+    /\Asolid_queue_/,
+    "versions"
   ]
 
   global :ignore_models, [
@@ -19,6 +20,7 @@ ActiveRecordDoctor.configure do
     /\AActionMailbox::/,
     /\AActionText::/,
     "SolidCache::Entry",
+    "PaperTrail::Version",
     /\ASolidQueue::/
   ]
 

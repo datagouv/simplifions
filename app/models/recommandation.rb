@@ -1,4 +1,6 @@
 class Recommandation < ApplicationRecord
+  has_paper_trail ignore: %i[modifie_le]
+
   belongs_to :demarche
   belongs_to :solution
 

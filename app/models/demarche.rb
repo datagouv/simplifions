@@ -1,11 +1,13 @@
 class Demarche < ApplicationRecord
+  has_paper_trail ignore: %i[modifie_le]
+
   validates :nom, presence: true
   normalizes :grist_id, :slug, with: ->(valeur) { valeur.presence }
   validates :grist_id, :slug, uniqueness: true, allow_nil: true
   validates :slug, format: { with: FORMAT_SLUG, message: :format_slug }, allow_nil: true
   validates :slug, presence: true, if: :visible?
 
-  has_many :recommandations, dependent: :delete_all
+  has_many :recommandations, dependent: :destroy
   has_and_belongs_to_many :vocabulaires
   has_and_belongs_to_many :types_acteurs, class_name: 'TypeActeur'
   has_and_belongs_to_many :integrations

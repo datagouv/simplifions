@@ -1,6 +1,24 @@
 require 'rails_helper'
 
 RSpec.describe Demarche do
+  it 'garde chaque modification avec ses changements, sans créer de version pour les seules dates' do
+    demarche = described_class.create!(nom: 'Cantine')
+    demarche.update!(nom: 'Cantine scolaire', modifie_le: Time.current)
+    demarche.update!(modifie_le: 1.day.from_now)
+
+    expect(demarche.versions.map(&:event)).to eq(%w[create update])
+    expect(demarche.versions.last.changeset).to include('nom' => ['Cantine', 'Cantine scolaire'])
+  end
+
+  it 'garde la suppression des recommandations emportées avec la démarche' do
+    demarche = described_class.create!(nom: 'Cantine')
+    recommandation = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1)
+
+    demarche.destroy!
+
+    expect(PaperTrail::Version.where(item: recommandation).last.event).to eq('destroy')
+  end
+
   it 'refuse un slug hors format d’URL en disant le format attendu' do
     expect(described_class.new(nom: 'Cantine', slug: 'cantine-scolaire-2')).to be_valid
     ligne = described_class.new(nom: 'Cantine', slug: 'avec espaces/et accents é')
