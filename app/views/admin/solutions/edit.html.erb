@@ -6,6 +6,7 @@
     <p class="fr-badge fr-badge--sm fr-badge--no-icon">Privée</p>
   <% end %>
   <%= render layout: "admin/fiche", locals: { page_publique: (solution_path(en_base.slug) if en_base.visible? && en_base.slug.present?),
+    previsualisation: (previsualisation_admin_solution_path(en_base) if en_base.brouillon?),
     consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
       t("admin.suppression.integrations", count: en_base.integrations_comme_integratrice.count + en_base.integrations_comme_integree.count)] } do %>
     <% lies = { "Démarches qui la recommandent" => en_base.demarches_recommandantes.order(:nom),

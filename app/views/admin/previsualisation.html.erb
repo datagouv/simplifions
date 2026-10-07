@@ -1,0 +1,12 @@
+<% content_for :title, "Prévisualisation - " %>
+<div class="fr-notice fr-notice--info">
+  <div class="fr-container">
+    <div class="fr-notice__body">
+      <p>
+        <span class="fr-notice__title">Prévisualisation, non publiée.</span>
+        <span class="fr-notice__desc">Cette page montre le brouillon de « <%= nom_en_base %> » tel qu’il sera publié. Les recommandations et les intégrations y paraissent dans leur version publiée, sans leurs brouillons.</span>
+      </p>
+    </div>
+  </div>
+</div>
+<%= render template: "#{modele.model_name.route_key}/show" %>

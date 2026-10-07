@@ -1,4 +1,4 @@
-<%# locals: (page_publique: nil, consequences: [], en_brouillon: nil) -%>
+<%# locals: (page_publique: nil, previsualisation: nil, consequences: [], en_brouillon: nil) -%>
 <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
   <aside class="fr-col-12 fr-col-md-4 admin-panneau" aria-labelledby="etat-et-actions">
     <div class="fr-p-3w fr-background-alt--grey">
@@ -61,6 +61,9 @@
       </ul>
       <% if page_publique %>
         <p class="fr-mb-0"><%= link_to page_publique, class: "fr-link", target: "_blank", rel: "noopener", title: "Voir la page publique de #{nom_en_base} - nouvelle fenêtre" do %>Voir la page publique<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %></p>
+      <% end %>
+      <% if previsualisation %>
+        <p class="fr-mb-0"><%= link_to previsualisation, class: "fr-link", target: "_blank", rel: "noopener", title: "Prévisualiser le brouillon de #{nom_en_base} - nouvelle fenêtre" do %>Prévisualiser<span class="fr-sr-only"> le brouillon - nouvelle fenêtre</span><% end %></p>
       <% end %>
     </div>
   </aside>
