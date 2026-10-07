@@ -51,9 +51,9 @@ module ApplicationHelper
     modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
   end
 
-  def titre_de_version(version)
+  def titre_de_version(version, evenement = EVENEMENTS.fetch(version.event))
     auteur = auteur_de_version(version)
-    [EVENEMENTS.fetch(version.event), ("par #{auteur}" if auteur), "le #{l(version.created_at, format: :court)}"].compact.join(' ')
+    [evenement, ("par #{auteur}" if auteur), "le #{l(version.created_at, format: :court)}"].compact.join(' ')
   end
 
   def auteur_de_version(version)
