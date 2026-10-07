@@ -137,7 +137,7 @@ def saisies(page)
   site_avant = solution.site_internet
   page.visit("/admin/solutions/#{solution.id}/edit")
   page.fill_in 'Site internet', with: 'www.exemple-verif.fr'
-  page.click_button 'Enregistrer'
+  page.click_button 'Publier'
   page.assert_text "« #{solution.libelle_admin} » enregistré."
   page.visit("/solutions/#{solution.slug}")
   page.assert_selector :link, 'Site de la solution', href: 'https://www.exemple-verif.fr'
@@ -172,7 +172,7 @@ def saisies(page)
   demarche = Demarche.visibles.order(:id).first
   page.visit("/admin/demarches/#{demarche.id}/edit")
   page.fill_in 'Slug', with: 'Vérif avec espaces/et accents'
-  page.click_button 'Enregistrer'
+  page.click_button 'Publier'
   page.assert_text 'Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'
   page.assert_selector :field, 'Slug', with: 'Vérif avec espaces/et accents'
   Verify.evidence('admin-saisies-controlees', page, 'slug-refuse', "demarche=#{demarche.id} en_base=#{demarche.reload.slug}")
@@ -1179,6 +1179,80 @@ def integrations_de_l_api(page)
   Verify.logout(page)
 end
 
+def titre_public(page, slug)
+  page.visit("/demarches/#{slug}")
+  page.find('h1').text.tap { page.visit('/admin') }
+end
+
+def brouillon(page)
+  dossier = 'admin-brouillon'
+  nom = "Vérif verify-map #{Verify.browser}"
+  slug = "verif-verify-map-#{Verify.browser}"
+  Verify.login(page)
+  demarche = Demarche.create!(nom:, slug:, visible: true)
+  ouvrir_fiche(page, nom)
+  page.fill_in 'Nom', with: "#{nom} brouillon"
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} » : brouillon enregistré, non publié."
+  page.assert_selector 'aside.admin-panneau', text: /Brouillon non publié/i
+  page.assert_selector 'aside.admin-panneau', text: %r{Brouillon du \d\d/\d\d/\d{4} à \d\d:\d\d}
+  base = ActiveRecord::Base.uncached { demarche.reload.slice(:nom, :visible) }
+  raise "brouillon : base #{base}" unless base == { 'nom' => nom, 'visible' => true }
+
+  Verify.evidence(dossier, page, 'brouillon', "base=#{base} brouillon=#{demarche.brouillon&.slice('nom')}")
+  titre = titre_public(page, slug)
+  raise "page publique #{titre}" unless titre.include?(nom) && !titre.include?('brouillon')
+
+  Verify.evidence(dossier, page, 'page-publique-inchangee', "h1=#{titre}")
+  rubrique(page, 'Démarches')
+  ouvrir_depuis_la_liste(page, nom)
+  page.find_field('Nom', with: "#{nom} brouillon")
+  page.click_button 'Publier'
+  page.assert_text "« #{nom} brouillon » enregistré."
+  page.assert_no_selector 'aside.admin-panneau', text: /Brouillon/i
+  titre = titre_public(page, slug)
+  raise "publication : page publique #{titre}" unless titre.include?("#{nom} brouillon")
+
+  Verify.evidence(dossier, page, 'page-publique-publiee', "h1=#{titre} brouillon_en_base=#{ActiveRecord::Base.uncached { demarche.reload.brouillon.inspect }}")
+  ouvrir_fiche(page, "#{nom} brouillon")
+  page.fill_in 'Nom', with: "#{nom} à jeter"
+  page.click_button 'Enregistrer'
+  page.assert_selector 'aside.admin-panneau', text: /Brouillon non publié/i
+  page.accept_confirm("Abandonner le brouillon de « #{nom} brouillon » ? Les modifications non publiées seront perdues.") { page.click_button 'Abandonner le brouillon' }
+  page.assert_text "Brouillon de « #{nom} brouillon » abandonné."
+  page.find_field('Nom', with: "#{nom} brouillon")
+  base = ActiveRecord::Base.uncached { demarche.reload.slice(:nom, :brouillon) }
+  raise "abandon : base #{base}" unless base == { 'nom' => "#{nom} brouillon", 'brouillon' => nil }
+
+  Verify.evidence(dossier, page, 'abandonne', "base=#{base}")
+  brouillon_image(page, dossier, nom, slug)
+  page.visit('/admin')
+  Verify.logout(page)
+ensure
+  Demarche.where(slug:).destroy_all
+  Solution.where(slug:).destroy_all
+end
+
+def brouillon_image(page, dossier, nom, slug)
+  solution = Solution.create!(nom:, slug:, visible: true)
+  rubrique(page, 'Solutions')
+  ouvrir_depuis_la_liste(page, nom)
+  page.attach_file('solution_image', Rails.root.join('app/assets/images/solutions/data-subvention.png').to_s)
+  page.click_button 'Enregistrer'
+  page.assert_selector 'aside.admin-panneau', text: /Brouillon non publié/i
+  page.assert_selector '.fr-upload-group img[src*="data-subvention.png"]'
+  attachee = ActiveRecord::Base.uncached { Solution.find(solution.id).image.attached? }
+  raise 'image en brouillon déjà attachée' if attachee
+
+  Verify.evidence(dossier, page, 'image-en-brouillon', "image_attachee=#{attachee} brouillon_image=#{solution.reload.brouillon&.key?('image')}")
+  page.click_button 'Publier'
+  page.assert_text "« #{nom} » enregistré."
+  fichier = ActiveRecord::Base.uncached { Solution.find(solution.id).image.filename.to_s }
+  raise "publication : image #{fichier}" unless fichier == 'data-subvention.png'
+
+  Verify.evidence(dossier, page, 'image-publiee', "image=#{fichier} brouillon=#{solution.reload.brouillon.inspect}")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1188,7 +1262,7 @@ end
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
-  'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api }.each do |nom, fn|
+  'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
