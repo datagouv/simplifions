@@ -1,0 +1,58 @@
+<% libelles = { 'logiciel_metier_cle_en_main' => 'Logiciels métier « clé en main »',
+                'brique_logicielle' => 'Briques logicielles à intégrer',
+                'site_de_consultation' => 'Sites de consultation' }
+   par_categorie = integratrices.sort_by { |sol| [-couvertures[sol.id].first, sol.nom] }.group_by(&:categorie) %>
+<div data-controller="categories-integratrices">
+  <div class="fr-grid-row fr-grid-row--middle fr-mb-2w">
+    <p class="fr-col fr-text--bold fr-mb-0">Filtrer les solutions</p>
+    <fieldset class="fr-col-auto fr-segmented fr-segmented--sm">
+      <legend class="fr-segmented__legend fr-segmented__legend--inline">Affichage :</legend>
+      <div class="fr-segmented__elements">
+        <div class="fr-segmented__element">
+          <input type="radio" id="affichage-cartes" name="affichage-solutions" value="cartes" checked autocomplete="off"
+            data-action="change->categories-integratrices#afficher">
+          <label class="fr-label fr-icon-layout-grid-line" for="affichage-cartes">Cartes</label>
+        </div>
+        <div class="fr-segmented__element">
+          <input type="radio" id="affichage-tableau" name="affichage-solutions" value="tableau" autocomplete="off"
+            data-action="change->categories-integratrices#afficher">
+          <label class="fr-label fr-icon-table-line" for="affichage-tableau">Tableau</label>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+  <div class="fr-grid-row fr-grid-row--bottom fr-mb-4w">
+    <div class="fr-col">
+      <p class="fr-text--sm fr-mb-1w" id="filtre-categories-integratrices">Par catégorie :</p>
+      <ul class="fr-tags-group fr-mb-0" aria-labelledby="filtre-categories-integratrices">
+        <% libelles.each do |categorie, libelle| %>
+          <% next unless par_categorie.key?(categorie) %>
+          <li>
+            <button type="button" class="fr-tag" aria-pressed="true" data-categories-integratrices-target="tag"
+              data-filtre="<%= categorie %>"><%= libelle %> (<span data-compte="<%= categorie %>"><%= par_categorie[categorie].size %></span>)</button>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="fr-col-auto fr-ml-auto fr-mb-2w">
+      <div class="fr-toggle fr-toggle--label-left">
+        <input type="checkbox" class="fr-toggle__input" id="filtre-solutions-publiques" autocomplete="off"
+          data-categories-integratrices-target="publiques" data-action="change->categories-integratrices#filtrer">
+        <label class="fr-toggle__label" for="filtre-solutions-publiques">Solutions publiques</label>
+      </div>
+    </div>
+  </div>
+  <p class="fr-hidden" data-categories-integratrices-target="vide"><i>Aucune solution ne correspond aux filtres sélectionnés.</i></p>
+
+  <div data-categories-integratrices-target="cartes">
+    <% libelles.each do |categorie, titre| %>
+      <% next unless par_categorie.key?(categorie) %>
+      <%= render 'bloc_integratrices', categorie:, titre:, solutions: par_categorie[categorie], couvertures:, groupes:, integrees:,
+            nom_demarche: %>
+    <% end %>
+  </div>
+  <div class="fr-hidden" data-categories-integratrices-target="tableau">
+    <%= render 'tableau_integratrices', solutions: integratrices.sort_by { |sol| [-couvertures[sol.id].first, sol.nom] },
+          groupes:, integrees:, couvertures: %>
+  </div>
+</div>

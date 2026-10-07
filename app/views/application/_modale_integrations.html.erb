@@ -1,0 +1,35 @@
+<% sections = sections_donnees(groupes) %>
+<dialog id="<%= modale_id %>" class="fr-modal" aria-labelledby="<%= modale_id %>-titre">
+  <div class="fr-container fr-container--fluid fr-container-md">
+    <div class="fr-grid-row fr-grid-row--center">
+      <div class="fr-col-12 fr-col-md-8">
+        <div class="fr-modal__body">
+          <div class="fr-modal__header">
+            <button type="button" class="fr-btn--close fr-btn" aria-controls="<%= modale_id %>" title="Fermer">Fermer</button>
+          </div>
+          <div class="fr-modal__content">
+            <h2 id="<%= modale_id %>-titre" class="fr-modal__title fr-mb-1w"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></h2>
+            <%= render 'badge_operateur', solution: %>
+            <p class="integration-indicator fr-p-1w fr-mt-2w">
+              <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(nombre_integrees, nombre_utiles) %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
+              <span class="fr-text--sm"><b>API et jeux de données utiles pour la démarche</b> «&nbsp;<%= nom_demarche %>&nbsp;» <b>intégrés par cette solution</b></span>
+            </p>
+            <% sections.each do |titre, utiles| %>
+              <h3 class="fr-h6 fr-mb-1w fr-mt-3w"><%= titre %> (<%= utiles.count { |utile| utile.id.in?(integrees) } %>/<%= utiles.size %>)</h3>
+              <ul class="list-none fr-p-0">
+                <% utiles.each do |utile| %>
+                  <% integree = utile.id.in?(integrees) %>
+                  <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
+                    <span aria-hidden="true" class="fr-icon--sm <%= integree ? 'fr-icon-checkbox-circle-fill icon-green' : 'fr-icon-close-line' %>"></span>
+                    <%= utile.nom %>
+                    <span class="fr-sr-only"><%= integree ? ' : intégrée' : ' : non intégrée' %></span>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>

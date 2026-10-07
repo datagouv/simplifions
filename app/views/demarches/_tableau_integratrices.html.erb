@@ -1,0 +1,67 @@
+<% sections = sections_donnees(groupes) %>
+<div class="fr-table fr-table--bordered fr-table--sm fr-table--multiline tableau-integratrices">
+  <div class="fr-table__wrapper">
+    <div class="fr-table__container">
+      <div class="fr-table__content">
+        <table>
+          <caption class="fr-sr-only">API et jeux de données utiles intégrés par chaque solution</caption>
+          <colgroup span="2"></colgroup>
+          <% sections.each do |_titre, utiles| %>
+            <colgroup span="<%= utiles.size %>"></colgroup>
+          <% end %>
+          <thead>
+            <tr>
+              <th scope="col" rowspan="2" class="fr-cell--fixed tableau-integratrices__solution">Solution</th>
+              <th scope="col" rowspan="2" class="tableau-integratrices__score">Données intégrées pour ce cas d'usage</th>
+              <% sections.each do |titre, utiles| %>
+                <th scope="colgroup" colspan="<%= utiles.size %>"><%= titre %></th>
+              <% end %>
+            </tr>
+            <tr>
+              <% sections.each do |titre, utiles| %>
+                <% utiles.each do |utile| %>
+                  <th scope="col" class="fr-text--xs"><%= utile.nom.delete_suffix(" | #{titre}") %></th>
+                <% end %>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% solutions.each do |solution| %>
+              <% nombre_integrees, nombre_utiles = couvertures[solution.id]
+                 integrees_solution = integrees.fetch(solution.id, Set.new) %>
+              <tr data-categorie="<%= solution.categorie %>" data-privee="<%= solution.privee? %>">
+                <th scope="row" class="fr-cell--fixed tableau-integratrices__solution">
+                  <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
+                  <% if (operateur = solution.organisations.first) %>
+                    <span class="fr-badge fr-badge--sm fr-badge--no-icon <%= solution.privee? ? 'fr-badge--green-tilleul-verveine' : 'fr-badge--blue-ecume' %>">
+                      <span class="font-weight-normal"><%= solution.privee? ? 'Privé' : 'Public' %> | <b><%= operateur.nom %></b></span>
+                    </span>
+                  <% end %>
+                  <% if solution.types_solution.any? %>
+                    <span class="fr-text--xs fr-mb-0 tableau-integratrices__detail"><%= solution.types_solution.join(' • ') %></span>
+                  <% end %>
+                </th>
+                <td class="fr-cell--center tableau-integratrices__score">
+                  <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(nombre_integrees, nombre_utiles) %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
+                </td>
+                <% sections.each do |_titre, utiles| %>
+                  <% utiles.each do |utile| %>
+                    <td class="fr-cell--center">
+                      <% if utile.id.in?(integrees_solution) %>
+                        <span aria-hidden="true" class="fr-icon-checkbox-circle-fill fr-icon--sm icon-green"></span>
+                        <span class="fr-sr-only">Intégrée</span>
+                      <% else %>
+                        <span aria-hidden="true" class="fr-text-mention--grey">–</span>
+                        <span class="fr-sr-only">Non intégrée</span>
+                      <% end %>
+                    </td>
+                  <% end %>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

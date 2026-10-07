@@ -1,4 +1,5 @@
-<div class="solution-integratrice-card fr-enlarge-link">
+<% modale_id = "modale-#{contexte}-#{solution.id}" %>
+<div class="solution-integratrice-card">
   <div class="solution-integratrice-card__header">
     <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
     <%= render "badge_operateur", solution: solution %>
@@ -7,12 +8,26 @@
     <p class="fr-text--sm fr-mb-0"><%= solution.types_solution.join(' • ') %></p>
   <% end %>
   <% if couverture %>
-    <% integrees, utiles = couverture
-       type = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %>
-    <%= render 'integration_indicator', integrees:, utiles:, label: "#{type} utiles #{cible.nom}",
-          description: "#{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution." %>
+    <% nombre_integrees, nombre_utiles = couverture
+       couleur = couleur_integration(nombre_integrees, nombre_utiles) %>
+    <div class="integration-indicator fr-p-1w">
+      <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
+      <span class="fr-text--xs fr-text-mention--grey"><%= libelle %></span>
+      <button type="button" class="integration-indicator__oeil fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-eye-line"
+        aria-controls="<%= modale_id %>" data-fr-opened="false" title="Voir les données intégrées par <%= solution.nom %>">
+        Voir les données intégrées par <%= solution.nom %>
+      </button>
+    </div>
+    <% content_for :modales do %>
+      <%= render 'modale_integrations', modale_id:, solution:, groupes:, integrees:,
+            nombre_integrees:, nombre_utiles:, nom_demarche: %>
+    <% end %>
   <% end %>
-  <div class="solution-integratrice-card__arrow">
-    <span aria-hidden="true" class="fr-icon-arrow-right-line fr-icon--lg"></span>
-  </div>
+  <% if solution.slug.present? %>
+    <p class="solution-integratrice-card__fiche fr-mb-0">
+      <%= link_to solution_path(solution.slug), class: 'fr-link fr-icon-arrow-right-line fr-link--icon-right' do %>
+        Voir la fiche<span class="fr-sr-only"> <%= solution.nom %></span>
+      <% end %>
+    </p>
+  <% end %>
 </div>

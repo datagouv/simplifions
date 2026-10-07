@@ -22,6 +22,12 @@ class Integration < ApplicationRecord
   def type_libelle = self.class.human_attribute_name("type_integration.#{type_integration}")
 
   def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]
+
+  def self.integrees_par_integratrice(integree_ids)
+    consomme.en_production.where(integree_id: integree_ids).distinct.pluck(:integratrice_id, :integree_id)
+      .group_by(&:first).transform_values { |paires| paires.to_set(&:last) }
+  end
+
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
   scope :par_libelle_admin_de, ->(cote) { joins(cote).merge(Solution.par_libelle_admin).order(:id) }
 

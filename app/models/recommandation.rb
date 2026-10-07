@@ -46,10 +46,14 @@ class Recommandation < ApplicationRecord
     y = utiles.count
     return {} if y.zero?
 
-    integrees = Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
-      .group(:integratrice_id).distinct.count(:integree_id)
-    solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, 0), y] }
+    solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, Set.new).size, y] }
   end
+
+  def integrees
+    @integrees ||= Integration.integrees_par_integratrice(utiles.select(:solution_id))
+  end
+
+  def solutions_utiles = Solution.where(id: utiles.select(:solution_id)).order(:nom)
 
   def moyens_acces
     solutions_integratrices.order(:nom).group_by(&:categorie)
