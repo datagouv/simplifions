@@ -475,8 +475,11 @@ def cases_affichees(groupe) = groupe.all('[data-liste-filtrable-target=element]:
 def liste_filtrable(page)
   dossier = 'admin-liste-filtrable'
   nom = "Vérif verify-map #{Verify.browser}"
-  integrations = Integration.includes(:integratrice, :integree).order(:id).to_a
-  demarche = Demarche.create!(nom:, integrations: integrations.first(2))
+  api = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
+  demarche = Demarche.create!(nom:)
+  Recommandation.create!(demarche:, solution_id: api, niveau: :niveau_1)
+  integrations = Integration.where(integree_id: api).includes(:integratrice, :integree).order(:id).to_a
+  demarche.integrations = integrations.first(2)
   cible = integrations.last
   Verify.login(page)
   page.visit("/admin/demarches/#{demarche.id}/edit")
@@ -1128,6 +1131,54 @@ ensure
   page.current_window.resize_to(1280, 1024)
 end
 
+def cases_de(page, groupe) = page.all("input[type=checkbox][name$='[#{groupe}][]']", visible: :all)
+
+def hors_regle(page, groupe) = page.all("input[type=checkbox][name$='[#{groupe}][]'] + label", visible: :all).count { |l| l.text(:all).end_with?('(hors règle)') }
+
+def integrations_de_l_api(page)
+  dossier = 'admin-integrations-de-l-api'
+  Verify.login(page)
+  demarche = Demarche.find(1)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  cases = cases_de(page, 'integration_ids').size
+  attendu = demarche.integrations_proposees.count
+  marquees = hors_regle(page, 'integration_ids')
+  hors = demarche.integrations.where.not(id: demarche.integrations_autorisees).count
+  raise "démarche 1 : #{cases} cases pour #{attendu} proposées" unless cases == attendu && cases < Integration.count
+  raise "démarche 1 : #{marquees} marquées hors règle pour #{hors}" unless marquees == hors
+
+  Verify.evidence(dossier, page, 'demarche-1', "cases=#{cases} avant=#{Integration.count} hors_regle=#{marquees} cochees=#{demarche.integrations.count}")
+  integration = Integration.joins(:demarches).where.not(
+    'EXISTS (SELECT 1 FROM recommandations r WHERE r.demarche_id = demarches.id AND r.solution_id = integrations.integree_id)'
+  ).first!
+  page.visit("/admin/integrations/#{integration.id}/edit")
+  cases = cases_de(page, 'demarche_ids').size
+  raise "intégration : #{cases} cases pour #{integration.demarches_proposees.count}" unless cases == integration.demarches_proposees.count
+  raise 'intégration : aucune démarche marquée hors règle' unless hors_regle(page, 'demarche_ids').positive?
+
+  Verify.evidence(dossier, page, 'integration', "integration=#{integration.id} cases=#{cases} avant=#{Demarche.count} hors_regle=#{hors_regle(page, 'demarche_ids')}")
+  avant = integration.demarche_ids.sort
+  intrus = Demarche.where.not(id: integration.demarches_proposees).first!
+  page.execute_script(
+    "const c = document.createElement('input'); c.type = 'hidden'; c.name = 'integration[demarche_ids][]'; c.value = arguments[0]; document.getElementById('formulaire-fiche').append(c); c.dispatchEvent(new Event('change', { bubbles: true }))", intrus.id
+  )
+  page.click_button 'Enregistrer'
+  page.assert_selector '.fr-alert--error', text: "La démarche « #{intrus.nom} » ne recommande pas l’API ou le jeu de données intégré"
+  ActiveRecord::Base.uncached do
+    apres = Integration.find(integration.id).demarche_ids.sort
+    raise "refus : base modifiée #{avant} → #{apres}" unless apres == avant
+
+    Verify.evidence(dossier, page, 'refus-serveur', "intrus=#{intrus.id} en_base_avant=#{avant.size} en_base_apres=#{apres.size}")
+  end
+  page.visit('/admin/integrations/new')
+  raise 'nouvelle intégration : cases de démarches' unless cases_de(page, 'demarche_ids').empty?
+
+  page.assert_text 'Démarches : à cocher une fois l’API ou le jeu de données enregistré'
+  Verify.evidence(dossier, page, 'nouvelle-integration', 'cases=0 message=affiché')
+  page.visit('/admin')
+  Verify.logout(page)
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1137,7 +1188,7 @@ end
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
-  'navigation' => :navigation }.each do |nom, fn|
+  'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
