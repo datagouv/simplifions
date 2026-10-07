@@ -23,6 +23,11 @@ export default class extends Controller {
     window.removeEventListener("beforeunload", this.decharger)
   }
 
+  modifieValueChanged() {
+    const enregistrer = [...this.element.elements].find((champ) => champ.hasAttribute("data-enregistrer"))
+    if (enregistrer) enregistrer.disabled = !this.modifieValue
+  }
+
   marquer(event) {
     if (event.target.name) this.modifieValue = true
   }
