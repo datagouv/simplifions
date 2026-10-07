@@ -9,7 +9,9 @@ class Admin::DemarchesController < Admin::BaseController
     @demarche = Demarche.new
   end
 
-  def edit; end
+  def edit
+    @demarche.appliquer_brouillon
+  end
 
   def create
     @demarche = Demarche.new(demarche_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
@@ -21,7 +23,7 @@ class Admin::DemarchesController < Admin::BaseController
   end
 
   def update
-    if @demarche.update(demarche_params.merge(modifie_le: Time.current))
+    if @demarche.enregistrer(demarche_params.merge(modifie_le: Time.current))
       redirige_vers_la_fiche(@demarche)
     else
       render :edit, status: :unprocessable_content

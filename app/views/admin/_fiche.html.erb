@@ -7,6 +7,9 @@
         <% if modele.has_attribute?(:visible) %>
           <p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if en_base.visible? %>"><%= en_base.visible? ? "Publiée" : "Masquée" %></p>
         <% end %>
+        <% if en_base.try(:brouillon?) %>
+          <p class="fr-badge fr-badge--no-icon fr-badge--new">Brouillon non publié</p>
+        <% end %>
         <dl class="fr-pl-0 fr-mt-2w fr-text--sm">
           <% { "Création" => modele.has_attribute?(:cree_le) ? en_base.cree_le : en_base.created_at,
                "Dernière modification" => modele.has_attribute?(:modifie_le) ? en_base.modifie_le : en_base.updated_at }.compact.each do |terme, date| %>
@@ -26,9 +29,18 @@
         <li><button type="submit" form="formulaire-fiche" class="fr-btn" data-enregistrer>Enregistrer</button></li>
         <% if modele.has_attribute?(:visible) %>
           <% publiee = en_base&.visible? %>
-          <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="<%= publiee ? 0 : 1 %>" class="fr-btn fr-btn--secondary"><%= publiee ? "Masquer" : "Publier" %></button></li>
+          <% if !publiee || modele.has_attribute?(:brouillon) %>
+            <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="1" class="fr-btn fr-btn--secondary">Publier</button></li>
+          <% end %>
+          <% if publiee %>
+            <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="0" class="fr-btn fr-btn--secondary">Masquer</button></li>
+          <% end %>
         <% end %>
         <li><%= link_to "Annuler", url_for(action: :index), class: "fr-btn fr-btn--tertiary" %></li>
+        <% if en_base.try(:brouillon?) %>
+          <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, en_base], method: :patch, class: "fr-btn fr-btn--tertiary",
+              form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_en_base} » ? Les modifications non publiées seront perdues." } } %></li>
+        <% end %>
         <% if en_base %>
           <li><%= button_to "Supprimer", [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary",
               form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", *consequences.compact_blank].join(" ") } } %></li>
