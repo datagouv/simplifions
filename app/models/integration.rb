@@ -1,4 +1,6 @@
 class Integration < ApplicationRecord
+  has_paper_trail
+
   STATUT_EN_PRODUCTION = '✅ en production'.freeze
   STATUTS = ['💡 en prospection', '🚧 Intéressé si évolution', '⏳En attente de développement', '⚙️ en développement',
              '📦 en recette', STATUT_EN_PRODUCTION].freeze

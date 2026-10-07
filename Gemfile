@@ -35,6 +35,9 @@ gem "devise"
 
 gem "strong_migrations"
 
+# Historique des modifications des fiches de l'administration, avec leur auteur
+gem "paper_trail", "~> 17.0"
+
 # Recherche des listes de l'administration, comme DataPass
 gem "ransack", "~> 4.4"
 

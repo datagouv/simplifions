@@ -1,4 +1,6 @@
 class Organisation < ApplicationRecord
+  has_paper_trail
+
   PUBLIC_OU_PRIVE = %w[Public Privé].freeze
 
   validates :nom, presence: true

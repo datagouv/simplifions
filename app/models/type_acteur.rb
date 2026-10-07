@@ -1,4 +1,6 @@
 class TypeActeur < ApplicationRecord
+  has_paper_trail
+
   # Les regroupements proposés en filtre par le site actuel (config du front-kit), dans son ordre : libellé => slug.
   FILTRES = {
     'Communes et groupements de communes' => 'communes',
