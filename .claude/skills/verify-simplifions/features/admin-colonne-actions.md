@@ -1,6 +1,6 @@
 # Colonne d'état et d'actions
 
-Every admin `new` and `edit` page (seven tables) puts an `État et actions` column (`aside`) right of the fields, sticky while scrolling from 768 px up, under the H1 and before the fields below. It holds the state (`Publiée` / `Masquée`, démarches, solutions, recommandations), `Création` and `Dernière modification` (`cree_le` / `modifie_le`, else `created_at` / `updated_at`), `Identifiant Grist : …`, then `Enregistrer`, `Publier` or `Masquer`, `Annuler`, `Supprimer`, and `Voir la page publique` for a visible démarche or solution with a slug. `Enregistrer` never changes the state; `Publier` (`Masquer`) saves the fields with `visible` true (false). The form keeps no button and no `Visible sur simplifions` box; the column buttons reach it through `form="formulaire-fiche"`.
+Every admin `new` and `edit` page (seven tables) puts an `État et actions` column (`aside`) right of the fields, sticky while scrolling from 768 px up, under the H1 and before the fields below. It holds the state (`Publiée` / `Masquée`, démarches, solutions, recommandations), `Création` and `Dernière modification` (`cree_le` / `modifie_le`, else `created_at` / `updated_at`), `Identifiant Grist : …`, then `Enregistrer`, `Publier` or `Masquer`, `Annuler`, `Supprimer`, and `Voir la page publique` for a visible démarche or solution with a slug. `Enregistrer` is disabled until a named field changes (enabled from the start on a form re-rendered with errors, and always without JavaScript); `Publier` / `Masquer` are never disabled. `Enregistrer` never changes the state; `Publier` (`Masquer`) saves the fields with `visible` true (false). The form keeps no button and no `Visible sur simplifions` box; the column buttons reach it through `form="formulaire-fiche"`.
 
 ## How to get to it (user POV)
 
@@ -12,7 +12,9 @@ Every admin `new` and `edit` page (seven tables) puts an `État et actions` colu
 `drive.rb colonne`. Preconditions: logged in, catalogue imported (démarche 1 published). The drive creates its own démarche `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`, not visible) and deletes it; it saves nothing on démarche 1.
 
 - **Sticky.** Démarche 1, scroll to y = 14 000: `Enregistrer` inside the viewport and the topmost element at its centre.
+- **Greyed.** Own démarche opened: `Enregistrer` disabled, `Publier` enabled; type in `Nom`: `Enregistrer` enabled.
 - **Enter.** Own démarche, type in `Nom`, press Enter: `« … » enregistré.`, base `visible` still false, column `Masquée` (Enregistrer is the form's default button, before Publier in the DOM).
+- **Errors.** Back on the saved fiche `Enregistrer` is disabled again; empty `Nom`, `Enregistrer`: `Nom doit être rempli` and `Enregistrer` enabled without typing.
 - **Publish.** Scroll, `Publier`: `Publiée`, base `visible` true and the typed name saved. `Voir la page publique` opens `/demarches/<slug>` in a new window.
 - **Hide.** `Masquer`: `Masquée`, base `visible` false.
 - **Mobile.** Window 375 px: no horizontal scroll, the column above the form.
@@ -24,3 +26,4 @@ Every admin `new` and `edit` page (seven tables) puts an `État et actions` colu
 - DSFR badges are uppercase by CSS: match `Publiée` / `Masquée` case-insensitively.
 - The recommandation form also has an `aside` (the démarche callout): select `aside.admin-panneau` or `aside.fr-callout`.
 - `position: sticky` needs no `overflow` on an ancestor; none in the admin layout today.
+- Enter in an unchanged form submits nothing: the default button (`Enregistrer`) is disabled. Find it with `find_button("Enregistrer", disabled: true)` until a field is typed in.
