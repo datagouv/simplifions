@@ -1293,6 +1293,65 @@ def brouillon_image(page, dossier, nom, slug)
   Verify.evidence(dossier, page, 'image-publiee', "image=#{fichier} brouillon=#{solution.reload.brouillon.inspect}")
 end
 
+def previsualiser(page)
+  fenetre = page.window_opened_by { page.click_link 'Prévisualiser' }
+  page.switch_to_window(fenetre)
+  yield fenetre
+ensure
+  fenetre&.close
+  page.switch_to_window(page.windows.first)
+end
+
+def previsualisation_lisible(page)
+  page.current_window.resize_to(640, 1024)
+  largeurs = page.evaluate_script('[document.documentElement.scrollWidth, document.documentElement.clientWidth]')
+  page.current_window.resize_to(1280, 1024)
+  raise "débord à 640 px #{largeurs}" if largeurs.first > largeurs.last
+
+  largeurs
+end
+
+def previsualisation(page)
+  dossier = 'admin-previsualisation'
+  nom = "Vérif verify-map #{Verify.browser}"
+  slug = "verif-verify-map-#{Verify.browser}"
+  Verify.login(page)
+  demarche = Demarche.create!(nom:, slug:, visible: true)
+  ouvrir_fiche(page, nom)
+  page.assert_no_selector :link, 'Prévisualiser'
+  page.fill_in 'Nom', with: "#{nom} brouillon"
+  page.click_button 'Enregistrer'
+  previsualiser(page) do
+    page.assert_selector 'h1', text: "#{nom} brouillon"
+    page.assert_selector '.fr-notice', text: 'Prévisualisation, non publiée.'
+    Verify.evidence(dossier, page, 'demarche', "h1=#{page.find('h1').text} titre=#{page.title} bandeau=#{page.find('.fr-notice').text.squish}")
+    largeurs = previsualisation_lisible(page)
+    Verify.evidence(dossier, page, 'demarche-640px', "scrollWidth/clientWidth=#{largeurs}")
+  end
+  titre = titre_public(page, slug)
+  base = ActiveRecord::Base.uncached { demarche.reload.nom }
+  raise "page publique #{titre} / base #{base}" unless titre == nom && base == nom
+
+  Verify.evidence(dossier, page, 'page-publique-inchangee', "h1=#{titre} base=#{base} bandeau=#{page.has_css?('.fr-notice', wait: 0)}")
+  solution = Solution.create!(nom:, slug:, visible: true)
+  rubrique(page, 'Solutions')
+  ouvrir_depuis_la_liste(page, nom)
+  page.attach_file('solution_image', Rails.root.join('app/assets/images/solutions/data-subvention.png').to_s)
+  page.click_button 'Enregistrer'
+  previsualiser(page) do
+    page.assert_selector '.fr-content-media img[src*="data-subvention.png"]'
+    attachee = ActiveRecord::Base.uncached { Solution.find(solution.id).image.attached? }
+    raise 'image attachée par la prévisualisation' if attachee
+
+    Verify.evidence(dossier, page, 'solution-image', "image_du_brouillon=affichee image_en_base=#{attachee}")
+  end
+  page.visit('/admin')
+  Verify.logout(page)
+ensure
+  Demarche.where(slug:).destroy_all
+  Solution.where(slug:).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1302,7 +1361,8 @@ end
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
-  'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon }.each do |nom, fn|
+  'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
+  'previsualisation' => :previsualisation }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
