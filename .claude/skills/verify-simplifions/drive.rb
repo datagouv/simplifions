@@ -138,6 +138,7 @@ def saisies(page)
   options = page.find_field('Statut de l’intégration').all('option').map(&:value)
   raise "options #{options}" unless options == ['', *Integration::STATUTS]
 
+  page.find_field('Statut de l’intégration').find('option[value=""]').select_option
   page.select Integration::STATUT_EN_PRODUCTION, from: 'Statut de l’intégration'
   page.click_button 'Enregistrer'
   page.assert_text "« #{integration.libelle} » enregistré."
@@ -148,6 +149,7 @@ def saisies(page)
   page.visit("/admin/organisations/#{organisation.id}/edit")
   page.assert_selector :radio_button, 'Public', checked: true, visible: :all
   Verify.evidence('admin-saisies-controlees', page, 'radios-public-prive')
+  page.fill_in 'organisation[nom]', with: organisation.nom
   page.click_button 'Enregistrer'
   page.assert_text "« #{organisation.nom} » enregistré."
   page.visit("/solutions/#{solution.slug}")
@@ -555,7 +557,7 @@ def erreurs(page)
   demande_avant_de_partir(page, question) { page.click_link 'Annuler' }
 
   page.visit('/admin/recommandations/new')
-  page.click_button 'Enregistrer'
+  page.click_button 'Publier'
   page.assert_text 'Choisissez une démarche'
   messages = page.all('.fr-select-group--error .fr-message--error').map(&:text)
   Verify.evidence(dossier, page, 'recommandation', "messages=#{messages.join(' | ')} recommandations_creees=0")
@@ -897,7 +899,7 @@ def colonne(page)
   hauteur = page.evaluate_script('document.documentElement.scrollHeight')
   page.scroll_to(0, 14_000)
   page.assert_selector 'aside.admin-panneau', text: /Publiée/i
-  enregistrer = page.find_button('Enregistrer')
+  enregistrer = page.find_button('Enregistrer', disabled: true)
   defilement = page.evaluate_script('window.scrollY')
   raise "Enregistrer hors écran à #{defilement}" unless visible_a_l_ecran?(page, enregistrer)
 
@@ -905,7 +907,13 @@ def colonne(page)
 
   demarche = Demarche.create!(nom:, slug:)
   ouvrir_fiche(page, nom)
+  page.find_button('Enregistrer', disabled: true)
+  page.find_button('Publier', disabled: false)
+
+  Verify.evidence(dossier, page, 'enregistrer-grise', 'enregistrer=desactive publier=actif')
   page.fill_in 'Nom', with: "#{nom} saisie"
+  page.find_button('Enregistrer', disabled: false)
+  Verify.evidence(dossier, page, 'enregistrer-actif', 'enregistrer=actif apres_saisie')
   page.find_field('Nom').send_keys(:enter)
   page.assert_text "« #{nom} saisie » enregistré."
   etat = ActiveRecord::Base.uncached { demarche.reload.slice(:nom, :visible) }
@@ -913,6 +921,12 @@ def colonne(page)
 
   page.assert_selector 'aside.admin-panneau', text: /Masquée/i
   Verify.evidence(dossier, page, 'entree', "entree_garde_l_etat=#{etat}")
+  page.find_button('Enregistrer', disabled: true)
+  page.fill_in 'Nom', with: ''
+  page.click_button 'Enregistrer'
+  page.assert_text 'Nom doit être rempli'
+  page.find_button('Enregistrer', disabled: false)
+  Verify.evidence(dossier, page, 'erreur-enregistrer-actif', 'enregistrer=actif sur_formulaire_en_erreur')
   page.fill_in 'Nom', with: nom
   page.scroll_to(0, 2_000)
   page.click_button 'Publier'

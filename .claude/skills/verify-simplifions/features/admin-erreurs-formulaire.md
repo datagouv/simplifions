@@ -5,7 +5,7 @@ A refused admin form shows a titled summary (`2 erreurs à corriger`) at its top
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → `Démarches` → `Ajouter`; leave `Nom` empty, click `Publier` in the `État et actions` column (sends `visible=1`, so the slug is required too).
-- `/admin/recommandations/new`, `Enregistrer` with nothing chosen.
+- `/admin/recommandations/new`, `Publier` with nothing chosen (`Enregistrer` is disabled until a field changes).
 
 ## Driving it with Capybara
 
