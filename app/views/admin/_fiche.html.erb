@@ -4,6 +4,7 @@
     <div class="fr-p-3w fr-background-alt--grey">
       <h2 id="etat-et-actions" class="fr-h6">État et actions</h2>
       <% if en_base %>
+        <% historique = admin_historique_path(modele.model_name.route_key, en_base) %>
         <% if modele.has_attribute?(:visible) %>
           <p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if en_base.visible? %>"><%= en_base.visible? ? "Publiée" : "Masquée" %></p>
         <% end %>
@@ -11,6 +12,12 @@
           <p class="fr-badge fr-badge--no-icon fr-badge--new"><%= en_base.passe_par_un_brouillon? ? t("admin.badge_brouillon.#{modele.model_name.i18n_key}", default: "Brouillon non publié") : "Brouillon non publié" %></p>
           <% if (date = en_base.date_du_brouillon) %>
             <p class="fr-text--sm fr-mt-1w fr-mb-0">Brouillon du <time datetime="<%= date.iso8601 %>"><%= l date, format: :court %></time></p>
+            <% if (import = en_base.import_grist_depuis_le_brouillon) %>
+              <div class="fr-alert fr-alert--warning fr-alert--sm fr-mt-1w">
+                <p>Le Grist a modifié cette fiche le <time datetime="<%= import.created_at.iso8601 %>"><%= l import.created_at, format: :court %></time> : publier remplacera ces changements.
+                  <%= link_to "Voir l’historique", historique, class: "fr-link fr-link--sm" %></p>
+              </div>
+            <% end %>
           <% end %>
         <% end %>
         <% if en_brouillon.present? %>
@@ -25,7 +32,7 @@
         </dl>
         <% if (version = en_base.versions.last) %>
           <p class="fr-text--sm fr-mb-1w"><%= titre_de_version(version, version.event == "create" ? "Créée" : "Modifiée") %></p>
-          <p class="fr-text--sm"><%= link_to "Historique", admin_historique_path(modele.model_name.route_key, en_base), class: "fr-link fr-link--sm" %></p>
+          <p class="fr-text--sm"><%= link_to "Historique", historique, class: "fr-link fr-link--sm" %></p>
         <% end %>
         <% if en_base.grist_id.present? %>
           <p class="fr-text--sm">Identifiant Grist : <%= en_base.grist_id %></p>

@@ -1,7 +1,9 @@
 class Grist::Import < ApplicationOrganizer
+  AUTEUR = 'Import Grist'.freeze
+
   organize Grist::FetchTables, Grist::PersistCatalogue, Grist::AttachImages
 
-  around { |import| PaperTrail.request(whodunnit: 'Import Grist') { import.call } }
+  around { |import| PaperTrail.request(whodunnit: AUTEUR) { import.call } }
 
   before do
     context.report = { quarantine: [], notes: [] }
