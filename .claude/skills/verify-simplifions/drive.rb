@@ -488,12 +488,39 @@ def liste_filtrable(page)
   page.execute_script("document.querySelectorAll('input[name=\"demarche[vocabulaire_ids][]\"]:not([type=hidden])').forEach((c, i, l) => i === l.length - 1 && c.focus())")
   page.send_keys :tab
   raise 'Tab n’entre pas dans le filtre' unless page.evaluate_script('document.activeElement.id') == 'demarche_integration_ids_filtre'
+  raise 'Tab a ouvert la liste' unless cases_affichees(groupe).size == 2
 
+  tabs = (1..10).find do
+    page.send_keys :tab
+    !page.evaluate_script("document.activeElement.closest('[data-controller=liste-filtrable]') === arguments[0]", groupe)
+  end
+  raise "#{tabs} Tab pour traverser la liste" unless tabs == 6
+
+  Verify.evidence(dossier, page, 'traversee-au-clavier', "tabs_du_filtre_a_la_suite=#{tabs} visibles=2")
+  resultats = groupe.find('[data-liste-filtrable-target=resultats]')
+  fond = -> { page.evaluate_script('getComputedStyle(arguments[0]).backgroundColor', resultats) }
+  sans_cadre = fond.call
+  groupe.find_field('Filtrer les intégrations').click
   tous = cases_affichees(groupe).size
-  raise "cases visibles à l’entrée #{tous}" unless tous == integrations.size
-  raise 'compte changé à l’entrée' unless groupe.find('[aria-live=polite]').text == compte
+  raise "cases visibles au clic #{tous}" unless tous == integrations.size
+  raise 'compte changé au clic' unless groupe.find('[aria-live=polite]').text == compte
+  raise "pas de cadre gris (#{fond.call})" if fond.call == sans_cadre
 
-  Verify.evidence(dossier, page, 'tous-a-l-entree', "visibles=#{tous} total=#{integrations.size} compte=#{compte}")
+  Verify.evidence(dossier, page, 'tous-au-clic-encadres', "visibles=#{tous} total=#{integrations.size} fond=#{fond.call} fond_ferme=#{sans_cadre}")
+  groupe.fill_in 'Filtrer les intégrations', with: 'zzz'
+  groupe.click_button 'Effacer le filtre des intégrations'
+  raise 'croix : filtre non vide' unless groupe.find_field('Filtrer les intégrations').value == ''
+  raise "croix : #{cases_affichees(groupe).size} cases" unless cases_affichees(groupe).size == 2 && fond.call == sans_cadre
+  raise 'croix : focus perdu' unless page.evaluate_script('document.activeElement.id') == 'demarche_integration_ids_filtre'
+
+  Verify.evidence(dossier, page, 'croix-referme', "visibles=#{cases_affichees(groupe).size} fond=#{fond.call}")
+  page.send_keys :down
+  raise 'flèche bas n’ouvre pas' unless cases_affichees(groupe).size == integrations.size
+
+  page.send_keys %i[shift tab]
+  raise "sortie : #{cases_affichees(groupe).size} cases" unless cases_affichees(groupe).size == 2 && fond.call == sans_cadre
+
+  Verify.evidence(dossier, page, 'fleche-bas-puis-sortie-referme', "visibles=#{cases_affichees(groupe).size}")
   saisie = I18n.transliterate(cible.libelle).upcase.scan(/[[:alnum:]]+/).join(' ')
   groupe.fill_in 'Filtrer les intégrations', with: saisie
   groupe.find('label', text: cible.libelle, exact_text: true)
