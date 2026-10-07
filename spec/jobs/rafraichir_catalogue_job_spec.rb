@@ -13,6 +13,15 @@ RSpec.describe RafraichirCatalogueJob do
     expect(Solution.sur_datagouv.pluck(:datagouv_titre).uniq).to eq(['Titre data.gouv'])
   end
 
+  it 'signe ses changements « Import Grist » puis « data.gouv », sans version quand rien ne change' do
+    described_class.perform_now
+    solution = Solution.sur_datagouv.first
+
+    expect(solution.versions.map(&:whodunnit)).to eq(['Import Grist', 'data.gouv'])
+    expect(solution.versions.last.changeset).to include('datagouv_titre' => [nil, 'Titre data.gouv'])
+    expect { described_class.perform_now }.not_to change(PaperTrail::Version, :count)
+  end
+
   it "laisse sortir l'échec de l'import Grist sans appeler data.gouv" do
     stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_return(status: 500)
 

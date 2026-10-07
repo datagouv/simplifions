@@ -1,11 +1,14 @@
 class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
+  before_action :set_paper_trail_whodunnit
   helper_method :modele, :en_base, :nom_en_base, :fil_d_ariane
 
   private
 
   def paginer(liste) = super(liste, 50)
+
+  def user_for_paper_trail = current_admin.id
 
   def redirige_vers_la_fiche(ligne)
     redirect_to helpers.fiche_admin(ligne), notice: t('admin.enregistre', nom: nom_de(ligne)), status: :see_other
