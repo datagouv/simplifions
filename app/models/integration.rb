@@ -26,6 +26,7 @@ class Integration < ApplicationRecord
 
   def demarches_autorisees = Demarche.where(id: Recommandation.where(solution_id: integree_id).select(:demarche_id))
   def autorisee_pour?(demarche) = Recommandation.exists?(demarche:, solution_id: integree_id)
+  def demarches_proposees = demarches_autorisees.or(Demarche.where(id: demarche_ids))
 
   private
 
