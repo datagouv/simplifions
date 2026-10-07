@@ -150,6 +150,8 @@ fr:
       record_invalid: "La validation a échoué : %{errors}"
       format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
+      demarche_hors_regle: "La démarche « %{nom} » ne recommande pas l’API ou le jeu de données intégré"
+      integration_hors_regle: "L’intégration « %{libelle} » porte sur une API ou un jeu de données que la démarche ne recommande pas"
   views:
     pagination:
       first: "Première page"

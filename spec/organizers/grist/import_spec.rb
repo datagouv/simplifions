@@ -125,6 +125,38 @@ RSpec.describe Grist::Import do
     expect(consommation.demarches).to contain_exactly(cantine)
   end
 
+  it 'écarte avec une note le lien vers une démarche qui ne recommande pas l’API intégrée, et importe l’intégration sans lui' do
+    result
+    fc = Integration.find_by!(grist_id: 'API_et_datasets_integres:101')
+    expect(fc.demarches.pluck(:grist_id)).to eq(['Cas_d_usages:8'])
+    expect(result.report[:notes]).to include(
+      "API_et_datasets_integres:101 — démarche « Tarification sociale de l'eau potable » hors des démarches de l’API, écartée"
+    )
+  end
+
+  it 'garde l’intégration dont l’API change dans le Grist, et écarte ses démarches devenues hors règle' do
+    result
+    fc = Integration.find_by!(grist_id: 'API_et_datasets_integres:101')
+    eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
+    fc.update!(integree: Solution.find_by!(grist_id: 'APIs_et_datasets:1'))
+    fc.demarches << eau
+
+    deuxieme = described_class.call
+    expect(deuxieme.report[:quarantine].join).not_to include('API_et_datasets_integres:101')
+    expect(fc.reload.integree.grist_id).to eq('APIs_et_datasets:59')
+    expect(fc.demarches.pluck(:grist_id)).to eq(['Cas_d_usages:8'])
+  end
+
+  it 'n’autorise pas un lien par une recommandation absente du Grist, purgée par le même import' do
+    result
+    eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
+    Recommandation.create!(demarche: eau, solution: Solution.find_by!(grist_id: 'APIs_et_datasets:59'), niveau: :niveau_1)
+
+    deuxieme = described_class.call
+    expect(Integration.find_by!(grist_id: 'API_et_datasets_integres:101').demarches.pluck(:grist_id)).to eq(['Cas_d_usages:8'])
+    expect(deuxieme.report[:notes].join).to include('API_et_datasets_integres:101 — démarche « Tarification sociale')
+  end
+
   it 'imports FranceConnect integrations as ordinary consomme rows' do
     result
     fc = Integration.find_by!(grist_id: 'API_et_datasets_integres:101')
