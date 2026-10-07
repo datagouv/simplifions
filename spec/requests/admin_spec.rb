@@ -131,6 +131,45 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'navigation de l’en-tête' do
+    def rubriques(nom)
+      response.parsed_body.css("nav[aria-label='#{nom}'] .fr-nav__link")
+    end
+
+    it 'remplace la navigation du site par les rubriques de l’administration' do
+      sign_in admin
+      get admin_solutions_path
+      expect(rubriques('Menu de l’administration').map { |lien| lien.text.strip })
+        .to eq(['Démarches', 'Solutions', 'Recommandations', 'Intégrations', 'Organisations',
+                'Fournisseurs de services', 'Vocabulaires'])
+      expect(rubriques('Menu de l’administration').filter_map { |lien| [lien.text, lien['aria-current']] if lien['aria-current'] })
+        .to eq([%w[Solutions page]])
+      expect(rubriques('Menu principal')).to be_empty
+    end
+
+    it 'marque la rubrique de la fiche sur sa page d’historique' do
+      sign_in admin
+      solution = Solution.create!(nom: 'Solution suivie')
+      get admin_historique_path(type: 'solutions', id: solution.id)
+      expect(rubriques('Menu de l’administration').filter_map { |lien| [lien.text, lien['aria-current']] if lien['aria-current'] })
+        .to eq([%w[Solutions true]])
+    end
+
+    it 'garde la navigation du site sur les pages publiques d’un admin connecté' do
+      sign_in admin
+      get root_path
+      expect(rubriques('Menu principal').map { |lien| lien.text.strip })
+        .to eq(['Accueil', 'Cas d\'usages', 'Articles', 'À propos'])
+      expect(rubriques('Menu de l’administration')).to be_empty
+    end
+
+    it 'garde la navigation du site sur la page de connexion' do
+      get new_admin_session_path
+      expect(rubriques('Menu principal')).not_to be_empty
+      expect(rubriques('Menu de l’administration')).to be_empty
+    end
+  end
+
   describe 'GET /admin/connexion' do
     it 'présente le formulaire de connexion en DSFR' do
       get new_admin_session_path

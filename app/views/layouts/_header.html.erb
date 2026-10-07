@@ -44,22 +44,36 @@
         Fermer
       </button>
       <div class="fr-header__menu-links"></div>
-      <nav class="fr-nav" role="navigation" aria-label="Menu principal">
-        <ul class="fr-nav__list">
-          <li class="fr-nav__item">
-            <a class="fr-nav__link" href="/" target="_self" <%= 'aria-current="page"'.html_safe if current_page?(root_path) %>>Accueil</a>
-          </li>
-          <li class="fr-nav__item">
-            <a class="fr-nav__link" href="/demarches" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/demarches") %>>Cas d'usages</a>
-          </li>
-          <li class="fr-nav__item">
-            <a class="fr-nav__link" href="<%= articles_path %>" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/articles") %>>Articles</a>
-          </li>
-          <li class="fr-nav__item">
-            <a class="fr-nav__link" href="<%= about_path %>" target="_self" <%= 'aria-current="page"'.html_safe if current_page?(about_path) %>>À propos</a>
-          </li>
-        </ul>
-      </nav>
+      <% if controller_path.start_with?("admin/") %>
+        <nav class="fr-nav" role="navigation" aria-label="Menu de l’administration">
+          <ul class="fr-nav__list">
+            <% Admin::HistoriquesController::MODELES.each do |rubrique, modele| %>
+              <% liste = polymorphic_path([:admin, modele]) %>
+              <li class="fr-nav__item">
+                <%= link_to modele.model_name.human(count: 2), liste, class: "fr-nav__link",
+                      aria: { current: ((current_page?(liste) ? "page" : "true") if (params[:type] || controller_name) == rubrique) } %>
+              </li>
+            <% end %>
+          </ul>
+        </nav>
+      <% else %>
+        <nav class="fr-nav" role="navigation" aria-label="Menu principal">
+          <ul class="fr-nav__list">
+            <li class="fr-nav__item">
+              <a class="fr-nav__link" href="/" target="_self" <%= 'aria-current="page"'.html_safe if current_page?(root_path) %>>Accueil</a>
+            </li>
+            <li class="fr-nav__item">
+              <a class="fr-nav__link" href="/demarches" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/demarches") %>>Cas d'usages</a>
+            </li>
+            <li class="fr-nav__item">
+              <a class="fr-nav__link" href="<%= articles_path %>" target="_self" <%= 'aria-current="page"'.html_safe if request.path.start_with?("/articles") %>>Articles</a>
+            </li>
+            <li class="fr-nav__item">
+              <a class="fr-nav__link" href="<%= about_path %>" target="_self" <%= 'aria-current="page"'.html_safe if current_page?(about_path) %>>À propos</a>
+            </li>
+          </ul>
+        </nav>
+      <% end %>
     </div>
   </div>
 </header>
