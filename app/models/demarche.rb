@@ -41,10 +41,26 @@ class Demarche < ApplicationRecord
     super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
   end
 
+  delegate :en_brouillon, to: :recommandations, prefix: :recommandations
+
+  def enregistrer(attributs)
+    return super unless publication_demandee?(attributs)
+
+    transaction { (super && publier_les_recommandations) || raise(ActiveRecord::Rollback) } || false
+  end
+
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 
   private
+
+  def publier_les_recommandations
+    refusee = recommandations_en_brouillon.find { !it.enregistrer('visible' => '1') }
+    return true unless refusee
+
+    errors.add(:base, :recommandation_refusee, libelle: refusee.solution&.libelle_admin, erreurs: refusee.errors.full_messages.to_sentence)
+    false
+  end
 
   def integrations_ecartees = @integrations_ecartees ||= []
 

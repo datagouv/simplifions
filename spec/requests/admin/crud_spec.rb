@@ -1565,6 +1565,42 @@ RSpec.describe 'Administration' do
       get "/admin/recommandations/#{publiee.id}/edit"
       expect(response.parsed_body.at_css('#recommandation_donnees_utiles').text.strip).to eq('Revenu fiscal')
     end
+
+    it 'compte les recommandations en brouillon dans la colonne de la démarche et les publie avec elle' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      ajouter_bouquet
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text.squish).to include('2 recommandations en brouillon')
+
+      expect { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides', visible: '1' } } }.to change(PaperTrail::Version, :count).by(2)
+      expect(cartes_publiques.map { it[/Mes Aides|Bouquet/] }).to contain_exactly('Mes Aides', 'Bouquet')
+      expect(cartes_publiques.join).to include('Revenu fiscal')
+      expect(Recommandation.where.not(brouillon: nil)).to be_empty
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text).not_to include('en brouillon')
+    end
+
+    it 'laisse masquée la recommandation masquée avec un brouillon quand on publie la démarche' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal', visible: '0' } }
+      follow_redirect!
+      expect(colonne.text.squish).not_to include('sera publiée avec la démarche')
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text).not_to include('en brouillon')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(publiee.reload.visible).to be(false)
+      expect(cartes_publiques).to be_empty
+    end
+
+    it 'ne publie rien et nomme la recommandation refusée' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { niveau: '' } }
+      ajouter_bouquet
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales', visible: '1' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('La recommandation « Mes Aides (API) » ne peut pas être publiée : Type de recommandation doit être rempli')
+      expect([demarche.reload.nom, nouvelle.visible, publiee.reload.niveau]).to eq(['Aides', false, 'niveau_2'])
+    end
   end
 
   describe 'colonnes tableau' do
