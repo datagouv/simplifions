@@ -1,25 +1,30 @@
 <% filtre = f.field_id(attribut, :filtre) %>
 <% cochees = f.object.public_send(attribut) %>
-<fieldset class="fr-fieldset" data-controller="liste-filtrable">
+<fieldset class="fr-fieldset" data-controller="liste-filtrable" data-action="focusout->liste-filtrable#quitter">
   <legend class="fr-fieldset__legend"><%= legende %></legend>
-  <div class="fr-fieldset__element">
-    <div class="fr-input-group fr-mb-1w">
+  <div class="fr-fieldset__element fr-mb-0">
+    <div class="fr-input-group fr-mb-0">
       <label class="fr-label" for="<%= filtre %>">
         Filtrer les <%= legende.downcase %>
-        <span class="fr-hint-text">Sans filtre, seuls les éléments cochés sont affichés ; entrer dans le champ affiche tous les choix.</span>
+        <span class="fr-hint-text">Sans filtre, seuls les éléments cochés sont affichés ; cliquer dans le champ ou y appuyer sur flèche bas affiche tous les choix.</span>
       </label>
-      <input type="search" id="<%= filtre %>" class="fr-input" autocomplete="off" data-liste-filtrable-target="filtre"
-             data-action="focus->liste-filtrable#ouvrir:once input->liste-filtrable#filtrer keydown.enter->liste-filtrable#filtrer:prevent">
-    </div>
-    <p class="fr-text--sm fr-mb-0" aria-live="polite" data-liste-filtrable-target="compte"></p>
-  </div>
-  <%= f.collection_check_boxes attribut, collection, :id, libelle do |b| %>
-    <div class="fr-fieldset__element" data-liste-filtrable-target="element">
-      <div class="fr-checkbox-group">
-        <%= b.check_box data: { action: "change->liste-filtrable#compter" } %>
-        <%= b.label(class: "fr-label") %>
+      <div class="fr-input-wrap fr-input-wrap--addon">
+        <input type="text" id="<%= filtre %>" class="fr-input" autocomplete="off" data-liste-filtrable-target="filtre"
+               data-action="click->liste-filtrable#ouvrir keydown.down->liste-filtrable#ouvrir input->liste-filtrable#filtrer keydown.enter->liste-filtrable#filtrer:prevent">
+        <button type="button" class="fr-btn fr-btn--tertiary fr-icon-close-line" title="Effacer le filtre des <%= legende.downcase %>" data-action="liste-filtrable#effacer">Effacer le filtre des <%= legende.downcase %></button>
       </div>
-      <%= lien_vers_la_fiche(b.object, b.text) if cochees.include?(b.value) %>
     </div>
-  <% end %>
+  </div>
+  <div class="fr-fieldset__element fr-pt-1w fr-pb-1w" data-liste-filtrable-target="resultats">
+    <p class="fr-text--sm fr-mb-1w" aria-live="polite" data-liste-filtrable-target="compte"></p>
+    <%= f.collection_check_boxes attribut, collection, :id, libelle do |b| %>
+      <div class="fr-fieldset__element" data-liste-filtrable-target="element">
+        <div class="fr-checkbox-group">
+          <%= b.check_box data: { action: "change->liste-filtrable#compter" } %>
+          <%= b.label(class: "fr-label") %>
+        </div>
+        <%= lien_vers_la_fiche(b.object, b.text) if cochees.include?(b.value) %>
+      </div>
+    <% end %>
+  </div>
 </fieldset>

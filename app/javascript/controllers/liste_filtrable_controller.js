@@ -4,7 +4,7 @@ const sansAccent = (texte) => texte.normalize("NFD").replace(/\p{Diacritic}/gu, 
 const pluriel = (nombre, mot) => `${nombre} ${mot}${nombre > 1 ? "s" : ""}`
 
 export default class extends Controller {
-  static targets = ["filtre", "element", "compte"]
+  static targets = ["filtre", "element", "compte", "resultats"]
 
   connect() {
     this.filtrer()
@@ -15,6 +15,21 @@ export default class extends Controller {
     this.filtrer()
   }
 
+  effacer() {
+    this.filtreTarget.value = ""
+    this.fermer()
+    this.filtreTarget.focus()
+  }
+
+  quitter({ relatedTarget }) {
+    if (relatedTarget && !this.element.contains(relatedTarget) && !this.filtreTarget.value.trim()) this.fermer()
+  }
+
+  fermer() {
+    this.ouvert = false
+    this.filtrer()
+  }
+
   filtrer() {
     const mots = sansAccent(this.filtreTarget.value).split(/\s+/).filter(Boolean)
     this.elementTargets.forEach((element) => {
@@ -22,6 +37,7 @@ export default class extends Controller {
       const visible = mots.length ? mots.every((mot) => texte.includes(mot)) : this.ouvert || element.querySelector("input").checked
       element.classList.toggle("fr-hidden", !visible)
     })
+    this.resultatsTarget.classList.toggle("fr-background-alt--grey", this.ouvert || mots.length > 0)
     this.compter()
   }
 
