@@ -18,4 +18,9 @@ RSpec.describe 'rake datagouv:import' do
       .to output(/note : perdue — HTTP 404.*1 solution\(s\) rafraîchie\(s\) sur 2/m).to_stdout
     expect(Solution.find_by(uid_datagouv: 'qf').datagouv_titre).to eq('API Quotient familial')
   end
+
+  it 'signe ses changements « data.gouv »' do
+    expect { Rake::Task['datagouv:import'].invoke }.to output.to_stdout
+    expect(Solution.find_by(uid_datagouv: 'qf').versions.last.whodunnit).to eq('data.gouv')
+  end
 end

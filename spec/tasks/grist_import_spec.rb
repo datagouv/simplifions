@@ -16,6 +16,11 @@ RSpec.describe 'rake grist:import' do
     expect(a_request(:get, %r{data\.gouv\.fr/api/})).to have_been_made.at_least_once
   end
 
+  it 'signe les changements de l’import « Import Grist »' do
+    expect { Rake::Task['grist:import'].invoke }.to output.to_stdout
+    expect(PaperTrail::Version.distinct.pluck(:whodunnit)).to eq(['Import Grist'])
+  end
+
   it 'raises the import error so Sentry reports it' do
     stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_return(status: 500)
     expect { Rake::Task['grist:import'].invoke }.to raise_error(RuntimeError, 'Grist Solutions: HTTP 500')

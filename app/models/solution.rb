@@ -101,12 +101,14 @@ class Solution < ApplicationRecord
   # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec. Une fiche disparue perd ses
   # métadonnées, une erreur passagère les conserve.
   def rafraichir_datagouv!
-    response = fiche_datagouv
-    update!(datagouv_vides) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
-    return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    PaperTrail.request(whodunnit: 'data.gouv') do
+      response = fiche_datagouv
+      update!(datagouv_vides) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
+      return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
-    update!(attributs_datagouv(JSON.parse(response.body)))
-    nil
+      update!(attributs_datagouv(JSON.parse(response.body)))
+      nil
+    end
   rescue StandardError => e
     "#{uid_datagouv} — #{e.class} — #{e.message}"
   end
