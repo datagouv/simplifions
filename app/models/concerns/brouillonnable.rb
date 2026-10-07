@@ -9,6 +9,11 @@ module Brouillonnable
 
   def passe_par_un_brouillon? = visible? || brouillon.to_h['visible'] == '1'
 
+  def import_grist_depuis_le_brouillon
+    debut = brouillon&.dig('commence_le')&.to_time
+    versions.where(whodunnit: Grist::Import::AUTEUR, created_at: debut..).last if debut
+  end
+
   def enregistrer(attributs)
     attributs = attributs.to_h.stringify_keys
     return ecrire(attributs) unless passe_par_un_brouillon? && !publication_demandee?(attributs)
@@ -19,7 +24,7 @@ module Brouillonnable
 
   def appliquer_brouillon(attributs = brouillon)
     liaisons = self.class.reflect_on_all_associations(:has_and_belongs_to_many).index_by { "#{it.name.to_s.singularize}_ids" }
-    attributs.to_h.each do |cle, valeur|
+    sans_date_de_debut(attributs).each do |cle, valeur|
       liaison = liaisons[cle]
       liaison ? association(liaison.name).target = liaison.klass.where(id: valeur).to_a : public_send("#{cle}=", valeur)
     end
@@ -35,14 +40,16 @@ module Brouillonnable
 
   def publication_demandee?(attributs) = attributs.to_h.stringify_keys['visible'] == '1'
 
+  def sans_date_de_debut(attributs) = attributs.to_h.except('commence_le')
+
   def ecrire(attributs)
     remplaces = brouillon.to_h.slice(*attributs.keys)
-    update(brouillon.to_h.merge(attributs, 'brouillon' => nil)).tap { purger_les_fichiers(remplaces) if it }
+    update(sans_date_de_debut(brouillon).merge(attributs, 'brouillon' => nil)).tap { purger_les_fichiers(remplaces) if it }
   end
 
   def enregistrer_brouillon(attributs)
     remplaces = brouillon.to_h.slice(*attributs.keys)
-    attributs = brouillon.to_h.merge(attributs.transform_values { en_valeur_de_brouillon(it) })
+    attributs = { 'commence_le' => Time.current }.merge(brouillon.to_h, attributs.transform_values { en_valeur_de_brouillon(it) })
     update_column(:brouillon, (attributs if differe_du_publie?(attributs)))
     purger_les_fichiers(remplaces)
   end

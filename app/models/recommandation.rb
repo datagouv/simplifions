@@ -26,7 +26,7 @@ class Recommandation < ApplicationRecord
     return super unless new_record? && !publication_demandee?(attributs)
 
     assign_attributes(attributs)
-    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le } if demarche&.visible?
+    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current } if demarche&.visible?
     save
   end
 

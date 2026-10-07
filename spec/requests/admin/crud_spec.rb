@@ -1498,6 +1498,20 @@ RSpec.describe 'Administration' do
       expect(demarche.versions.last.changeset.keys).to contain_exactly('nom', 'updated_at')
     end
 
+    it 'prévient quand l’import Grist a modifié la fiche depuis le début du brouillon, pas avant' do
+      travel_to(Time.zone.local(2026, 10, 7, 8)) { PaperTrail.request(whodunnit: 'Import Grist') { demarche.update!(contexte: 'Avant') } }
+      travel_to(Time.zone.local(2026, 10, 7, 9, 30)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } } }
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.at_css('.fr-alert')).to be_nil
+
+      travel_to(Time.zone.local(2026, 10, 7, 10)) { PaperTrail.request(whodunnit: 'Import Grist') { demarche.reload.update!(contexte: 'Après') } }
+      travel_to(Time.zone.local(2026, 10, 7, 11)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales et familiales' } } }
+      get "/admin/demarches/#{demarche.id}/edit"
+      alerte = colonne.at_css('.fr-alert')
+      expect(alerte.text.squish).to include('Le Grist a modifié cette fiche le 07/10/2026 à 10:00 : publier remplacera ces changements.')
+      expect(alerte.at_css('a')['href']).to eq("/admin/historique/demarches/#{demarche.id}")
+    end
+
     it 'abandonne le brouillon pour revenir au publié' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
 
