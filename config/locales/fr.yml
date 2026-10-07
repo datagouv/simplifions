@@ -161,6 +161,8 @@ fr:
       last: "Dernière page"
       truncate: "…"
   admin:
+    badge_brouillon:
+      recommandation: "Brouillon — sera publiée avec la démarche"
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
     brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
     recommandations_en_brouillon:

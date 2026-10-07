@@ -8,7 +8,7 @@
           <p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if en_base.visible? %>"><%= en_base.visible? ? "Publiée" : "Masquée" %></p>
         <% end %>
         <% if en_base.try(:brouillon?) %>
-          <p class="fr-badge fr-badge--no-icon fr-badge--new">Brouillon non publié</p>
+          <p class="fr-badge fr-badge--no-icon fr-badge--new"><%= en_base.passe_par_un_brouillon? ? t("admin.badge_brouillon.#{modele.model_name.i18n_key}", default: "Brouillon non publié") : "Brouillon non publié" %></p>
           <% if (date = en_base.date_du_brouillon) %>
             <p class="fr-text--sm fr-mt-1w fr-mb-0">Brouillon du <time datetime="<%= date.iso8601 %>"><%= l date, format: :court %></time></p>
           <% end %>
