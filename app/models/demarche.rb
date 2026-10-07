@@ -10,7 +10,8 @@ class Demarche < ApplicationRecord
   has_many :recommandations, dependent: :destroy
   has_and_belongs_to_many :vocabulaires
   has_and_belongs_to_many :types_acteurs, class_name: 'TypeActeur'
-  has_and_belongs_to_many :integrations
+  has_and_belongs_to_many :integrations, before_add: :ecarte_si_hors_regle
+  validate { integrations_ecartees.each { errors.add(:base, :integration_hors_regle, libelle: it.libelle) } }
 
   scope :visibles, -> { where(visible: true) }
   def titre = "#{icone} #{nom}".strip
@@ -36,5 +37,18 @@ class Demarche < ApplicationRecord
 
   def mots_clefs=(valeur)
     super(valeur.is_a?(String) ? valeur.lines.map(&:strip).compact_blank : valeur)
+  end
+
+  def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
+
+  private
+
+  def integrations_ecartees = @integrations_ecartees ||= []
+
+  def ecarte_si_hors_regle(integration)
+    return if integration.autorisee_pour?(self)
+
+    integrations_ecartees << integration
+    throw :abort
   end
 end

@@ -343,7 +343,9 @@ RSpec.describe 'Administration' do
     it 'coche les démarches d’une intégration et les solutions d’une organisation' do
       demarche = Demarche.create!(nom: 'Aides')
       bouquet = Solution.create!(nom: 'Bouquet')
-      integration = Integration.create!(integratrice: bouquet, integree: Solution.create!(nom: 'API QF'), type_integration: 'consomme')
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      integration = Integration.create!(integratrice: bouquet, integree: api, type_integration: 'consomme')
       dinum = Organisation.create!(nom: 'DINUM')
 
       patch "/admin/integrations/#{integration.id}", params: { integration: { demarche_ids: [demarche.id] } }
@@ -496,7 +498,9 @@ RSpec.describe 'Administration' do
     it 'mène depuis chaque case cochée du catalogue à la fiche de l’élément, hors du libellé de la case' do
       api = Solution.create!(nom: 'API QF', categorie: 'api')
       integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
-      demarche = Demarche.create!(nom: 'Aides', integrations: [integration], types_acteurs: [TypeActeur.create!(nom: 'Communes')])
+      demarche = Demarche.create!(nom: 'Aides', types_acteurs: [TypeActeur.create!(nom: 'Communes')])
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      demarche.integrations << integration
       usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager', solutions: [api])
 
       expect(liens_vers_les_fiches("/admin/demarches/#{demarche.id}/edit"))

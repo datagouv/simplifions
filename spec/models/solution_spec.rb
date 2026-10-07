@@ -46,6 +46,7 @@ RSpec.describe Solution do
       Recommandation.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2, visible: true)
       Recommandation.create!(demarche: brouillon, solution: bouquet, niveau: :niveau_2, visible: true)
       Recommandation.create!(demarche: autre, solution: bouquet, niveau: :niveau_2, visible: false)
+      [cantine, autre].each { Recommandation.create!(demarche: it, solution: api_qf, niveau: :niveau_1) }
 
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine, autre])
@@ -132,6 +133,8 @@ RSpec.describe Solution do
       Recommandation.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
       Recommandation.create!(demarche: cantine, solution: api_statut, niveau: :niveau_1)
       Recommandation.create!(demarche: autre, solution: api_qf, niveau: :niveau_1)
+      Recommandation.create!(demarche: brouillon, solution: api_qf, niveau: :niveau_1)
+      Recommandation.create!(demarche: cantine, solution: api_extra, niveau: :niveau_2)
 
       logiciel = described_class.create!(nom: 'Acheteza', slug: 'acheteza-2', categorie: 'logiciel_metier_cle_en_main', visible: true)
       portail = described_class.create!(nom: 'Portail agents', slug: 'portail-agents', categorie: 'site_de_consultation', visible: true)

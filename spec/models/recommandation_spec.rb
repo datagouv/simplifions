@@ -63,6 +63,8 @@ RSpec.describe Recommandation do
       brouillon = Solution.create!(nom: 'Éditeur non visible', categorie: 'logiciel_metier_cle_en_main')
 
       Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
+      reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
+      [cantine, autre_demarche].each { described_class.create!(demarche: it, solution: api_qf, niveau: :niveau_1) }
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
       Integration.create!(integratrice: portail, integree: bouquet, type_integration: 'consomme',
@@ -74,8 +76,6 @@ RSpec.describe Recommandation do
       Integration.create!(integratrice: brouillon, integree: api_qf, type_integration: 'consomme',
         statut: '✅ en production', demarches: [cantine])
 
-      reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
-
       expect(reco.moyens_acces).to eq(
         'logiciel_metier_cle_en_main' => [logiciel],
         'site_de_consultation' => [portail]
@@ -85,14 +85,13 @@ RSpec.describe Recommandation do
     it 'trie les intégratrices par nom, comme le site actuel' do
       cantine = Demarche.create!(nom: 'Cantine à 1€')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      reco = described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
       zed, acheteza, editions = ['Zed', 'acheteza', 'Éditions du Sud'].map do |nom|
         Solution.create!(nom:, slug: nom.parameterize, categorie: 'logiciel_metier_cle_en_main', visible: true).tap do |logiciel|
           Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
             statut: '✅ en production', demarches: [cantine])
         end
       end
-
-      reco = described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
 
       expect(reco.moyens_acces['logiciel_metier_cle_en_main']).to eq([acheteza, editions, zed])
     end
@@ -111,6 +110,8 @@ RSpec.describe Recommandation do
       end
       described_class.create!(demarche: cantine, solution: api_qf, niveau: :niveau_1)
       described_class.create!(demarche: cantine, solution: api_statut, niveau: :niveau_1)
+      described_class.create!(demarche: autre_demarche, solution: api_statut, niveau: :niveau_1)
+      described_class.create!(demarche: cantine, solution: api_extra, niveau: :niveau_2)
 
       logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
       Integration.create!(integratrice: logiciel, integree: api_qf, type_integration: 'consomme',
