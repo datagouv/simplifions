@@ -63,25 +63,30 @@ def vocabulaires(page)
   page.click_button 'Enregistrer'
   page.assert_text "« #{nom} » enregistré."
   ligne = Vocabulaire.find_by!(nom:)
-  page.assert_current_path("/admin/vocabulaires/#{ligne.id}/edit")
+  page.assert_current_path("/admin/vocabulaires/#{ligne.id}")
   page.assert_selector 'h1', text: nom
+  lecture = page.all('dt').map { |terme| "#{terme.text}=#{terme.find(:xpath, 'following-sibling::dd[1]').text}" }
+  raise "lecture #{lecture}" unless lecture.first(2) == ['Slug=' + "verif-verify-map-#{Verify.browser}", 'Catégorie=Usager']
   fil = page.all('.fr-breadcrumb__list li', visible: :all).map { |etape| etape.text(:all).strip }
   raise "fil #{fil}" unless fil == ['Administration', 'Vocabulaires', nom]
 
   Verify.evidence('admin-vocabulaires', page, 'cree',
-    "id=#{ligne.id} nom=#{ligne.nom} categorie=#{ligne.categorie} url=#{page.current_path} fil=#{fil.join(' > ')} onglet=#{page.title}")
+    "id=#{ligne.id} nom=#{ligne.nom} categorie=#{ligne.categorie} url=#{page.current_path} lecture=#{lecture.join(' | ')} fil=#{fil.join(' > ')} onglet=#{page.title}")
+  page.click_link 'Modifier'
   page.fill_in 'Nom', with: "#{nom} modifié"
   page.click_button 'Enregistrer'
   page.assert_text "« #{nom} modifié » enregistré."
   page.assert_selector 'h1', text: "#{nom} modifié"
   Verify.evidence('admin-vocabulaires', page, 'modifie',
     "url=#{page.current_path} nom_en_base=#{ActiveRecord::Base.uncached { ligne.reload.nom }} onglet=#{page.title}")
+  page.click_link 'Modifier'
   page.fill_in 'Nom', with: nom
   page.click_button 'Enregistrer'
   page.assert_text "« #{nom} » enregistré."
   page.click_link 'Vocabulaires'
   page.assert_no_selector :button, 'Supprimer'
   ouvrir_depuis_la_liste(page, nom)
+  page.click_link 'Modifier'
   page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
   page.assert_text "« #{nom} » supprimé."
   page.assert_no_selector 'td', text: nom
@@ -475,7 +480,8 @@ def liste_filtrable(page)
   categories = page.all('fieldset fieldset > legend').map(&:text)
   raise "groupes de vocabulaires #{categories}" unless categories == ['Usager', 'Type de simplification', 'Catégorie de solution']
 
-  raise 'lien sous un vocabulaire' if page.find('fieldset', text: 'Vocabulaires', match: :first).has_link?('Voir la fiche', wait: 0)
+  aides = liens_d_aide(page.find('fieldset', text: 'Vocabulaires', match: :first)).size
+  raise "#{aides} « ? » pour #{Vocabulaire.count} vocabulaires" unless aides == Vocabulaire.count
 
   groupe = page.find('fieldset', text: 'Filtrer les intégrations')
   coches = cases_affichees(groupe)
@@ -485,7 +491,7 @@ def liste_filtrable(page)
   raise "compte #{compte}" unless compte == "2 cochés sur #{integrations.size}"
 
   Verify.evidence(dossier, page, 'cochees-seules', "visibles=#{coches.size} compte=#{compte} en_base=#{demarche.integration_ids.size} vocabulaires=#{categories.join(' | ')}")
-  page.execute_script("document.querySelectorAll('input[name=\"demarche[vocabulaire_ids][]\"]:not([type=hidden])').forEach((c, i, l) => i === l.length - 1 && c.focus())")
+  page.execute_script("[...document.querySelectorAll('input[name=\"demarche[vocabulaire_ids][]\"]:not([type=hidden])')].at(-1).closest('.fr-fieldset__element').querySelector('a').focus()")
   page.send_keys :tab
   raise 'Tab n’entre pas dans le filtre' unless page.evaluate_script('document.activeElement.id') == 'demarche_integration_ids_filtre'
   raise 'Tab a ouvert la liste' unless cases_affichees(groupe).size == 2
@@ -631,7 +637,24 @@ def zone_sans_defilement(page, id)
   page.evaluate_script("(z => [z.rows, z.scrollHeight, z.clientHeight, z.scrollHeight <= z.clientHeight + 2])(document.getElementById('#{id}'))")
 end
 
-def lien_nomme(zone, nom) = zone.all('a').find { |lien| lien['aria-label'] == nom } || raise("aucun lien nommé #{nom}")
+def lien_nomme(zone, nom) = zone.all('a').find { |lien| (lien['aria-label'] || lien.text(:all).strip) == nom } || raise("aucun lien nommé #{nom}")
+
+def liens_d_aide(zone) = zone.all('a:has(.fr-icon-question-line)').map { |lien| lien.text(:all).strip }
+
+def trois_colonnes(page, attendues = 3)
+  mesures = page.evaluate_script(<<~JS)
+    [...document.querySelectorAll('input[name="demarche[vocabulaire_ids][]"]:not([type=hidden])')].map((c) => {
+      const element = c.closest('.fr-fieldset__element')
+      const [libelle, aide] = [element.querySelector('label'), element.querySelector('a')].map((n) => n.getBoundingClientRect())
+      return [Math.round(element.getBoundingClientRect().top), aide.left >= libelle.right && aide.top < libelle.bottom]
+    })
+  JS
+  par_ligne = mesures.group_by(&:first).values.map(&:size).max
+  raise "#{par_ligne} vocabulaires par ligne au lieu de #{attendues}" unless par_ligne == attendues
+  raise '« ? » pas à côté du libellé' unless mesures.all?(&:last)
+
+  "vocabulaires_par_ligne=#{par_ligne} aide_a_cote=#{mesures.count(&:last)}/#{mesures.size}"
+end
 
 def pages_liees(page)
   dossier = 'admin-pages-liees'
@@ -656,29 +679,42 @@ def pages_liees(page)
 
   acteur = demarche.types_acteurs.order(:nom).first
   groupe = page.find('fieldset', text: 'Filtrer les fournisseurs de services')
-  liens = groupe.all('a', text: 'Voir la fiche').map { |a| a['aria-label'] }
-  raise "liens #{liens} pour #{demarche.types_acteurs.map(&:nom)}" unless liens.sort == demarche.types_acteurs.map { |t| "Voir la fiche #{t.nom}" }.sort
+  liens = liens_d_aide(groupe)
+  raise "liens #{liens} pour #{demarche.types_acteurs.map(&:nom)}" unless liens.sort == demarche.types_acteurs.map { |t| "Fiche de #{t.nom} (nouvel onglet)" }.sort
 
-  Verify.evidence(dossier, page, 'liens-cases-cochees', "liens=#{liens.join(' | ')}")
-  lien_nomme(groupe, "Voir la fiche #{acteur.nom}").click
-  page.assert_selector 'h1', text: acteur.nom
-  page.assert_current_path("/admin/types_acteurs/#{acteur.id}")
-  Verify.evidence(dossier, page, 'fiche-liee', "url=#{page.current_path} h1=#{page.find('h1').text}")
+  colonnes = trois_colonnes(page)
+  Verify.evidence(dossier, page, 'referentiel-trois-colonnes', "liens=#{liens.join(' | ')} #{colonnes}")
+  vocabulaire = Vocabulaire.order(:id).first
+  [[groupe, acteur, "/admin/types_acteurs/#{acteur.id}"], [page, vocabulaire, "/admin/vocabulaires/#{vocabulaire.id}"]].each do |zone, ligne, chemin|
+    fiche = page.window_opened_by { lien_nomme(zone, "Fiche de #{ligne.nom} (nouvel onglet)").click }
+    h1 = page.within_window(fiche) do
+      page.assert_current_path(chemin)
+      page.assert_selector :link, 'Modifier'
+      page.find('h1').text
+    end
+    fiche.close
+    raise 'le formulaire a été quitté' unless page.current_path == "/admin/demarches/#{demarche.id}/edit"
+
+    Verify.evidence(dossier, page, "fiche-#{ligne.model_name.element}", "ouvert=#{chemin} h1=#{h1} formulaire=#{page.current_path}")
+  end
 
   recommandation = Recommandation.first
   page.visit("/admin/recommandations/#{recommandation.id}/edit")
   lien_nomme(page, "Voir la fiche #{recommandation.solution.libelle_admin}").click
   page.assert_current_path("/admin/solutions/#{recommandation.solution_id}/edit")
   Verify.evidence(dossier, page, 'recommandation-vers-solution', "url=#{page.current_path} h1=#{page.find('h1').text}")
+  page.current_window.resize_to(375, 1024)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  Verify.evidence(dossier, page, 'referentiel-375', trois_colonnes(page, 1))
   page.current_window.resize_to(320, 1024)
   page.visit("/admin/demarches/#{demarche.id}/edit")
   Verify.evidence(dossier, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
   groupe = page.find('fieldset', text: 'Filtrer les fournisseurs de services')
-  groupe.fill_in 'Filtrer les fournisseurs de services', with: 'voir la fiche'
+  groupe.fill_in 'Filtrer les fournisseurs de services', with: 'fiche de'
   filtre = cases_affichees(groupe).size
   raise "le filtre trouve le texte du lien (#{filtre})" unless filtre.zero?
 
-  Verify.evidence(dossier, page, 'filtre-ignore-le-lien', "saisie=voir la fiche cases_affichees=#{filtre}")
+  Verify.evidence(dossier, page, 'filtre-ignore-le-lien', "saisie=fiche de cases_affichees=#{filtre}")
   page.current_window.resize_to(1280, 1024)
   Verify.logout(page)
 end
