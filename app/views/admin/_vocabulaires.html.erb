@@ -5,11 +5,12 @@
       <fieldset class="fr-fieldset">
         <legend class="fr-fieldset__legend fr-text--regular"><%= legende %></legend>
         <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.where(categorie:).order(:id), :id, :nom do |b| %>
-          <div class="fr-fieldset__element">
+          <div class="fr-fieldset__element fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-grid-row fr-grid-row--middle case-avec-aide">
             <div class="fr-checkbox-group">
               <%= b.check_box %>
               <%= b.label(class: "fr-label") %>
             </div>
+            <%= lien_d_aide(b.object, b.text) %>
           </div>
         <% end %>
       </fieldset>

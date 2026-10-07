@@ -17,14 +17,20 @@
   </div>
   <div class="fr-fieldset__element fr-pt-1w fr-pb-1w" data-liste-filtrable-target="resultats">
     <p class="fr-text--sm fr-mb-1w" aria-live="polite" data-liste-filtrable-target="compte"></p>
-    <%= f.collection_check_boxes attribut, collection, :id, libelle do |b| %>
-      <div class="fr-fieldset__element" data-liste-filtrable-target="element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box data: { action: "change->liste-filtrable#compter" } %>
-          <%= b.label(class: "fr-label") %>
+    <div class="fr-grid-row">
+      <%= f.collection_check_boxes attribut, collection, :id, libelle do |b| %>
+        <div class="fr-fieldset__element<%= ' fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-grid-row fr-grid-row--middle case-avec-aide' if local_assigns[:referentiel] %>" data-liste-filtrable-target="element">
+          <div class="fr-checkbox-group">
+            <%= b.check_box data: { action: "change->liste-filtrable#compter" } %>
+            <%= b.label(class: "fr-label") %>
+          </div>
+          <% if local_assigns[:referentiel] %>
+            <%= lien_d_aide(b.object, b.text) %>
+          <% elsif cochees.include?(b.value) %>
+            <%= lien_vers_la_fiche(b.object, b.text) %>
+          <% end %>
         </div>
-        <%= lien_vers_la_fiche(b.object, b.text) if cochees.include?(b.value) %>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
   </div>
 </fieldset>

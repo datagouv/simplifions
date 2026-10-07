@@ -489,27 +489,48 @@ RSpec.describe 'Administration' do
       response.parsed_body.css('a:contains("Voir la fiche")').map { |lien| [lien['aria-label'], lien['href'], lien.ancestors('label').any?] }
     end
 
-    it 'mène depuis chaque case cochée à la fiche de l’élément, hors du libellé de la case' do
+    def liens_vers_le_referentiel
+      response.parsed_body.css('a:has(.fr-icon-question-line[aria-hidden=true])').map { |lien| [lien.text.strip, lien['href'], lien['target'], lien.ancestors('label').any?] }
+    end
+
+    it 'mène depuis chaque case cochée du catalogue à la fiche de l’élément, hors du libellé de la case' do
       api = Solution.create!(nom: 'API QF', categorie: 'api')
       integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
-      communes = TypeActeur.create!(nom: 'Communes')
-      TypeActeur.create!(nom: 'Départements')
-      demarche = Demarche.create!(nom: 'Aides', integrations: [integration], types_acteurs: [communes])
+      demarche = Demarche.create!(nom: 'Aides', integrations: [integration], types_acteurs: [TypeActeur.create!(nom: 'Communes')])
       usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager', solutions: [api])
 
-      expect(liens_vers_les_fiches("/admin/demarches/#{demarche.id}/edit")).to contain_exactly(
-        ['Voir la fiche Communes', "/admin/types_acteurs/#{communes.id}", false],
-        ['Voir la fiche Bouquet → API QF (API) (intégrée)', "/admin/integrations/#{integration.id}/edit", false]
-      )
+      expect(liens_vers_les_fiches("/admin/demarches/#{demarche.id}/edit"))
+        .to eq([['Voir la fiche Bouquet → API QF (API) (intégrée)', "/admin/integrations/#{integration.id}/edit", false]])
       expect(liens_vers_les_fiches("/admin/vocabulaires/#{usager.id}/edit")).to eq([['Voir la fiche API QF (API)', "/admin/solutions/#{api.id}/edit", false]])
       expect(liens_vers_les_fiches('/admin/demarches/new')).to be_empty
     end
 
-    it 'ne propose aucun lien sous un vocabulaire coché d’une démarche ou d’une solution' do
+    it 'ouvre dans un nouvel onglet, depuis un « ? » à côté de chaque vocabulaire et fournisseur, sa page de lecture' do
+      communes = TypeActeur.create!(nom: 'Communes')
+      departements = TypeActeur.create!(nom: 'Départements')
       usager = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      demarche = Demarche.create!(nom: 'Aides', types_acteurs: [communes])
+      attendus = [
+        ['Fiche de Communes (nouvel onglet)', "/admin/types_acteurs/#{communes.id}", '_blank', false],
+        ['Fiche de Départements (nouvel onglet)', "/admin/types_acteurs/#{departements.id}", '_blank', false],
+        ['Fiche de Particuliers (nouvel onglet)', "/admin/vocabulaires/#{usager.id}", '_blank', false]
+      ]
 
-      expect(liens_vers_les_fiches("/admin/demarches/#{Demarche.create!(nom: 'Aides', vocabulaires: [usager]).id}/edit")).to be_empty
-      expect(liens_vers_les_fiches("/admin/solutions/#{Solution.create!(nom: 'Bouquet', vocabulaires: [usager]).id}/edit")).to be_empty
+      ["/admin/demarches/#{demarche.id}/edit", '/admin/solutions/new'].each do |chemin|
+        get chemin
+        expect(liens_vers_le_referentiel).to match_array(attendus)
+      end
+    end
+
+    it 'range les vocabulaires et les fournisseurs sur trois colonnes, pas les éléments du catalogue' do
+      TypeActeur.create!(nom: 'Communes')
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'), type_integration: 'consomme')
+      get '/admin/demarches/new'
+      en_colonnes = response.parsed_body.css('input[type=checkbox]').to_h do |case_a_cocher|
+        [case_a_cocher['name'], case_a_cocher.ancestors('.fr-col-12.fr-col-sm-6.fr-col-lg-4').any?]
+      end
+      expect(en_colonnes).to eq('demarche[type_acteur_ids][]' => true, 'demarche[vocabulaire_ids][]' => true, 'demarche[integration_ids][]' => false)
     end
 
     it 'mène depuis une recommandation à sa démarche et sa solution, depuis une intégration à ses deux solutions' do

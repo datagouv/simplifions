@@ -42,6 +42,12 @@ module ApplicationHelper
     link_to 'Voir la fiche', fiche_admin(ligne), class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
   end
 
+  def lien_d_aide(ligne, nom)
+    link_to [:admin, ligne], class: 'fr-link fr-link--sm fr-ml-1w', target: '_blank', rel: 'noopener' do
+      tag.span(class: 'fr-icon-question-line fr-icon--sm', aria: { hidden: true }) + tag.span("Fiche de #{nom} (nouvel onglet)", class: 'fr-sr-only')
+    end
+  end
+
   def pagination(liste, filtres)
     gardes = [*filtres, *request.path_parameters.keys, *Kaminari::Helpers::PARAM_KEY_EXCEPT_LIST].map(&:to_s)
     paginate liste, params: (request.query_parameters.keys - gardes).index_with(nil)

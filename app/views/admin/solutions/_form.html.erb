@@ -36,7 +36,7 @@
   <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
         data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
   <%= render "admin/vocabulaires", f: f %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services" %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
   <%= f.dsfr_text_area :permet, **champ_de_fiche(f, :permet) %>
   <%= f.dsfr_text_area :ne_permet_pas, **champ_de_fiche(f, :ne_permet_pas) %>
   <%= f.dsfr_text_field :uid_datagouv %>
