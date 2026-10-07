@@ -951,6 +951,48 @@ ensure
   Demarche.where(slug:).destroy_all
 end
 
+def historique(page)
+  dossier = 'admin-historique'
+  nom = "Vérif verify-map #{Verify.browser}"
+  Verify.login(page)
+  demarche = PaperTrail.request(whodunnit: 'Import Grist') { Demarche.create!(nom:) }
+  ouvrir_fiche(page, nom)
+  page.assert_selector 'aside.admin-panneau', text: /Créée par Import Grist le/
+  Verify.evidence(dossier, page, 'creee', "colonne=#{page.find('aside.admin-panneau').text.lines.grep(/par/).first&.strip}")
+
+  page.fill_in 'Nom', with: "#{nom} renommée"
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} renommée » enregistré."
+  page.assert_selector 'aside.admin-panneau', text: /Modifiée par #{Verify::ADMIN[:email]} le/
+  auteurs = ActiveRecord::Base.uncached { demarche.versions.reload.map(&:whodunnit) }
+  raise "auteurs #{auteurs}" unless auteurs == ['Import Grist', Admin.find_by(email: Verify::ADMIN[:email]).id.to_s]
+
+  Verify.evidence(dossier, page, 'modifiee', "versions=#{auteurs}")
+  page.click_link 'Historique'
+  page.assert_current_path("/admin/historique/demarches/#{demarche.id}")
+  titres = page.all('main section h2').map(&:text)
+  raise "titres #{titres}" unless titres.size == 2 && titres.first.start_with?("Modification par #{Verify::ADMIN[:email]}") && titres.last.start_with?('Création par Import Grist')
+
+  ligne = page.first('main section tbody tr').all('th, td').map(&:text)
+  raise "ligne #{ligne}" unless ligne == ['Nom', nom, "#{nom} renommée"]
+
+  Verify.evidence(dossier, page, 'page', "titres=#{titres} premiere_ligne=#{ligne}")
+  page.current_window.resize_to(375, 800)
+  debord = page.evaluate_script('document.documentElement.scrollWidth - document.documentElement.clientWidth')
+  raise "375 px : débord #{debord}" if debord.positive?
+
+  Verify.evidence(dossier, page, 'mobile', "debord=#{debord}")
+  page.current_window.resize_to(1280, 1024)
+  page.click_link 'Retour à la fiche'
+  page.find_field('Nom', with: "#{nom} renommée")
+  Verify.evidence(dossier, page, 'retour', "chemin=#{page.current_path}")
+ensure
+  page.current_window.resize_to(1280, 1024)
+  ids = Demarche.where('nom LIKE ?', "#{nom}%").ids
+  Demarche.where(id: ids).destroy_all
+  PaperTrail::Version.where(item_type: 'Demarche', item_id: ids).delete_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -959,7 +1001,7 @@ end
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,
   'recommandations-demarche' => :recommandations_demarche, 'formulaire-solution' => :formulaire_solution,
   'saisie-solution' => :saisie_solution,
-  'fournisseurs' => :fournisseurs, 'colonne' => :colonne }.each do |nom, fn|
+  'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
