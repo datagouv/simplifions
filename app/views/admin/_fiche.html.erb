@@ -1,0 +1,41 @@
+<%# locals: (page_publique: nil, consequences: []) -%>
+<div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
+  <aside class="fr-col-12 fr-col-md-4 admin-panneau" aria-labelledby="etat-et-actions">
+    <div class="fr-p-3w fr-background-alt--grey">
+      <h2 id="etat-et-actions" class="fr-h6">État et actions</h2>
+      <% if en_base %>
+        <% if modele.has_attribute?(:visible) %>
+          <p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if en_base.visible? %>"><%= en_base.visible? ? "Publiée" : "Masquée" %></p>
+        <% end %>
+        <dl class="fr-pl-0 fr-mt-2w fr-text--sm">
+          <% { "Création" => modele.has_attribute?(:cree_le) ? en_base.cree_le : en_base.created_at,
+               "Dernière modification" => modele.has_attribute?(:modifie_le) ? en_base.modifie_le : en_base.updated_at }.compact.each do |terme, date| %>
+            <dt class="fr-text--bold fr-mb-0"><%= terme %></dt>
+            <dd class="fr-ml-0 fr-pl-0 fr-mb-1w"><time datetime="<%= date.iso8601 %>"><%= l date.to_date %></time></dd>
+          <% end %>
+        </dl>
+        <% if en_base.grist_id.present? %>
+          <p class="fr-text--sm">Identifiant Grist : <%= en_base.grist_id %></p>
+        <% end %>
+      <% end %>
+      <ul class="fr-btns-group fr-btns-group--sm">
+        <li><button type="submit" form="formulaire-fiche" class="fr-btn">Enregistrer</button></li>
+        <% if modele.has_attribute?(:visible) %>
+          <% publiee = en_base&.visible? %>
+          <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="<%= publiee ? 0 : 1 %>" class="fr-btn fr-btn--secondary"><%= publiee ? "Masquer" : "Publier" %></button></li>
+        <% end %>
+        <li><%= link_to "Annuler", url_for(action: :index), class: "fr-btn fr-btn--tertiary" %></li>
+        <% if en_base %>
+          <li><%= button_to "Supprimer", [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary",
+              form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", *consequences.compact_blank].join(" ") } } %></li>
+        <% end %>
+      </ul>
+      <% if page_publique %>
+        <p class="fr-mb-0"><%= link_to page_publique, class: "fr-link", target: "_blank", rel: "noopener", title: "Voir la page publique de #{nom_en_base} - nouvelle fenêtre" do %>Voir la page publique<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %></p>
+      <% end %>
+    </div>
+  </aside>
+  <div class="fr-col-12 fr-col-md-8">
+    <%= yield %>
+  </div>
+</div>

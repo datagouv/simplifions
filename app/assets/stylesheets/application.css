@@ -100,3 +100,14 @@
 form :target {
   scroll-margin-top: 8rem;
 }
+
+@media (min-width: 48em) {
+  .admin-panneau {
+    order: 1;
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}

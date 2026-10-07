@@ -2,5 +2,7 @@
 
 <div class="fr-container fr-mb-6w">
   <h1>Démarche : nouvelle ligne</h1>
-  <%= render "form", demarche: @demarche %>
+  <%= render layout: "admin/fiche" do %>
+    <%= render "form", demarche: @demarche %>
+  <% end %>
 </div>
