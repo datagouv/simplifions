@@ -9,7 +9,9 @@ class Admin::SolutionsController < Admin::BaseController
     @solution = Solution.new
   end
 
-  def edit; end
+  def edit
+    @solution.appliquer_brouillon
+  end
 
   def create
     @solution = Solution.new(solution_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
@@ -21,8 +23,8 @@ class Admin::SolutionsController < Admin::BaseController
   end
 
   def update
-    @solution.image = nil if params.dig(:solution, :retirer_image) == '1'
-    if @solution.update(solution_params.merge(modifie_le: Time.current))
+    retrait = params.dig(:solution, :retirer_image) == '1' ? { image: nil } : {}
+    if @solution.enregistrer(solution_params.merge(modifie_le: Time.current, **retrait))
       redirige_vers_la_fiche(@solution)
     else
       render :edit, status: :unprocessable_content

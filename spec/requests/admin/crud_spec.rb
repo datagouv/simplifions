@@ -1223,6 +1223,68 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'image en brouillon d’une solution publiée' do
+    let(:solution) { Solution.create!(nom: 'Bouquet', slug: 'bouquet', visible: true) }
+    let(:image) { Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'nouvelle.png') }
+
+    before { sign_in admin }
+
+    def image_du_formulaire
+      get "/admin/solutions/#{solution.id}/edit"
+      response.parsed_body.at_css('.fr-upload-group img')
+    end
+
+    it 'garde une image chargée hors du site jusqu’à Publier, et la montre dans le formulaire' do
+      patch "/admin/solutions/#{solution.id}", params: { solution: { nom: 'Bouquet', image: } }
+      expect(solution.reload.image).not_to be_attached
+      expect(image_du_formulaire['src']).to include('nouvelle.png')
+
+      patch "/admin/solutions/#{solution.id}", params: { solution: { visible: '1' } }
+      expect(solution.reload.image.filename.to_s).to eq('nouvelle.png')
+      expect(solution.brouillon).to be_nil
+    end
+
+    it 'réaffiche le formulaire quand la publication d’une nouvelle image est refusée' do
+      patch "/admin/solutions/#{solution.id}", params: { solution: { image: } }
+      patch "/admin/solutions/#{solution.id}", params: { solution: { nom: '', visible: '1', image: Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'autre.png') } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('Nom doit être rempli')
+      expect(solution.reload.image).not_to be_attached
+    end
+
+    it 'retire l’image à la publication seulement' do
+      solution.image.attach(image)
+      patch "/admin/solutions/#{solution.id}", params: { solution: { nom: 'Bouquet', retirer_image: '1' } }
+      expect(solution.reload.image).to be_attached
+      expect(image_du_formulaire).to be_nil
+
+      patch "/admin/solutions/#{solution.id}", params: { solution: { visible: '1' } }
+      expect(solution.reload.image).not_to be_attached
+    end
+
+    it 'jette l’image remplacée dans le brouillon' do
+      patch "/admin/solutions/#{solution.id}", params: { solution: { image: } }
+
+      expect { patch "/admin/solutions/#{solution.id}", params: { solution: { image: Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'autre.png') } } }
+        .to have_enqueued_job(ActiveStorage::PurgeJob)
+      expect(image_du_formulaire['src']).to include('autre.png')
+    end
+
+    it 'jette l’image du brouillon avec la solution supprimée' do
+      patch "/admin/solutions/#{solution.id}", params: { solution: { image: } }
+
+      expect { delete "/admin/solutions/#{solution.id}" }.to have_enqueued_job(ActiveStorage::PurgeJob)
+    end
+
+    it 'jette l’image chargée avec le brouillon abandonné' do
+      patch "/admin/solutions/#{solution.id}", params: { solution: { image: } }
+
+      expect { patch "/admin/solutions/#{solution.id}/abandonner_brouillon" }.to have_enqueued_job(ActiveStorage::PurgeJob)
+      expect(image_du_formulaire).to be_nil
+    end
+  end
+
   describe 'fournisseurs de services' do
     before { sign_in admin }
 
