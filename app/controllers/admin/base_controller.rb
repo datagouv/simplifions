@@ -9,6 +9,12 @@ class Admin::BaseController < ApplicationController
     redirect_to [:edit, :admin, en_base], notice: t('admin.brouillon_abandonne', nom: nom_en_base), status: :see_other
   end
 
+  def previsualisation
+    instance_variable_set(:"@#{modele.model_name.element}", en_base.appliquer_brouillon)
+    response.headers['X-Robots-Tag'] = 'noindex'
+    render 'admin/previsualisation'
+  end
+
   private
 
   def paginer(liste) = super(liste, 50)

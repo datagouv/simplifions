@@ -18,6 +18,9 @@ Rails.application.routes.draw do
     resources :demarches, :solutions, :recommandations, except: :show do
       patch :abandonner_brouillon, on: :member
     end
+    resources :demarches, :solutions, only: [] do
+      get :previsualisation, on: :member
+    end
     resources :integrations, :organisations, except: :show
     resources :types_acteurs, :vocabulaires
     get "historique/:type/:id" => "historiques#show", as: :historique

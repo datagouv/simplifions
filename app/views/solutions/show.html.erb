@@ -207,7 +207,7 @@
                 <li class="fr-col-12 fr-mb-2w" data-integratrices-target="carte"
                   data-demarches="<%= couverture.keys.map(&:id).join(' ') %>"
                   data-apis="<%= nb_apis[integratrice.id] || 0 %>" data-nom="<%= integratrice.nom %>">
-                  <%= render "integratrice", integratrice:, couverture: %>
+                  <%= render "solutions/integratrice", integratrice:, couverture: %>
                 </li>
               <% end %>
             </ul>

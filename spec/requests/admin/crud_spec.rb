@@ -1637,6 +1637,52 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'prévisualisation d’une fiche avec son brouillon' do
+    let!(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let(:solution) { Solution.create!(nom: 'Bouquet', slug: 'bouquet', visible: true) }
+
+    def lien_previsualiser(chemin)
+      get "/admin/#{chemin}/edit"
+      response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"] a:contains("Prévisualiser")')
+    end
+
+    def bandeau = response.parsed_body.at_css('.fr-notice')
+
+    it 'ouvre la page publique avec le brouillon, sous un bandeau, sans changer le site' do
+      sign_in admin
+      expect(lien_previsualiser("demarches/#{demarche.id}")).to be_nil
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+
+      lien = lien_previsualiser("demarches/#{demarche.id}")
+      expect([lien['href'], lien['target']]).to eq(["/admin/demarches/#{demarche.id}/previsualisation", '_blank'])
+      get lien['href']
+      expect(response.parsed_body.at_css('h1').text.squish).to eq('Aides sociales')
+      expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations et les intégrations y paraissent dans leur version publiée')
+      expect(response.headers['X-Robots-Tag']).to eq('noindex')
+      expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Cas').and include('Aides sociales')
+
+      get '/demarches/aides'
+      expect([response.parsed_body.at_css('h1').text.squish, bandeau]).to eq(['Aides', nil])
+      expect(demarche.reload.nom).to eq('Aides')
+    end
+
+    it 'montre l’image du brouillon d’une solution' do
+      sign_in admin
+      image = Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'nouvelle.png')
+      patch "/admin/solutions/#{solution.id}", params: { solution: { nom: 'Bouquet malin', image: } }
+
+      get lien_previsualiser("solutions/#{solution.id}")['href']
+      expect(response.parsed_body.at_css('h1').text.squish).to eq('Bouquet malin')
+      expect(response.parsed_body.at_css('.fr-content-media img')['src']).to include('nouvelle.png')
+      expect(solution.reload.image).not_to be_attached
+    end
+
+    it 'est réservée aux admins connectés' do
+      get "/admin/demarches/#{demarche.id}/previsualisation"
+      expect(response).to redirect_to(new_admin_session_path)
+    end
+  end
+
   describe 'colonnes tableau' do
     it 'affiche et enregistre les mots-clefs une valeur par ligne' do
       sign_in admin

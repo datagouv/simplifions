@@ -3,6 +3,7 @@
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
   <%= render layout: "admin/fiche", locals: { page_publique: (demarche_path(en_base.slug) if en_base.visible? && en_base.slug.present?),
+    previsualisation: (previsualisation_admin_demarche_path(en_base) if en_base.brouillon?),
     consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
       t("admin.suppression.integrations_detachees", count: en_base.integrations.count)],
     en_brouillon: t("admin.recommandations_en_brouillon", count: en_base.recommandations_en_brouillon.count) } do %>
