@@ -9,5 +9,12 @@
   <% end %>
   <%= f.dsfr_select :type_integration, options_traduites(Integration, :type_integration) %>
   <%= f.dsfr_select :statut, Integration::STATUTS %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :demarche_ids, collection: Demarche.order(:nom), libelle: :nom, legende: "Démarches" %>
+  <% demarches = integration.demarches_proposees.order(:nom).load %>
+  <% autorisees = integration.demarches_autorisees.ids %>
+  <% if demarches.any? %>
+    <%= render "admin/cases_filtrables", f: f, attribut: :demarche_ids, collection: demarches, libelle: ->(demarche) { libelle_hors_regle(demarche.nom, autorisees.include?(demarche.id)) }, legende: "Démarches" %>
+  <% else %>
+    <%= hidden_field_tag "integration[demarche_ids][]", "" %>
+    <p class="fr-hint-text">Démarches : à cocher une fois l’API ou le jeu de données enregistré, parmi les démarches qui le recommandent.</p>
+  <% end %>
 <% end %>

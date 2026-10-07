@@ -42,6 +42,8 @@ module ApplicationHelper
     link_to 'Voir la fiche', fiche_admin(ligne), class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
   end
 
+  def libelle_hors_regle(libelle, dans_la_regle) = dans_la_regle ? libelle : "#{libelle} (hors règle)"
+
   def lien_d_aide(ligne, nom)
     link_to [:admin, ligne], class: 'fr-link fr-link--sm fr-ml-1w', target: '_blank', rel: 'noopener' do
       tag.span(class: 'fr-icon-question-line fr-icon--sm', aria: { hidden: true }) + tag.span("Fiche de #{nom} (nouvel onglet)", class: 'fr-sr-only')

@@ -40,6 +40,7 @@ class Demarche < ApplicationRecord
   end
 
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
+  def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 
   private
 

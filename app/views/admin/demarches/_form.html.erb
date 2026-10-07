@@ -9,5 +9,12 @@
   <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
   <%= f.dsfr_text_area :mots_clefs %>
   <%= render "admin/vocabulaires", f: f %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: Integration.includes(:integratrice, :integree).order(:id), libelle: :libelle, legende: "Intégrations" %>
+  <% integrations = demarche.integrations_proposees.includes(:integratrice, :integree).order(:id).load %>
+  <% autorisees = demarche.integrations_autorisees.ids %>
+  <% if integrations.any? %>
+    <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: integrations, libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) }, legende: "Intégrations" %>
+  <% else %>
+    <%= hidden_field_tag "demarche[integration_ids][]", "" %>
+    <p class="fr-hint-text">Intégrations : à cocher une fois que la démarche recommande l’API ou le jeu de données intégré.</p>
+  <% end %>
 <% end %>

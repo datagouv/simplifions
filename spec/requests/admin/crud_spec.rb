@@ -355,6 +355,71 @@ RSpec.describe 'Administration' do
       expect(dinum.reload.solutions).to eq([bouquet])
     end
 
+    describe 'démarches d’une intégration' do
+      let(:api) { Solution.create!(nom: 'API QF', categorie: 'api') }
+      let(:cantine) { Demarche.create!(nom: 'Cantine') }
+      let(:fraude) { Demarche.create!(nom: 'Fraude') }
+      let(:ancienne) { Demarche.create!(nom: 'Ancienne') }
+      let(:integration) { Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme') }
+      let(:hors_api) do
+        Integration.create!(integratrice: Solution.create!(nom: 'Portail'), integree: Solution.create!(nom: 'API IBAN', categorie: 'api'),
+          type_integration: 'consomme')
+      end
+
+      def cases(chemin, nom)
+        get chemin
+        response.parsed_body.css("input[type=checkbox][name$='[#{nom}][]'] + label").map { |libelle| libelle.text.strip }
+      end
+
+      before do
+        Recommandation.create!(demarche: cantine, solution: api, niveau: :niveau_1, visible: false)
+        Recommandation.create!(demarche: fraude, solution: hors_api.integree, niveau: :niveau_1)
+        Integration.connection.execute("INSERT INTO demarches_integrations (demarche_id, integration_id) VALUES (#{ancienne.id}, #{integration.id})")
+      end
+
+      it 'ne propose que les démarches qui recommandent l’API, et garde à décocher un lien hors règle' do
+        expect(cases("/admin/integrations/#{integration.id}/edit", 'demarche_ids')).to eq(['Ancienne (hors règle)', 'Cantine'])
+        expect(cases("/admin/demarches/#{cantine.id}/edit", 'integration_ids')).to eq([integration.libelle])
+        expect(cases("/admin/demarches/#{ancienne.id}/edit", 'integration_ids')).to eq(["#{integration.libelle} (hors règle)"])
+      end
+
+      it 'refuse une démarche hors règle avec un message, sans rien enregistrer' do
+        patch "/admin/integrations/#{integration.id}", params: { integration: { demarche_ids: [cantine.id, fraude.id] } }
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body.at_css('.fr-alert--error').text).to include('La démarche « Fraude » ne recommande pas l’API ou le jeu de données intégré')
+        expect(integration.reload.demarches).to eq([ancienne])
+      end
+
+      it 'refuse de changer l’API d’une intégration dont une démarche ne la recommande pas' do
+        patch "/admin/integrations/#{integration.id}", params: { integration: { integree_id: hors_api.integree_id, demarche_ids: [ancienne.id] } }
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body.at_css('.fr-alert--error').text).to include('La démarche « Ancienne » ne recommande pas l’API ou le jeu de données intégré')
+        expect(integration.reload.integree).to eq(api)
+      end
+
+      it 'garde la décoche d’un lien hors règle quand le formulaire revient en erreur' do
+        patch "/admin/demarches/#{ancienne.id}", params: { demarche: { nom: '', integration_ids: [''] } }
+        expect(response).to have_http_status(:unprocessable_content)
+
+        formulaire = response.parsed_body.at_css('#formulaire-fiche')
+        champs = formulaire.css('input[name^="demarche["]').to_h { |champ| [champ['name'], champ['value']] }
+        patch "/admin/demarches/#{ancienne.id}", params: Rack::Utils.parse_nested_query(champs.merge('demarche[nom]' => 'Ancienne').to_query)
+        expect(ancienne.reload.integrations).to be_empty
+      end
+
+      it 'explique quand cocher les démarches d’une intégration et les intégrations d’une démarche' do
+        get '/admin/integrations/new'
+        expect(response.parsed_body.css('input[type=checkbox][name="integration[demarche_ids][]"]')).to be_empty
+        expect(response.parsed_body.text).to include('Démarches : à cocher une fois l’API ou le jeu de données enregistré')
+
+        get '/admin/demarches/new'
+        expect(response.parsed_body.css('input[type=checkbox][name="demarche[integration_ids][]"]')).to be_empty
+        expect(response.parsed_body.text).to include('Intégrations : à cocher une fois que la démarche recommande l’API ou le jeu de données intégré')
+      end
+    end
+
     it 'groupe les vocabulaires par catégorie, dans l’ordre du Grist' do
       proactivite = Vocabulaire.create!(nom: 'Proactivité', slug: 'proactivite', categorie: 'type_simplification')
       particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
@@ -403,8 +468,8 @@ RSpec.describe 'Administration' do
 
     it 'range chaque longue liste de cases dans un groupe filtrable qui montre tous les choix au clic, sans champ envoyé' do
       {
-        'demarches' => ['Fournisseurs de services', 'Intégrations'], 'solutions' => ['Organisations', 'Fournisseurs de services'],
-        'integrations' => ['Démarches'], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
+        'demarches' => ['Fournisseurs de services'], 'solutions' => ['Organisations', 'Fournisseurs de services'],
+        'integrations' => [], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
         'vocabulaires' => %w[Démarches Solutions]
       }.each do |chemin, groupes|
         get "/admin/#{chemin}/new"
@@ -529,8 +594,11 @@ RSpec.describe 'Administration' do
     it 'range les vocabulaires et les fournisseurs sur trois colonnes, pas les éléments du catalogue' do
       TypeActeur.create!(nom: 'Communes')
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
-      Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'), type_integration: 'consomme')
-      get '/admin/demarches/new'
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      demarche = Demarche.create!(nom: 'Aides')
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
+      get "/admin/demarches/#{demarche.id}/edit"
       en_colonnes = response.parsed_body.css('input[type=checkbox]').to_h do |case_a_cocher|
         [case_a_cocher['name'], case_a_cocher.ancestors('.fr-col-12.fr-col-sm-6.fr-col-lg-4').any?]
       end
@@ -849,7 +917,7 @@ RSpec.describe 'Administration' do
     it 'range les champs dans l’ordre des fiches Grist' do
       {
         'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
-                        'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires', 'Intégrations'],
+                        'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires'],
         'solutions' => ['Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
                         'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
                         'Catégorie de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
@@ -857,7 +925,7 @@ RSpec.describe 'Administration' do
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
-        'integrations' => ['API ou jeu de données (obligatoire)', 'Solution (obligatoire)', 'Type d’intégration (obligatoire)', 'Statut de l’intégration', 'Démarches']
+        'integrations' => ['API ou jeu de données (obligatoire)', 'Solution (obligatoire)', 'Type d’intégration (obligatoire)', 'Statut de l’intégration']
       }.each { |chemin, attendus| expect(libelles(chemin) & attendus).to eq(attendus) }
     end
   end
