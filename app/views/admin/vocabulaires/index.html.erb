@@ -16,7 +16,7 @@
         <% @vocabulaires.each do |ligne| %>
           <tr>
             <td><%= ligne.id %></td>
-            <td><%= link_to ligne.nom, edit_admin_vocabulaire_path(ligne) %></td>
+            <td><%= link_to ligne.nom, admin_vocabulaire_path(ligne) %></td>
           </tr>
         <% end %>
       </tbody>
