@@ -1,5 +1,5 @@
 <% if (demarche = recommandation.demarche) %>
-  <aside class="fr-callout fr-mt-4w" aria-labelledby="demarche-de-la-recommandation">
+  <aside class="fr-callout" aria-labelledby="demarche-de-la-recommandation">
     <h2 id="demarche-de-la-recommandation" class="fr-callout__title">Démarche : <%= demarche.nom %></h2>
     <%= simple_format(demarche.description_courte, class: "fr-callout__text") if demarche.description_courte.present? %>
     <p><%= lien_vers_la_fiche(demarche, demarche.nom) %></p>
@@ -14,9 +14,8 @@
     </section>
   </aside>
 <% end %>
-<%= form_with model: [:admin, recommandation], html: { novalidate: true }, class: "fr-mt-4w", data: surveille_les_modifications(recommandation) do |f| %>
+<%= form_with model: [:admin, recommandation], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(recommandation) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_check_box :visible %>
   <%= f.dsfr_select :solution_id, Solution.par_libelle_admin.map { |solution| [solution.libelle_admin, solution.id] } do %>
     <%= lien_vers_la_fiche(recommandation.solution, recommandation.solution.libelle_admin) if recommandation.solution %>
   <% end %>
@@ -27,9 +26,4 @@
   <%= f.dsfr_text_area :donnees_utiles %>
   <%= f.dsfr_text_area :parametres_a_saisir %>
   <%= f.dsfr_text_area :description %>
-  <%= render "admin/identifiant_grist", grist_id: recommandation.grist_id %>
-  <ul class="fr-btns-group fr-btns-group--inline">
-    <li><button type="submit" class="fr-btn">Enregistrer</button></li>
-    <li><%= link_to "Annuler", admin_recommandations_path, class: "fr-btn fr-btn--secondary" %></li>
-  </ul>
 <% end %>

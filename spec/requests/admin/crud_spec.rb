@@ -565,7 +565,7 @@ RSpec.describe 'Administration' do
 
       expect(recommandations_de("/admin/recommandations/#{recommandation.id}/edit"))
         .to eq([{ 'Solution' => 'Mes Aides (API)', 'Type de recommandation' => 'Solution recommandée', 'Ordre' => '4' }])
-      encart = response.parsed_body.at_css('aside')
+      encart = response.parsed_body.at_css('aside.fr-callout')
       expect(encart.text.squish).to include('Démarche : Aides', 'Demander une aide sociale')
       expect(encart.at_css('a[aria-label="Voir la fiche Aides"]')['href']).to eq("/admin/demarches/#{aides.id}/edit")
 
@@ -821,11 +821,11 @@ RSpec.describe 'Administration' do
       {
         'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
                         'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires', 'Intégrations'],
-        'solutions' => ['Visible sur simplifions', 'Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
+        'solutions' => ['Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
                         'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
                         'Catégorie de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
                         'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
-        'recommandations' => ['Visible sur simplifions', 'Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
+        'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
         'integrations' => ['API ou jeu de données (obligatoire)', 'Solution (obligatoire)', 'Type d’intégration (obligatoire)', 'Statut de l’intégration', 'Démarches']
@@ -1244,6 +1244,33 @@ RSpec.describe 'Administration' do
       get '/admin/demarches/new'
       expect(boutons_du_formulaire.map(&:first)).to eq(%w[Enregistrer Publier])
       expect(colonne.text).not_to include('Supprimer', 'Création')
+    end
+
+    it 'range les actions de chaque table dans la colonne, Publier seulement pour les solutions et recommandations' do
+      travel_to(Time.zone.local(2026, 10, 7))
+      bouquet = Solution.create!(nom: 'Bouquet', modifie_le: Time.current)
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      lignes = {
+        'solutions' => bouquet,
+        'recommandations' => Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api_qf, niveau: :niveau_1, modifie_le: Time.current),
+        'integrations' => Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme'),
+        'organisations' => Organisation.create!(nom: 'DINUM'),
+        'types_acteurs' => TypeActeur.create!(nom: 'Communes'),
+        'vocabulaires' => Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      }
+
+      lignes.each do |chemin, ligne|
+        boutons = ligne.has_attribute?(:visible) ? [['Enregistrer', nil, nil], ['Publier', "#{ligne.model_name.param_key}[visible]", '1']] : [['Enregistrer', nil, nil]]
+        get "/admin/#{chemin}/#{ligne.id}/edit"
+        expect(boutons_du_formulaire).to eq(boutons), chemin
+        expect(colonne.text.squish).to include('Dernière modification 07/10/2026')
+        expect(colonne.at_css('a:contains("Annuler")')['href']).to eq("/admin/#{chemin}")
+        expect(colonne.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq('Supprimer')
+        expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button[type=submit]')).to be_empty
+
+        get "/admin/#{chemin}/new"
+        expect(boutons_du_formulaire).to eq(boutons), chemin
+      end
     end
   end
 

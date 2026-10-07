@@ -1,3 +1,0 @@
-<%# locals: (url:, nom:, consequences: []) -%>
-<%= button_to "Supprimer", url, method: :delete, class: "fr-btn fr-btn--tertiary fr-mt-4w",
-  form: { data: { turbo_confirm: ["Supprimer « #{nom} » ?", *consequences.compact_blank].join(" ") } } %>
