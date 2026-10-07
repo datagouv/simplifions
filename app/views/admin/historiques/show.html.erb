@@ -1,0 +1,39 @@
+<%= render "entete_page", titre: "Historique" %>
+
+<div class="fr-container fr-mb-6w">
+  <h1>Historique de « <%= nom_en_base %> »</h1>
+  <% if @versions.none? %>
+    <p>Aucune version enregistrée pour cette fiche.</p>
+  <% end %>
+  <% @versions.each do |version| %>
+    <% titre = titre_de_version(version) %>
+    <section class="fr-mb-4w" aria-labelledby="version-<%= version.id %>">
+      <h2 id="version-<%= version.id %>" class="fr-h6"><%= titre %></h2>
+      <% changements = champs_changes(version, modele) %>
+      <% if changements.any? %>
+        <div class="fr-table fr-table--sm">
+          <table>
+            <caption class="fr-sr-only">Champs changés : <%= titre %></caption>
+            <thead>
+              <tr>
+                <th scope="col">Champ</th>
+                <th scope="col">Avant</th>
+                <th scope="col">Après</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% changements.each do |champ, (avant, apres)| %>
+                <tr>
+                  <th scope="row"><%= champ %></th>
+                  <td><%= valeur_de_version(avant) %></td>
+                  <td><%= valeur_de_version(apres) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+  <%= link_to "Retour à la fiche", fiche_admin(en_base), class: "fr-link fr-icon-arrow-left-line fr-link--icon-left" %>
+</div>

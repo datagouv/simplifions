@@ -138,6 +138,8 @@ fr:
               required: "Choisissez une API ou un jeu de données"
         solution:
           present: "doit rester vide : une API ou un jeu de données n’a pas de fiche sur le site"
+  attributes:
+    cree_le: "Date de création"
   errors:
     messages:
       blank: "doit être rempli"
