@@ -710,6 +710,44 @@ RSpec.describe 'Administration' do
       expect(choisi(response.parsed_body.at_css("tr#recommandation_#{recommandation.id}"), :ordre)).to eq('3')
     end
 
+    it 'renvoie l’erreur sur la ligne, reliée à ses champs' do
+      aides.update!(visible: false)
+      recommandation.update!(visible: false)
+      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { solution_id: '' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      erreur = ligne_renvoyee.at_css('.fr-error-text')
+      expect(erreur.text).to eq('Choisissez une solution')
+      expect(ligne_renvoyee.css('select, input, button').pluck('aria-describedby').uniq).to eq([erreur['id']])
+      expect(ligne_renvoyee.at_css('button').text.squish).to eq('Enregistrer la recommandation API QF (API)')
+      expect(recommandation.reload.solution).to be_present
+    end
+
+    it 'ajoute la recommandation de la ligne vide, puis remet une ligne vide' do
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'api')
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, solution_id: bouquet.id, niveau: 'niveau_2' } }
+      nouvelle = Recommandation.find_by!(solution: bouquet)
+
+      expect(flux.map { [it['action'], it['target']] }).to eq([
+        %w[update message-recommandations], %w[before new_recommandation], %w[append formulaires-recommandations], %w[replace new_recommandation]
+      ])
+      expect(choisi(flux[1].at_css('tr'), :solution_id)).to eq('Bouquet (API)')
+      expect(flux[2].at_css('form')['action']).to eq("/admin/recommandations/#{nouvelle.id}")
+      expect(choisi(flux[3].at_css('tr'), :solution_id)).to be_nil
+      expect(flux[3].at_css('tr').text).not_to include('Choisissez')
+      expect(nouvelle.slice(:demarche_id, :visible)).to eq('demarche_id' => aides.id, 'visible' => false)
+    end
+
+    it 'garde l’erreur d’un ajout sur la ligne vide' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, niveau: 'niveau_2' } }
+
+      expect(flux.pluck('target')).to eq(%w[message-recommandations new_recommandation])
+      expect(ligne_renvoyee.at_css('.fr-error-text').text).to eq('Choisissez une solution')
+      expect(choisi(ligne_renvoyee, :niveau)).to eq('Solution recommandée')
+      expect(ligne_renvoyee.text).not_to include('Brouillon')
+      expect(flux.first.text.squish).to eq('Recommandation non enregistrée : Choisissez une solution')
+    end
+
     it 'garde la redirection vers la fiche hors de la ligne' do
       patch "/admin/recommandations/#{recommandation.id}", params: { recommandation: { ordre: '3' } }
       expect(response).to redirect_to("/admin/recommandations/#{recommandation.id}/edit")
