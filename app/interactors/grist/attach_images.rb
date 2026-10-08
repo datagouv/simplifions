@@ -19,8 +19,10 @@ class Grist::AttachImages < Grist::ImportStep
     response = grist_get("attachments/#{attachment_id}/download")
     return quarantine(gid, "image #{attachment_id} : HTTP #{response.code}") unless response.is_a?(Net::HTTPSuccess)
 
-    solution.image.attach(io: StringIO.new(response.body), filename: filename(response, attachment_id),
+    return if solution.image.attach(io: StringIO.new(response.body), filename: filename(response, attachment_id),
       content_type: response['Content-Type'], metadata: { 'grist_attachment_id' => attachment_id })
+
+    note("#{gid} — image #{attachment_id} : type #{solution.image.content_type} refusé")
   rescue *NETWORK_ERRORS => e
     quarantine(gid, "image #{attachment_id} : #{e.class} — #{e.message}")
   end

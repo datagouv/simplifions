@@ -60,6 +60,17 @@ RSpec.describe Grist::AttachImages do
     expect(solution.reload.image.filename.to_s).to eq('nouveau.png')
   end
 
+  it 'notes an attachment of another type than png, jpg or webp and leaves the solution without image' do
+    stub_request(:get, download_url).to_return(
+      status: 200, body: "%PDF-1.4\n",
+      headers: { 'Content-Type' => 'image/png', 'Content-Disposition' => 'attachment; filename="logo.png"' }
+    )
+
+    expect(result.report[:notes]).to eq(['Solutions:1 — image 7 : type application/pdf refusé'])
+    expect(result.report[:quarantine]).to be_empty
+    expect(solution.reload.image).not_to be_attached
+  end
+
   it 'quarantines network errors without crashing' do
     stub_request(:get, download_url).to_raise(Timeout::Error)
     expect(result.report[:quarantine].join).to include('Solutions:1')
