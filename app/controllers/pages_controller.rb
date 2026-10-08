@@ -15,6 +15,7 @@ class PagesController < ApplicationController
     raise ActionController::RoutingError, 'Not Found' if params[:besoin] && !@besoin
 
     @fiche = fiche_d_origine
+    @demarches = Demarche.visibles.order(:nom) if @besoin == 'modifier-cas-usage' && !@fiche
   end
 
   def sitemap
