@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 const QUESTION = "Quitter sans enregistrer les modifications ?"
+const enregistreSurPlace = (formulaire) => "enregistreSurPlace" in formulaire.dataset
 
 export default class extends Controller {
   static values = { modifie: Boolean }
@@ -29,7 +30,7 @@ export default class extends Controller {
   }
 
   marquer(event) {
-    if (event.target.name) this.modifieValue = true
+    if (event.target.name && event.target.form === this.element) this.modifieValue = true
   }
 
   quitter() {
@@ -41,15 +42,18 @@ export default class extends Controller {
   }
 
   soumettre = (event) => {
-    if (event.target !== this.element && this.modifieValue && !confirm(QUESTION)) event.preventDefault()
+    if (event.target === this.element || enregistreSurPlace(event.target)) return
+    if (this.modifieValue && !confirm(QUESTION)) event.preventDefault()
   }
 
-  partir = () => {
+  partir = (event) => {
+    if (enregistreSurPlace(event.target)) return
     this.modifieAvantEnvoi = this.modifieValue
     this.modifieValue = false
   }
 
   terminer = (event) => {
+    if (enregistreSurPlace(event.target)) return
     if (!event.detail.success) this.modifieValue = this.modifieAvantEnvoi
   }
 

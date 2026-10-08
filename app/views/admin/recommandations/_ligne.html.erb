@@ -1,0 +1,40 @@
+<%# locals: (ligne:) -%>
+<% ligne.appliquer_brouillon(ligne.brouillon.to_h.slice("solution_id", "niveau", "ordre")) %>
+<% formulaire = dom_id(ligne, :formulaire) %>
+<% erreurs = dom_id(ligne, :erreurs) %>
+<% nom = ligne.new_record? ? "la nouvelle recommandation" : "la recommandation #{ligne.solution&.libelle_admin}" %>
+<% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
+<tr id="<%= dom_id(ligne) %>">
+  <%= fields model: ligne, namespace: dom_id(ligne) do |f| %>
+    <td>
+      <%= f.label :solution_id, "Solution de #{nom} (obligatoire)", class: "fr-sr-only" %>
+      <%= f.select :solution_id, choix_de_solutions, { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
+    </td>
+    <td>
+      <%= f.label :niveau, "#{Recommandation.human_attribute_name(:niveau)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
+      <%= f.select :niveau, options_traduites(Recommandation, :niveau), { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
+    </td>
+    <td>
+      <%= f.label :ordre, "#{Recommandation.human_attribute_name(:ordre)} de #{nom}", class: "fr-sr-only" %>
+      <%= f.number_field :ordre, class: "fr-input", form: formulaire, aria: invalide %>
+    </td>
+  <% end %>
+  <% if ligne.persisted? %>
+    <%= render "visible_et_modifie_le", ligne: %>
+  <% else %>
+    <td></td>
+    <td></td>
+  <% end %>
+  <td>
+    <% if ligne.persisted? && ligne.brouillon? %>
+      <p class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--new fr-mb-1w">Brouillon</p>
+    <% end %>
+    <%= tag.button type: "submit", form: formulaire, id: dom_id(ligne, :enregistrer), class: "fr-btn fr-btn--sm", aria: { describedby: invalide[:describedby] } do %><%= ligne.new_record? ? "Ajouter" : "Enregistrer" %><span class="fr-sr-only"> <%= nom %></span><% end %>
+    <% if ligne.persisted? %>
+      <%= link_to edit_admin_recommandation_path(ligne), class: "fr-link fr-link--sm" do %>Modifier<span class="fr-sr-only"> <%= nom %></span><% end %>
+    <% end %>
+    <% if ligne.errors.any? %>
+      <p id="<%= erreurs %>" class="fr-error-text"><%= ligne.errors.full_messages.to_sentence %></p>
+    <% end %>
+  </td>
+</tr>

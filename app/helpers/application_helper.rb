@@ -61,6 +61,8 @@ module ApplicationHelper
     paginate liste, params: (request.query_parameters.keys - gardes).index_with(nil)
   end
 
+  def choix_de_solutions = @choix_de_solutions ||= Solution.par_libelle_admin.map { |solution| [solution.libelle_admin, solution.id] }
+
   def options_traduites(modele, enum)
     modele.defined_enums.fetch(enum.to_s).keys.map { |cle| [modele.human_attribute_name("#{enum}.#{cle}"), cle] }
   end

@@ -15,19 +15,11 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def create
     @recommandation = Recommandation.new
-    if @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
-      redirige_vers_la_fiche(@recommandation)
-    else
-      render :new, status: :unprocessable_content
-    end
+    enregistrer_puis_repondre(:new)
   end
 
   def update
-    if @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
-      redirige_vers_la_fiche(@recommandation)
-    else
-      render :edit, status: :unprocessable_content
-    end
+    enregistrer_puis_repondre(:edit)
   end
 
   def destroy
@@ -36,6 +28,17 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   private
+
+  def enregistrer_puis_repondre(page)
+    enregistree = @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
+    if params[:ligne]
+      render :ligne, formats: :turbo_stream, status: enregistree ? :ok : :unprocessable_content
+    elsif enregistree
+      redirige_vers_la_fiche(@recommandation)
+    else
+      render page, status: :unprocessable_content
+    end
+  end
 
   def set_recommandation
     @recommandation = Recommandation.find(params.expect(:id))

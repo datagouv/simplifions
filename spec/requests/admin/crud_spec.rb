@@ -632,9 +632,11 @@ RSpec.describe 'Administration' do
     def recommandations_de(chemin)
       get chemin
       tableau = response.parsed_body.at_css('table[aria-labelledby]')
-      entetes = tableau.css('thead th').map(&:text)
-      tableau.css('tbody tr').map { |ligne| entetes.zip(ligne.css('td').map { |cellule| cellule.text.squish }).to_h.slice('Solution', 'Type de recommandation', 'Ordre') }
+      entetes = tableau.css('thead th').map { it.text.delete_suffix(' (obligatoire)') }
+      tableau.css('tbody tr:not(#new_recommandation)').map { |ligne| entetes.zip(ligne.css('td').map { valeur(it) }).to_h.slice('Solution', 'Type de recommandation', 'Ordre') }
     end
+
+    def valeur(cellule) = cellule.at_css('option[selected]')&.text || cellule.at_css('input')&.[]('value') || cellule.text.squish
 
     it 'liste les recommandations de la démarche par type puis ordre, avec un lien pour en ajouter' do
       recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2', ordre: 1)
@@ -650,6 +652,19 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('a:contains("Mes Aides")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
       expect(response.parsed_body.at_css('a:contains("Ajouter une recommandation")')['href'])
         .to eq("/admin/recommandations/new?demarche_id=#{aides.id}")
+    end
+
+    it 'propose de modifier chaque recommandation sur sa ligne, dans un formulaire de ligne hors de celui de la fiche' do
+      recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', ordre: 2)
+      get "/admin/demarches/#{aides.id}/edit"
+      ligne = response.parsed_body.at_css("#onglet-recommandations-panneau tr#recommandation_#{recommandation.id}")
+      formulaire = response.parsed_body.at_css("form#formulaire_recommandation_#{recommandation.id}")
+
+      expect(ligne.css('select, input').map { [it['name'], it['form']] }.uniq(&:last)).to eq([['recommandation[solution_id]', formulaire['id']]])
+      expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'patch', 0])
+      expect(ligne.at_css("label[for=\"#{ligne.at_css('select')['id']}\"].fr-sr-only").text).to eq('Solution de la recommandation API QF (API) (obligatoire)')
+      expect(ligne.at_css('button[type=submit]').then { [it['form'], it.text.squish] }).to eq([formulaire['id'], 'Enregistrer la recommandation API QF (API)'])
+      expect(ligne.at_css('a:contains("Modifier")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
     end
 
     it 'pré-remplit la démarche d’une nouvelle recommandation' do
@@ -669,6 +684,35 @@ RSpec.describe 'Administration' do
       expect(encart.at_css('a[aria-label="Voir la fiche Aides"]')['href']).to eq("/admin/demarches/#{aides.id}/edit")
 
       expect(recommandations_de("/admin/recommandations/new?demarche_id=#{aides.id}").size).to eq(2)
+    end
+  end
+
+  describe 'recommandation enregistrée depuis sa ligne dans la démarche' do
+    let!(:aides) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let!(:recommandation) { Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1, ordre: 1, visible: true) }
+
+    before { sign_in admin }
+
+    def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
+    def ligne_renvoyee = flux.find { it['action'] == 'replace' }.at_css('template tr')
+    def choisi(ligne, champ) = ligne.at_css("[name=\"recommandation[#{champ}]\"]").then { it.at_css('option[selected]')&.text || it['value'] }
+
+    it 'renvoie la ligne enregistrée, en brouillon tant que la démarche publiée n’est pas publiée à nouveau' do
+      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_2', ordre: '3' } }
+
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(flux.pluck('target')).to eq(['message-recommandations', "recommandation_#{recommandation.id}"])
+      expect([choisi(ligne_renvoyee, :niveau), choisi(ligne_renvoyee, :ordre)]).to eq(['Solution recommandée', '3'])
+      expect(ligne_renvoyee.text).to include('Brouillon')
+      expect(flux.find { it['target'] == 'message-recommandations' }.text.squish).to eq('« Aides → API QF (API) » : brouillon enregistré, non publié.')
+      expect(recommandation.reload.ordre).to eq(1)
+      get "/admin/demarches/#{aides.id}/edit"
+      expect(choisi(response.parsed_body.at_css("tr#recommandation_#{recommandation.id}"), :ordre)).to eq('3')
+    end
+
+    it 'garde la redirection vers la fiche hors de la ligne' do
+      patch "/admin/recommandations/#{recommandation.id}", params: { recommandation: { ordre: '3' } }
+      expect(response).to redirect_to("/admin/recommandations/#{recommandation.id}/edit")
     end
   end
 
@@ -1378,7 +1422,7 @@ RSpec.describe 'Administration' do
       expect(colonne.text.squish).to include('Masquée', 'Création 02/01/2026', 'Dernière modification 05/10/2026', 'Identifiant Grist : Cas_d_usages:1')
       expect(boutons_du_formulaire).to eq([['Enregistrer', nil, nil], ['Publier', 'demarche[visible]', '1']])
       expect(colonne.at_css('a:contains("Annuler")')['href']).to eq('/admin/demarches')
-      expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button:not([type=button]), input[name="demarche[visible]"]')).to be_empty
+      expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button:not([type=button]):not([form]), input[name="demarche[visible]"]')).to be_empty
     end
 
     it 'désigne Enregistrer au script qui le grise tant que rien n’a changé, sans le griser côté serveur' do
@@ -1714,7 +1758,7 @@ RSpec.describe 'Administration' do
       expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
       expect(panneau('Fiche').at_css('input[name="demarche[nom]"]')).to be_present
       expect(panneau('Intégrations').css('input[name="demarche[integration_ids][]"][checked]').size).to eq(1)
-      expect(panneau('Recommandations').css('a').map(&:text)).to eq(['API QF (API)', 'Ajouter une recommandation'])
+      expect(panneau('Recommandations').css('a').map(&:text)).to eq(['Modifier la recommandation API QF (API)', 'Ajouter une recommandation'])
       expect(panneau('Historique').text).to include('Création')
       get '/admin/demarches/new'
       expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
