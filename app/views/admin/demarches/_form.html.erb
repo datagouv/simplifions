@@ -26,7 +26,7 @@
       <%= render "admin/recommandations/tableau", recommandations: en_base.recommandations, titre_id: "onglet-recommandations" %>
       <%= link_to "Ajouter une recommandation", new_admin_recommandation_path(demarche_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
     <% end %>
-    <%= render "admin/onglets", onglets: {
+    <%= render "admin/onglets", objet: demarche, onglet_des_erreurs: { integration_hors_regle: "integrations", recommandation_refusee: "recommandations" }, onglets: {
           "fiche" => ["Fiche", fiche],
           "integrations" => ["Intégrations (#{demarche.integration_ids.size})", integrations],
           "recommandations" => ["Recommandations (#{en_base.recommandations.count})", recommandations],

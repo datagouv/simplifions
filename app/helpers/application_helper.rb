@@ -33,6 +33,12 @@ module ApplicationHelper
       input_group_options: { data: { champ_fiche: true, rempli_en_base: rempli_en_base?(solution, champ) } } }
   end
 
+  def onglet_ouvert(objet, onglets, onglet_des_erreurs)
+    erreur = objet.errors.first
+    choisi = erreur ? onglet_des_erreurs[erreur.type] : params[:onglet]
+    choisi.presence_in(onglets) || onglets.first
+  end
+
   def fiche_admin(ligne)
     consultable = "Admin::#{ligne.model_name.route_key.camelize}Controller".constantize.action_methods.include?('show')
     consultable ? [:admin, ligne] : [:edit, :admin, ligne]

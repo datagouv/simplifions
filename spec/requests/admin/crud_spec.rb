@@ -1744,6 +1744,36 @@ RSpec.describe 'Administration' do
       expect(panneau('Recommandée dans').text.squish).to eq('Aucune démarche ne la recommande.')
     end
 
+    def onglet_ouvert = response.parsed_body.at_css('[role=tab][aria-selected=true]').text.squish
+
+    it 'rouvre après l’enregistrement l’onglet où l’on était, et la fiche pour un onglet inconnu' do
+      demarche = Demarche.create!(nom: 'Aides')
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.parsed_body.at_css('#formulaire-fiche input[type=hidden][name=onglet]')['value']).to eq('fiche')
+
+      patch "/admin/demarches/#{demarche.id}", params: { onglet: 'recommandations', demarche: { nom: 'Aides sociales' } }
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
+      follow_redirect!
+      expect(onglet_ouvert).to eq('Recommandations (0)')
+      expect(response.parsed_body.at_css('input[name=onglet]')['value']).to eq('recommandations')
+
+      get "/admin/demarches/#{demarche.id}/edit", params: { onglet: 'inconnu' }
+      expect(onglet_ouvert).to eq('Fiche')
+    end
+
+    it 'ouvre sur une saisie refusée l’onglet de la première erreur' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      fraude = Demarche.create!(nom: 'Fraude')
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
+
+      patch "/admin/demarches/#{fraude.id}", params: { onglet: 'historique', demarche: { integration_ids: [integration.id] } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(onglet_ouvert).to eq('Intégrations (0)')
+
+      patch "/admin/demarches/#{fraude.id}", params: { onglet: 'integrations', demarche: { nom: '', integration_ids: [integration.id] } }
+      expect(onglet_ouvert).to eq('Fiche')
+    end
+
     it 'pré-remplit l’intégratrice d’une nouvelle intégration' do
       bouquet = Solution.create!(nom: 'Bouquet')
       get '/admin/integrations/new', params: { integratrice_id: bouquet.id }
