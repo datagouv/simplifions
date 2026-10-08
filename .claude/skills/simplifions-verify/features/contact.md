@@ -13,8 +13,10 @@
 - **From a fiche.** Visit the first visible démarche, `click_link "proposer une modification du contenu de ce cas d'usage"`. Path `/contact/modifier-cas-usage?demarche=<slug>`.
 - **Fiche cited.** `find_field('Objet du message', readonly: true).value` ends with ` : <nom>`; the decoded `href` of the link `Écrire à l'équipe` holds `Fiche concernée : <nom>`.
 - **Copy.** Chrome needs `page.driver.browser.add_permission('clipboard-write', 'granted')`. Click `Copier l'objet du message`; the sr-only `[data-copier-target=statut]` reads `Objet du message copié.` (`visible: :all`).
-- **Journey.** `Retour` → `/contact/contenu` (group headings h3), `Retour` → `/contact`, click `J'ai une question sur ma propre démarche administrative`: the answer shows, no `Écrire à l'équipe` link.
-- **Proof.** `drive.rb contact`, screenshots `fiche-citee` and `reponse-sans-adresse`.
+- **Journey.** `Retour` → `/contact/contenu` (group headings h3).
+- **Cas d'usage chosen without a fiche.** Click `Proposer une modification d'un cas d'usage existant`: no fiche cited; `select <nom>, from: "Cas d'usage concerné"`, click `Préremplir le message` (plain GET form, no JS) → `/contact/modifier-cas-usage?demarche=<slug>`, subject ends with ` : <nom>`, the select is gone. `Retour` → `/contact/contenu`.
+- **No-contact answer.** `Retour` → `/contact`, click `J'ai une question sur ma propre démarche administrative`: the answer shows, no `Écrire à l'équipe` link.
+- **Proof.** `drive.rb contact`, screenshots `fiche-citee`, `cas-usage-choisi` and `reponse-sans-adresse`.
 
 ## Gotchas
 
