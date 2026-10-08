@@ -18,7 +18,8 @@ module Brouillonnable
     attributs = attributs.to_h.stringify_keys
     return ecrire(attributs) unless passe_par_un_brouillon? && !publication_demandee?(attributs)
 
-    enregistrer_brouillon(attributs.except('visible'))
+    return false unless enregistrer_brouillon(attributs.except('visible'))
+
     attributs['visible'] == '0' ? update(attributs.slice('visible', 'modifie_le')) : true
   end
 
@@ -48,11 +49,29 @@ module Brouillonnable
   end
 
   def enregistrer_brouillon(attributs)
+    return garder_la_saisie_sans_fichier(attributs) unless fichiers_acceptes?(attributs)
+
     remplaces = brouillon.to_h.slice(*attributs.keys)
     attributs = { 'commence_le' => Time.current }.merge(brouillon.to_h, attributs.transform_values { en_valeur_de_brouillon(it) })
     update_column(:brouillon, (attributs if differe_du_publie?(attributs)))
     purger_les_fichiers(remplaces)
+    true
   end
+
+  def fichiers_acceptes?(attributs)
+    fichiers = fichiers_de(attributs).compact_blank
+    return true if fichiers.empty?
+
+    erreurs_avec_le_brouillon(attributs).each { errors.import(it) if fichiers.key?(it.attribute.to_s) }
+    errors.empty?
+  end
+
+  def garder_la_saisie_sans_fichier(attributs)
+    appliquer_brouillon(brouillon.to_h.merge(attributs.except(*fichiers_de(attributs).keys)))
+    false
+  end
+
+  def erreurs_avec_le_brouillon(attributs) = self.class.find(id).appliquer_brouillon(brouillon.to_h.merge(attributs)).tap(&:validate).errors
 
   def differe_du_publie?(attributs)
     copie = self.class.find(id).appliquer_brouillon(attributs)
@@ -69,7 +88,9 @@ module Brouillonnable
     ActiveStorage::Blob.create_and_upload!(io: valeur, filename: valeur.original_filename, content_type: valeur.content_type).signed_id
   end
 
+  def fichiers_de(attributs) = attributs.to_h.slice(*self.class.attachment_reflections.keys)
+
   def purger_les_fichiers(attributs)
-    attributs.slice(*self.class.attachment_reflections.keys).each_value { ActiveStorage::Blob.find_signed(it)&.purge_later }
+    fichiers_de(attributs).each_value { ActiveStorage::Blob.find_signed(it)&.purge_later }
   end
 end

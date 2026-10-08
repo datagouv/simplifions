@@ -148,6 +148,7 @@ fr:
       present: "doit être vide"
       inclusion: "doit être choisi dans la liste"
       record_invalid: "La validation a échoué : %{errors}"
+      type_image: "doit être une image png, jpg ou webp"
       format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
       demarche_hors_regle: "La démarche « %{nom} » ne recommande pas l’API ou le jeu de données intégré"
