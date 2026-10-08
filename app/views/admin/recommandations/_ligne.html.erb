@@ -1,8 +1,9 @@
 <%# locals: (ligne:) -%>
+<% enregistree = ligne.solution_id_changed? ? Solution.find_by(id: ligne.solution_id_in_database) : ligne.solution %>
+<% nom = ligne.new_record? ? "la nouvelle recommandation" : "la recommandation #{enregistree&.libelle_admin}" %>
 <% ligne.appliquer_brouillon(ligne.brouillon.to_h.slice("solution_id", "niveau", "ordre")) %>
 <% formulaire = dom_id(ligne, :formulaire) %>
 <% erreurs = dom_id(ligne, :erreurs) %>
-<% nom = ligne.new_record? ? "la nouvelle recommandation" : "la recommandation #{ligne.solution&.libelle_admin}" %>
 <% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
 <tr id="<%= dom_id(ligne) %>">
   <%= fields model: ligne, namespace: dom_id(ligne) do |f| %>
