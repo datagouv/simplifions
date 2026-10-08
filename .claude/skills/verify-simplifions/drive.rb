@@ -1550,6 +1550,7 @@ def contact(page)
   page.click_link 'Retour'
   page.assert_current_path('/contact/contenu')
   page.assert_selector 'h3', text: "Cas d'usages"
+  contact_cas_usage_choisi(page, demarche)
   page.click_link 'Retour'
   page.assert_current_path('/contact')
   page.click_link "J'ai une question sur ma propre démarche administrative"
@@ -1557,6 +1558,22 @@ def contact(page)
   raise 'adresse donnée sans contact' if page.has_link?("Écrire à l'équipe", wait: 0)
 
   Verify.evidence('contact', page, 'reponse-sans-adresse', "path=#{page.current_path} mailto=0")
+end
+
+def contact_cas_usage_choisi(page, demarche)
+  page.click_link "Proposer une modification d'un cas d'usage existant"
+  raise 'objet cité sans fiche' if page.find_field('Objet du message', readonly: true).value.include?(' : ')
+
+  page.select demarche.nom, from: "Cas d'usage concerné"
+  page.click_button 'Préremplir le message'
+  page.assert_current_path("/contact/modifier-cas-usage?demarche=#{demarche.slug}")
+  objet = page.find_field('Objet du message', readonly: true).value
+  raise "objet sans le cas d'usage choisi : #{objet}" unless objet.end_with?(" : #{demarche.nom}")
+  raise 'liste encore affichée' if page.has_select?("Cas d'usage concerné", wait: 0)
+
+  Verify.evidence('contact', page, 'cas-usage-choisi', "slug=#{demarche.slug} objet=#{objet}")
+  page.click_link 'Retour'
+  page.assert_current_path('/contact/contenu')
 end
 
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
