@@ -22,6 +22,8 @@ class Solution < ApplicationRecord
     :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
 
   has_one_attached :image
+  TYPES_IMAGE = %w[image/png image/jpeg image/webp].freeze
+  validate -> { errors.add(:image, :type_image) if attachment_changes['image'] && image.attached? && TYPES_IMAGE.exclude?(image.content_type) }
 
   TYPES_SOLUTION = ['Portail usagers', 'Portail agent', 'Profil acheteur', 'API', 'Formulaire en ligne', 'Base de tiers',
                     "Service d'authentification", "Hub d'échange", 'Annuaire en ligne'].freeze

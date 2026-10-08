@@ -1211,6 +1211,18 @@ RSpec.describe 'Administration' do
       end
     end
 
+    it 'refuse un fichier qui n’est pas une image png, jpg ou webp sur une solution masquée' do
+      sign_in admin
+      solution = Solution.create!(nom: 'Bouquet')
+      pdf = Rack::Test::UploadedFile.new(StringIO.new("%PDF-1.4\n"), 'image/png', original_filename: 'capture.png')
+
+      expect { patch "/admin/solutions/#{solution.id}", params: { solution: { nom: 'Bouquet', image: pdf } } }
+        .not_to change(ActiveStorage::Blob, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('doit être une image png, jpg ou webp')
+      expect(solution.reload.image).not_to be_attached
+    end
+
     it 'garde l’image si l’enregistrement échoue, case cochée et visible même sur une API' do
       sign_in admin
       [avec_image, avec_image(categorie: 'api')].each do |solution|
@@ -1261,6 +1273,18 @@ RSpec.describe 'Administration' do
 
       patch "/admin/solutions/#{solution.id}", params: { solution: { visible: '1' } }
       expect(solution.reload.image).not_to be_attached
+    end
+
+    it 'refuse un fichier qui n’est pas une image png, jpg ou webp, sans brouillon ni fichier gardé' do
+      pdf = Rack::Test::UploadedFile.new(StringIO.new("%PDF-1.4\n"), 'image/png', original_filename: 'capture.png')
+      patch "/admin/solutions/#{solution.id}", params: { solution: { legende_image: 'Accueil' } }
+
+      expect { patch "/admin/solutions/#{solution.id}", params: { solution: { nom: 'Bouquet renommé', image: pdf } } }
+        .not_to change(ActiveStorage::Blob, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('doit être une image png, jpg ou webp')
+      expect(response.parsed_body.at_css('#solution_nom')['value']).to eq('Bouquet renommé')
+      expect(solution.reload.brouillon.keys).not_to include('image', 'nom')
     end
 
     it 'jette l’image remplacée dans le brouillon' do

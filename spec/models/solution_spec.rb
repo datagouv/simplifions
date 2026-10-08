@@ -221,6 +221,33 @@ RSpec.describe Solution do
     end
   end
 
+  describe 'image type' do
+    def avec_image(contenu, nom)
+      described_class.new(nom: 'Bouquet').tap { it.image.attach(io: StringIO.new(contenu.b), filename: nom) }
+    end
+
+    it 'judges the type on the content, not the file name' do
+      solution = avec_image("%PDF-1.4\n", 'capture.png')
+
+      expect(solution).not_to be_valid
+      expect(solution.errors[:image]).to eq(['doit être une image png, jpg ou webp'])
+    end
+
+    it 'accepts png, jpg and webp' do
+      expect(avec_image("\x89PNG\r\n\x1A\n", 'a.png')).to be_valid
+      expect(avec_image("\xFF\xD8\xFF\xE0", 'a.jpg')).to be_valid
+      expect(avec_image("RIFF\x00\x00\x00\x00WEBPVP8 ", 'a.webp')).to be_valid
+    end
+
+    it 'keeps a solution valid when an image of another type was attached before' do
+      solution = described_class.create!(nom: 'Bouquet')
+      gif = ActiveStorage::Blob.create_and_upload!(io: StringIO.new('GIF89a'), filename: 'a.gif')
+      ActiveStorage::Attachment.create!(name: 'image', record: solution, blob: gif)
+
+      expect(solution.reload.update(nom: 'Bouquet renommé')).to be(true)
+    end
+  end
+
   describe '.visibles' do
     it 'returns only visible solutions' do
       visible = described_class.create!(nom: 'Publiée', slug: 'publiee', visible: true)
