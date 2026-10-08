@@ -1,0 +1,10 @@
+<%# locals: (lignes:, vide:) -%>
+<% if lignes.any? %>
+  <ul>
+    <% lignes.each do |ligne| %>
+      <li><%= link_to nom_de(ligne), fiche_admin(ligne), class: "fr-link" %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p><%= vide %></p>
+<% end %>

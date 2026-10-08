@@ -6,7 +6,7 @@ class Admin::IntegrationsController < Admin::BaseController
   end
 
   def new
-    @integration = Integration.new
+    @integration = Integration.new(integratrice_id: params[:integratrice_id])
   end
 
   def edit; end
