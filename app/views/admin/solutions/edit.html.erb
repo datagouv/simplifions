@@ -9,22 +9,6 @@
     previsualisation: (previsualisation_admin_solution_path(en_base) if en_base.brouillon?),
     consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
       t("admin.suppression.integrations", count: en_base.integrations_comme_integratrice.count + en_base.integrations_comme_integree.count)] } do %>
-    <% lies = { "Démarches qui la recommandent" => en_base.demarches_recommandantes.order(:nom),
-                "Solutions qui l’intègrent" => en_base.integratrices.par_libelle_admin,
-                "Ce qu’elle intègre" => en_base.integrees.par_libelle_admin }.compact_blank %>
-    <% if lies.any? %>
-      <section id="elements-lies" class="fr-mb-4w" aria-labelledby="elements-lies-titre">
-        <h2 id="elements-lies-titre" class="fr-h6">Éléments liés</h2>
-        <% lies.each do |titre, lignes| %>
-          <h3 class="fr-text--md fr-text--bold fr-mb-1v"><%= titre %></h3>
-          <ul>
-            <% lignes.each do |ligne| %>
-              <li><%= link_to ligne.try(:libelle_admin) || ligne.nom, fiche_admin(ligne), class: "fr-link" %></li>
-            <% end %>
-          </ul>
-        <% end %>
-      </section>
-    <% end %>
     <%= render "form", solution: @solution %>
   <% end %>
 </div>

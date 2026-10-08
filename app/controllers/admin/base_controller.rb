@@ -2,7 +2,7 @@ class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   before_action :set_paper_trail_whodunnit
-  helper_method :modele, :en_base, :nom_en_base, :fil_d_ariane
+  helper_method :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane
 
   def abandonner_brouillon
     en_base.abandonner_brouillon!

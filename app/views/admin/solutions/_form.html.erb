@@ -1,58 +1,79 @@
 <%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_text_field :nom %>
-  <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>
-  <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
-  <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
-  <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_fiche(f, :image) do %>
-    <% image = en_base&.brouillon.to_h.key?("image") ? solution.image : en_base&.image %>
-    <% if image&.attached? && image.blob.persisted? %>
-      <%= image_tag image, alt: solution.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
-      <div class="fr-checkbox-group fr-mt-1w">
-        <%= check_box_tag "solution[retirer_image]", "1", params.dig(:solution, :retirer_image) == "1" %>
-        <%= label_tag "solution_retirer_image", class: "fr-label" do %>
-          Retirer l’image
-          <span class="fr-hint-text">L’image sera retirée à l’enregistrement.</span>
-        <% end %>
+  <% fiche = capture do %>
+    <%= f.dsfr_text_field :nom %>
+    <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>
+    <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
+    <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
+    <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
+    <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_fiche(f, :image) do %>
+      <% image = en_base&.brouillon.to_h.key?("image") ? solution.image : en_base&.image %>
+      <% if image&.attached? && image.blob.persisted? %>
+        <%= image_tag image, alt: solution.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
+        <div class="fr-checkbox-group fr-mt-1w">
+          <%= check_box_tag "solution[retirer_image]", "1", params.dig(:solution, :retirer_image) == "1" %>
+          <%= label_tag "solution_retirer_image", class: "fr-label" do %>
+            Retirer l’image
+            <span class="fr-hint-text">L’image sera retirée à l’enregistrement.</span>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+    <%= f.dsfr_text_field :legende_image, **champ_de_fiche(f, :legende_image) %>
+    <%= f.dsfr_text_area :description_courte, **champ_de_fiche(f, :description_courte) %>
+    <fieldset class="fr-fieldset" id="<%= f.field_id(:types_solution) %>">
+      <legend class="fr-fieldset__legend">
+        <%= Solution.human_attribute_name(:types_solution) %>
+        <span class="fr-hint-text"><%= t("activerecord.hints.solution.types_solution") %></span>
+      </legend>
+      <%= f.collection_check_boxes :types_solution, Solution::TYPES_SOLUTION, :itself, :itself do |b| %>
+        <div class="fr-fieldset__element">
+          <div class="fr-checkbox-group">
+            <%= b.check_box %>
+            <%= b.label(class: "fr-label") %>
+          </div>
+        </div>
+      <% end %>
+    </fieldset>
+    <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
+          data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
+    <%= render "admin/vocabulaires", f: f %>
+    <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
+    <%= f.dsfr_text_area :permet, **champ_de_fiche(f, :permet) %>
+    <%= f.dsfr_text_area :ne_permet_pas, **champ_de_fiche(f, :ne_permet_pas) %>
+    <%= f.dsfr_text_field :uid_datagouv %>
+    <%= f.dsfr_check_box :france_connectee %>
+    <% if solution.uid_datagouv_in_database.present? %>
+      <div class="fr-mb-3w">
+        <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
+        <ul>
+          <li>Titre : <%= solution.datagouv_titre %></li>
+          <li>Organisation : <%= solution.datagouv_organisation %></li>
+          <li>Logo : <%= solution.datagouv_logo %></li>
+          <li>Accès : <%= solution.datagouv_acces %></li>
+          <li>Accès des acteurs publics : <%= solution.datagouv_acces_acteurs_publics %></li>
+          <li>Badges de l’organisation : <%= solution.datagouv_organisation_badges.join(", ") %></li>
+        </ul>
       </div>
     <% end %>
   <% end %>
-  <%= f.dsfr_text_field :legende_image, **champ_de_fiche(f, :legende_image) %>
-  <%= f.dsfr_text_area :description_courte, **champ_de_fiche(f, :description_courte) %>
-  <fieldset class="fr-fieldset" id="<%= f.field_id(:types_solution) %>">
-    <legend class="fr-fieldset__legend">
-      <%= Solution.human_attribute_name(:types_solution) %>
-      <span class="fr-hint-text"><%= t("activerecord.hints.solution.types_solution") %></span>
-    </legend>
-    <%= f.collection_check_boxes :types_solution, Solution::TYPES_SOLUTION, :itself, :itself do |b| %>
-      <div class="fr-fieldset__element">
-        <div class="fr-checkbox-group">
-          <%= b.check_box %>
-          <%= b.label(class: "fr-label") %>
-        </div>
-      </div>
+  <% if en_base %>
+    <% liees = { "Solutions qui l’intègrent" => en_base.integratrices.par_libelle_admin, "Ce qu’elle intègre" => en_base.integrees.par_libelle_admin }.transform_values(&:load) %>
+    <% integrations = capture do %>
+      <% liees.each do |titre, lignes| %>
+        <h2 class="fr-h6 fr-mb-1w"><%= titre %></h2>
+        <%= render "admin/liens_vers_les_fiches", lignes:, vide: "Aucune solution." %>
+      <% end %>
+      <%= link_to "Ajouter une intégration", new_admin_integration_path(integratrice_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
     <% end %>
-  </fieldset>
-  <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
-        data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
-  <%= render "admin/vocabulaires", f: f %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
-  <%= f.dsfr_text_area :permet, **champ_de_fiche(f, :permet) %>
-  <%= f.dsfr_text_area :ne_permet_pas, **champ_de_fiche(f, :ne_permet_pas) %>
-  <%= f.dsfr_text_field :uid_datagouv %>
-  <%= f.dsfr_check_box :france_connectee %>
-  <% if solution.uid_datagouv_in_database.present? %>
-    <div class="fr-mb-3w">
-      <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
-      <ul>
-        <li>Titre : <%= solution.datagouv_titre %></li>
-        <li>Organisation : <%= solution.datagouv_organisation %></li>
-        <li>Logo : <%= solution.datagouv_logo %></li>
-        <li>Accès : <%= solution.datagouv_acces %></li>
-        <li>Accès des acteurs publics : <%= solution.datagouv_acces_acteurs_publics %></li>
-        <li>Badges de l’organisation : <%= solution.datagouv_organisation_badges.join(", ") %></li>
-      </ul>
-    </div>
+    <% demarches = en_base.demarches_recommandantes.order(:nom).load %>
+    <%= render "admin/onglets", onglets: {
+          "fiche" => ["Fiche", fiche],
+          "integrations" => ["Intégrations (#{liees.values.sum(&:size)})", integrations],
+          "recommandee-dans" => ["Recommandée dans (#{demarches.size})", render("admin/liens_vers_les_fiches", lignes: demarches, vide: "Aucune démarche ne la recommande.")],
+          "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
+        } %>
+  <% else %>
+    <%= fiche %>
   <% end %>
 <% end %>

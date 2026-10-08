@@ -1148,33 +1148,6 @@ RSpec.describe 'Administration' do
     end
   end
 
-  describe 'éléments liés à une solution' do
-    before { sign_in admin }
-
-    def elements_lies(solution)
-      get "/admin/solutions/#{solution.id}/edit"
-      response.parsed_body.css('#elements-lies h3').to_h do |titre|
-        [titre.text, titre.next_element.css('a').map { |lien| [lien.text, lien['href']] }]
-      end
-    end
-
-    it 'montre en lecture les démarches qui la recommandent, ses intégratrices et ce qu’elle intègre, avec un lien' do
-      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
-      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle')
-      aides = Demarche.create!(nom: 'Aides')
-      Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
-      %w[consomme expose].each { |type_integration| Integration.create!(integratrice: bouquet, integree: api_qf, type_integration:) }
-
-      expect(elements_lies(api_qf)).to eq(
-        'Démarches qui la recommandent' => [['Aides', "/admin/demarches/#{aides.id}/edit"]],
-        'Solutions qui l’intègrent' => [['Bouquet (Brique technique)', "/admin/solutions/#{bouquet.id}/edit"]]
-      )
-      expect(elements_lies(bouquet)).to eq('Ce qu’elle intègre' => [['API QF (API)', "/admin/solutions/#{api_qf.id}/edit"]])
-      get "/admin/solutions/#{Solution.create!(nom: 'Seule').id}/edit"
-      expect(response.parsed_body.at_css('#elements-lies')).to be_nil
-    end
-  end
-
   describe 'image de solution' do
     it 'attache le fichier envoyé par le formulaire' do
       sign_in admin
@@ -1745,6 +1718,36 @@ RSpec.describe 'Administration' do
       expect(panneau('Historique').text).to include('Création')
       get '/admin/demarches/new'
       expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
+    end
+
+    def liens_par_titre(libelle)
+      panneau(libelle).css('h2').to_h { |titre| [titre.text, titre.next_element.css('a').map { |lien| [lien.text, lien['href']] }] }
+    end
+
+    it 'range la solution en onglets : ce qu’elle intègre, qui l’intègre, les démarches qui la recommandent, en lecture avec un lien' do
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle')
+      aides = Demarche.create!(nom: 'Aides')
+      Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
+      %w[consomme expose].each { |type_integration| Integration.create!(integratrice: bouquet, integree: api_qf, type_integration:) }
+
+      get "/admin/solutions/#{api_qf.id}/edit"
+      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandée dans (1)', 'button', 'false'], ['Historique', 'button', 'false']])
+      expect(panneau('Fiche').at_css('input[name="solution[nom]"]')).to be_present
+      expect(liens_par_titre('Intégrations')).to eq('Solutions qui l’intègrent' => [['Bouquet (Brique technique)', "/admin/solutions/#{bouquet.id}/edit"]], 'Ce qu’elle intègre' => [])
+      expect(panneau('Recommandée dans').css('a').map { |lien| [lien.text, lien['href']] }).to eq([['Aides', "/admin/demarches/#{aides.id}/edit"]])
+      expect(panneau('Historique').text).to include('Création')
+
+      get "/admin/solutions/#{bouquet.id}/edit"
+      expect(liens_par_titre('Intégrations')).to eq('Solutions qui l’intègrent' => [], 'Ce qu’elle intègre' => [['API QF (API)', "/admin/solutions/#{api_qf.id}/edit"]])
+      expect(panneau('Intégrations').at_css('a:contains("Ajouter une intégration")')['href']).to eq("/admin/integrations/new?integratrice_id=#{bouquet.id}")
+      expect(panneau('Recommandée dans').text.squish).to eq('Aucune démarche ne la recommande.')
+    end
+
+    it 'pré-remplit l’intégratrice d’une nouvelle intégration' do
+      bouquet = Solution.create!(nom: 'Bouquet')
+      get '/admin/integrations/new', params: { integratrice_id: bouquet.id }
+      expect(response.parsed_body.at_css('#integration_integratrice_id option[selected]').text).to eq('Bouquet')
     end
   end
 end
