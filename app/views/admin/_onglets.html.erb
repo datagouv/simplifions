@@ -1,6 +1,7 @@
-<%# locals: (onglets:) -%>
-<% actif = onglets.keys.first %>
-<div class="fr-tabs fr-mt-2w">
+<%# locals: (objet:, onglets:, onglet_des_erreurs: {}) -%>
+<% actif = onglet_ouvert(objet, onglets.keys, onglet_des_erreurs) %>
+<div class="fr-tabs fr-mt-2w" data-controller="onglets" data-action="dsfr.disclose->onglets#choisir">
+  <%= hidden_field_tag :onglet, actif, id: nil, data: { onglets_target: "champ" } %>
   <ul class="fr-tabs__list" role="tablist" aria-label="Rubriques de la fiche">
     <% onglets.each do |cle, (libelle, _)| %>
       <li role="presentation">
@@ -9,7 +10,7 @@
     <% end %>
   </ul>
   <% onglets.each do |cle, (_, contenu)| %>
-    <div id="onglet-<%= cle %>-panneau" class="fr-tabs__panel<%= " fr-tabs__panel--selected" if cle == actif %>" role="tabpanel" aria-labelledby="onglet-<%= cle %>" tabindex="0">
+    <div id="onglet-<%= cle %>-panneau" class="fr-tabs__panel<%= " fr-tabs__panel--selected" if cle == actif %>" role="tabpanel" aria-labelledby="onglet-<%= cle %>" tabindex="0" data-onglet="<%= cle %>">
       <%= contenu %>
     </div>
   <% end %>

@@ -67,7 +67,7 @@
       <%= link_to "Ajouter une intégration", new_admin_integration_path(integratrice_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
     <% end %>
     <% demarches = en_base.demarches_recommandantes.order(:nom).load %>
-    <%= render "admin/onglets", onglets: {
+    <%= render "admin/onglets", objet: solution, onglets: {
           "fiche" => ["Fiche", fiche],
           "integrations" => ["Intégrations (#{liees.values.sum(&:size)})", integrations],
           "recommandee-dans" => ["Recommandée dans (#{demarches.size})", render("admin/liens_vers_les_fiches", lignes: demarches, vide: "Aucune démarche ne la recommande.")],

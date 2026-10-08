@@ -23,7 +23,7 @@ class Admin::BaseController < ApplicationController
 
   def redirige_vers_la_fiche(ligne)
     cle = ligne.try(:brouillon?) && ligne.passe_par_un_brouillon? ? 'admin.brouillon_enregistre' : 'admin.enregistre'
-    redirect_to helpers.fiche_admin(ligne), notice: t(cle, nom: nom_de(ligne)), status: :see_other
+    redirect_to polymorphic_path(helpers.fiche_admin(ligne), onglet: params[:onglet].presence), notice: t(cle, nom: nom_de(ligne)), status: :see_other
   end
 
   def fil_d_ariane
