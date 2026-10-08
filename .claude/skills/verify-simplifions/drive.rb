@@ -734,7 +734,7 @@ def recommandations_demarche(page)
   page.visit("/admin/demarches/#{demarche.id}/edit")
   onglet(page, 'Recommandations')
   lignes = page.find('table[aria-labelledby=onglet-recommandations]').all('tbody tr').size
-  raise "#{lignes} lignes pour #{avant} recommandations" unless lignes == avant
+  raise "#{lignes} lignes pour #{avant} recommandations et la ligne vide" unless lignes == avant + 1
 
   Verify.evidence(dossier, page, 'demarche', "lignes=#{lignes} en_base=#{avant}")
   page.click_link 'Ajouter une recommandation'
@@ -757,12 +757,11 @@ def recommandations_demarche(page)
   lien_nomme(encart, "Voir la fiche #{demarche.nom}").click
   page.assert_current_path("/admin/demarches/#{demarche.id}/edit")
   onglet(page, 'Recommandations')
-  derniere = page.find('table[aria-labelledby=onglet-recommandations]').all('tbody tr').map { |ligne| ligne.all('td').map(&:text) }
-    .find { |cellules| cellules.first == solution.libelle_admin }
-  raise 'nouvelle recommandation absente de la démarche' unless derniere
+  derniere = page.find("tr#recommandation_#{creee.id}").all('select, input').map(&:value)
+  raise 'nouvelle recommandation absente de la démarche' unless derniere.first == solution.id.to_s
 
-  Verify.evidence(dossier, page, 'retour-demarche', "ligne=#{derniere.first(3).join(' | ')}")
-  page.click_link solution.libelle_admin
+  Verify.evidence(dossier, page, 'retour-demarche', "ligne=#{derniere.join(' | ')}")
+  page.click_link "Modifier la recommandation #{solution.libelle_admin}"
   page.accept_confirm { page.click_button 'Supprimer' }
   page.assert_current_path('/admin/recommandations')
   Verify.evidence(dossier, page, 'supprimee', "en_base=#{ActiveRecord::Base.uncached { demarche.recommandations.count }} attendu=#{avant}")
@@ -1454,6 +1453,85 @@ ensure
   Demarche.where(nom: [nom, "#{nom} modifiée"]).destroy_all
 end
 
+def enregistrer_desactive?(page) = page.find('button[data-enregistrer]', visible: :all).disabled?
+
+def focus_sur(page) = page.evaluate_script('document.activeElement.id')
+
+def recommandations_en_ligne(page)
+  dossier = 'admin-recommandations-en-ligne'
+  demarche = Demarche.visibles.where.not(slug: [nil, '']).max_by { |ligne| ligne.recommandations.count }
+  reco = demarche.recommandations.visibles.par_niveau_et_ordre.first
+  nom = "la recommandation #{reco.solution.libelle_admin}"
+  solution = Solution.where(categorie: 'api').where.not(id: demarche.recommandations.select(:solution_id)).reject(&:privee?).first
+  avant = demarche.recommandations.count
+  publique = -> { page.visit("/demarches/#{demarche.slug}") || page.all('.reco-card').map(&:text) }
+  cartes = publique.call
+  Verify.login(page)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  onglet(page, 'Recommandations')
+  page.find_field("Ordre de #{nom}").fill_in(with: '77')
+  raise 'la ligne a marqué la fiche' unless enregistrer_desactive?(page)
+
+  page.click_button "Enregistrer #{nom}"
+  page.assert_selector '#message-recommandations .fr-valid-text', text: 'brouillon enregistré'
+  page.find("tr#recommandation_#{reco.id}").assert_selector '.fr-badge--new', text: /brouillon/i
+  ActiveRecord::Base.uncached do
+    Verify.evidence(dossier, page, 'ligne-modifiee', "focus=#{focus_sur(page)} fiche_grisee=#{enregistrer_desactive?(page)} " \
+      "ordre_en_base=#{reco.reload.ordre} ordre_du_brouillon=#{reco.brouillon&.dig('ordre')}")
+  end
+
+  onglet(page, 'Fiche')
+  page.fill_in 'Description courte', with: "#{demarche.description_courte} "
+  onglet(page, 'Recommandations')
+  page.find_field("Ordre de #{nom}").fill_in(with: '78')
+  page.click_button "Enregistrer #{nom}"
+  page.assert_selector '#message-recommandations .fr-valid-text'
+  raise 'la fiche modifiée a été oubliée' if enregistrer_desactive?(page)
+
+  Verify.evidence(dossier, page, 'fiche-modifiee-garde', "confirmation=aucune fiche_grisee=#{enregistrer_desactive?(page)}")
+
+  page.select 'Solution recommandée', from: 'Type de recommandation de la nouvelle recommandation (obligatoire)'
+  page.click_button 'Ajouter la nouvelle recommandation'
+  erreur = page.find('#erreurs_recommandation', text: 'Choisissez une solution')
+  Verify.evidence(dossier, page, 'erreur-ligne', "erreur=#{erreur.text} focus=#{focus_sur(page)} " \
+    "decrit_par=#{page.find('#enregistrer_recommandation')['aria-describedby']}")
+
+  page.select solution.libelle_admin, from: 'Solution de la nouvelle recommandation (obligatoire)'
+  page.find_field('Ordre de la nouvelle recommandation').fill_in(with: '99')
+  page.click_button 'Ajouter la nouvelle recommandation'
+  page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
+  creee = ActiveRecord::Base.uncached { demarche.recommandations.find_by!(solution:) }
+  page.assert_selector "tr#recommandation_#{creee.id}"
+  vide = page.find('tr#new_recommandation select[name="recommandation[solution_id]"]').value
+  Verify.evidence(dossier, page, 'ajoutee', "lignes=#{page.all('tbody tr').size} en_base=#{ActiveRecord::Base.uncached { demarche.recommandations.count }} " \
+    "avant=#{avant} visible=#{creee.visible} ligne_vide=#{vide.inspect} focus=#{focus_sur(page)}")
+
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_link 'Annuler' }
+  page.assert_selector 'h1', text: 'Démarches'
+  apres = publique.call
+  Verify.evidence(dossier, page, 'page-publique', "inchangee=#{apres == cartes} cartes=#{apres.size}")
+  page.current_window.resize_to(375, 812)
+  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
+  Verify.evidence(dossier, page, 'etroit-375', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+
+  page.click_link "Modifier #{nom}"
+  page.accept_confirm { page.click_button 'Abandonner le brouillon' }
+  page.assert_text 'abandonné'
+  page.visit("/admin/recommandations/#{creee.id}/edit")
+  page.accept_confirm { page.click_button 'Supprimer' }
+  page.assert_current_path('/admin/recommandations')
+  ActiveRecord::Base.uncached do
+    Verify.evidence(dossier, page, 'defait', "en_base=#{demarche.recommandations.count} avant=#{avant} brouillon=#{reco.reload.brouillon.inspect}")
+  end
+  Verify.logout(page)
+ensure
+  ActiveRecord::Base.uncached do
+    demarche&.recommandations&.where(ordre: 99, grist_id: nil, solution:)&.destroy_all
+    reco&.reload&.abandonner_brouillon! if reco&.reload&.brouillon?
+  end
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1464,7 +1542,8 @@ end
   'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
-  'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets }.each do |nom, fn|
+  'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
+  'recommandations-en-ligne' => :recommandations_en_ligne }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
