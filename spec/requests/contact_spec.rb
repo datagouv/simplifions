@@ -163,6 +163,28 @@ RSpec.describe 'Contact' do
       expect(response.body).to include('.data] Modification d&#39;une fiche solution : Babily')
     end
 
+    it 'propose de choisir le cas d’usage publié quand on n’arrive pas d’une fiche' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+      Demarche.create!(nom: 'Bourse', slug: 'bourse', visible: true)
+      Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
+
+      get contact_path('modifier-cas-usage')
+
+      formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-cas-usage"]')
+      options = formulaire.css('select[name="demarche"] option').map { |option| [option['value'], option.text] }
+      expect(options).to eq([['', "Sélectionner un cas d'usage"], %w[bourse Bourse], ['cantine', 'Cantine à 1€']])
+      expect(formulaire.at('label[for="demarche"]').text.strip).to eq("Cas d'usage concerné")
+      expect(formulaire.at('button[type="submit"]').text.strip).to eq('Préremplir le message')
+    end
+
+    it 'ne propose plus la liste quand le cas d’usage est choisi' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+
+      get contact_path('modifier-cas-usage', demarche: 'cantine')
+
+      expect(response.parsed_body.at('select[name="demarche"]')).to be_nil
+    end
+
     it 'ignore une fiche inconnue, non publiée, d’un autre type ou qui n’est pas un texte' do
       Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
       Solution.create!(nom: 'Solution homonyme', slug: 'cantine', visible: true, categorie: 'brique_logicielle')
