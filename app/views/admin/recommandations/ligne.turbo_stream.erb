@@ -1,0 +1,6 @@
+<%= turbo_stream.update "message-recommandations" do %>
+  <% if @recommandation.errors.none? %>
+    <p class="fr-valid-text fr-mb-2w"><%= message_d_enregistrement(@recommandation) %></p>
+  <% end %>
+<% end %>
+<%= turbo_stream.replace dom_id(@recommandation), partial: "ligne", locals: { ligne: @recommandation } %>

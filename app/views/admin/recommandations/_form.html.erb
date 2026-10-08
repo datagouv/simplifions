@@ -16,7 +16,7 @@
 <% end %>
 <%= form_with model: [:admin, recommandation], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(recommandation) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_select :solution_id, Solution.par_libelle_admin.map { |solution| [solution.libelle_admin, solution.id] } do %>
+  <%= f.dsfr_select :solution_id, choix_de_solutions do %>
     <%= lien_vers_la_fiche(recommandation.solution, recommandation.solution.libelle_admin) if recommandation.solution %>
   <% end %>
   <%= f.dsfr_text_field :url_demande_acces %>

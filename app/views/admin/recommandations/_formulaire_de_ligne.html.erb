@@ -1,0 +1,5 @@
+<%# locals: (ligne:) -%>
+<%= form_with model: [:admin, ligne], id: dom_id(ligne, :formulaire), data: { enregistre_sur_place: true } do |f| %>
+  <%= hidden_field_tag :ligne, 1, id: nil %>
+  <%= f.hidden_field :demarche_id, id: nil if ligne.new_record? %>
+<% end %>

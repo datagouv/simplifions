@@ -1,10 +1,9 @@
-<% solutions = Solution.par_libelle_admin.map { |solution| [solution.libelle_admin, solution.id] } %>
 <%= form_with model: [:admin, integration], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(integration) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_select :integree_id, solutions do %>
+  <%= f.dsfr_select :integree_id, choix_de_solutions do %>
     <%= lien_vers_la_fiche(integration.integree, integration.integree.libelle_admin) if integration.integree %>
   <% end %>
-  <%= f.dsfr_select :integratrice_id, solutions do %>
+  <%= f.dsfr_select :integratrice_id, choix_de_solutions do %>
     <%= lien_vers_la_fiche(integration.integratrice, integration.integratrice.libelle_admin) if integration.integratrice %>
   <% end %>
   <%= f.dsfr_select :type_integration, options_traduites(Integration, :type_integration) %>

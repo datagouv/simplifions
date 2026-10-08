@@ -1,3 +1,4 @@
+<% lignes = [*en_base.recommandations.par_niveau_et_ordre.includes(:solution), Recommandation.new(demarche: en_base)] if en_base %>
 <%= form_with model: [:admin, demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(demarche) do |f| %>
   <%= render "admin/erreurs", f: f %>
   <% fiche = capture do %>
@@ -23,7 +24,24 @@
   <% end %>
   <% if en_base %>
     <% recommandations = capture do %>
-      <%= render "admin/recommandations/tableau", recommandations: en_base.recommandations, titre_id: "onglet-recommandations" %>
+      <div id="message-recommandations" role="status"></div>
+      <div class="fr-table"><div class="fr-table__wrapper"><div class="fr-table__container"><div class="fr-table__content">
+        <table class="lignes-modifiables" aria-labelledby="onglet-recommandations">
+          <thead>
+            <tr>
+              <th scope="col">Solution (obligatoire)</th>
+              <th scope="col"><%= Recommandation.human_attribute_name(:niveau) %> (obligatoire)</th>
+              <th scope="col"><%= Recommandation.human_attribute_name(:ordre) %></th>
+              <th scope="col">Visible</th>
+              <th scope="col">Modifié le</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= render partial: "admin/recommandations/ligne", collection: lignes %>
+          </tbody>
+        </table>
+      </div></div></div></div>
       <%= link_to "Ajouter une recommandation", new_admin_recommandation_path(demarche_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
     <% end %>
     <%= render "admin/onglets", objet: demarche, onglet_des_erreurs: { integration_hors_regle: "integrations", recommandation_refusee: "recommandations" }, onglets: {
@@ -36,4 +54,9 @@
     <%= fiche %>
     <%= integrations %>
   <% end %>
+<% end %>
+<% if lignes %>
+  <div id="formulaires-recommandations">
+    <%= render partial: "admin/recommandations/formulaire_de_ligne", collection: lignes, as: :ligne %>
+  </div>
 <% end %>

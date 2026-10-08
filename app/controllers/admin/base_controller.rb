@@ -2,7 +2,7 @@ class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   before_action :set_paper_trail_whodunnit
-  helper_method :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane
+  helper_method :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
 
   def abandonner_brouillon
     en_base.abandonner_brouillon!
@@ -22,8 +22,12 @@ class Admin::BaseController < ApplicationController
   def user_for_paper_trail = current_admin.id
 
   def redirige_vers_la_fiche(ligne)
+    redirect_to polymorphic_path(helpers.fiche_admin(ligne), onglet: params[:onglet].presence), notice: message_d_enregistrement(ligne), status: :see_other
+  end
+
+  def message_d_enregistrement(ligne)
     cle = ligne.try(:brouillon?) && ligne.passe_par_un_brouillon? ? 'admin.brouillon_enregistre' : 'admin.enregistre'
-    redirect_to polymorphic_path(helpers.fiche_admin(ligne), onglet: params[:onglet].presence), notice: t(cle, nom: nom_de(ligne)), status: :see_other
+    t(cle, nom: nom_de(ligne))
   end
 
   def fil_d_ariane
