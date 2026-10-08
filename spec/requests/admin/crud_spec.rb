@@ -1719,4 +1719,32 @@ RSpec.describe 'Administration' do
       expect(demarche.reload.mots_clefs).to eq(%w[aides primes])
     end
   end
+
+  describe 'onglets de la fiche' do
+    before { sign_in admin }
+
+    def onglets = response.parsed_body.css('[role=tablist] [role=tab]').map { |onglet| [onglet.text.squish, onglet['type'], onglet['aria-selected']] }
+
+    def panneau(libelle)
+      onglet = response.parsed_body.css('[role=tab]').find { |bouton| bouton.text.squish.start_with?(libelle) }
+      response.parsed_body.at_css("form#formulaire-fiche ##{onglet['aria-controls']}[role=tabpanel]")
+    end
+
+    it 'range la démarche en quatre onglets d’un seul formulaire, la fiche ouverte' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      demarche = Demarche.create!(nom: 'Aides')
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      demarche.integrations << Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
+
+      get "/admin/demarches/#{demarche.id}/edit"
+
+      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
+      expect(panneau('Fiche').at_css('input[name="demarche[nom]"]')).to be_present
+      expect(panneau('Intégrations').css('input[name="demarche[integration_ids][]"][checked]').size).to eq(1)
+      expect(panneau('Recommandations').css('a').map(&:text)).to eq(['API QF (API)', 'Ajouter une recommandation'])
+      expect(panneau('Historique').text).to include('Création')
+      get '/admin/demarches/new'
+      expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
+    end
+  end
 end

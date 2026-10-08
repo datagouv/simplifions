@@ -8,8 +8,5 @@
       t("admin.suppression.integrations_detachees", count: en_base.integrations.count)],
     en_brouillon: t("admin.recommandations_en_brouillon", count: en_base.recommandations_en_brouillon.count) } do %>
     <%= render "form", demarche: @demarche %>
-    <h2 id="recommandations" class="fr-mt-6w">Recommandations</h2>
-    <%= render "admin/recommandations/tableau", recommandations: en_base.recommandations, titre_id: "recommandations" %>
-    <%= link_to "Ajouter une recommandation", new_admin_recommandation_path(demarche_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
   <% end %>
 </div>

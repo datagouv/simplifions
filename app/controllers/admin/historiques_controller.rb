@@ -1,9 +1,9 @@
 class Admin::HistoriquesController < Admin::BaseController
   MODELES = [Demarche, Solution, Recommandation, Integration, Organisation, TypeActeur, Vocabulaire].index_by { it.model_name.route_key }.freeze
 
-  def show
-    @versions = en_base.versions.reorder(created_at: :desc, id: :desc)
-  end
+  before_action :en_base
+
+  def show; end
 
   private
 
