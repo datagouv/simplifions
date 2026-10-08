@@ -1352,6 +1352,38 @@ ensure
   Solution.where(slug:).destroy_all
 end
 
+def image_refusee(page)
+  dossier = 'admin-image-refusee'
+  nom = "Vérif verify-map #{Verify.browser}"
+  faux_png = Verify::ROOT.join('pdf-nomme.png').tap { it.dirname.mkpath }.tap { it.binwrite("%PDF-1.4\n") }
+  Verify.login(page)
+  solutions = [Solution.create!(nom: "#{nom} masquée"), Solution.create!(nom:, slug: "verif-verify-map-#{Verify.browser}", visible: true)]
+  solutions.each { image_refusee_sur(page, dossier, it, faux_png) }
+  page.attach_file('solution_image', Rails.root.join('app/assets/images/solutions/data-subvention.png').to_s)
+  page.click_button 'Enregistrer'
+  page.assert_selector 'aside.admin-panneau', text: /Brouillon non publié/i
+  Verify.evidence(dossier, page, 'png-accepte', "brouillon_image=#{ActiveRecord::Base.uncached { solutions.last.reload.brouillon.to_h.key?('image') }}")
+  page.visit('/admin')
+  Verify.logout(page)
+ensure
+  Solution.where(nom: ["#{nom} masquée", nom, "#{nom} masquée renommée", "#{nom} renommée"]).destroy_all
+end
+
+def image_refusee_sur(page, dossier, solution, fichier)
+  blobs = ActiveStorage::Blob.count
+  page.visit('/admin/solutions')
+  ouvrir_depuis_la_liste(page, solution.nom)
+  page.fill_in 'Nom', with: "#{solution.nom} renommée"
+  page.attach_file('solution_image', fichier.to_s)
+  page.click_button 'Enregistrer'
+  page.assert_selector '.fr-upload-group', text: 'doit être une image png, jpg ou webp'
+  page.find_field('Nom', with: "#{solution.nom} renommée")
+  base = ActiveRecord::Base.uncached { Solution.find(solution.id).then { [it.nom, it.image.attached?, it.brouillon, ActiveStorage::Blob.count - blobs] } }
+  raise "refus #{solution.nom} : base #{base}" unless base == [solution.nom, false, nil, 0]
+
+  Verify.evidence(dossier, page, "refus-#{solution.visible? ? 'publiee' : 'masquee'}", "nom,image,brouillon,blobs_crees=#{base}")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1362,7 +1394,7 @@ end
   'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
-  'previsualisation' => :previsualisation }.each do |nom, fn|
+  'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
