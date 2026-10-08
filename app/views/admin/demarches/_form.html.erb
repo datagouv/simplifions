@@ -1,20 +1,39 @@
 <%= form_with model: [:admin, demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(demarche) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_text_field :icone %>
-  <%= f.dsfr_text_field :nom %>
-  <%= f.dsfr_text_field :slug %>
-  <%= f.dsfr_text_area :description_courte %>
-  <%= f.dsfr_text_area :contexte %>
-  <%= f.dsfr_text_area :cadre_juridique %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
-  <%= f.dsfr_text_area :mots_clefs %>
-  <%= render "admin/vocabulaires", f: f %>
-  <% integrations = demarche.integrations_proposees.includes(:integratrice, :integree).order(:id).load %>
-  <% autorisees = demarche.integrations_autorisees.ids %>
-  <% if integrations.any? %>
-    <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: integrations, libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) }, legende: "Intégrations" %>
+  <% fiche = capture do %>
+    <%= f.dsfr_text_field :icone %>
+    <%= f.dsfr_text_field :nom %>
+    <%= f.dsfr_text_field :slug %>
+    <%= f.dsfr_text_area :description_courte %>
+    <%= f.dsfr_text_area :contexte %>
+    <%= f.dsfr_text_area :cadre_juridique %>
+    <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
+    <%= f.dsfr_text_area :mots_clefs %>
+    <%= render "admin/vocabulaires", f: f %>
+  <% end %>
+  <% integrations = capture do %>
+    <% proposees = demarche.integrations_proposees.includes(:integratrice, :integree).order(:id).load %>
+    <% autorisees = demarche.integrations_autorisees.ids %>
+    <% if proposees.any? %>
+      <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: proposees, libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) }, legende: "Intégrations" %>
+    <% else %>
+      <%= hidden_field_tag "demarche[integration_ids][]", "" %>
+      <p class="fr-hint-text">Intégrations : à cocher une fois que la démarche recommande l’API ou le jeu de données intégré.</p>
+    <% end %>
+  <% end %>
+  <% if en_base %>
+    <% recommandations = capture do %>
+      <%= render "admin/recommandations/tableau", recommandations: en_base.recommandations, titre_id: "onglet-recommandations" %>
+      <%= link_to "Ajouter une recommandation", new_admin_recommandation_path(demarche_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
+    <% end %>
+    <%= render "admin/onglets", onglets: {
+          "fiche" => ["Fiche", fiche],
+          "integrations" => ["Intégrations (#{demarche.integration_ids.size})", integrations],
+          "recommandations" => ["Recommandations (#{en_base.recommandations.count})", recommandations],
+          "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
+        } %>
   <% else %>
-    <%= hidden_field_tag "demarche[integration_ids][]", "" %>
-    <p class="fr-hint-text">Intégrations : à cocher une fois que la démarche recommande l’API ou le jeu de données intégré.</p>
+    <%= fiche %>
+    <%= integrations %>
   <% end %>
 <% end %>
