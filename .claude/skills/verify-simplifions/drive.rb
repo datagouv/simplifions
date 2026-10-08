@@ -489,6 +489,7 @@ def liste_filtrable(page)
   aides = liens_d_aide(page.find('fieldset', text: 'Vocabulaires', match: :first)).size
   raise "#{aides} « ? » pour #{Vocabulaire.count} vocabulaires" unless aides == Vocabulaire.count
 
+  onglet(page, 'Intégrations')
   groupe = page.find('fieldset', text: 'Filtrer les intégrations')
   coches = cases_affichees(groupe)
   raise "cases visibles sans filtre #{coches.size}" unless coches.size == 2 && coches.all?(&:checked?)
@@ -497,7 +498,7 @@ def liste_filtrable(page)
   raise "compte #{compte}" unless compte == "2 cochés sur #{integrations.size}"
 
   Verify.evidence(dossier, page, 'cochees-seules', "visibles=#{coches.size} compte=#{compte} en_base=#{demarche.integration_ids.size} vocabulaires=#{categories.join(' | ')}")
-  page.execute_script("[...document.querySelectorAll('input[name=\"demarche[vocabulaire_ids][]\"]:not([type=hidden])')].at(-1).closest('.fr-fieldset__element').querySelector('a').focus()")
+  page.execute_script("document.getElementById('onglet-integrations-panneau').focus()")
   page.send_keys :tab
   raise 'Tab n’entre pas dans le filtre' unless page.evaluate_script('document.activeElement.id') == 'demarche_integration_ids_filtre'
   raise 'Tab a ouvert la liste' unless cases_affichees(groupe).size == 2
@@ -731,7 +732,8 @@ def recommandations_demarche(page)
   avant = demarche.recommandations.count
   Verify.login(page)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  lignes = page.find('table[aria-labelledby=recommandations]').all('tbody tr').size
+  onglet(page, 'Recommandations')
+  lignes = page.find('table[aria-labelledby=onglet-recommandations]').all('tbody tr').size
   raise "#{lignes} lignes pour #{avant} recommandations" unless lignes == avant
 
   Verify.evidence(dossier, page, 'demarche', "lignes=#{lignes} en_base=#{avant}")
@@ -754,7 +756,8 @@ def recommandations_demarche(page)
   Verify.evidence(dossier, page, 'enregistree', "url=#{page.current_path} encart=#{encart.find('h2').text} autres=#{encart.all('tbody tr', visible: :all).size} en_base=#{ActiveRecord::Base.uncached { demarche.recommandations.count }}")
   lien_nomme(encart, "Voir la fiche #{demarche.nom}").click
   page.assert_current_path("/admin/demarches/#{demarche.id}/edit")
-  derniere = page.find('table[aria-labelledby=recommandations]').all('tbody tr').map { |ligne| ligne.all('td').map(&:text) }
+  onglet(page, 'Recommandations')
+  derniere = page.find('table[aria-labelledby=onglet-recommandations]').all('tbody tr').map { |ligne| ligne.all('td').map(&:text) }
     .find { |cellules| cellules.first == solution.libelle_admin }
   raise 'nouvelle recommandation absente de la démarche' unless derniere
 
@@ -828,8 +831,16 @@ ensure
   Solution.where(id: solution&.id).destroy_all
 end
 
+def onglet(page, libelle)
+  page.find('[role=tab]', text: /\A#{libelle}/).click
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\A#{libelle}/
+end
+
 def elements_lies(page)
-  page.all('#elements-lies h3').to_h { |titre| [titre.text, titre.find(:xpath, 'following-sibling::ul[1]').all('a').map(&:text)] }
+  onglet(page, 'Intégrations')
+  lies = page.all('#onglet-integrations-panneau h2').to_h { |titre| [titre.text, titre.find(:xpath, 'following-sibling::*[1]').all('a').map(&:text)] }
+  onglet(page, 'Recommandée dans')
+  lies.merge('Recommandée dans' => page.find('#onglet-recommandee-dans-panneau').all('a').map(&:text)).reject { |_, liens| liens.empty? }
 end
 
 def types_coches(page) = page.all('input[name="solution[types_solution][]"]', visible: :all).select(&:checked?).map(&:value)
@@ -850,12 +861,13 @@ def saisie_solution(page)
   legende = page.find_field('Légende de l’image')
   aide = page.find('label[for=solution_retirer_image] .fr-hint-text').text
   lies = elements_lies(page)
-  attendu = { 'Démarches qui la recommandent' => [demarche.nom], 'Ce qu’elle intègre' => [api.libelle_admin] }
+  attendu = { 'Ce qu’elle intègre' => [api.libelle_admin], 'Recommandée dans' => [demarche.nom] }
   raise "legende=#{legende.tag_name}/#{legende[:type]} aide=#{aide} lies=#{lies}" unless
     legende[:type] == 'text' && aide == 'L’image sera retirée à l’enregistrement.' && lies == attendu
 
   Verify.evidence(dossier, page, 'fiche', "legende=#{legende.tag_name}[type=#{legende[:type]}] aide_retirer=#{aide} lies=#{lies}")
-  page.find('#elements-lies').click_link api.libelle_admin
+  onglet(page, 'Intégrations')
+  page.find('#onglet-integrations-panneau').click_link api.libelle_admin
   page.assert_selector 'h1', text: api.libelle_admin
   integratrices = elements_lies(page)['Solutions qui l’intègrent']
   base = api.integratrices.par_libelle_admin.map { |integratrice| integratrice.libelle_admin.squish }
@@ -1244,6 +1256,7 @@ def brouillon_recommandations(page, dossier, nom, slug)
   modifiee, ajoutee = %w[a b].map { Solution.create!(nom: "#{nom} #{it}", categorie: 'api') }
   reco = Recommandation.create!(demarche:, solution: modifiee, niveau: :niveau_2, donnees_utiles: 'Avant', visible: true)
   page.visit("/admin/demarches/#{demarche.id}/edit")
+  onglet(page, 'Recommandations')
   page.click_link modifiee.libelle_admin
   page.fill_in 'Données utiles disponibles', with: 'Après'
   page.click_button 'Enregistrer'
@@ -1384,6 +1397,63 @@ def image_refusee_sur(page, dossier, solution, fichier)
   Verify.evidence(dossier, page, "refus-#{solution.visible? ? 'publiee' : 'masquee'}", "nom,image,brouillon,blobs_crees=#{base}")
 end
 
+def hauteur(page) = page.evaluate_script('document.documentElement.scrollHeight')
+
+def onglet_retenu(page) = page.find('input[name=onglet]', visible: false).value
+
+def onglets(page)
+  dossier = 'admin-onglets'
+  nom = "Vérif verify-map #{Verify.browser}"
+  Verify.login(page)
+  page.visit('/admin/demarches/1/edit')
+  libelles = page.all('[role=tab]').map(&:text)
+  hauteurs = libelles.to_h { |libelle| onglet(page, libelle.split(' (').first).then { [libelle, hauteur(page)] } }
+  raise "onglets #{libelles}" unless libelles.map { it.split(' (').first } == %w[Fiche Intégrations Recommandations Historique]
+
+  Verify.evidence(dossier, page, 'hauteurs-demarche-1', "hauteurs=#{hauteurs} recos_en_base=#{Demarche.find(1).recommandations.count}")
+  onglet(page, 'Fiche')
+  page.find('[role=tab][aria-selected=true]').send_keys(:right)
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\AIntégrations/
+  raise "flèche : onglet retenu #{onglet_retenu(page)}" unless onglet_retenu(page) == 'integrations'
+
+  api = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
+  demarche = Demarche.create!(nom:)
+  Recommandation.create!(demarche:, solution_id: api, niveau: :niveau_1)
+  cible = Integration.where(integree_id: api).order(:id).first
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.fill_in 'Nom', with: "#{nom} modifiée"
+  onglet(page, 'Intégrations')
+  groupe = page.find('fieldset', text: 'Filtrer les intégrations')
+  groupe.fill_in 'Filtrer les intégrations', with: I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ')
+  groupe.find("label[for=demarche_integration_ids_#{cible.id}]").click
+  raise 'case cible non cochée' unless groupe.find("#demarche_integration_ids_#{cible.id}", visible: :all).checked?
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} modifiée » enregistré."
+  page.assert_current_path(/onglet=integrations/, url: true)
+  page.assert_selector '[role=tab][aria-selected=true]', text: 'Intégrations (1)'
+  base = ActiveRecord::Base.uncached { Demarche.find(demarche.id).then { [it.nom, it.integration_ids] } }
+  raise "enregistrement : base #{base}" unless base == ["#{nom} modifiée", [cible.id]]
+
+  Verify.evidence(dossier, page, 'enregistre-depuis-integrations', "url=#{page.current_url.split('/admin').last} base=#{base}")
+  onglet(page, 'Fiche')
+  page.fill_in 'Nom', with: ''
+  onglet(page, 'Historique')
+  page.click_button 'Enregistrer'
+  page.assert_selector '.fr-alert--error', text: 'Nom doit être rempli'
+  page.assert_selector '[role=tab][aria-selected=true]', text: 'Fiche'
+  page.assert_selector '#demarche_nom', visible: true
+  Verify.evidence(dossier, page, 'erreur-ouvre-fiche', "onglet_ouvert=Fiche nom_en_base=#{ActiveRecord::Base.uncached { Demarche.find(demarche.id).nom }}")
+  page.current_window.resize_to(375, 812)
+  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\ARecommandations/
+  Verify.evidence(dossier, page, 'etroit-375', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+  page.visit('/admin')
+  Verify.logout(page)
+ensure
+  Demarche.where(nom: [nom, "#{nom} modifiée"]).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1394,7 +1464,7 @@ end
   'saisie-solution' => :saisie_solution,
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
-  'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee }.each do |nom, fn|
+  'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

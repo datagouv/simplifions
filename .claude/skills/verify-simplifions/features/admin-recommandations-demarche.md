@@ -1,10 +1,10 @@
 # Gérer les recommandations depuis la démarche
 
-A démarche's admin form lists its recommandations (Solution, Type de recommandation, Ordre, Visible, Modifié le), sorted by type then ordre, each solution linking to the recommandation, and offers `Ajouter une recommandation` with the démarche pre-selected. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding the same table.
+A démarche's admin form lists, in its `Recommandations (<n>)` tab, its recommandations (Solution, Type de recommandation, Ordre, Visible, Modifié le), sorted by type then ordre, each solution linking to the recommandation, and offers `Ajouter une recommandation` with the démarche pre-selected. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding the same table.
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit`, below the form: heading `Recommandations`.
+- `/admin/demarches/<id>/edit`, tab `Recommandations (<n>)`.
 - `/admin/recommandations/new?demarche_id=<id>` and `/admin/recommandations/<id>/edit`: the encart above the form. Admin only.
 
 ## Driving it with Capybara
