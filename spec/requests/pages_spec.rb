@@ -19,9 +19,9 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('alt="numerique.gouv - L’alliance du numérique de l’État"')
     end
 
-    it 'présente le formulaire, et non des espaces de discussion disparus, comme moyen de contribuer' do
+    it 'présente la page de contact, et non des espaces de discussion disparus, comme moyen de contribuer' do
       get root_path
-      expect(response.body).to include('Un formulaire est mis à disposition pour permettre aux usagers')
+      expect(response.body).to include('Une page de contact guidée permet aux usagers')
       expect(response.body).not_to include('De nombreux espaces sont disponibles')
     end
   end
@@ -53,7 +53,8 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('href="/about"')
       expect(response.body).to include('href="/doctrine-referencement-cas-usages"')
       expect(response.body).to include('href="/doctrine-referencement-solutions"')
-      expect(response.body).to include('href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions"')
+      expect(response.body).to include('href="/contact/contenu"')
+      expect(response.body).not_to include('demarches-simplifiees.fr')
       expect(response.body).to include('Explorer le catalogue des démarches')
       expect(response.body).to include('href="/sitemap">Plan du site</a>')
       expect(response.body).to include('href="/terms">Conditions générales')
@@ -68,7 +69,8 @@ RSpec.describe 'Pages' do
       '/doctrine-referencement-solutions' => 'Doctrine de référencement des solutions',
       '/niveaux-simplification' => ['Guide pour la simplification', 'Niveaux de simplification'],
       '/terms' => "Conditions générales d'utilisation",
-      '/accessibility' => 'Accessibilité' }.each do |chemin, (titre, h1)|
+      '/accessibility' => 'Accessibilité',
+      '/contact' => 'Nous contacter' }.each do |chemin, (titre, h1)|
       it "rend #{chemin} avec son titre" do
         get chemin
 
@@ -100,9 +102,9 @@ RSpec.describe 'Pages' do
       end
     end
 
-    it 'signale la nouvelle fenêtre du formulaire de contenu' do
-      get root_path
-      expect(response.body).to include('title="Formulaire pour proposer un contenu - nouvelle fenêtre"')
+    it 'mène l’about vers la demande de modification de contenu' do
+      get about_path
+      expect(response.body).to include('<a href="/contact/contenu">proposer des modifications</a>')
     end
 
     it 'relie les doctrines et l’about au catalogue et aux niveaux' do
@@ -116,7 +118,7 @@ RSpec.describe 'Pages' do
   end
 
   describe 'GET /sitemap' do
-    it 'liste les sept entrées du site actuel, sans « Jeux de données »' do
+    it 'liste les huit entrées du site actuel, sans « Jeux de données »' do
       get '/sitemap'
 
       expect(response).to have_http_status(:ok)
@@ -125,7 +127,7 @@ RSpec.describe 'Pages' do
       entrees = response.body.scan(%r{<h2><a href="([^"]+)">([^<]+)</a></h2>})
         .map { |chemin, nom| [chemin, CGI.unescapeHTML(nom)] }
       expect(entrees).to eq([['/', 'Accueil'], ['/demarches', "Cas d'usages"], ['/articles', 'Articles'],
-                             ['/solutions', 'Solutions'], ['/about', 'À propos'],
+                             ['/solutions', 'Solutions'], ['/about', 'À propos'], ['/contact', 'Nous contacter'],
                              ['/terms', "Conditions générales d'utilisation"], ['/accessibility', 'Accessibilité']])
       expect(response.body).not_to include('Jeux de données')
     end

@@ -1532,6 +1532,33 @@ ensure
   end
 end
 
+def contact(page)
+  demarche = Demarche.visibles.order(:id).first
+  page.visit("/demarches/#{demarche.slug}")
+  page.click_link "proposer une modification du contenu de ce cas d'usage"
+  page.assert_current_path("/contact/modifier-cas-usage?demarche=#{demarche.slug}")
+  objet = page.find_field('Objet du message', readonly: true).value
+  raise "objet sans la fiche : #{objet}" unless objet.end_with?(" : #{demarche.nom}")
+
+  mailto = URI.decode_www_form_component(page.find_link("Écrire à l'équipe")[:href])
+  raise "mailto sans la fiche : #{mailto}" unless mailto.include?("Fiche concernée : #{demarche.nom}")
+
+  page.driver.browser.add_permission('clipboard-write', 'granted') if Verify.browser == 'chrome'
+  page.click_button "Copier l'objet du message"
+  page.assert_selector '[data-copier-target=statut]', text: 'Objet du message copié.', visible: :all
+  Verify.evidence('contact', page, 'fiche-citee', "slug=#{demarche.slug} objet=#{objet} copie=ok")
+  page.click_link 'Retour'
+  page.assert_current_path('/contact/contenu')
+  page.assert_selector 'h3', text: "Cas d'usages"
+  page.click_link 'Retour'
+  page.assert_current_path('/contact')
+  page.click_link "J'ai une question sur ma propre démarche administrative"
+  page.assert_text 'Nous ne sommes pas en mesure de vous aider à ce sujet.'
+  raise 'adresse donnée sans contact' if page.has_link?("Écrire à l'équipe", wait: 0)
+
+  Verify.evidence('contact', page, 'reponse-sans-adresse', "path=#{page.current_path} mailto=0")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1543,7 +1570,8 @@ end
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
-  'recommandations-en-ligne' => :recommandations_en_ligne }.each do |nom, fn|
+  'recommandations-en-ligne' => :recommandations_en_ligne,
+  'contact' => :contact }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

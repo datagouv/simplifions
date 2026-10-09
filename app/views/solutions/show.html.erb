@@ -217,5 +217,5 @@
     </div>
   <% end %>
 
-  <%= render "bloc_modification", sujet: "cette solution" %>
+  <%= render "bloc_modification", sujet: "cette solution", lien: contact_path("modifier-solution", solution: @solution.slug) %>
 </div>

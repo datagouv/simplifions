@@ -94,7 +94,7 @@ RSpec.describe 'SEO' do
       expect(response.media_type).to eq('application/xml')
       expect(response.body).to include('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
       %w[/ /demarches /solutions /articles /about /doctrine-referencement-cas-usages /doctrine-referencement-solutions
-         /niveaux-simplification /terms /accessibility /sitemap /articles/qu-est-ce-qu-une-api
+         /niveaux-simplification /terms /accessibility /contact /sitemap /articles/qu-est-ce-qu-une-api
          /demarches/cantine /solutions/babily].each do |chemin|
         expect(response.body).to include("<loc>http://www.example.com#{chemin}</loc>"), chemin
       end

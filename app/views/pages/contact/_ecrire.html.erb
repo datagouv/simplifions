@@ -1,0 +1,48 @@
+<% fiche = local_assigns[:fiche] %>
+<% email = Rails.configuration.x.contact_email %>
+<% sujet = objet_du_message(objet, fiche) %>
+<% corps = corps_du_message(informations, fiche) %>
+<% corps_du_lien = corps_du_message(informations.map { |libelle, _options| libelle }, fiche) %>
+<h3 class="fr-h6">Informations à nous transmettre :</h3>
+<ul class="fr-mb-4w">
+  <% if fiche %>
+    <li>Fiche concernée : <%= link_to(*fiche) %></li>
+  <% end %>
+  <% informations.each do |libelle, _options| %>
+    <li><%= libelle %></li>
+  <% end %>
+</ul>
+
+<div class="fr-mt-4w" data-controller="copier">
+  <h3 class="fr-h6">Écrire à l'équipe</h3>
+  <p class="contact-adresse">
+    Envoyez votre message à <strong><%= email %></strong>
+    <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-clipboard-line fr-hidden"
+      title="Copier l'adresse" data-copier-target="bouton" data-action="copier#copier"
+      data-copier-texte-param="<%= email %>" data-copier-confirmation-param="Adresse copiée.">Copier l'adresse</button>
+  </p>
+  <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-md fr-btns-group--icon-left fr-mb-3w">
+    <li>
+      <button type="button" class="fr-btn fr-btn--secondary fr-icon-clipboard-line fr-btn--icon-left fr-hidden"
+        data-copier-target="bouton" data-action="copier#copier"
+        data-copier-texte-param="<%= sujet %>" data-copier-confirmation-param="Objet du message copié.">Copier l'objet du message</button>
+    </li>
+    <li>
+      <button type="button" class="fr-btn fr-btn--secondary fr-icon-clipboard-line fr-btn--icon-left fr-hidden"
+        data-copier-target="bouton" data-action="copier#copier"
+        data-copier-confirmation-param="Modèle de message copié.">Copier le modèle de message</button>
+    </li>
+    <li>
+      <%= mail_to email, "Écrire à l'équipe", subject: sujet, body: corps_du_lien.gsub("\n", "\r\n"),
+            class: "fr-btn fr-btn--icon-left fr-icon-mail-line" %>
+    </li>
+  </ul>
+  <p class="fr-sr-only" aria-live="polite" data-copier-target="statut"></p>
+  <div class="fr-input-group">
+    <label class="fr-label" for="objet-message">Objet du message</label>
+    <input class="fr-input" id="objet-message" type="text" readonly value="<%= sujet %>">
+  </div>
+  <label class="fr-label" for="modele-message">Modèle de message</label>
+  <textarea class="fr-input" id="modele-message" rows="<%= corps.lines.size + 1 %>" readonly
+    data-copier-target="source"><%= corps %></textarea>
+</div>

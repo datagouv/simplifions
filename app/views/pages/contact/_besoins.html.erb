@@ -1,0 +1,13 @@
+<h2 class="fr-h4">Quel est votre besoin ?</h2>
+<div class="fr-grid-row fr-grid-row--gutters">
+  <%= render "pages/contact/tuile", besoin: "contenu", titre: "Proposer ou corriger un contenu du site", pictogramme: "document/conclusion",
+        description: "Un cas d'usage, une solution ou un article manque, est incomplet ou contient une erreur." %>
+  <%= render "pages/contact/tuile", besoin: "demarche-personnelle", titre: "J'ai une question sur ma propre démarche administrative", pictogramme: "digital/avatar",
+        description: "Un dossier, une aide, un document à obtenir en tant que particulier, entreprise ou association." %>
+  <%= render "pages/contact/tuile", besoin: "question-api", titre: "J'ai une question sur une API ou un jeu de données", pictogramme: "digital/coding",
+        description: "Accès, habilitation, fonctionnement ou panne d'une API ou d'un jeu de données." %>
+  <%= render "pages/contact/tuile", besoin: "probleme-site", titre: "Signaler un problème technique ou d'accessibilité sur le site", pictogramme: "system/technical-error",
+        description: "Une page ne s'affiche pas, un lien est cassé, un contenu n'est pas accessible." %>
+  <%= render "pages/contact/tuile", besoin: "autre", titre: "Autre sujet", pictogramme: "digital/mail-send",
+        description: "Votre besoin ne correspond pas aux cases précédentes." %>
+</div>
