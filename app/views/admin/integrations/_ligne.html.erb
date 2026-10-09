@@ -1,0 +1,34 @@
+<%# locals: (ligne:, cote:) -%>
+<% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, cote) %>
+<% nom = ligne.persisted? ? "l’intégration #{(ligne.changed? ? Integration.find(ligne.id) : ligne).libelle}" : "la nouvelle intégration" %>
+<% formulaire = "formulaire_#{id}" %>
+<% erreurs = "erreurs_#{id}" %>
+<% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
+<% solution = :"#{cote}_id" %>
+<tr id="<%= id %>">
+  <%= fields model: ligne, namespace: id do |f| %>
+    <td>
+      <%= f.label solution, "#{Integration.human_attribute_name(solution)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
+      <%= f.select solution, choix_de_solutions, { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
+    </td>
+    <td>
+      <%= f.label :type_integration, "#{Integration.human_attribute_name(:type_integration)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
+      <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
+    </td>
+    <td>
+      <%= f.label :statut, "Statut de #{nom}", class: "fr-sr-only" %>
+      <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", form: formulaire, aria: invalide %>
+    </td>
+  <% end %>
+  <td>
+    <%= tag.button type: "submit", form: formulaire, id: "enregistrer_#{id}", class: "fr-btn fr-btn--sm", aria: { describedby: invalide[:describedby] } do %><%= ligne.persisted? ? "Enregistrer" : "Ajouter" %><span class="fr-sr-only"> <%= nom %></span><% end %>
+    <% if ligne.persisted? %>
+      <%= link_to edit_admin_integration_path(ligne), class: "fr-link fr-link--sm" do %>Modifier<span class="fr-sr-only"> <%= nom %></span><% end %>
+      <% supprimer = "Supprimer #{nom}" %>
+      <%= tag.button supprimer, type: "submit", form: "suppression_#{id}", title: supprimer, class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line", data: { turbo_confirm: "#{supprimer} ?" } %>
+    <% end %>
+    <% if ligne.errors.any? %>
+      <p id="<%= erreurs %>" class="fr-error-text"><%= ligne.errors.full_messages.to_sentence %></p>
+    <% end %>
+  </td>
+</tr>

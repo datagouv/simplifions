@@ -787,6 +787,93 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'intégration enregistrée depuis sa ligne dans la solution' do
+    let!(:bouquet) { Solution.create!(nom: 'Bouquet') }
+    let!(:api_qf) { Solution.create!(nom: 'API QF', categorie: 'api') }
+    let!(:integration) { Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme') }
+
+    before { sign_in admin }
+
+    def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
+    def ligne_renvoyee = flux.find { it['action'] == 'replace' }.at_css('template tr')
+    def choisi(ligne, champ) = ligne.at_css("[name=\"integration[#{champ}]\"]")&.at_css('option[selected]')&.text
+
+    it 'renvoie la ligne enregistrée, l’autre solution modifiable du côté de la liste' do
+      patch "/admin/integrations/#{integration.id}", params: { ligne: 1, cote: 'integree', integration: { type_integration: 'expose', statut: Integration::STATUT_EN_PRODUCTION } }
+
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(flux.pluck('target')).to eq(['message-integrations', "integration_#{integration.id}"])
+      expect([choisi(ligne_renvoyee, :integree_id), choisi(ligne_renvoyee, :statut)]).to eq(['API QF (API)', Integration::STATUT_EN_PRODUCTION])
+      expect(ligne_renvoyee.at_css('[name="integration[integratrice_id]"]')).to be_nil
+      expect(flux.first.text.squish).to eq('« Bouquet → API QF (API) (fournie) » enregistré.')
+      expect(integration.reload.type_integration).to eq('expose')
+    end
+
+    it 'renvoie sur la ligne l’intégration d’une solution avec elle-même, reliée à ses champs' do
+      patch "/admin/integrations/#{integration.id}", params: { ligne: 1, cote: 'integratrice', integration: { integratrice_id: api_qf.id } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      erreur = ligne_renvoyee.at_css('.fr-error-text')
+      expect(erreur.text).to eq('Une solution ne peut pas s’intégrer elle-même')
+      expect(ligne_renvoyee.css('select, button:not([data-turbo-confirm])').pluck('aria-describedby').uniq).to eq([erreur['id']])
+      expect(ligne_renvoyee.at_css('button').text.squish).to eq('Enregistrer l’intégration Bouquet → API QF (API) (intégrée)')
+      expect(flux.first.text.squish).to eq('Intégration non enregistrée : Une solution ne peut pas s’intégrer elle-même')
+      expect(integration.reload.integratrice).to eq(bouquet)
+    end
+
+    it 'refuse sur la ligne un changement de solution qui sort une démarche de la règle' do
+      aides = Demarche.create!(nom: 'Aides')
+      Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
+      integration.update!(demarches: [aides])
+      patch "/admin/integrations/#{integration.id}", params: { ligne: 1, cote: 'integree', integration: { integree_id: Solution.create!(nom: 'API Impôt', categorie: 'api').id } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(ligne_renvoyee.at_css('.fr-error-text').text).to eq('La démarche « Aides » ne recommande pas l’API ou le jeu de données intégré')
+      expect(integration.reload.integree).to eq(api_qf)
+    end
+
+    it 'ajoute l’intégration de la ligne vide de son côté, puis remet une ligne vide' do
+      post '/admin/integrations', params: { ligne: 1, cote: 'integratrice', integration: { integree_id: api_qf.id, integratrice_id: Solution.create!(nom: 'Mes Aides').id, type_integration: 'expose' } }
+      nouvelle = Integration.last
+
+      expect(flux.map { [it['action'], it['target']] }).to eq([
+        %w[update message-integrations], %w[before integratrice_integration], %w[append formulaires-integrations], %w[replace integratrice_integration]
+      ])
+      expect(choisi(flux[1].at_css('tr'), :integratrice_id)).to eq('Mes Aides')
+      expect(flux[2].at_css('form')['action']).to eq("/admin/integrations/#{nouvelle.id}")
+      expect(choisi(flux[3].at_css('tr'), :integratrice_id)).to be_nil
+      expect(nouvelle.slice(:integree_id, :type_integration)).to eq('integree_id' => api_qf.id, 'type_integration' => 'expose')
+    end
+
+    it 'garde l’erreur d’un ajout sur la ligne vide de son côté' do
+      post '/admin/integrations', params: { ligne: 1, cote: 'integree', integration: { integratrice_id: bouquet.id, type_integration: 'expose' } }
+
+      expect(flux.pluck('target')).to eq(%w[message-integrations integree_integration])
+      expect(ligne_renvoyee.at_css('.fr-error-text').text).to eq('Choisissez une API ou un jeu de données')
+    end
+
+    it 'garde la redirection vers la fiche hors de la ligne' do
+      patch "/admin/integrations/#{integration.id}", params: { integration: { statut: Integration::STATUT_EN_PRODUCTION } }
+      expect(response).to redirect_to("/admin/integrations/#{integration.id}/edit")
+    end
+
+    it 'supprime l’intégration depuis sa ligne et met le focus sur le message' do
+      delete "/admin/integrations/#{integration.id}", params: { ligne: 1 }, as: :turbo_stream
+
+      expect(flux.map { [it['action'], it['target']] }).to eq([
+        ['remove', "integration_#{integration.id}"], ['remove', "formulaire_integration_#{integration.id}"],
+        ['remove', "suppression_integration_#{integration.id}"], %w[update message-integrations]
+      ])
+      expect(flux.last.at_css('[autofocus][tabindex="-1"]').text.squish).to eq('« Bouquet → API QF (API) (intégrée) » supprimé.')
+      expect(Integration.exists?(integration.id)).to be(false)
+    end
+
+    it 'garde la redirection vers la liste quand on supprime depuis la page de l’intégration' do
+      delete "/admin/integrations/#{integration.id}"
+      expect(response).to redirect_to('/admin/integrations')
+    end
+  end
+
   describe 'ce que la suppression emporte' do
     let(:aides) { Demarche.create!(nom: 'Aides') }
     let(:bouquet) { Solution.create!(nom: 'Bouquet') }

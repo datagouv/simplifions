@@ -1,0 +1,16 @@
+<%= turbo_stream.update "message-integrations" do %>
+  <% if @integration.errors.none? %>
+    <p class="fr-valid-text fr-mb-2w"><%= message_d_enregistrement(@integration) %></p>
+  <% else %>
+    <p class="fr-error-text fr-mb-2w">Intégration non enregistrée : <%= @integration.errors.full_messages.to_sentence %></p>
+  <% end %>
+<% end %>
+<% vide = dom_id(Integration, @cote) %>
+<% if @integration.previously_new_record? %>
+  <% fixe = @cote == :integree ? :integratrice_id : :integree_id %>
+  <%= turbo_stream.before vide, partial: "ligne", locals: { ligne: @integration, cote: @cote } %>
+  <%= turbo_stream.append "formulaires-integrations", partial: "formulaire_de_ligne", locals: { ligne: @integration, cote: @cote } %>
+  <%= turbo_stream.replace vide, partial: "ligne", locals: { ligne: Integration.new(@integration.slice(fixe)), cote: @cote }, method: :morph %>
+<% else %>
+  <%= turbo_stream.replace @integration.persisted? ? dom_id(@integration) : vide, partial: "ligne", locals: { ligne: @integration, cote: @cote }, method: :morph %>
+<% end %>

@@ -13,27 +13,32 @@ class Admin::IntegrationsController < Admin::BaseController
 
   def create
     @integration = Integration.new(integration_params)
-    if @integration.save
-      redirige_vers_la_fiche(@integration)
-    else
-      render :new, status: :unprocessable_content
-    end
+    enregistrer_puis_repondre(:new, @integration.save)
   end
 
   def update
-    if @integration.update(integration_params)
-      redirige_vers_la_fiche(@integration)
-    else
-      render :edit, status: :unprocessable_content
-    end
+    enregistrer_puis_repondre(:edit, @integration.update(integration_params))
   end
 
   def destroy
     @integration.destroy!
+    return render :destroy, formats: :turbo_stream if params[:ligne]
+
     redirect_to admin_integrations_path, notice: t('admin.supprime', nom: nom_de(@integration)), status: :see_other
   end
 
   private
+
+  def enregistrer_puis_repondre(page, enregistree)
+    if params[:ligne]
+      @cote = params[:cote] == 'integratrice' ? :integratrice : :integree
+      render :ligne, formats: :turbo_stream, status: enregistree ? :ok : :unprocessable_content
+    elsif enregistree
+      redirige_vers_la_fiche(@integration)
+    else
+      render page, status: :unprocessable_content
+    end
+  end
 
   def set_integration
     @integration = Integration.find(params.expect(:id))

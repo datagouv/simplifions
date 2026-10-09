@@ -1,0 +1,6 @@
+<%= turbo_stream.remove @integration %>
+<%= turbo_stream.remove dom_id(@integration, :formulaire) %>
+<%= turbo_stream.remove dom_id(@integration, :suppression) %>
+<%= turbo_stream.update "message-integrations" do %>
+  <p class="fr-valid-text fr-mb-2w" tabindex="-1" autofocus><%= t("admin.supprime", nom: nom_de(@integration)) %></p>
+<% end %>
