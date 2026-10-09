@@ -1,5 +1,54 @@
 /* Pages démarche et solution (.fiche-page) : rendu repris de udata-front-kit (src/custom/simplifions). */
 
+@media (min-width: 48em) {
+  html:has(.fil-ariane-collant) {
+    scroll-padding-top: 3rem;
+  }
+
+  .fil-ariane-collant {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin-bottom: 1.5rem;
+    background-color: var(--background-default-grey);
+    box-shadow: 0 1px 0 var(--border-default-grey);
+  }
+
+  .fil-ariane-collant .fr-breadcrumb {
+    margin: 0;
+    padding: 0.5rem 0;
+  }
+}
+
+.section-depliable > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.section-depliable > summary::-webkit-details-marker {
+  display: none;
+}
+
+.section-depliable:not([open]) > summary > .section-depliable__fleche {
+  transform: rotate(-90deg);
+}
+
+.section-depliable__detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+
+.lire-plus--replie {
+  max-height: 12rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 60%, transparent);
+}
+
 .fiche-page .topic__header {
   display: flex;
   align-items: center;
@@ -104,6 +153,12 @@
   color: var(--blue-france-sun-113-625);
 }
 
+.solution-integratrice-card__fiche {
+  position: absolute;
+  bottom: 1rem;
+  right: 1.5rem;
+}
+
 @media (max-width: 767px) {
   .solution-integratrice-card__arrow {
     position: static;
@@ -111,6 +166,17 @@
     justify-content: flex-end;
     margin-top: 1rem;
   }
+
+  .solution-integratrice-card__fiche {
+    position: static;
+    text-align: right;
+    margin-top: 1rem;
+  }
+}
+
+.integration-indicator > .integration-indicator__oeil {
+  margin-left: auto !important;
+  align-self: center;
 }
 
 /* Page solution */
@@ -220,6 +286,15 @@
   background-color: rgb(254, 224, 184);
 }
 
+.integration-indicator__global {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.integration-indicator__count--attenue {
+  box-shadow: inset 0 0 0 10rem rgba(255, 255, 255, 0.5);
+}
+
 .integration-indicator__count.indicator--red {
   background-color: rgb(254, 201, 201);
 }
@@ -253,4 +328,71 @@
 
 .catalogue-vide__loupe {
   width: 5rem;
+}
+
+.onglets-pleine-largeur .fr-tabs__list {
+  padding-inline: 0.75rem;
+}
+
+.onglets-pleine-largeur .fr-tabs__panel {
+  padding-inline: 0;
+}
+
+@media (min-width: 62em) {
+  .onglets-pleine-largeur .fr-tabs__list {
+    padding-inline: max(1.25rem, calc((100% - 78rem) / 2 + 1.25rem));
+  }
+}
+
+.tableau-integratrices thead tr:last-child th {
+  min-width: 10rem;
+  vertical-align: top;
+}
+
+.tableau-integratrices thead .fr-badge--sm {
+  font-size: 0.625rem;
+  line-height: 1rem;
+  min-height: 1rem;
+  padding: 0 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.tableau-integratrices thead .fr-badge--sm .fr-icon--sm::before {
+  --icon-size: 0.75rem;
+}
+
+.tableau-integratrices thead th.tableau-integratrices__donnee-datagouv {
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.tableau-integratrices__lien-datagouv {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.tableau-integratrices .tableau-integratrices__solution {
+  width: 14rem;
+  min-width: 14rem;
+  max-width: 14rem;
+}
+
+.tableau-integratrices .tableau-integratrices__score {
+  position: sticky;
+  left: 14rem;
+  z-index: 1;
+  min-width: 7rem;
+  background-color: var(--background-default-grey);
+}
+
+.tableau-integratrices thead .tableau-integratrices__score {
+  background-color: var(--background-alt-grey);
+}
+
+.tableau-integratrices__detail {
+  display: block;
+  font-weight: normal;
 }

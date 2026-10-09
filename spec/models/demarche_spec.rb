@@ -72,6 +72,59 @@ RSpec.describe Demarche do
     end
   end
 
+  describe 'solutions ayant intégré des données' do
+    let(:demarche) { described_class.create!(nom: 'Marchés publics') }
+    let(:autre_demarche) { described_class.create!(nom: 'Aides publiques') }
+    let(:bouquet) { Solution.create!(nom: 'API Entreprise', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]) }
+    let(:endpoint_kbis) { Solution.create!(nom: 'Extrait Kbis', categorie: 'api') }
+    let(:endpoint_urssaf) { Solution.create!(nom: 'Attestation Urssaf', categorie: 'api') }
+    let(:jeu) { Solution.create!(nom: 'Base SIRENE', categorie: 'base_de_donnees') }
+
+    def integre(integratrice, integree, statut: '✅ en production', demarches: [demarche])
+      Integration.create!(integratrice:, integree:, type_integration: 'consomme', statut:, demarches:)
+    end
+
+    def solution(nom, categorie)
+      Solution.create!(nom:, slug: nom.parameterize, categorie:, visible: true)
+    end
+
+    before do
+      [endpoint_kbis, endpoint_urssaf].each { |endpoint| Integration.create!(integratrice: bouquet, integree: endpoint, type_integration: 'expose') }
+      [bouquet, jeu].each { |donnee| Recommandation.create!(demarche:, solution: donnee, niveau: :niveau_2, visible: true) }
+      [endpoint_kbis, endpoint_urssaf].each do |endpoint|
+        Recommandation.create!(demarche:, solution: endpoint, niveau: :niveau_1)
+        Recommandation.create!(demarche: autre_demarche, solution: endpoint, niveau: :niveau_1)
+      end
+    end
+
+    it 'compte pour chaque solution le total des données utiles intégrées : endpoints utiles des bouquets et données recommandées directement' do
+      logiciel = solution('Acheteza', 'logiciel_metier_cle_en_main')
+      [endpoint_kbis, endpoint_urssaf, jeu].each { |donnee| integre(logiciel, donnee) }
+      site = solution('Portail', 'site_de_consultation')
+      integre(site, endpoint_kbis)
+      integre(site, endpoint_urssaf, demarches: [autre_demarche])
+
+      expect(demarche.solutions_integratrices).to contain_exactly(logiciel, site)
+      expect(demarche.couvertures).to eq(logiciel.id => [3, 3], site.id => [2, 3])
+    end
+
+    it 'détaille, par bouquet ou donnée recommandée, les données utiles et celles intégrées par chaque solution' do
+      logiciel = solution('Acheteza', 'logiciel_metier_cle_en_main')
+      [endpoint_kbis, jeu].each { |donnee| integre(logiciel, donnee) }
+
+      expect(demarche.groupes_donnees_utiles).to eq([[bouquet, [endpoint_urssaf, endpoint_kbis]], [jeu, [jeu]]])
+      expect(demarche.integrees).to eq(logiciel.id => Set[endpoint_kbis.id, jeu.id])
+    end
+
+    it 'écarte les intégrations hors production, rattachées à un autre cas d’usage ou faites par une API' do
+      integre(solution('En recette', 'logiciel_metier_cle_en_main'), endpoint_kbis, statut: '📦 en recette')
+      integre(solution('Autre cas', 'logiciel_metier_cle_en_main'), endpoint_kbis, demarches: [autre_demarche])
+      integre(Solution.create!(nom: 'API agrégatrice', categorie: 'api', visible: true), jeu)
+
+      expect(demarche.solutions_integratrices).to be_empty
+    end
+  end
+
   describe '#mots_clefs=' do
     it 'accepte une valeur par ligne, comme dans le formulaire d’administration' do
       expect(described_class.new(mots_clefs: "aides\r\n subventions \n\n").mots_clefs).to eq(%w[aides subventions])

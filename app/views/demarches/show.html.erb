@@ -2,14 +2,20 @@
    content_for :description, @demarche.chapo
    usagers = @demarche.usagers
    acteurs = @demarche.acteurs
-   sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
-               ['donnees-disponibles', 'Données disponibles']] %>
-<div class="fr-container fr-mt-1v">
-  <%= render "breadcrumb", id: "breadcrumb-demarche",
-        liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
+   couvertures = @demarche.couvertures
+   integratrices = @demarche.solutions_integratrices.includes(:organisations).to_a
+   recommandations = @demarche.recommandations.visibles.niveau_2.includes(solution: [:exposees, :organisations]).order(:ordre, :id).to_a
+   onglets = [['donnees-disponibles', 'Données disponibles et utiles', recommandations.size]]
+   onglets << ['solutions-integratrices', 'Solutions ayant intégré ces données', integratrices.size] if integratrices.any?
+   sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'], *onglets.map { |id, label, _| [id, label] }] %>
+<div class="fil-ariane-collant fr-mt-1v">
+  <div class="fr-container">
+    <%= render "breadcrumb", id: "breadcrumb-demarche",
+          liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
+  </div>
 </div>
 
-<div class="fr-container fr-mt-1w fr-mb-8w fiche-page">
+<div class="fr-container fr-mt-1w fr-mb-5w fiche-page">
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <div class="fr-col-12 fr-col-md-8">
       <div class="topic__header fr-mb-4v">
@@ -27,21 +33,54 @@
 
   <div class="fr-col-12 fr-col-md-8 fr-mt-5w">
     <%= render ArticleSectionComponent.new(id: sections[0][0], label: sections[0][1]) do %>
-      <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-map-pin-2-fill"></span> Contexte</h3>
-      <%= render 'contenu', texte: @demarche.contexte %>
-
-      <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-newspaper-fill"></span> Cadre juridique</h3>
-      <%= render 'contenu', texte: @demarche.cadre_juridique %>
+      <% [['contexte', 'fr-icon-map-pin-2-fill', 'Contexte', @demarche.contexte],
+          ['cadre-juridique', 'fr-icon-newspaper-fill', 'Cadre juridique', @demarche.cadre_juridique]].each do |id, icone, titre, texte| %>
+        <h3 class="fr-h6"><span aria-hidden="true" class="<%= icone %>"></span> <%= titre %></h3>
+        <div class="fr-mb-3w" data-controller="lire-plus">
+          <div id="texte-<%= id %>" class="lire-plus--replie" data-lire-plus-target="texte" data-action="focusin->lire-plus#deplier">
+            <%= render 'contenu', texte: %>
+          </div>
+          <button type="button" class="fr-link fr-link--icon-right fr-icon-arrow-down-s-line fr-mt-1w fr-hidden" aria-expanded="false"
+            aria-controls="texte-<%= id %>" data-lire-plus-target="bouton" data-action="lire-plus#basculer">Lire plus</button>
+        </div>
+      <% end %>
     <% end %>
   </div>
+</div>
 
-  <div class="fr-mt-5w">
-    <%= render ArticleSectionComponent.new(id: sections[1][0], label: sections[1][1]) do %>
-      <%= render partial: 'demarches/recommandation',
-            collection: @demarche.recommandations.visibles.niveau_2.includes(solution: [:exposees, :organisations]).order(:ordre, :id),
-            as: :recommandation %>
+<div class="fr-tabs onglets-pleine-largeur" data-controller="onglet-ancre" data-action="click@document->onglet-ancre#suivre">
+  <ul class="fr-tabs__list" role="tablist" aria-label="Données et solutions de ce cas d'usage">
+    <% onglets.each_with_index do |(id, label, nombre), index| %>
+      <li role="presentation">
+        <button type="button" id="onglet-<%= id %>" class="fr-tabs__tab" tabindex="<%= index.zero? ? 0 : -1 %>" role="tab"
+          aria-selected="<%= index.zero? %>" aria-controls="<%= id %>"><%= label %> (<%= nombre %>)</button>
+      </li>
     <% end %>
+  </ul>
+  <div id="donnees-disponibles" class="fr-tabs__panel fr-tabs__panel--selected" role="tabpanel"
+    aria-labelledby="onglet-donnees-disponibles" tabindex="0">
+    <div class="fr-container fiche-page">
+      <h2 class="fr-sr-only"><%= onglets[0][1] %></h2>
+      <%= render partial: 'demarches/recommandation', collection: recommandations, as: :recommandation,
+            locals: { groupes_demarche: @demarche.groupes_donnees_utiles, integrees_demarche: @demarche.integrees,
+                      couvertures_demarche: couvertures } %>
+    </div>
   </div>
+  <% if integratrices.any? %>
+    <div id="solutions-integratrices" class="fr-tabs__panel fr-background-alt--blue-france" role="tabpanel"
+      aria-labelledby="onglet-solutions-integratrices" tabindex="0">
+      <div class="fr-container fiche-page">
+        <h2 class="fr-sr-only"><%= onglets[1][1] %></h2>
+        <%= render 'demarches/solutions_integratrices', integratrices:, couvertures:,
+              groupes: @demarche.groupes_donnees_utiles, integrees: @demarche.integrees,
+              nom_demarche: @demarche.titre %>
+      </div>
+    </div>
+  <% end %>
+</div>
 
+<%= yield :modales %>
+
+<div class="fr-container fr-mt-5w fr-mb-8w fiche-page">
   <%= render "bloc_modification", sujet: "ce cas d'usage" %>
 </div>

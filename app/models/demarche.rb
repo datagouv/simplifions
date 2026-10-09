@@ -52,6 +52,32 @@ class Demarche < ApplicationRecord
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 
+  CATEGORIES_INTEGRATRICES = %w[brique_logicielle logiciel_metier_cle_en_main site_de_consultation].freeze
+
+  def solutions_integratrices
+    fournies = recommandations_affichees.flat_map { |recommandation| recommandation.solution.fournies }
+    Solution.visibles.where(
+      categorie: CATEGORIES_INTEGRATRICES,
+      id: Integration.en_production.pour_demarche(self).where(integree: fournies).select(:integratrice_id)
+    )
+  end
+
+  def couvertures
+    total = donnees_utiles_ids.size
+    solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, Set.new).size, total] }
+  end
+
+  def integrees
+    @integrees ||= Integration.integrees_par_integratrice(donnees_utiles_ids)
+  end
+
+  def groupes_donnees_utiles
+    @groupes_donnees_utiles ||= recommandations_affichees.map do |recommandation|
+      utiles = solutions_niveau_1.select { |solution| solution.in?(recommandation.solution.fournies) }
+      [recommandation.solution, utiles.presence || [recommandation.solution]]
+    end
+  end
+
   private
 
   def publier_les_recommandations
@@ -70,4 +96,12 @@ class Demarche < ApplicationRecord
     integrations_ecartees << integration
     throw :abort
   end
+
+  def recommandations_affichees = recommandations.visibles.niveau_2.includes(solution: :exposees).order(:ordre, :id)
+
+  def solutions_niveau_1
+    @solutions_niveau_1 ||= Solution.where(id: recommandations.niveau_1.select(:solution_id)).includes(:organisations).order(:nom).to_a
+  end
+
+  def donnees_utiles_ids = groupes_donnees_utiles.flat_map { |_, utiles| utiles.map(&:id) }.uniq
 end

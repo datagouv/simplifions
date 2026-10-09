@@ -1,0 +1,26 @@
+<div class="fr-mb-5w" data-categorie="<%= categorie %>">
+  <h3 class="fr-h5 fr-mb-1w"><%= titre %> (<span data-compte="<%= categorie %>"><%= solutions.size %></span>)
+    <% unless categorie == 'brique_logicielle' %>
+      <span class="fr-badge fr-badge--sm fr-badge--new fr-ml-1w">Sans développement</span>
+    <% end %>
+  </h3>
+  <p class="fr-text--sm">
+    <% case categorie %>
+    <% when 'logiciel_metier_cle_en_main' %>
+      Logiciels métier, sur étagère, conçus pour ce cas d'usage.
+    <% when 'brique_logicielle' %>
+      Briques techniques logicielles destinées à être intégrées dans un système informatique existant et conçues pour ce cas d'usage.
+    <% else %>
+      Ces sites vous permettent de consulter certaines des données utiles pour ce cas d'usage.
+    <% end %>
+  </p>
+  <ul class="fr-grid-row fr-grid-row--gutters list-none" data-categories-integratrices-target="liste">
+    <% solutions.each_with_index do |solution, ordre| %>
+      <li class="fr-col-12 fr-col-md-6 fr-col-lg-4" data-privee="<%= solution.privee? %>" data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
+        <%= render 'solution_integratrice', solution:, couverture: couvertures[solution.id], groupes:,
+              integrees: integrees.fetch(solution.id, Set.new), contexte: 'cas-usage',
+              libelle: 'API et jeux de données utiles', nom_demarche: %>
+      </li>
+    <% end %>
+  </ul>
+</div>
