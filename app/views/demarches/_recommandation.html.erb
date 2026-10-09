@@ -190,8 +190,9 @@
                 <% solutions.each do |solution| %>
                   <div class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
                     <%= render 'solution_integratrice', solution:, couverture: couvertures[solution.id],
-                          groupes: [[cible, utiles_du_bloc]], integrees: integrees.fetch(solution.id, Set.new),
-                          contexte: dom_id(recommandation), libelle: libelle_compteur, nom_demarche: %>
+                          groupes: groupes_demarche, integrees: integrees_demarche.fetch(solution.id, Set.new),
+                          contexte: dom_id(recommandation), libelle: libelle_compteur, nom_demarche:,
+                          donnee_courante: cible, couverture_globale: couvertures_demarche[solution.id] %>
                   </div>
                 <% end %>
               </div>

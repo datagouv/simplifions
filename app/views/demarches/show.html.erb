@@ -61,7 +61,9 @@
     aria-labelledby="onglet-donnees-disponibles" tabindex="0">
     <div class="fr-container fiche-page">
       <h2 class="fr-sr-only"><%= onglets[0][1] %></h2>
-      <%= render partial: 'demarches/recommandation', collection: recommandations, as: :recommandation %>
+      <%= render partial: 'demarches/recommandation', collection: recommandations, as: :recommandation,
+            locals: { groupes_demarche: @demarche.groupes_donnees_utiles, integrees_demarche: @demarche.integrees,
+                      couvertures_demarche: couvertures } %>
     </div>
   </div>
   <% if integratrices.any? %>

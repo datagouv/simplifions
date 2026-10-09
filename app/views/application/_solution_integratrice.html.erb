@@ -20,7 +20,8 @@
     </div>
     <% content_for :modales do %>
       <%= render 'modale_integrations', modale_id:, solution:, groupes:, integrees:,
-            nombre_integrees:, nombre_utiles:, nom_demarche: %>
+            nombre_integrees:, nombre_utiles:, nom_demarche:, donnee_courante: local_assigns[:donnee_courante],
+            couverture_globale: local_assigns[:couverture_globale] %>
     <% end %>
   <% end %>
   <% if solution.slug.present? %>

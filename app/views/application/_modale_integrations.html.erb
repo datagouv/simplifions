@@ -12,10 +12,23 @@
             <%= render 'badge_operateur', solution: %>
             <p class="integration-indicator fr-p-1w fr-mt-2w">
               <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(nombre_integrees, nombre_utiles) %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
-              <span class="fr-text--sm"><b>API et jeux de données intégrés par cette solution</b>, utiles pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»</span>
+              <% if donnee_courante %>
+                <span class="fr-text--sm"><b>API et jeux de données «&nbsp;<%= donnee_courante.nom %>&nbsp;» intégrés par cette solution</b>, utiles pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»
+                  <% if couverture_globale %>
+                    <% total_integrees, total_utiles = couverture_globale %>
+                    <span class="integration-indicator__global">
+                      Sur l’ensemble du cas d’usage :
+                      <span class="fr-text--bold integration-indicator__count integration-indicator__count--attenue indicator--<%= couleur_integration(total_integrees, total_utiles) %>"><%= total_integrees %>/<%= total_utiles %></span>
+                      API et jeux de données utiles intégrés.
+                    </span>
+                  <% end %>
+                </span>
+              <% else %>
+                <span class="fr-text--sm"><b>API et jeux de données intégrés par cette solution</b>, utiles pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»</span>
+              <% end %>
             </p>
             <% sections.each do |titre, utiles| %>
-              <details class="section-depliable fr-mt-3w" open>
+              <details class="section-depliable fr-mt-3w" <%= 'open' if donnee_courante.nil? || titre == donnee_courante.nom || utiles.include?(donnee_courante) %>>
                 <summary class="fr-mb-1w">
                   <span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-fill fr-icon--md"></span>
                   <h3 class="fr-text--md fr-mb-0"><%= titre %>

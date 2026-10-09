@@ -241,9 +241,9 @@ RSpec.describe 'Demarches' do
       modale = response.parsed_body.at_css("dialog##{bouton['aria-controls']}")
       expect(modale.at_css('.fr-modal__title a[href="/solutions/acheteza"]').text).to eq('Acheteza')
       expect(modale.at_css('.integration-indicator').text.squish)
-        .to eq('2/2 API et jeux de données utiles pour la démarche « 🥣 Tarification cantine scolaire à 1€ » intégrés par cette solution')
-      expect(modale.css('.integration-indicator b').map(&:text))
-        .to eq(['API et jeux de données utiles pour la démarche', 'intégrés par cette solution'])
+        .to eq('2/2 API et jeux de données « Bouquet API Particulier » intégrés par cette solution, ' \
+               'utiles pour la démarche « 🥣 Tarification cantine scolaire à 1€ » ' \
+               'Sur l’ensemble du cas d’usage : 2/2 API et jeux de données utiles intégrés.')
       expect(modale.css('li').map { |ligne| ligne.text.squish })
         .to eq(['API Quotient familial : intégrée Voir sur data.gouv.fr', 'API Statut étudiant : intégrée'])
       expect(modale.ancestors('.fr-tabs')).to be_empty
@@ -377,6 +377,23 @@ RSpec.describe 'Demarches' do
       expect(section.css('.solution-integratrice-card').map { |carte| nom_et_ordre.call(carte.parent) })
         .to eq([['Zeta achats', '0'], ['Alpha achats', '1']])
       expect(section.css('tbody tr').map(&nom_et_ordre)).to eq([['Zeta achats', '0'], ['Alpha achats', '1']])
+    end
+
+    it 'distingue dans la modale du bloc le compteur de la donnée et celui du cas d’usage' do
+      autre = Solution.create!(nom: 'Bodacc', categorie: 'api')
+      Recommandation.create!(demarche:, solution: autre, niveau: :niveau_2, visible: true)
+      integre('Alpha achats', 'logiciel_metier_cle_en_main', %w[Kbis])
+
+      get demarche_path('marches-publics')
+
+      bouton = response.parsed_body.at_css('#donnees-disponibles button.fr-icon-eye-line')
+      modale = response.parsed_body.at_css("dialog##{bouton['aria-controls']}")
+      expect(modale.at_css('.integration-indicator').text.squish)
+        .to eq('1/2 API et jeux de données « API Entreprise » intégrés par cette solution, utiles pour la démarche « Marchés publics » ' \
+               'Sur l’ensemble du cas d’usage : 1/3 API et jeux de données utiles intégrés.')
+      expect(modale.css('details.section-depliable > summary h3').map { |titre| titre.text.squish })
+        .to eq(['API Entreprise (1/2)', 'Autres API et jeux de données (0/1)'])
+      expect(modale.css('details.section-depliable:has(> summary h3)').map { |section| section.key?('open') }).to eq([true, false])
     end
 
     it 'présente dans le tableau l’accès et la fiche data.gouv de chaque donnée' do

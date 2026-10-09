@@ -286,6 +286,15 @@
   background-color: rgb(254, 224, 184);
 }
 
+.integration-indicator__global {
+  display: block;
+  margin-top: 1.5rem;
+}
+
+.integration-indicator__count--attenue {
+  box-shadow: inset 0 0 0 10rem rgba(255, 255, 255, 0.5);
+}
+
 .integration-indicator__count.indicator--red {
   background-color: rgb(254, 201, 201);
 }
