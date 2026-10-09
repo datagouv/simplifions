@@ -40,7 +40,7 @@
           <div id="texte-<%= id %>" class="lire-plus--replie" data-lire-plus-target="texte" data-action="focusin->lire-plus#deplier">
             <%= render 'contenu', texte: %>
           </div>
-          <button type="button" class="fr-link fr-link--sm fr-hidden" aria-expanded="false"
+          <button type="button" class="fr-link fr-link--icon-right fr-icon-arrow-down-s-line fr-mt-1w fr-hidden" aria-expanded="false"
             aria-controls="texte-<%= id %>" data-lire-plus-target="bouton" data-action="lire-plus#basculer">Lire plus</button>
         </div>
       <% end %>

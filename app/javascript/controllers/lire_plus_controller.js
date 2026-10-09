@@ -23,5 +23,7 @@ export default class extends Controller {
     this.texteTarget.classList.toggle("lire-plus--replie", !deplie)
     this.boutonTarget.setAttribute("aria-expanded", deplie)
     this.boutonTarget.textContent = deplie ? "Lire moins" : "Lire plus"
+    this.boutonTarget.classList.toggle("fr-icon-arrow-down-s-line", !deplie)
+    this.boutonTarget.classList.toggle("fr-icon-arrow-up-s-line", deplie)
   }
 }
