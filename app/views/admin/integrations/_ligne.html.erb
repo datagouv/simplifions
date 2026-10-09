@@ -1,6 +1,6 @@
 <%# locals: (ligne:, cote:) -%>
 <% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, cote) %>
-<% nom = ligne.persisted? ? "l’intégration #{(ligne.changed? ? Integration.find(ligne.id) : ligne).libelle}" : "la nouvelle intégration" %>
+<% nom = ligne.persisted? ? "l’intégration #{(ligne.changed? ? Integration.find(ligne.id) : ligne).libelle}" : "la nouvelle ligne de « #{t("admin.integrations_de_la_solution.#{cote}")} »" %>
 <% formulaire = "formulaire_#{id}" %>
 <% erreurs = "erreurs_#{id}" %>
 <% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
@@ -13,9 +13,7 @@
     </td>
     <td>
       <%= f.label :type_integration, "#{Integration.human_attribute_name(:type_integration)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
-      <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
-    </td>
-    <td>
+      <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select fr-mb-1w", form: formulaire, aria: { required: true, **invalide } %>
       <%= f.label :statut, "Statut de #{nom}", class: "fr-sr-only" %>
       <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", form: formulaire, aria: invalide %>
     </td>

@@ -1647,7 +1647,7 @@ RSpec.describe 'Administration' do
         expect(colonne.text.squish).to include('Dernière modification 07/10/2026')
         expect(colonne.at_css('a:contains("Annuler")')['href']).to eq("/admin/#{chemin}")
         expect(colonne.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq('Supprimer')
-        expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button[type=submit]')).to be_empty
+        expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button[type=submit]:not([form])')).to be_empty
 
         get "/admin/#{chemin}/new"
         expect(boutons_du_formulaire).to eq(boutons), chemin
@@ -1922,11 +1922,14 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
     end
 
-    def liens_par_titre(libelle)
-      panneau(libelle).css('h2').to_h { |titre| [titre.text, titre.next_element.css('a').map { |lien| [lien.text, lien['href']] }] }
+    def lignes_par_titre(libelle)
+      panneau(libelle).css('h2').to_h do |titre|
+        tableau = response.parsed_body.at_css("table[aria-labelledby=\"#{titre['id']}\"]")
+        [titre.text, tableau.css('tbody tr').map { |ligne| ligne.css('select').map { it.at_css('option[selected]')&.text } }]
+      end
     end
 
-    it 'range la solution en onglets : ce qu’elle intègre, qui l’intègre, les démarches qui la recommandent, en lecture avec un lien' do
+    it 'range la solution en onglets : ce qu’elle intègre et qui l’intègre ligne à ligne, les démarches qui la recommandent en lecture' do
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
       bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle')
       aides = Demarche.create!(nom: 'Aides')
@@ -1934,16 +1937,48 @@ RSpec.describe 'Administration' do
       %w[consomme expose].each { |type_integration| Integration.create!(integratrice: bouquet, integree: api_qf, type_integration:) }
 
       get "/admin/solutions/#{api_qf.id}/edit"
-      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandée dans (1)', 'button', 'false'], ['Historique', 'button', 'false']])
+      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (2)', 'button', 'false'], ['Recommandée dans (1)', 'button', 'false'], ['Historique', 'button', 'false']])
       expect(panneau('Fiche').at_css('input[name="solution[nom]"]')).to be_present
-      expect(liens_par_titre('Intégrations')).to eq('Solutions qui l’intègrent' => [['Bouquet (Brique technique)', "/admin/solutions/#{bouquet.id}/edit"]], 'Ce qu’elle intègre' => [])
+      expect(lignes_par_titre('Intégrations')).to eq(
+        'Ce qu’elle intègre' => [[nil, nil, nil]],
+        'Solutions qui l’intègrent' => [['Bouquet (Brique technique)', 'Intégrée', nil], ['Bouquet (Brique technique)', 'Fournie', nil], [nil, nil, nil]]
+      )
       expect(panneau('Recommandée dans').css('a').map { |lien| [lien.text, lien['href']] }).to eq([['Aides', "/admin/demarches/#{aides.id}/edit"]])
       expect(panneau('Historique').text).to include('Création')
 
       get "/admin/solutions/#{bouquet.id}/edit"
-      expect(liens_par_titre('Intégrations')).to eq('Solutions qui l’intègrent' => [], 'Ce qu’elle intègre' => [['API QF (API)', "/admin/solutions/#{api_qf.id}/edit"]])
-      expect(panneau('Intégrations').at_css('a:contains("Ajouter une intégration")')['href']).to eq("/admin/integrations/new?integratrice_id=#{bouquet.id}")
+      expect(lignes_par_titre('Intégrations')).to eq(
+        'Ce qu’elle intègre' => [['API QF (API)', 'Intégrée', nil], ['API QF (API)', 'Fournie', nil], [nil, nil, nil]],
+        'Solutions qui l’intègrent' => [[nil, nil, nil]]
+      )
+      expect(panneau('Intégrations').at_css('a:contains("Ajouter une intégration")')).to be_nil
       expect(panneau('Recommandée dans').text.squish).to eq('Aucune démarche ne la recommande.')
+    end
+
+    it 'relie chaque ligne d’intégration à son formulaire hors de celui de la fiche, l’autre côté fixé sur la ligne vide' do
+      bouquet = Solution.create!(nom: 'Bouquet')
+      integration = Integration.create!(integratrice: bouquet, integree: Solution.create!(nom: 'API QF', categorie: 'api'), type_integration: 'consomme')
+      get "/admin/solutions/#{bouquet.id}/edit"
+      ligne = panneau('Intégrations').at_css("tr#integration_#{integration.id}")
+      formulaire = response.parsed_body.at_css("form#formulaire_integration_#{integration.id}")
+
+      expect(ligne.css('select').map { [it['name'], it['form']] }).to eq(%w[integree_id type_integration statut].map { ["integration[#{it}]", formulaire['id']] })
+      expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.at_css('input[name=cote]')['value'], formulaire.ancestors('form').size])
+        .to eq(["/admin/integrations/#{integration.id}", 'patch', 'integree', 0])
+      expect(ligne.at_css("label[for=\"#{ligne.at_css('select')['id']}\"]").text).to eq('API ou jeu de données de l’intégration Bouquet → API QF (API) (intégrée) (obligatoire)')
+      expect(ligne.at_css('a:contains("Modifier")')['href']).to eq("/admin/integrations/#{integration.id}/edit")
+      expect(ligne.at_css('button[data-turbo-confirm]')['data-turbo-confirm']).to eq('Supprimer l’intégration Bouquet → API QF (API) (intégrée) ?')
+      expect(response.parsed_body.at_css("form#suppression_integration_#{integration.id}").ancestors('form').size).to eq(0)
+
+      vides = %w[integree integratrice].map { response.parsed_body.at_css("form#formulaire_#{it}_integration") }
+      expect(vides.map { |vide| vide.css('input[type=hidden]:not([name=authenticity_token])').to_h { [it['name'], it['value']] } }).to eq([
+        { 'ligne' => '1', 'cote' => 'integree', 'integration[integratrice_id]' => bouquet.id.to_s },
+        { 'ligne' => '1', 'cote' => 'integratrice', 'integration[integree_id]' => bouquet.id.to_s }
+      ])
+      expect(panneau('Intégrations').css('tr#integree_integration select, tr#integratrice_integration select').pluck('form').uniq)
+        .to eq(%w[formulaire_integree_integration formulaire_integratrice_integration])
+      expect(%w[integree integratrice].map { panneau('Intégrations').at_css("tr##{it}_integration button").text.squish })
+        .to eq(['Ajouter la nouvelle ligne de « Ce qu’elle intègre »', 'Ajouter la nouvelle ligne de « Solutions qui l’intègrent »'])
     end
 
     def onglet_ouvert = response.parsed_body.at_css('[role=tab][aria-selected=true]').text.squish
