@@ -2,11 +2,29 @@ version: 2
 updates:
 - package-ecosystem: bundler
   directory: "/"
+  groups:
+    production-dependencies:
+      dependency-type: production
+    development-dependencies:
+      dependency-type: development
+      exclude-patterns:
+      - "rubocop*"
+    rubocop:
+      patterns:
+      - "rubocop*"
   schedule:
     interval: weekly
+    day: monday
+    time: "05:00"
+  cooldown:
+    default-days: 7
   open-pull-requests-limit: 10
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: weekly
+    day: monday
+    time: "05:00"
+  cooldown:
+    default-days: 7
   open-pull-requests-limit: 10
