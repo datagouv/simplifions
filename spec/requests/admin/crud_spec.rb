@@ -638,7 +638,7 @@ RSpec.describe 'Administration' do
 
     def valeur(cellule) = cellule.at_css('option[selected]')&.text || cellule.at_css('input')&.[]('value') || cellule.text.squish
 
-    it 'liste les recommandations de la démarche par type puis ordre, avec un lien pour en ajouter' do
+    it 'liste les recommandations de la démarche par type puis ordre, l’ajout se faisant sur la ligne vide' do
       recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2', ordre: 1)
       Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', ordre: 2)
       Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API Impôt', categorie: 'api'), niveau: 'niveau_1', ordre: 1)
@@ -650,8 +650,8 @@ RSpec.describe 'Administration' do
         { 'Solution' => 'Mes Aides (API)', 'Type de recommandation' => 'Solution recommandée', 'Ordre' => '1' }
       ])
       expect(response.parsed_body.at_css('a:contains("Mes Aides")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
-      expect(response.parsed_body.at_css('a:contains("Ajouter une recommandation")')['href'])
-        .to eq("/admin/recommandations/new?demarche_id=#{aides.id}")
+      expect(response.parsed_body.at_css('button:contains("Ajouter la nouvelle recommandation")')).to be_present
+      expect(response.parsed_body.at_css('a:contains("Ajouter une recommandation")')).to be_nil
     end
 
     it 'propose de modifier chaque recommandation sur sa ligne, dans un formulaire de ligne hors de celui de la fiche' do
@@ -1829,7 +1829,7 @@ RSpec.describe 'Administration' do
       expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
       expect(panneau('Fiche').at_css('input[name="demarche[nom]"]')).to be_present
       expect(panneau('Intégrations').css('input[name="demarche[integration_ids][]"][checked]').size).to eq(1)
-      expect(panneau('Recommandations').css('a').map(&:text)).to eq(['Modifier la recommandation API QF (API)', 'Ajouter une recommandation'])
+      expect(panneau('Recommandations').css('a').map(&:text)).to eq(['Modifier la recommandation API QF (API)'])
       expect(panneau('Historique').text).to include('Création')
       get '/admin/demarches/new'
       expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
