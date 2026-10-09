@@ -8,9 +8,11 @@
    onglets = [['donnees-disponibles', 'Données disponibles et utiles', recommandations.size]]
    onglets << ['solutions-integratrices', 'Solutions ayant intégré ces données', integratrices.size] if integratrices.any?
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'], *onglets.map { |id, label, _| [id, label] }] %>
-<div class="fr-container fr-mt-1v">
-  <%= render "breadcrumb", id: "breadcrumb-demarche",
-        liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
+<div class="fil-ariane-collant fr-mt-1v">
+  <div class="fr-container">
+    <%= render "breadcrumb", id: "breadcrumb-demarche",
+          liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
+  </div>
 </div>
 
 <div class="fr-container fr-mt-1w fr-mb-5w fiche-page">

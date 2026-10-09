@@ -1,5 +1,25 @@
 /* Pages démarche et solution (.fiche-page) : rendu repris de udata-front-kit (src/custom/simplifions). */
 
+@media (min-width: 48em) {
+  html:has(.fil-ariane-collant) {
+    scroll-padding-top: 3rem;
+  }
+
+  .fil-ariane-collant {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin-bottom: 1.5rem;
+    background-color: var(--background-default-grey);
+    box-shadow: 0 1px 0 var(--border-default-grey);
+  }
+
+  .fil-ariane-collant .fr-breadcrumb {
+    margin: 0;
+    padding: 0.5rem 0;
+  }
+}
+
 .fiche-page .topic__header {
   display: flex;
   align-items: center;
