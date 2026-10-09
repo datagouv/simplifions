@@ -41,7 +41,6 @@
           </tbody>
         </table>
       </div></div></div></div>
-      <%= link_to "Ajouter une recommandation", new_admin_recommandation_path(demarche_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
     <% end %>
     <%= render "admin/onglets", objet: demarche, onglet_des_erreurs: { integration_hors_regle: "integrations", recommandation_refusee: "recommandations" }, onglets: {
           "fiche" => ["Fiche", fiche],
