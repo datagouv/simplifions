@@ -667,6 +667,16 @@ RSpec.describe 'Administration' do
       expect(ligne.at_css('a:contains("Modifier")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
     end
 
+    it 'réunit la publication et la date de modification dans une colonne État, pour tenir dans la largeur' do
+      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
+      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2')
+      get "/admin/demarches/#{aides.id}/edit"
+      tableau = response.parsed_body.at_css('table[aria-labelledby]')
+
+      expect(tableau.css('thead th').map(&:text)).to eq(['Solution (obligatoire)', 'Type de recommandation (obligatoire)', 'Ordre', 'État', 'Actions'])
+      expect(tableau.css('tbody tr').map { it.css('td')[3].text.squish }).to eq(['Publiée 01/03/2026', 'Masquée', ''])
+    end
+
     it 'pré-remplit la démarche d’une nouvelle recommandation' do
       get '/admin/recommandations/new', params: { demarche_id: aides.id }
       expect(response.parsed_body.at_css('#recommandation_demarche_id option[selected]').text).to eq('Aides')
