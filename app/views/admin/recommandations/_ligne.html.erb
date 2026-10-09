@@ -33,6 +33,8 @@
     <%= tag.button type: "submit", form: formulaire, id: dom_id(ligne, :enregistrer), class: "fr-btn fr-btn--sm", aria: { describedby: invalide[:describedby] } do %><%= ligne.new_record? ? "Ajouter" : "Enregistrer" %><span class="fr-sr-only"> <%= nom %></span><% end %>
     <% if ligne.persisted? %>
       <%= link_to edit_admin_recommandation_path(ligne), class: "fr-link fr-link--sm" do %>Modifier<span class="fr-sr-only"> <%= nom %></span><% end %>
+      <% supprimer = "Supprimer #{nom}" %>
+      <%= tag.button supprimer, type: "submit", form: dom_id(ligne, :suppression), title: supprimer, class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line", data: { turbo_confirm: "#{supprimer} ?" } %>
     <% end %>
     <% if ligne.errors.any? %>
       <p id="<%= erreurs %>" class="fr-error-text"><%= ligne.errors.full_messages.to_sentence %></p>
