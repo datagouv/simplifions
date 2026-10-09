@@ -20,7 +20,17 @@
             <tr>
               <% sections.each do |titre, utiles| %>
                 <% utiles.each do |utile| %>
-                  <th scope="col" class="fr-text--xs"><%= utile.nom.delete_suffix(" | #{titre}") %></th>
+                  <% nom = utile.nom.delete_suffix(" | #{titre}") %>
+                  <th scope="col" class="fr-text--xs <%= 'tableau-integratrices__donnee-datagouv' if utile.uid_datagouv.present? %>">
+                    <%= nom %>
+                    <% if utile.uid_datagouv.present? %>
+                      <div class="fr-mt-1w font-weight-normal">
+                        <%= badge_acces_datagouv(utile) %>
+                        <%= link_to utile.lien_datagouv, class: 'fr-link fr-link--sm tableau-integratrices__lien-datagouv', target: '_blank',
+                              rel: 'noopener external', title: "#{nom} sur Data.gouv.fr - nouvelle fenêtre" do %>Data.gouv.fr<span class="fr-sr-only"> : <%= nom %></span><% end %>
+                      </div>
+                    <% end %>
+                  </th>
                 <% end %>
               <% end %>
             </tr>

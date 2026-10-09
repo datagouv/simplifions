@@ -336,7 +336,33 @@
 }
 
 .tableau-integratrices thead tr:last-child th {
-  min-width: 8rem;
+  min-width: 10rem;
+  vertical-align: top;
+}
+
+.tableau-integratrices thead .fr-badge--sm {
+  font-size: 0.625rem;
+  line-height: 1rem;
+  min-height: 1rem;
+  padding: 0 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.tableau-integratrices thead .fr-badge--sm .fr-icon--sm::before {
+  --icon-size: 0.75rem;
+}
+
+.tableau-integratrices thead th.tableau-integratrices__donnee-datagouv {
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.tableau-integratrices__lien-datagouv {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
 }
 
 .tableau-integratrices .tableau-integratrices__solution {

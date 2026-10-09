@@ -379,6 +379,20 @@ RSpec.describe 'Demarches' do
       expect(section.css('tbody tr').map(&nom_et_ordre)).to eq([['Zeta achats', '0'], ['Alpha achats', '1']])
     end
 
+    it 'présente dans le tableau l’accès et la fiche data.gouv de chaque donnée' do
+      Solution.find_by(nom: 'Kbis').update!(uid_datagouv: 'kbis1', datagouv_organisation: 'Infogreffe', datagouv_acces: 'open')
+      integre('Alpha achats', 'logiciel_metier_cle_en_main', %w[Kbis])
+
+      get demarche_path('marches-publics')
+
+      kbis, urssaf = response.parsed_body.css('#solutions-integratrices thead tr:last-child th')
+      expect(kbis.at_css('.fr-badge').text.squish).to eq('API ouverte')
+      expect(kbis.text).not_to include('Producteur')
+      lien = kbis.at_css('a[target=_blank]')
+      expect([lien['href'], lien.text.squish]).to eq(['https://www.data.gouv.fr/fr/dataservices/kbis1', 'Data.gouv.fr : Kbis'])
+      expect(urssaf.text.squish).to eq('Urssaf')
+    end
+
     it 'déplie chaque donnée de la modale vers sa fiche data.gouv, sans répéter le nom du bouquet' do
       Solution.find_by(nom: 'Kbis').update!(nom: 'Kbis | API Entreprise', uid_datagouv: 'kbis1', datagouv_organisation: 'Infogreffe',
         datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes')
@@ -431,7 +445,7 @@ RSpec.describe 'Demarches' do
       expect(tableau['class']).to include('fr-hidden')
       expect(tableau.css('thead tr:first-child th').map { |entete| entete.text.squish })
         .to eq(['Solution', 'Données intégrées pour ce cas d\'usage', 'API Entreprise'])
-      expect(tableau.css('thead tr:last-child th').map(&:text)).to eq(%w[Kbis Urssaf])
+      expect(tableau.css('thead tr:last-child th').map { |colonne| colonne.text.squish }).to eq(%w[Kbis Urssaf])
       lignes = tableau.css('tbody tr').map do |ligne|
         [ligne.at_css('th a').text, *ligne.css('td').map { |cellule| cellule.text.squish }]
       end
