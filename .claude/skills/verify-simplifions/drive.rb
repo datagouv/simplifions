@@ -837,7 +837,9 @@ end
 
 def elements_lies(page)
   onglet(page, 'Intégrations')
-  lies = page.all('#onglet-integrations-panneau h2').to_h { |titre| [titre.text, titre.find(:xpath, 'following-sibling::*[1]').all('a').map(&:text)] }
+  lies = page.all('#onglet-integrations-panneau h2').to_h do |titre|
+    [titre.text, page.find("table[aria-labelledby='#{titre[:id]}']").all('tbody tr td:first-child select').filter_map { it.all('option[selected]', visible: :all).first&.text }]
+  end
   onglet(page, 'Recommandée dans')
   lies.merge('Recommandée dans' => page.find('#onglet-recommandee-dans-panneau').all('a').map(&:text)).reject { |_, liens| liens.empty? }
 end
@@ -865,11 +867,10 @@ def saisie_solution(page)
     legende[:type] == 'text' && aide == 'L’image sera retirée à l’enregistrement.' && lies == attendu
 
   Verify.evidence(dossier, page, 'fiche', "legende=#{legende.tag_name}[type=#{legende[:type]}] aide_retirer=#{aide} lies=#{lies}")
-  onglet(page, 'Intégrations')
-  page.find('#onglet-integrations-panneau').click_link api.libelle_admin
+  page.visit("/admin/solutions/#{api.id}/edit")
   page.assert_selector 'h1', text: api.libelle_admin
   integratrices = elements_lies(page)['Solutions qui l’intègrent']
-  base = api.integratrices.par_libelle_admin.map { |integratrice| integratrice.libelle_admin.squish }
+  base = api.integrations_comme_integree.par_libelle_admin_de(:integratrice).map { |integration| integration.integratrice.libelle_admin.squish }
   raise "integratrices #{integratrices} != #{base}" unless integratrices == base && integratrices.include?(solution.libelle_admin)
 
   Verify.evidence(dossier, page, 'api-liee', "url=#{page.current_path} integratrices_page=#{integratrices.size} base=#{base.size} inclut_verif=true")
@@ -1550,6 +1551,103 @@ ensure
   end
 end
 
+def supprimer_depuis_la_ligne(page, integration)
+  poubelle = "Supprimer l’intégration #{integration.libelle}"
+  page.dismiss_confirm("#{poubelle} ?") { page.click_button poubelle }
+  page.assert_selector "tr#integration_#{integration.id}"
+  raise 'refuser la confirmation a supprimé' unless ActiveRecord::Base.uncached { Integration.exists?(integration.id) }
+
+  page.accept_confirm("#{poubelle} ?") { page.click_button poubelle }
+  page.assert_selector '#message-integrations .fr-valid-text', text: 'supprimé'
+  page.assert_no_selector "tr#integration_#{integration.id}"
+  focus = page.evaluate_script("document.activeElement.closest('#message-integrations')?.textContent?.trim()")
+  raise "focus perdu après suppression (#{focus_sur(page).inspect})" unless focus&.include?('supprimé')
+
+  focus
+end
+
+def integrations_en_ligne(page)
+  dossier = 'admin-integrations-en-ligne'
+  solution = Solution.visibles.where.not(categorie: 'api').max_by { it.integrations_comme_integratrice.count }
+  integration = solution.integrations_comme_integratrice.par_libelle_admin_de(:integree).first
+  statut = integration.statut
+  nom = "l’intégration #{integration.libelle}"
+  api = Solution.categorie_api.where.not(id: [solution.id, *solution.integrations_comme_integratrice.pluck(:integree_id)]).order(:id).first
+  integratrice = Solution.where.not(categorie: 'api').where.not(id: [solution.id, *solution.integrations_comme_integree.pluck(:integratrice_id)]).order(:id).first
+  integre = 'la nouvelle ligne de « Ce qu’elle intègre »'
+  l_integrent = 'la nouvelle ligne de « Solutions qui l’intègrent »'
+  compter = -> { ActiveRecord::Base.uncached { [solution.integrations_comme_integratrice.count, solution.integrations_comme_integree.count] } }
+  avant = compter.call
+  Verify.login(page)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  onglet(page, 'Intégrations')
+  page.select (Integration::STATUTS - [statut]).first, from: "Statut de #{nom}"
+  raise 'la ligne a marqué la fiche' unless enregistrer_desactive?(page)
+
+  page.click_button "Enregistrer #{nom}"
+  page.assert_selector '#message-integrations .fr-valid-text', text: 'enregistré'
+  raise "focus perdu après enregistrement (#{focus_sur(page).inspect})" unless focus_sur(page) == "enregistrer_integration_#{integration.id}"
+
+  ActiveRecord::Base.uncached do
+    Verify.evidence(dossier, page, 'ligne-modifiee', "statut_avant=#{statut.inspect} statut_en_base=#{integration.reload.statut.inspect} " \
+      "focus=#{focus_sur(page)} fiche_grisee=#{enregistrer_desactive?(page)} url=#{page.current_path}")
+  end
+
+  page.select solution.libelle_admin, from: "API ou jeu de données de #{integre} (obligatoire)"
+  page.select 'Intégrée', from: "Type d’intégration de #{integre} (obligatoire)"
+  page.click_button "Ajouter #{integre}"
+  erreur = page.find('#erreurs_integree_integration', text: 'elle-même')
+  Verify.evidence(dossier, page, 'erreur-ligne', "erreur=#{erreur.text} focus=#{focus_sur(page)} en_base=#{compter.call} avant=#{avant} " \
+    "decrit_par=#{page.find('tr#integree_integration button')['aria-describedby']}")
+
+  page.select api.libelle_admin, from: "API ou jeu de données de #{integre} (obligatoire)"
+  page.click_button "Ajouter #{integre}"
+  page.assert_selector '#message-integrations .fr-valid-text', text: api.libelle_admin
+  integree_creee = ActiveRecord::Base.uncached { solution.integrations_comme_integratrice.find_by!(integree: api) }
+  page.assert_selector "tr#integration_#{integree_creee.id}"
+  page.select integratrice.libelle_admin, from: "Solution de #{l_integrent} (obligatoire)"
+  page.select 'Fournie', from: "Type d’intégration de #{l_integrent} (obligatoire)"
+  page.click_button "Ajouter #{l_integrent}"
+  page.assert_selector '#message-integrations .fr-valid-text', text: integratrice.libelle_admin
+  integratrice_creee = ActiveRecord::Base.uncached { solution.integrations_comme_integree.find_by!(integratrice:) }
+  page.assert_selector "tr#integration_#{integratrice_creee.id}"
+  vides = %w[integree integratrice].map { |cote| page.find("tr##{cote}_integration select[name='integration[#{cote}_id]']").value }
+  Verify.evidence(dossier, page, 'ajoutees', "en_base=#{compter.call} avant=#{avant} lignes_vides=#{vides.inspect} " \
+    "types=#{[integree_creee.type_integration, integratrice_creee.type_integration]}")
+
+  [1280, 1024].each do |largeur|
+    page.current_window.resize_to(largeur, 1024)
+    page.visit("/admin/solutions/#{solution.id}/edit?onglet=integrations")
+    defilement = page.evaluate_script("[...document.querySelectorAll('#onglet-integrations-panneau .fr-table__content')].map(c => [c.scrollWidth, c.clientWidth])")
+    raise "tableaux à #{largeur} px : #{defilement}" if defilement.any? { |defilable, visible| defilable > visible }
+
+    selects = page.evaluate_script("[...document.querySelector('tr#integration_#{integration.id}').querySelectorAll('select')].map(s => s.clientWidth)")
+    raise "selects trop étroits à #{largeur} px (solution, type, statut) : #{selects}" if selects.first < 150 || selects.last < 180
+
+    Verify.evidence(dossier, page, "largeur-#{largeur}", "tableaux_defilable_visible=#{defilement} selects_solution_type_statut=#{selects}")
+  end
+  page.current_window.resize_to(375, 812)
+  page.visit("/admin/solutions/#{solution.id}/edit?onglet=integrations")
+  Verify.evidence(dossier, page, 'etroit-375', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+
+  page.visit("/admin/solutions/#{solution.id}/edit?onglet=integrations")
+  focus = [integree_creee, integratrice_creee].map { supprimer_depuis_la_ligne(page, it) }
+  page.find_field("Statut de #{nom}").find("option[value='#{statut}']").select_option
+  page.click_button "Enregistrer #{nom}"
+  page.assert_selector '#message-integrations .fr-valid-text', text: 'enregistré'
+  ActiveRecord::Base.uncached do
+    Verify.evidence(dossier, page, 'defait', "url=#{page.current_path} en_base=#{compter.call} avant=#{avant} " \
+      "statut=#{integration.reload.statut.inspect} focus=#{focus}")
+  end
+  Verify.logout(page)
+ensure
+  ActiveRecord::Base.uncached do
+    Integration.where(id: [integree_creee&.id, integratrice_creee&.id].compact).destroy_all
+    integration&.reload&.update!(statut:) if integration && integration.reload.statut != statut
+  end
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1561,7 +1659,7 @@ end
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
-  'recommandations-en-ligne' => :recommandations_en_ligne }.each do |nom, fn|
+  'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
