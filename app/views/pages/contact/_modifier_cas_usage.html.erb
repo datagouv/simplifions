@@ -1,5 +1,15 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
 <%= render "pages/contact/titre", titre: "Proposer une modification d'un cas d'usage existant" %>
+<% if @demarches %>
+  <%= form_with url: contact_path("modifier-cas-usage"), method: :get, class: "fr-mb-4w" do %>
+    <div class="fr-select-group">
+      <%= label_tag :demarche, "Cas d'usage concerné", class: "fr-label" %>
+      <%= select_tag :demarche, options_from_collection_for_select(@demarches, :slug, :nom),
+            prompt: "Sélectionner un cas d'usage", class: "fr-select" %>
+    </div>
+    <button type="submit" class="fr-btn fr-btn--secondary">Préremplir le message</button>
+  <% end %>
+<% end %>
 <%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.nom, demarche_url(@fiche.slug)], objet: "Modification d'un cas d'usage", informations: [
       "Votre organisation et votre fonction",
       "Le nom et l'URL du cas d'usage concerné",
