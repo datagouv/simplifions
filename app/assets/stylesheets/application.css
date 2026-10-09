@@ -120,10 +120,20 @@ form :target {
   flex-shrink: 0;
 }
 
+.lignes-modifiables :is(th, td) {
+  white-space: normal;
+  padding-inline: 0.5rem;
+}
+
+.lignes-modifiables td:first-child {
+  width: 100%;
+}
+
 .lignes-modifiables .fr-select {
-  min-width: 15rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .lignes-modifiables .fr-input {
-  width: 5rem;
+  width: 3.5rem;
 }

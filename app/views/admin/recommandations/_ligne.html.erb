@@ -20,12 +20,14 @@
       <%= f.number_field :ordre, class: "fr-input", form: formulaire, aria: invalide %>
     </td>
   <% end %>
-  <% if ligne.persisted? %>
-    <%= render "visible_et_modifie_le", ligne: %>
-  <% else %>
-    <td></td>
-    <td></td>
-  <% end %>
+  <td>
+    <% if ligne.persisted? %>
+      <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= "fr-badge--success" if ligne.visible? %>"><%= ligne.visible? ? "Publiée" : "Masquée" %></p>
+      <% if ligne.modifie_le %>
+        <br><time datetime="<%= ligne.modifie_le.iso8601 %>"><%= l ligne.modifie_le.to_date %></time>
+      <% end %>
+    <% end %>
+  </td>
   <td>
     <% if ligne.persisted? && ligne.brouillon? %>
       <p class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--new fr-mb-1w">Brouillon</p>
