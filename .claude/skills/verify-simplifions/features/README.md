@@ -43,6 +43,7 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-liste-filtrable.md](admin-liste-filtrable.md) — long lists of linked rows in admin forms show only checked boxes and filter as you type; vocabulaires grouped by category.
 - [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — list and add a démarche's recommandations from its form; a recommandation keeps its démarche in view.
 - [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md) — edit, add and see errors on a démarche's recommandations row by row in its tab, drafts kept off the public page.
+- [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md) — edit, add, delete and see errors on a solution's integrations row by row, in both lists of its `Intégrations` tab.
 - [admin-formulaire-solution.md](admin-formulaire-solution.md) — a solution form shows only the fields of its catégorie, its image (removable) and whether it is private.
 - [admin-fournisseurs-de-services.md](admin-fournisseurs-de-services.md) — fournisseurs de services (types d'acteurs): read page first, regroupements ticked from the public filters, memo hints.
 - [admin-saisie-solution.md](admin-saisie-solution.md) — a solution's types as checkboxes on a fixed list, one-line légende, image removal announced, linked démarches and intégrations shown with links.
