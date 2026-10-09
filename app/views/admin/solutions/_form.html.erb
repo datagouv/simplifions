@@ -1,3 +1,9 @@
+<% if en_base %>
+  <% listes = {
+       integree: [*en_base.integrations_comme_integratrice.par_libelle_admin_de(:integree).preload(:integree), Integration.new(integratrice_id: en_base.id)],
+       integratrice: [*en_base.integrations_comme_integree.par_libelle_admin_de(:integratrice).preload(:integratrice), Integration.new(integree_id: en_base.id)]
+     } %>
+<% end %>
 <%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>
   <%= render "admin/erreurs", f: f %>
   <% fiche = capture do %>
@@ -58,22 +64,41 @@
     <% end %>
   <% end %>
   <% if en_base %>
-    <% liees = { "Solutions qui l’intègrent" => en_base.integratrices.par_libelle_admin, "Ce qu’elle intègre" => en_base.integrees.par_libelle_admin }.transform_values(&:load) %>
     <% integrations = capture do %>
-      <% liees.each do |titre, lignes| %>
-        <h2 class="fr-h6 fr-mb-1w"><%= titre %></h2>
-        <%= render "admin/liens_vers_les_fiches", lignes:, vide: "Aucune solution." %>
+      <div id="message-integrations" role="status"></div>
+      <% listes.each do |cote, lignes| %>
+        <h2 id="integrations-<%= cote %>" class="fr-h6 fr-mb-1w"><%= t("admin.integrations_de_la_solution.#{cote}") %></h2>
+        <div class="fr-table"><div class="fr-table__wrapper"><div class="fr-table__container"><div class="fr-table__content">
+          <table class="lignes-modifiables lignes-integrations" aria-labelledby="integrations-<%= cote %>">
+            <thead>
+              <tr>
+                <th scope="col"><%= Integration.human_attribute_name(:"#{cote}_id") %> (obligatoire)</th>
+                <th scope="col"><%= Integration.human_attribute_name(:type_integration) %> (obligatoire) et statut</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= render partial: "admin/integrations/ligne", collection: lignes, locals: { cote: } %>
+            </tbody>
+          </table>
+        </div></div></div></div>
       <% end %>
-      <%= link_to "Ajouter une intégration", new_admin_integration_path(integratrice_id: en_base.id), class: "fr-btn fr-btn--secondary" %>
     <% end %>
     <% demarches = en_base.demarches_recommandantes.order(:nom).load %>
     <%= render "admin/onglets", objet: solution, onglets: {
           "fiche" => ["Fiche", fiche],
-          "integrations" => ["Intégrations (#{liees.values.sum(&:size)})", integrations],
+          "integrations" => ["Intégrations (#{listes.values.flatten.count(&:persisted?)})", integrations],
           "recommandee-dans" => ["Recommandée dans (#{demarches.size})", render("admin/liens_vers_les_fiches", lignes: demarches, vide: "Aucune démarche ne la recommande.")],
           "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
         } %>
   <% else %>
     <%= fiche %>
   <% end %>
+<% end %>
+<% if listes %>
+  <div id="formulaires-integrations">
+    <% listes.each do |cote, lignes| %>
+      <%= render partial: "admin/integrations/formulaire_de_ligne", collection: lignes, as: :ligne, locals: { cote: } %>
+    <% end %>
+  </div>
 <% end %>

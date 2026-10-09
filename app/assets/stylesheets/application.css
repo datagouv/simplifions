@@ -137,3 +137,7 @@ form :target {
 .lignes-modifiables .fr-input {
   width: 3.5rem;
 }
+
+.lignes-integrations td:nth-child(2) .fr-select {
+  min-width: 12rem;
+}

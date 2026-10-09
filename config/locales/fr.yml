@@ -171,6 +171,9 @@ fr:
       one: "1 recommandation en brouillon"
       other: "%{count} recommandations en brouillon"
     enregistre: "« %{nom} » enregistré."
+    integrations_de_la_solution:
+      integree: "Ce qu’elle intègre"
+      integratrice: "Solutions qui l’intègrent"
     erreurs:
       one: "1 erreur à corriger"
       other: "%{count} erreurs à corriger"

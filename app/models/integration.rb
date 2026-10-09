@@ -23,6 +23,7 @@ class Integration < ApplicationRecord
 
   def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
+  scope :par_libelle_admin_de, ->(cote) { joins(cote).merge(Solution.par_libelle_admin).order(:id) }
 
   def demarches_autorisees = Demarche.where(id: Recommandation.where(solution_id: integree_id).select(:demarche_id))
   def autorisee_pour?(demarche) = Recommandation.exists?(demarche:, solution_id: integree_id)
