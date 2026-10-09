@@ -737,7 +737,7 @@ def recommandations_demarche(page)
   raise "#{lignes} lignes pour #{avant} recommandations et la ligne vide" unless lignes == avant + 1
 
   Verify.evidence(dossier, page, 'demarche', "lignes=#{lignes} en_base=#{avant}")
-  page.click_link 'Ajouter une recommandation'
+  page.visit("/admin/recommandations/new?demarche_id=#{demarche.id}")
   choisie = page.find('#recommandation_demarche_id option[selected]').text
   raise "démarche pré-remplie #{choisie}" unless choisie == demarche.nom
 
@@ -1510,6 +1510,14 @@ def recommandations_en_ligne(page)
   page.assert_selector 'h1', text: 'Démarches'
   apres = publique.call
   Verify.evidence(dossier, page, 'page-publique', "inchangee=#{apres == cartes} cartes=#{apres.size}")
+  [1280, 1024].each do |largeur|
+    page.current_window.resize_to(largeur, 1024)
+    page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
+    defilement = page.evaluate_script("(c => [c.scrollWidth, c.clientWidth])(document.querySelector('.fr-table__content'))")
+    raise "tableau à #{largeur} px : #{defilement.join(' > ')}" if defilement.first > defilement.last
+
+    Verify.evidence(dossier, page, "largeur-#{largeur}", "tableau_defilable=#{defilement.first} visible=#{defilement.last}")
+  end
   page.current_window.resize_to(375, 812)
   page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
   Verify.evidence(dossier, page, 'etroit-375', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
@@ -1518,11 +1526,21 @@ def recommandations_en_ligne(page)
   page.click_link "Modifier #{nom}"
   page.accept_confirm { page.click_button 'Abandonner le brouillon' }
   page.assert_text 'abandonné'
-  page.visit("/admin/recommandations/#{creee.id}/edit")
-  page.accept_confirm { page.click_button 'Supprimer' }
-  page.assert_current_path('/admin/recommandations')
+  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
+  poubelle = "Supprimer la recommandation #{solution.libelle_admin}"
+  page.dismiss_confirm("#{poubelle} ?") { page.click_button poubelle }
+  page.assert_selector "tr#recommandation_#{creee.id}"
+  raise 'refuser la confirmation a supprimé' unless ActiveRecord::Base.uncached { Recommandation.exists?(creee.id) }
+
+  page.accept_confirm("#{poubelle} ?") { page.click_button poubelle }
+  page.assert_selector '#message-recommandations .fr-valid-text', text: 'supprimé'
+  page.assert_no_selector "tr#recommandation_#{creee.id}"
+  focus = page.evaluate_script("document.activeElement.closest('#message-recommandations')?.textContent?.trim()")
+  raise "focus perdu après suppression (#{focus_sur(page).inspect})" unless focus&.include?('supprimé')
+
   ActiveRecord::Base.uncached do
-    Verify.evidence(dossier, page, 'defait', "en_base=#{demarche.recommandations.count} avant=#{avant} brouillon=#{reco.reload.brouillon.inspect}")
+    Verify.evidence(dossier, page, 'defait', "url=#{page.current_path} en_base=#{demarche.recommandations.count} avant=#{avant} " \
+      "brouillon=#{reco.reload.brouillon.inspect} focus=#{focus}")
   end
   Verify.logout(page)
 ensure
