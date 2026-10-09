@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["tag", "publiques", "vide", "cartes", "tableau"]
+  static targets = ["tag", "publiques", "vide", "cartes", "tableau", "tri", "liste"]
 
   connect() {
     this.observateur = new MutationObserver(() => this.filtrer())
@@ -22,6 +22,14 @@ export default class extends Controller {
   montrer(vue) {
     this.cartesTarget.classList.toggle("fr-hidden", vue !== "cartes")
     this.tableauTarget.classList.toggle("fr-hidden", vue !== "tableau")
+  }
+
+  trier() {
+    const parNom = this.triTarget.value === "titre"
+    const comparer = (a, b) => parNom ?
+      a.dataset.nom.localeCompare(b.dataset.nom, "fr") :
+      Number(a.dataset.ordre) - Number(b.dataset.ordre)
+    this.listeTargets.forEach((liste) => liste.append(...[...liste.children].sort(comparer)))
   }
 
   filtrer() {

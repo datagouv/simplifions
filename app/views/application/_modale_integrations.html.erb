@@ -12,21 +12,51 @@
             <%= render 'badge_operateur', solution: %>
             <p class="integration-indicator fr-p-1w fr-mt-2w">
               <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(nombre_integrees, nombre_utiles) %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
-              <span class="fr-text--sm"><b>API et jeux de données utiles pour la démarche</b> «&nbsp;<%= nom_demarche %>&nbsp;» <b>intégrés par cette solution</b></span>
+              <span class="fr-text--sm"><b>API et jeux de données intégrés par cette solution</b>, utiles pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»</span>
             </p>
             <% sections.each do |titre, utiles| %>
-              <h3 class="fr-h6 fr-mb-1w fr-mt-3w"><%= titre %> (<%= utiles.count { |utile| utile.id.in?(integrees) } %>/<%= utiles.size %>)</h3>
-              <ul class="list-none fr-p-0">
-                <% utiles.each do |utile| %>
-                  <% integree = utile.id.in?(integrees) %>
-                  <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
-                    <span aria-hidden="true" class="fr-icon--sm <%= integree ? 'fr-icon-checkbox-circle-fill icon-green' : 'fr-icon-close-line' %>"></span>
-                    <%= utile.nom %>
-                    <span class="fr-sr-only"><%= integree ? ' : intégrée' : ' : non intégrée' %></span>
-                  </li>
-                <% end %>
-              </ul>
+              <details class="section-depliable fr-mt-3w" open>
+                <summary class="fr-mb-1w">
+                  <span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-fill fr-icon--md"></span>
+                  <h3 class="fr-text--md fr-mb-0"><%= titre %>
+                    <span class="fr-text--regular fr-text--sm fr-text-mention--grey">(<%= utiles.count { |utile| utile.id.in?(integrees) } %>/<%= utiles.size %>)</span></h3>
+                </summary>
+                <ul class="list-none fr-py-0 fr-pr-0 fr-pl-1v">
+                  <% utiles.each do |utile| %>
+                    <% integree = utile.id.in?(integrees) %>
+                    <% ligne = capture do %>
+                      <span aria-hidden="true" class="fr-icon--sm <%= integree ? 'fr-icon-checkbox-circle-fill icon-green' : 'fr-icon-close-line' %>"></span>
+                      <span><%= utile.nom.delete_suffix(" | #{titre}") %><span class="fr-sr-only"><%= integree ? ' : intégrée' : ' : non intégrée' %></span></span>
+                    <% end %>
+                    <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
+                      <% if utile.uid_datagouv.present? %>
+                        <details class="section-depliable">
+                          <summary>
+                            <%= ligne %>
+                            <span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-line fr-icon--sm"></span>
+                          </summary>
+                          <div class="fr-mt-1v fr-mb-1w fr-pl-3w">
+                            <div class="section-depliable__detail fr-mb-1v">
+                              <%= badge_acces_datagouv(utile) %>
+                              <% if utile.producteur.present? %><p class="fr-text--sm fr-m-0">Producteur : <%= utile.producteur %></p><% end %>
+                            </div>
+                            <%= link_to 'Voir sur data.gouv.fr', utile.lien_datagouv, class: 'fr-link fr-link--sm', target: '_blank',
+                                  rel: 'noopener external', title: 'Voir sur data.gouv.fr - nouvelle fenêtre' %>
+                          </div>
+                        </details>
+                      <% else %>
+                        <%= ligne %>
+                      <% end %>
+                    </li>
+                  <% end %>
+                </ul>
+              </details>
             <% end %>
+            <p class="fr-text--sm fr-mt-3w fr-mb-0 fr-text-mention--grey">
+              ✒️ Une information manque ou est erronée ? Vous pouvez
+              <a href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions" rel="noopener external"
+                target="_blank" title="proposer une modification du contenu - nouvelle fenêtre">proposer une modification du contenu</a>.
+            </p>
           </div>
         </div>
       </div>

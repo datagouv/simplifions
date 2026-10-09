@@ -33,11 +33,17 @@
 
   <div class="fr-col-12 fr-col-md-8 fr-mt-5w">
     <%= render ArticleSectionComponent.new(id: sections[0][0], label: sections[0][1]) do %>
-      <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-map-pin-2-fill"></span> Contexte</h3>
-      <%= render 'contenu', texte: @demarche.contexte %>
-
-      <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-newspaper-fill"></span> Cadre juridique</h3>
-      <%= render 'contenu', texte: @demarche.cadre_juridique %>
+      <% [['contexte', 'fr-icon-map-pin-2-fill', 'Contexte', @demarche.contexte],
+          ['cadre-juridique', 'fr-icon-newspaper-fill', 'Cadre juridique', @demarche.cadre_juridique]].each do |id, icone, titre, texte| %>
+        <h3 class="fr-h6"><span aria-hidden="true" class="<%= icone %>"></span> <%= titre %></h3>
+        <div class="fr-mb-3w" data-controller="lire-plus">
+          <div id="texte-<%= id %>" class="lire-plus--replie" data-lire-plus-target="texte" data-action="focusin->lire-plus#deplier">
+            <%= render 'contenu', texte: %>
+          </div>
+          <button type="button" class="fr-link fr-link--sm fr-hidden" aria-expanded="false"
+            aria-controls="texte-<%= id %>" data-lire-plus-target="bouton" data-action="lire-plus#basculer">Lire plus</button>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>

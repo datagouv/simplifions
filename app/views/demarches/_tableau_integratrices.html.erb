@@ -25,11 +25,12 @@
               <% end %>
             </tr>
           </thead>
-          <tbody>
-            <% solutions.each do |solution| %>
+          <tbody data-categories-integratrices-target="liste">
+            <% solutions.each_with_index do |solution, ordre| %>
               <% nombre_integrees, nombre_utiles = couvertures[solution.id]
                  integrees_solution = integrees.fetch(solution.id, Set.new) %>
-              <tr data-categorie="<%= solution.categorie %>" data-privee="<%= solution.privee? %>">
+              <tr data-categorie="<%= solution.categorie %>" data-privee="<%= solution.privee? %>" data-nom="<%= solution.nom %>"
+                data-ordre="<%= ordre %>">
                 <th scope="row" class="fr-cell--fixed tableau-integratrices__solution">
                   <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
                   <% if (operateur = solution.organisations.first) %>

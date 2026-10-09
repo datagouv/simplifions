@@ -1,7 +1,8 @@
 <% libelles = { 'logiciel_metier_cle_en_main' => 'Logiciels métier « clé en main »',
                 'brique_logicielle' => 'Briques logicielles à intégrer',
                 'site_de_consultation' => 'Sites de consultation' }
-   par_categorie = integratrices.sort_by { |sol| [-couvertures[sol.id].first, sol.nom] }.group_by(&:categorie) %>
+   triees = integratrices.sort_by { |sol| [-couvertures[sol.id].first, sol.nom] }
+   par_categorie = triees.group_by(&:categorie) %>
 <div data-controller="categories-integratrices">
   <div class="fr-grid-row fr-grid-row--middle fr-mb-2w">
     <p class="fr-col fr-text--bold fr-mb-0">Filtrer les solutions</p>
@@ -42,6 +43,16 @@
       </div>
     </div>
   </div>
+  <div class="fr-grid-row fr-grid-row--right fr-mb-2w">
+    <div class="fr-select-group fr-grid-row fr-grid-row--middle fr-mb-0">
+      <label for="tri-solutions-integratrices" class="fr-label fr-col-auto fr-m-0 fr-mr-1w">Trier par :</label>
+      <select id="tri-solutions-integratrices" class="fr-select fr-col" autocomplete="off"
+        data-categories-integratrices-target="tri" data-action="change->categories-integratrices#trier">
+        <option value="integration">Le plus de données intégrées</option>
+        <option value="titre">Titre</option>
+      </select>
+    </div>
+  </div>
   <p class="fr-hidden" data-categories-integratrices-target="vide"><i>Aucune solution ne correspond aux filtres sélectionnés.</i></p>
 
   <div data-categories-integratrices-target="cartes">
@@ -52,7 +63,6 @@
     <% end %>
   </div>
   <div class="fr-hidden" data-categories-integratrices-target="tableau">
-    <%= render 'tableau_integratrices', solutions: integratrices.sort_by { |sol| [-couvertures[sol.id].first, sol.nom] },
-          groupes:, integrees:, couvertures: %>
+    <%= render 'tableau_integratrices', solutions: triees, groupes:, integrees:, couvertures: %>
   </div>
 </div>

@@ -20,6 +20,35 @@
   }
 }
 
+.section-depliable > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.section-depliable > summary::-webkit-details-marker {
+  display: none;
+}
+
+.section-depliable:not([open]) > summary > .section-depliable__fleche {
+  transform: rotate(-90deg);
+}
+
+.section-depliable__detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+
+.lire-plus--replie {
+  max-height: 12rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 60%, transparent);
+}
+
 .fiche-page .topic__header {
   display: flex;
   align-items: center;

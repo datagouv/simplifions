@@ -100,7 +100,7 @@ class Demarche < ApplicationRecord
   def recommandations_affichees = recommandations.visibles.niveau_2.includes(solution: :exposees).order(:ordre, :id)
 
   def solutions_niveau_1
-    @solutions_niveau_1 ||= Solution.where(id: recommandations.niveau_1.select(:solution_id)).order(:nom).to_a
+    @solutions_niveau_1 ||= Solution.where(id: recommandations.niveau_1.select(:solution_id)).includes(:organisations).order(:nom).to_a
   end
 
   def donnees_utiles_ids = groupes_donnees_utiles.flat_map { |_, utiles| utiles.map(&:id) }.uniq

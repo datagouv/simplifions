@@ -200,6 +200,13 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('Proposer une modification')
     end
 
+    it 'replie le contexte et le cadre juridique derrière un bouton « Lire plus » chacun' do
+      boutons = response.parsed_body.at_css('#contexte-et-cadre-juridique').parent.css('button[aria-expanded="false"]')
+      expect(boutons.map { |bouton| bouton.text.squish }).to eq(['Lire plus', 'Lire plus'])
+      textes = boutons.map { |bouton| response.parsed_body.at_css("##{bouton['aria-controls']}").text.squish }
+      expect(textes).to eq(['Une grille tarifaire progressive est requise.', 'Voir R.531-52.'])
+    end
+
     it 'rend les sections contexte et cadre juridique en markdown' do
       expect(response.body).to include('<strong>progressive</strong>')
       expect(response.body).to include('href="https://legifrance.gouv.fr/codes/article_lc/LEGIARTI000039036672"')
@@ -238,7 +245,7 @@ RSpec.describe 'Demarches' do
       expect(modale.css('.integration-indicator b').map(&:text))
         .to eq(['API et jeux de données utiles pour la démarche', 'intégrés par cette solution'])
       expect(modale.css('li').map { |ligne| ligne.text.squish })
-        .to eq(['API Quotient familial : intégrée', 'API Statut étudiant : intégrée'])
+        .to eq(['API Quotient familial : intégrée Voir sur data.gouv.fr', 'API Statut étudiant : intégrée'])
       expect(modale.ancestors('.fr-tabs')).to be_empty
     end
 
@@ -352,8 +359,43 @@ RSpec.describe 'Demarches' do
       expect(cartes.first.at_css('.integration-indicator').text.squish)
         .to eq('2/2 API et jeux de données utiles Voir les données intégrées par Zeta achats')
       alpha = response.parsed_body.at_css("dialog##{cartes[1].at_css('button.fr-icon-eye-line')['aria-controls']}")
-      expect(alpha.at_css('h3').text.squish).to eq('API Entreprise (1/2)')
+      expect(alpha.at_css('details[open] > summary h3').text.squish).to eq('API Entreprise (1/2)')
       expect(alpha.css('li').map { |ligne| ligne.text.squish }).to eq(['Kbis : intégrée', 'Urssaf : non intégrée'])
+    end
+
+    it 'propose de trier les solutions par données intégrées ou par titre' do
+      integre('Zeta achats', 'logiciel_metier_cle_en_main', %w[Kbis Urssaf])
+      integre('Alpha achats', 'logiciel_metier_cle_en_main', %w[Kbis])
+
+      get demarche_path('marches-publics')
+
+      section = response.parsed_body.at_css('#solutions-integratrices')
+      tri = section.at_css('select#tri-solutions-integratrices')
+      expect(section.at_css('label[for="tri-solutions-integratrices"]').text).to eq('Trier par :')
+      expect(tri.css('option').map(&:text)).to eq(['Le plus de données intégrées', 'Titre'])
+      nom_et_ordre = ->(element) { [element['data-nom'], element['data-ordre']] }
+      expect(section.css('.solution-integratrice-card').map { |carte| nom_et_ordre.call(carte.parent) })
+        .to eq([['Zeta achats', '0'], ['Alpha achats', '1']])
+      expect(section.css('tbody tr').map(&nom_et_ordre)).to eq([['Zeta achats', '0'], ['Alpha achats', '1']])
+    end
+
+    it 'déplie chaque donnée de la modale vers sa fiche data.gouv, sans répéter le nom du bouquet' do
+      Solution.find_by(nom: 'Kbis').update!(nom: 'Kbis | API Entreprise', uid_datagouv: 'kbis1', datagouv_organisation: 'Infogreffe',
+        datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes')
+      integre('Alpha achats', 'logiciel_metier_cle_en_main', ['Kbis | API Entreprise'])
+
+      get demarche_path('marches-publics')
+
+      bouton = response.parsed_body.at_css('#solutions-integratrices button.fr-icon-eye-line')
+      kbis, urssaf = response.parsed_body.css("dialog##{bouton['aria-controls']} li")
+      expect(kbis.at_css('details:not([open]) > summary').text.squish).to eq('Kbis : intégrée')
+      expect(kbis.at_css('details .fr-badge').text.squish).to eq('API restreinte · accessible aux acteurs publics')
+      expect(kbis.at_css('details').text).to include('Producteur : Infogreffe')
+      lien = kbis.at_css('details a')
+      expect([lien['href'], lien.text.squish]).to eq(['https://www.data.gouv.fr/fr/dataservices/kbis1', 'Voir sur data.gouv.fr'])
+      expect(urssaf.at_css('details')).to be_nil
+      proposition = response.parsed_body.at_css("dialog##{bouton['aria-controls']} a[href*='proposer-un-contenu']")
+      expect([proposition.text, proposition['target']]).to eq(['proposer une modification du contenu', '_blank'])
     end
 
     it 'filtre par catégorie et par solution publique, sans phrase d’introduction' do
