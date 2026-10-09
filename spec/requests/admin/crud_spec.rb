@@ -718,7 +718,7 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
       erreur = ligne_renvoyee.at_css('.fr-error-text')
       expect(erreur.text).to eq('Choisissez une solution')
-      expect(ligne_renvoyee.css('select, input, button').pluck('aria-describedby').uniq).to eq([erreur['id']])
+      expect(ligne_renvoyee.css('select, input, button:not([data-turbo-confirm])').pluck('aria-describedby').uniq).to eq([erreur['id']])
       expect(ligne_renvoyee.at_css('button').text.squish).to eq('Enregistrer la recommandation API QF (API)')
       expect(recommandation.reload.solution).to be_present
     end
@@ -751,6 +751,29 @@ RSpec.describe 'Administration' do
     it 'garde la redirection vers la fiche hors de la ligne' do
       patch "/admin/recommandations/#{recommandation.id}", params: { recommandation: { ordre: '3' } }
       expect(response).to redirect_to("/admin/recommandations/#{recommandation.id}/edit")
+    end
+
+    it 'supprime la recommandation depuis sa ligne, après confirmation, et retire la ligne de la démarche' do
+      get "/admin/demarches/#{aides.id}/edit"
+      poubelle = response.parsed_body.at_css("tr#recommandation_#{recommandation.id} button[data-turbo-confirm]")
+      formulaire = response.parsed_body.at_css("form##{poubelle['form']}")
+      expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'delete', 0])
+      expect([poubelle.text.squish, poubelle['data-turbo-confirm']]).to eq(['Supprimer la recommandation API QF (API)', 'Supprimer la recommandation API QF (API) ?'])
+      expect(response.parsed_body.css('tr#new_recommandation button[data-turbo-confirm]')).to be_empty
+
+      delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }, as: :turbo_stream
+
+      expect(flux.map { [it['action'], it['target']] }).to eq([
+        ['remove', "recommandation_#{recommandation.id}"], ['remove', "formulaire_recommandation_#{recommandation.id}"],
+        ['remove', "suppression_recommandation_#{recommandation.id}"], %w[update message-recommandations]
+      ])
+      expect(flux.last.at_css('[autofocus][tabindex="-1"]').text.squish).to eq('« Aides → API QF (API) » supprimé.')
+      expect(Recommandation.exists?(recommandation.id)).to be(false)
+    end
+
+    it 'garde la redirection vers la liste quand on supprime depuis la page de la recommandation' do
+      delete "/admin/recommandations/#{recommandation.id}"
+      expect(response).to redirect_to('/admin/recommandations')
     end
   end
 

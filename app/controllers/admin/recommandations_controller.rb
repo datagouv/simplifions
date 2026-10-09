@@ -24,6 +24,8 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def destroy
     @recommandation.destroy!
+    return render :destroy, formats: :turbo_stream if params[:ligne]
+
     redirect_to admin_recommandations_path, notice: t('admin.supprime', nom: nom_de(@recommandation)), status: :see_other
   end
 

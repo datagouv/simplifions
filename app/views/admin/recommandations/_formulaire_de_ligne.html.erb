@@ -3,3 +3,8 @@
   <%= hidden_field_tag :ligne, 1, id: nil %>
   <%= f.hidden_field :demarche_id, id: nil if ligne.new_record? %>
 <% end %>
+<% if ligne.persisted? %>
+  <%= form_with model: [:admin, ligne], method: :delete, id: dom_id(ligne, :suppression), data: { enregistre_sur_place: true } do %>
+    <%= hidden_field_tag :ligne, 1, id: nil %>
+  <% end %>
+<% end %>

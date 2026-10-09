@@ -1,0 +1,6 @@
+<%= turbo_stream.remove @recommandation %>
+<%= turbo_stream.remove dom_id(@recommandation, :formulaire) %>
+<%= turbo_stream.remove dom_id(@recommandation, :suppression) %>
+<%= turbo_stream.update "message-recommandations" do %>
+  <p class="fr-valid-text fr-mb-2w" tabindex="-1" autofocus><%= t("admin.supprime", nom: nom_de(@recommandation)) %></p>
+<% end %>
