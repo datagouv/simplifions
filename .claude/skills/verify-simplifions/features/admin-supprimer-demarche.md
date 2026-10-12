@@ -1,6 +1,6 @@
 # Supprimer depuis la fiche, en voyant ce qui part avec
 
-Deleting a démarche from the administration removes its recommandations with it in one `DELETE` (`dependent: :delete_all`); the recommended solution stays. The confirmation names the row and counts what goes or changes with it; for an organisation, it names the solutions that would become private (it was their only `Public` operator).
+Deleting a démarche from the administration removes its recommandations with it; the recommended solution stays. The confirmation names the row and counts what goes or changes with it; for an organisation, it names the solutions that would become private (it was their only `Public` operator).
 
 ## How to get to it (user POV)
 

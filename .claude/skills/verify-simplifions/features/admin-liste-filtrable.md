@@ -18,7 +18,7 @@ Every long list of linked rows in an admin form (intégrations, démarches, solu
 
 - **Groups.** Legends inside `Vocabulaires` are the three categories in order; one `?` per vocabulaire.
 - **Checked only.** Under `Intégrations`, 2 boxes shown, both checked; live line `2 cochés sur <Integration.count>`.
-- **Tab passes through.** Focus the last vocabulaire's `?`, Tab: focus lands in `Filtrer les intégrations`, still 2 boxes; 6 more Tab (cross, 2 boxes, 2 `Voir la fiche`) leave the list.
+- **Tab passes through.** Open tab `Intégrations`, focus its panel, Tab: focus lands in `Filtrer les intégrations`, still 2 boxes; 6 more Tab (cross, 2 boxes, 2 `Voir la fiche`) leave the list.
 - **Click shows all, framed.** Click the field: every box shown, live line unchanged, `resultats` background no longer transparent.
 - **Cross.** Type, click `Effacer le filtre des intégrations`: field empty, 2 boxes, no frame, focus back in the field.
 - **ArrowDown, then leave.** ArrowDown shows all; Shift+Tab out of the fieldset: 2 boxes, no frame.

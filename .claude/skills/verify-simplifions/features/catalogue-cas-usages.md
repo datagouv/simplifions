@@ -5,7 +5,7 @@ Visitors browse the list of cas d'usages (démarches), narrow it by full-text se
 ## Sub-features
 
 - `catalogue-liste` shows the visible démarches, 20 per page, with a result count.
-- `catalogue-recherche` filters by the `Recherche` text field.
+- `catalogue-recherche` filters by the `Rechercher` text field.
 - `catalogue-facettes` filters by acteur, usager, catégorie de solution, type de simplification; selects auto-submit.
 - `catalogue-type` switches between `Cas d'usages` and `Solutions` keeping the filters.
 
@@ -24,7 +24,7 @@ Preconditions:
 - At least one visible démarche whose title contains « marchés publics » and targets entreprises.
 
 - **Open the list.** `page.visit("/demarches")`. H1 `Cas d'usages`, a `[role=status]` paragraph `N résultats`.
-- **Search.** `fill_in "Recherche", with: "marchés publics"` then `click_button "Recherche"`. URL gains `q=`, the count drops.
+- **Search.** `fill_in "Rechercher", with: "marchés publics"` then `click_button "Rechercher"`. URL gains `q=`, the count drops.
 - **Facet.** `select "Entreprises", from: "Démarches à destination des :"`. URL gains `target-users=entreprises` without clicking; the count updates.
 - **Proof.** Screenshot, and the page count equals `Demarche.catalogue({ "q" => "marchés publics", "target-users" => "entreprises" }).count`.
 

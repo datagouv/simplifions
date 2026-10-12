@@ -6,7 +6,7 @@ Admins add, edit and delete rows of every catalogue table from plain DSFR forms;
 
 - `admin-liste` table `Id`, `Nom` (the name links to the read page `/admin/vocabulaires/<id>`, no `Supprimer`), an `Ajouter` button; search and pagination in `admin-listes.md`.
 - `admin-lire` read page: H1 = the name, `dt`/`dd` Slug, Catégorie, Démarches, Solutions; button `Modifier`.
-- `admin-creer` form `Nom`, `Slug`, `Catégorie`, `Grist`, checkboxes for linked démarches and solutions.
+- `admin-creer` form `Nom`, `Slug`, `Catégorie`, checkboxes for linked démarches and solutions.
 - `admin-modifier` same form on `/admin/vocabulaires/<id>/edit`, H1 = the row's name, breadcrumb `Administration › Vocabulaires › <nom>`, tab title `<nom> — Modifier — Vocabulaire | Simplifions.data.gouv.fr`, prefixed with the notice right after a save (`« <nom> » enregistré. — <nom> — …`) so a screen reader announces it.
 - `admin-enregistrer` create and update stay on the row's edit page with `« <nom> » enregistré.` (every table, name or `libelle` for recommandations and intégrations); vocabulaires and fournisseurs de services land on their read page instead.
 - `admin-supprimer` on the edit page, in the `État et actions` column: confirm dialog `Supprimer « <nom> » ?` followed by what goes or is detached with it (`2 démarches en seront détachées.`), then `« <nom> » supprimé.`

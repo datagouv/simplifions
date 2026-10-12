@@ -5,7 +5,7 @@ The administration dates a démarche, a solution or a recommandation by itself: 
 ## How to get to it (user POV)
 
 - `/admin/demarches/new`, `/admin/solutions/new`, `/admin/recommandations/new` and their `edit`: no `Cree le` / `Modifie le` field.
-- The dates show on the public pages (`Mis à jour le`) and in `sitemap.xml` (`lastmod`).
+- The dates show on the public pages (`Modifié le`) and in `sitemap.xml` (`lastmod`).
 
 ## Driving it with Capybara
 

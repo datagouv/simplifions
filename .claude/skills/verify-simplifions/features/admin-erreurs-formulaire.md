@@ -12,7 +12,7 @@ A refused admin form shows a titled summary (`2 erreurs à corriger`) at its top
 `drive.rb erreurs`. Saves nothing (every submit is refused). Preconditions: logged in.
 
 - **Required.** `find_field 'Nom (obligatoire)'` has `required`.
-- **Summary.** After `Enregistrer`: `.fr-alert--error` titled `2 erreurs à corriger` is `document.activeElement`; links `#demarche_nom`, `#demarche_slug`.
+- **Summary.** After `Publier`: `.fr-alert--error` titled `2 erreurs à corriger` is `document.activeElement`; links `#demarche_nom`, `#demarche_slug`.
 - **Keyboard.** `Tab` from the summary lands on the first link.
 - **Link.** `click_link 'Nom doit être rempli'`: hash `#demarche_nom`, focus on the field (links carry `data-turbo="false"`, else Turbo fires `turbo:before-visit` and the leave warning asks).
 - **Field.** `aria-invalid="true"`, `aria-describedby` points at the message `Nom doit être rempli`.
