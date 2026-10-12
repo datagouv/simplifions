@@ -1257,7 +1257,7 @@ def brouillon_recommandations(page, dossier, nom, slug)
   reco = Recommandation.create!(demarche:, solution: modifiee, niveau: :niveau_2, donnees_utiles: 'Avant', visible: true)
   page.visit("/admin/demarches/#{demarche.id}/edit")
   onglet(page, 'Recommandations')
-  page.click_link modifiee.libelle_admin
+  page.click_link "Modifier la recommandation #{modifiee.libelle_admin}"
   page.fill_in 'Données utiles disponibles', with: 'Après'
   page.click_button 'Enregistrer'
   page.assert_selector 'aside.admin-panneau', text: /Brouillon — sera publiée avec la démarche/i

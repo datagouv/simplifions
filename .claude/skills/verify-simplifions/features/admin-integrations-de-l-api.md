@@ -4,7 +4,7 @@ The démarches of an intégration are those that recommend its API or jeu de don
 
 ## How to get to it (user POV)
 
-- `Démarches` → a démarche → `Intégrations` group; `Intégrations` → a fiche → `Démarches` group; `Intégrations` → `Ajouter`.
+- `Démarches` → a démarche → `Intégrations (<n>)` tab; `Intégrations` → a fiche → `Démarches` group; `Intégrations` → `Ajouter`.
 
 ## Driving it with Capybara
 

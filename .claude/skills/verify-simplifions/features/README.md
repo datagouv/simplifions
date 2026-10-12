@@ -46,6 +46,8 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md) — edit, add, delete and see errors on a solution's integrations row by row, in both lists of its `Intégrations` tab.
 - [admin-formulaire-solution.md](admin-formulaire-solution.md) — a solution form shows only the fields of its catégorie, its image (removable) and whether it is private.
 - [admin-fournisseurs-de-services.md](admin-fournisseurs-de-services.md) — fournisseurs de services (types d'acteurs): read page first, regroupements ticked from the public filters, memo hints.
+- [admin-homonymes.md](admin-homonymes.md) — two solutions with the same name show as `<nom> (<catégorie>)` in every admin select, checkbox list and list column.
+- [admin-pages-liees.md](admin-pages-liees.md) — admin text areas as tall as their content, `Voir la page publique`, `Voir la fiche` and `?` links to the linked rows, opened in a new tab.
 - [admin-saisie-solution.md](admin-saisie-solution.md) — a solution's types as checkboxes on a fixed list, one-line légende, image removal announced, linked démarches and intégrations shown with links.
 - [admin-colonne-actions.md](admin-colonne-actions.md) — the sticky `État et actions` column of admin forms: save from anywhere, publish or hide, Enter keeps the state, mobile layout.
 - [admin-historique.md](admin-historique.md) — who changed a fiche last and its history page: author (admin, Import Grist, data.gouv), each changed field before → after.

@@ -62,7 +62,7 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
   It prints `ok <feature>` or `ECHEC <feature>: <error>` and never aborts the other features.
 - A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join(".claude/skills/verify-simplifions/harness.rb")`, run with `bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
-- Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Recherche"`, `select "Entreprises", from: "Démarches à destination des :"`). The filter selects auto-submit on change (Stimulus); the search field needs the `Recherche` button.
+- Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The filter selects auto-submit on change (Stimulus); the search field needs the `Rechercher` button.
 - Both browsers, every time: the user browses with Firefox, CI and Capybara defaults lean on Chrome.
 
 ## Evidence

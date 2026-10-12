@@ -4,7 +4,7 @@ A button on the admin dashboard enqueues `RafraichirCatalogueJob` (Grist import 
 
 ## How to get to it (user POV)
 
-- Log in as admin → `/admin` → section `Rafraîchir le catalogue` → button `Rafraîchir depuis Grist et data.gouv` → native confirm (« Le contenu du Grist remplacera les modifications faites dans l’administration. ») → back on `/admin` with `Rafraîchissement lancé.`, `Dernier rafraîchissement : en cours.` and the disabled `Rafraîchissement en cours…` button.
+- Log in as admin → `/admin` → section `Rafraîchir le catalogue` → button `Rafraîchir depuis Grist et data.gouv` → native confirm (« Rafraîchir le catalogue depuis Grist et data.gouv ? Le contenu du Grist remplacera les modifications faites dans l’administration. ») → back on `/admin` with `Rafraîchissement lancé.`, `Dernier rafraîchissement : en cours.` and the disabled `Rafraîchissement en cours…` button.
 
 ## Driving it
 

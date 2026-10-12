@@ -5,7 +5,7 @@ An admin signs in from the header, lands on the administration dashboard, and si
 ## Sub-features
 
 - `connexion-formulaire` DSFR login form, wrong credentials stay on the form with an error alert.
-- `connexion-tableau-de-bord` `/admin` lists the seven catalogue tables.
+- `connexion-tableau-de-bord` `/admin` lists the seven catalogue tables under `Catalogue` (5) and `Référentiels` (2), then the `Rafraîchir le catalogue` section.
 - `connexion-deconnexion` the header button ends the session.
 - `connexion-garde` `/admin/*` without a session redirects to the login form.
 
