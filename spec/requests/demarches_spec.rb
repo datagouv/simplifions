@@ -354,6 +354,8 @@ RSpec.describe 'Demarches' do
       expect(section.css('button.fr-tag[aria-pressed="true"]').map { |tag| tag.text.squish })
         .to eq(['Logiciels métier « clé en main » (2)', 'Sites de consultation (1)'])
       expect(noms_des_cartes).to eq(['Zeta achats', 'Alpha achats', 'Annuaire'])
+      expect(section.css('div[data-categorie]').to_h { |bloc| [bloc['data-categorie'], bloc.css('tbody tr').map { |ligne| ligne['data-nom'] }] })
+        .to eq('logiciel_metier_cle_en_main' => ['Zeta achats', 'Alpha achats'], 'site_de_consultation' => ['Annuaire'])
       cartes = section.css('.solution-integratrice-card')
       expect(cartes.map { |carte| carte.at_css('.integration-indicator__count').text }).to eq(%w[2/2 1/2 1/2])
       expect(cartes.first.at_css('.integration-indicator').text.squish)
@@ -458,18 +460,17 @@ RSpec.describe 'Demarches' do
       expect(section.at_css('tbody tr th .tableau-integratrices__detail').text).to eq('Annuaire en ligne')
       expect(section.css('.fr-segmented input, .fr-toggle__input').map { |champ| champ.attr('autocomplete') }).to all(eq('off'))
       expect(section.css('.fr-segmented input[type="radio"]').map { |choix| choix.attr('value') }).to eq(%w[cartes tableau])
-      tableau = section.at_css('[data-categories-integratrices-target="tableau"]')
-      expect(tableau['class']).to include('fr-hidden')
-      expect(tableau.css('thead tr:first-child th').map { |entete| entete.text.squish })
+      tableaux = section.css('[data-categories-integratrices-target="tableau"]')
+      expect(tableaux.map { |tableau| tableau['class'] }).to all(include('fr-hidden'))
+      expect(tableaux.first.css('thead tr:first-child th').map { |entete| entete.text.squish })
         .to eq(['Solution', 'Données intégrées pour ce cas d\'usage', 'API Entreprise'])
-      expect(tableau.css('thead tr:last-child th').map { |colonne| colonne.text.squish }).to eq(%w[Kbis Urssaf])
-      lignes = tableau.css('tbody tr').map do |ligne|
+      expect(tableaux.first.css('thead tr:last-child th').map { |colonne| colonne.text.squish }).to eq(%w[Kbis Urssaf])
+      lignes = tableaux.css('tbody tr').map do |ligne|
         [ligne.at_css('th a').text, *ligne.css('td').map { |cellule| cellule.text.squish }]
       end
-      expect(tableau.css('tbody tr').map { |ligne| ligne.attr('data-categorie') }).to eq(%w[site_de_consultation logiciel_metier_cle_en_main])
       expect(lignes).to eq([
-        ['Annuaire', '2/2', 'Intégrée', 'Intégrée'],
-        ['Alpha achats', '1/2', 'Intégrée', '– Non intégrée']
+        ['Alpha achats', '1/2', 'Intégrée', '– Non intégrée'],
+        ['Annuaire', '2/2', 'Intégrée', 'Intégrée']
       ])
     end
 

@@ -55,14 +55,9 @@
   </div>
   <p class="fr-hidden" data-categories-integratrices-target="vide"><i>Aucune solution ne correspond aux filtres sélectionnés.</i></p>
 
-  <div data-categories-integratrices-target="cartes">
-    <% libelles.each do |categorie, titre| %>
-      <% next unless par_categorie.key?(categorie) %>
-      <%= render 'bloc_integratrices', categorie:, titre:, solutions: par_categorie[categorie], couvertures:, groupes:, integrees:,
-            nom_demarche: %>
-    <% end %>
-  </div>
-  <div class="fr-hidden" data-categories-integratrices-target="tableau">
-    <%= render 'tableau_integratrices', solutions: triees, groupes:, integrees:, couvertures: %>
-  </div>
+  <% libelles.each do |categorie, titre| %>
+    <% next unless par_categorie.key?(categorie) %>
+    <%= render 'bloc_integratrices', categorie:, titre:, solutions: par_categorie[categorie], couvertures:, groupes:, integrees:,
+          nom_demarche: %>
+  <% end %>
 </div>

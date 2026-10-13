@@ -14,7 +14,7 @@
       Ces sites vous permettent de consulter certaines des données utiles pour ce cas d'usage.
     <% end %>
   </p>
-  <ul class="fr-grid-row fr-grid-row--gutters list-none" data-categories-integratrices-target="liste">
+  <ul class="fr-grid-row fr-grid-row--gutters list-none" data-categories-integratrices-target="liste cartes">
     <% solutions.each_with_index do |solution, ordre| %>
       <li class="fr-col-12 fr-col-md-6 fr-col-lg-4" data-privee="<%= solution.privee? %>" data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
         <%= render 'solution_integratrice', solution:, couverture: couvertures[solution.id], groupes:,
@@ -23,4 +23,7 @@
       </li>
     <% end %>
   </ul>
+  <div class="fr-hidden" data-categories-integratrices-target="tableau">
+    <%= render 'tableau_integratrices', solutions:, groupes:, integrees:, couvertures:, titre: %>
+  </div>
 </div>

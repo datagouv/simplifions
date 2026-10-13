@@ -20,8 +20,8 @@ export default class extends Controller {
   }
 
   montrer(vue) {
-    this.cartesTarget.classList.toggle("fr-hidden", vue !== "cartes")
-    this.tableauTarget.classList.toggle("fr-hidden", vue !== "tableau")
+    this.cartesTargets.forEach((cartes) => cartes.classList.toggle("fr-hidden", vue !== "cartes"))
+    this.tableauTargets.forEach((tableau) => tableau.classList.toggle("fr-hidden", vue !== "tableau"))
   }
 
   trier() {
@@ -43,8 +43,8 @@ export default class extends Controller {
       const visibles = cartes.filter((carte) => !carte.classList.contains("fr-hidden")).length
       this.element.querySelectorAll(`[data-compte="${categorie}"]`).forEach((compte) => { compte.textContent = visibles })
       this.element.querySelector(`div[data-categorie="${categorie}"]`).classList.toggle("fr-hidden", !choisie || visibles === 0)
-      this.element.querySelectorAll(`tr[data-categorie="${categorie}"]`).forEach((ligne) => {
-        ligne.classList.toggle("fr-hidden", !choisie || (publiquesSeules && ligne.dataset.privee === "true"))
+      this.element.querySelectorAll(`div[data-categorie="${categorie}"] tr[data-privee]`).forEach((ligne) => {
+        ligne.classList.toggle("fr-hidden", publiquesSeules && ligne.dataset.privee === "true")
       })
       if (choisie) total += visibles
     })

@@ -4,7 +4,7 @@
     <div class="fr-table__container">
       <div class="fr-table__content">
         <table>
-          <caption class="fr-sr-only">API et jeux de données utiles intégrés par chaque solution</caption>
+          <caption class="fr-sr-only">API et jeux de données utiles intégrés par chaque solution : <%= titre %></caption>
           <colgroup span="2"></colgroup>
           <% sections.each do |_titre, utiles| %>
             <colgroup span="<%= utiles.size %>"></colgroup>
@@ -39,7 +39,7 @@
             <% solutions.each_with_index do |solution, ordre| %>
               <% nombre_integrees, nombre_utiles = couvertures[solution.id]
                  integrees_solution = integrees.fetch(solution.id, Set.new) %>
-              <tr data-categorie="<%= solution.categorie %>" data-privee="<%= solution.privee? %>" data-nom="<%= solution.nom %>"
+              <tr data-privee="<%= solution.privee? %>" data-nom="<%= solution.nom %>"
                 data-ordre="<%= ordre %>">
                 <th scope="row" class="fr-cell--fixed tableau-integratrices__solution">
                   <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
