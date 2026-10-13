@@ -1,9 +1,13 @@
-<div class="fr-mb-5w" data-categorie="<%= categorie %>">
-  <h3 class="fr-h5 fr-mb-1w"><%= titre %> (<span data-compte="<%= categorie %>"><%= solutions.size %></span>)
-    <% unless categorie == 'brique_logicielle' %>
-      <span class="fr-badge fr-badge--sm fr-badge--new fr-ml-1w">Sans développement</span>
-    <% end %>
-  </h3>
+<details class="section-depliable fr-mb-5w" open data-categorie="<%= categorie %>" data-affichage-contenu-target="solution"
+  data-filtre="<%= filtre_affichage(categorie) %>">
+  <summary class="fr-mb-1w">
+    <span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-fill fr-icon--md"></span>
+    <h3 class="fr-h5 fr-mb-0"><%= titre %> <%= badge_nombre_solutions(categorie, solutions.size) %>
+      <% unless categorie == 'brique_logicielle' %>
+        <span class="fr-badge fr-badge--sm fr-badge--new fr-ml-1w">Sans développement</span>
+      <% end %>
+    </h3>
+  </summary>
   <p class="fr-text--sm">
     <% case categorie %>
     <% when 'logiciel_metier_cle_en_main' %>
@@ -26,4 +30,4 @@
   <div class="fr-hidden" data-categories-integratrices-target="tableau">
     <%= render 'tableau_integratrices', solutions:, groupes:, integrees:, couvertures:, titre: %>
   </div>
-</div>
+</details>

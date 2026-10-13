@@ -1,0 +1,12 @@
+<p class="fr-h6 fr-text-title--blue-france fr-mb-2w" id="<%= id %>">
+  <span aria-hidden="true" class="fr-icon-user-search-line"></span>
+  Affichez le contenu de cette page selon les solutions que vous recherchez :
+</p>
+<ul class="fr-tags-group fr-mb-0" aria-labelledby="<%= id %>">
+  <% filtres.each do |filtre, libelle| %>
+    <li>
+      <button type="button" class="fr-tag" aria-pressed="false" data-affichage-contenu-target="tag"
+        data-filtre="<%= filtre %>"><%= libelle %></button>
+    </li>
+  <% end %>
+</ul>

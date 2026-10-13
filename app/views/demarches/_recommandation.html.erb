@@ -10,9 +10,9 @@
    type_donnee = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données'
    libelle_compteur = "#{type_donnee} utiles #{cible.nom}"
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
-   accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
-                 ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
-                 ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites']] %>
+   accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'Aucune brique'],
+                 ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'Aucun logiciel'],
+                 ['site_de_consultation', 'Via un site de consultation', 'Aucun site']] %>
 <div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>">
   <h3 class="fr-h4 fr-mb-2w">
     <span class="fr-text--alt"><em>Via «</em></span>
@@ -43,14 +43,14 @@
   <div class="fr-mt-2w fr-mx-2w">
     <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
 
-    <div class="fr-accordions-group">
+    <div class="fr-accordions-group" data-fr-group="false">
       <% if lien_fiche || lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
         <section class="fr-accordion">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
               aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
           </h5>
-          <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
+          <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>" data-affichage-contenu-target="donnee" data-filtre="api">
             <% if lien_fiche || lien_demande_acces %>
               <div class="fr-btns-group fr-btns-group--inline fr-btns-group--right fr-my-2w">
                 <% if lien_fiche %>
@@ -142,7 +142,7 @@
         </section>
       <% end %>
 
-      <% accordeons.each do |categorie, titre, icone, vide, singulier, pluriel| %>
+      <% accordeons.each do |categorie, titre, vide| %>
         <% solutions = moyens.fetch(categorie, []) %>
         <% if solutions.empty? %>
           <section class="fr-accordion">
@@ -150,7 +150,7 @@
               <span class="fr-accordion__btn fr-accordion__btn--empty">
                 <span class="fr-mr-auto">
                   <%= titre %>
-                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-text-mention--grey fr-ml-1w <%= icone %>"><%= vide %></span>
+                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-text-mention--grey fr-ml-1w <%= IntegrationsHelper::BADGES_SOLUTIONS[categorie].first %>"><%= vide %></span>
                 </span>
                 <span aria-hidden="true" class="fr-icon-subtract-line fr-icon--sm"></span>
                 <span class="fr-sr-only">(Aucune solution référencée)</span>
@@ -164,16 +164,15 @@
                 aria-controls="<%= dom_id(recommandation, categorie) %>">
                 <span class="fr-mr-auto">
                   <%= titre %>
-                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-background-contrast--info fr-text-default--info fr-ml-1w <%= icone %>">
-                    <%= solutions.size %> <%= solutions.size > 1 ? pluriel : singulier %>
-                  </span>
+                  <%= badge_nombre_solutions(categorie, solutions.size) %>
                   <% unless categorie == 'brique_logicielle' %>
                     <span class="fr-badge fr-badge--sm fr-badge--new fr-ml-1w">Sans développement</span>
                   <% end %>
                 </span>
               </button>
             </h5>
-            <div class="fr-collapse" id="<%= dom_id(recommandation, categorie) %>">
+            <div class="fr-collapse" id="<%= dom_id(recommandation, categorie) %>" data-affichage-contenu-target="donnee"
+              data-filtre="<%= filtre_affichage(categorie) %>">
               <% case categorie %>
               <% when 'brique_logicielle' %>
                 <p><strong>Briques techniques logicielles</strong> destinées à être intégrées dans un système informatique existant et conçues pour le cas d'usage «<i>&nbsp;<%= nom_demarche %>&nbsp;</i>» :</p>

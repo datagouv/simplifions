@@ -1,5 +1,9 @@
 /* Pages démarche et solution (.fiche-page) : rendu repris de udata-front-kit (src/custom/simplifions). */
 
+.fil-ariane-collant {
+  position: relative;
+}
+
 @media (min-width: 48em) {
   html:has(.fil-ariane-collant) {
     scroll-padding-top: 3rem;
@@ -20,12 +24,27 @@
   }
 }
 
+.bandeau-filtres-collant {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+}
+
+.bandeau-filtres-collant.fr-collapse--expanded {
+  box-shadow: inset 0 1px 0 var(--border-default-grey), 0 1px 0 var(--border-default-grey);
+}
+
 .section-depliable > summary {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   list-style: none;
   cursor: pointer;
+}
+
+.section-depliable::details-content {
+  box-sizing: inherit;
 }
 
 .section-depliable > summary::-webkit-details-marker {

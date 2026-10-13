@@ -351,10 +351,11 @@ RSpec.describe 'Demarches' do
       get demarche_path('marches-publics')
 
       section = response.parsed_body.at_css('#solutions-integratrices')
-      expect(section.css('button.fr-tag[aria-pressed="true"]').map { |tag| tag.text.squish })
-        .to eq(['Logiciels métier « clé en main » (2)', 'Sites de consultation (1)'])
+      expect(section.css('details[open] > summary h3').map { |titre| titre.text.squish })
+        .to eq(['Logiciels métier « clé en main » 2 logiciels Sans développement', 'Sites de consultation 1 site Sans développement'])
+      expect(section.css('button.fr-tag')).to be_empty
       expect(noms_des_cartes).to eq(['Zeta achats', 'Alpha achats', 'Annuaire'])
-      expect(section.css('div[data-categorie]').to_h { |bloc| [bloc['data-categorie'], bloc.css('tbody tr').map { |ligne| ligne['data-nom'] }] })
+      expect(section.css('details[data-categorie]').to_h { |bloc| [bloc['data-categorie'], bloc.css('tbody tr').map { |ligne| ligne['data-nom'] }] })
         .to eq('logiciel_metier_cle_en_main' => ['Zeta achats', 'Alpha achats'], 'site_de_consultation' => ['Annuaire'])
       cartes = section.css('.solution-integratrice-card')
       expect(cartes.map { |carte| carte.at_css('.integration-indicator__count').text }).to eq(%w[2/2 1/2 1/2])
@@ -431,7 +432,7 @@ RSpec.describe 'Demarches' do
       expect([proposition.text, proposition['target']]).to eq(['proposer une modification du contenu', '_blank'])
     end
 
-    it 'filtre par catégorie et par solution publique, sans phrase d’introduction' do
+    it 'filtre par solution publique, sans phrase d’introduction' do
       integre('Acheteza', 'logiciel_metier_cle_en_main', %w[Kbis])
       integre('Annuaire', 'site_de_consultation', %w[Kbis])
       Solution.find_by!(nom: 'Annuaire').organisations << Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
@@ -440,7 +441,7 @@ RSpec.describe 'Demarches' do
 
       section = response.parsed_body.at_css('#solutions-integratrices')
       expect(section.text).not_to include('Nombre d\'API et de jeux de données utiles')
-      expect(section.text).to include('Filtrer les solutions', 'Par catégorie :')
+      expect(section.text).not_to include('Filtrer les solutions', 'Par catégorie :')
       expect(section.at_css('label[for="filtre-solutions-publiques"]').text).to eq('Solutions publiques')
       expect(section.at_css('input#filtre-solutions-publiques.fr-toggle__input')['checked']).to be_nil
       expect(section.css('li[data-privee]').map { |carte| [carte.at_css('a').text, carte['data-privee']] })
@@ -461,7 +462,7 @@ RSpec.describe 'Demarches' do
       expect(section.css('.fr-segmented input, .fr-toggle__input').map { |champ| champ.attr('autocomplete') }).to all(eq('off'))
       expect(section.css('.fr-segmented input[type="radio"]').map { |choix| choix.attr('value') }).to eq(%w[cartes tableau])
       tableaux = section.css('[data-categories-integratrices-target="tableau"]')
-      expect(tableaux.map { |tableau| tableau['class'] }).to all(include('fr-hidden'))
+      expect(tableaux.pluck('class')).to all(include('fr-hidden'))
       expect(tableaux.first.css('thead tr:first-child th').map { |entete| entete.text.squish })
         .to eq(['Solution', 'Données intégrées pour ce cas d\'usage', 'API Entreprise'])
       expect(tableaux.first.css('thead tr:last-child th').map { |colonne| colonne.text.squish }).to eq(%w[Kbis Urssaf])
@@ -482,13 +483,47 @@ RSpec.describe 'Demarches' do
       get demarche_path('marches-publics')
 
       expect(noms_des_cartes).to eq(['Acheteza', 'Passe Marché', 'Annuaire'])
-      categories = response.parsed_body.css('#solutions-integratrices div[data-categorie]')
-      expect(categories.map { |categorie| [categorie.at_css('h3').text.squish, categorie.at_css('p').text.squish] }).to eq([
-        ['Logiciels métier « clé en main » (1) Sans développement', 'Logiciels métier, sur étagère, conçus pour ce cas d\'usage.'],
-        ['Briques logicielles à intégrer (1)',
+      categories = response.parsed_body.css('#solutions-integratrices details[data-categorie]')
+      expect(categories.map { |categorie| [categorie.at_css('h3').text.squish, categorie.at_css('> p').text.squish] }).to eq([
+        ['Logiciels métier « clé en main » 1 logiciel Sans développement', 'Logiciels métier, sur étagère, conçus pour ce cas d\'usage.'],
+        ['Briques logicielles à intégrer 1 brique',
          'Briques techniques logicielles destinées à être intégrées dans un système informatique existant et conçues pour ce cas d\'usage.'],
-        ['Sites de consultation (1) Sans développement', 'Ces sites vous permettent de consulter certaines des données utiles pour ce cas d\'usage.']
+        ['Sites de consultation 1 site Sans développement', 'Ces sites vous permettent de consulter certaines des données utiles pour ce cas d\'usage.']
       ])
+    end
+
+    it 'propose d’afficher le contenu de la page selon les solutions recherchées' do
+      integre('Acheteza', 'logiciel_metier_cle_en_main', %w[Kbis])
+      integre('Passe Marché', 'brique_logicielle', %w[Kbis])
+      integre('Annuaire', 'site_de_consultation', %w[Kbis])
+
+      get demarche_path('marches-publics')
+
+      etiquettes = response.parsed_body.css('[data-affichage-contenu-target="bandeau"] button.fr-tag')
+      expect(etiquettes.map { |etiquette| [etiquette.text.squish, etiquette['data-filtre'], etiquette['aria-pressed']] }).to eq([
+        ['API et bases de données', 'api', 'false'],
+        ['Logiciels métiers « clé en main »', 'logiciel_metier_cle_en_main', 'false'],
+        ['Sites de consultation des données', 'site_de_consultation', 'false']
+      ])
+      expect(response.parsed_body.css('#donnees-disponibles .fr-collapse').pluck('data-filtre'))
+        .to eq(%w[api api logiciel_metier_cle_en_main site_de_consultation])
+      expect(response.parsed_body.css('#solutions-integratrices details[data-filtre]').pluck('data-filtre'))
+        .to eq(%w[logiciel_metier_cle_en_main api site_de_consultation])
+    end
+
+    it 'garde les filtres d’affichage à portée dans la barre du fil d’Ariane' do
+      integre('Acheteza', 'logiciel_metier_cle_en_main', %w[Kbis])
+
+      get demarche_path('marches-publics')
+
+      barre = response.parsed_body.at_css('.fil-ariane-collant')
+      bouton = barre.at_css('button[aria-controls="menu-filtres"]')
+      expect(bouton.text.squish).to eq('Afficher le contenu')
+      expect(barre.at_css('#menu-filtres').text).to include('Affichez le contenu de cette page selon les solutions que vous recherchez :')
+      expect(barre.css('#menu-filtres button.fr-tag').map { |etiquette| [etiquette.text.squish, etiquette['data-filtre'], etiquette['aria-pressed']] })
+        .to eq([['API et bases de données', 'api', 'false'],
+                ['Logiciels métiers « clé en main »', 'logiciel_metier_cle_en_main', 'false'],
+                ['Sites de consultation des données', 'site_de_consultation', 'false']])
     end
 
     it 'range données et solutions dans deux onglets, ouvrables depuis le sommaire' do
@@ -505,12 +540,15 @@ RSpec.describe 'Demarches' do
       expect(response.parsed_body.at_css('[data-controller="onglet-ancre"]')).to be_present
     end
 
-    it 'ne propose que l’onglet des données quand aucune solution n’a intégré de données' do
+    it 'grise l’onglet des solutions quand aucune solution n’a intégré de données' do
       get demarche_path('marches-publics')
 
-      expect(response.parsed_body.css('[role="tab"]').map(&:text)).to eq(['Données disponibles et utiles (1)'])
-      expect(response.parsed_body.at_css('#solutions-integratrices')).to be_nil
-      expect(response.body).not_to include('Solutions ayant intégré ces données')
+      onglets = response.parsed_body.css('[role="tab"]')
+      expect(onglets.map { |onglet| [onglet.text, onglet.key?('disabled')] })
+        .to eq([['Données disponibles et utiles (1)', false], ['Solutions ayant intégré ces données (0)', true]])
+      expect(response.parsed_body.css('.fr-summary__link').map(&:text)).to eq(['Contexte et cadre juridique', 'Données disponibles et utiles'])
+      expect(response.parsed_body.at_css('#solutions-integratrices')).to be_present
+      expect(response.parsed_body.at_css('[data-controller="categories-integratrices"]')).to be_nil
     end
   end
 

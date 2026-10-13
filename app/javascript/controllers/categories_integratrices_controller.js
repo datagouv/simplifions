@@ -1,18 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["tag", "publiques", "vide", "cartes", "tableau", "tri", "liste"]
+  static targets = ["publiques", "vide", "cartes", "tableau", "tri", "liste"]
 
   connect() {
-    this.observateur = new MutationObserver(() => this.filtrer())
-    this.tagTargets.forEach((tag) => this.observateur.observe(tag, { attributeFilter: ["aria-pressed"] }))
     const vue = this.element.querySelector('input[name="affichage-solutions"]:checked')
     this.montrer(vue ? vue.value : "cartes")
     this.filtrer()
-  }
-
-  disconnect() {
-    this.observateur.disconnect()
   }
 
   afficher(event) {
@@ -35,18 +29,14 @@ export default class extends Controller {
   filtrer() {
     const publiquesSeules = this.publiquesTarget.checked
     let total = 0
-    this.tagTargets.forEach((tag) => {
-      const categorie = tag.dataset.filtre
-      const choisie = tag.getAttribute("aria-pressed") === "true"
-      const cartes = [...this.element.querySelectorAll(`div[data-categorie="${categorie}"] li[data-privee]`)]
-      cartes.forEach((carte) => carte.classList.toggle("fr-hidden", publiquesSeules && carte.dataset.privee === "true"))
-      const visibles = cartes.filter((carte) => !carte.classList.contains("fr-hidden")).length
-      this.element.querySelectorAll(`[data-compte="${categorie}"]`).forEach((compte) => { compte.textContent = visibles })
-      this.element.querySelector(`div[data-categorie="${categorie}"]`).classList.toggle("fr-hidden", !choisie || visibles === 0)
-      this.element.querySelectorAll(`div[data-categorie="${categorie}"] tr[data-privee]`).forEach((ligne) => {
-        ligne.classList.toggle("fr-hidden", publiquesSeules && ligne.dataset.privee === "true")
-      })
-      if (choisie) total += visibles
+    this.element.querySelectorAll("details[data-categorie]").forEach((bloc) => {
+      const solutions = bloc.querySelectorAll("[data-privee]")
+      solutions.forEach((solution) => solution.classList.toggle("fr-hidden", publiquesSeules && solution.dataset.privee === "true"))
+      const visibles = bloc.querySelectorAll("li[data-privee]:not(.fr-hidden)").length
+      const badge = bloc.querySelector("[data-compte]")
+      badge.textContent = `${visibles} ${visibles > 1 ? badge.dataset.pluriel : badge.dataset.singulier}`
+      bloc.classList.toggle("fr-hidden", visibles === 0)
+      total += visibles
     })
     this.videTarget.classList.toggle("fr-hidden", total > 0)
   }
