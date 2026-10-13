@@ -533,7 +533,7 @@ RSpec.describe 'Demarches' do
 
       onglets = response.parsed_body.css('[role="tab"]')
       expect(onglets.map { |onglet| [onglet.text, onglet.attr('aria-controls'), onglet.attr('aria-selected')] })
-        .to eq([['Données disponibles et utiles (1)', 'donnees-disponibles', 'true'],
+        .to eq([['Données disponibles et utiles (2)', 'donnees-disponibles', 'true'],
                 ['Solutions ayant intégré ces données (1)', 'solutions-integratrices', 'false']])
       expect(response.parsed_body.css('.fr-summary__link').map(&:text))
         .to eq(['Contexte et cadre juridique', 'Données disponibles et utiles', 'Solutions ayant intégré ces données'])
@@ -545,7 +545,7 @@ RSpec.describe 'Demarches' do
 
       onglets = response.parsed_body.css('[role="tab"]')
       expect(onglets.map { |onglet| [onglet.text, onglet.key?('disabled')] })
-        .to eq([['Données disponibles et utiles (1)', false], ['Solutions ayant intégré ces données (0)', true]])
+        .to eq([['Données disponibles et utiles (2)', false], ['Solutions ayant intégré ces données (0)', true]])
       expect(response.parsed_body.css('.fr-summary__link').map(&:text)).to eq(['Contexte et cadre juridique', 'Données disponibles et utiles'])
       expect(response.parsed_body.at_css('#solutions-integratrices')).to be_present
       expect(response.parsed_body.at_css('[data-controller="categories-integratrices"]')).to be_nil

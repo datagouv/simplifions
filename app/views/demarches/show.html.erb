@@ -5,7 +5,7 @@
    couvertures = @demarche.couvertures
    integratrices = @demarche.solutions_integratrices.includes(:organisations).to_a
    recommandations = @demarche.recommandations.visibles.niveau_2.includes(solution: [:exposees, :organisations]).order(:ordre, :id).to_a
-   onglets = [['donnees-disponibles', 'Données disponibles et utiles', recommandations.size]]
+   onglets = [['donnees-disponibles', 'Données disponibles et utiles', @demarche.donnees_utiles_ids.size]]
    onglets << ['solutions-integratrices', 'Solutions ayant intégré ces données', integratrices.size]
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'], *onglets.first(integratrices.any? ? 2 : 1).map { |id, label, _| [id, label] }]
    filtres = [['api', 'API et bases de données'], ['logiciel_metier_cle_en_main', 'Logiciels métiers « clé en main »'],
