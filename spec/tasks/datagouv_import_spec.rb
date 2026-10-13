@@ -13,10 +13,9 @@ RSpec.describe 'rake datagouv:import' do
     stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/perdue/').to_return(status: 404)
   end
 
-  it 'rafraîchit les solutions référencées sur data.gouv et imprime les notes' do
+  it 'imprime les notes et le nombre de solutions rafraîchies' do
     expect { Rake::Task['datagouv:import'].invoke }
       .to output(/note : perdue — HTTP 404.*1 solution\(s\) rafraîchie\(s\) sur 2/m).to_stdout
-    expect(Solution.find_by(uid_datagouv: 'qf').datagouv_titre).to eq('API Quotient familial')
   end
 
   it 'signe ses changements « data.gouv »' do

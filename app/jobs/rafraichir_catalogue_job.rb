@@ -8,7 +8,7 @@ class RafraichirCatalogueJob < ApplicationJob
     journaliser(result.report[:quarantine] + result.report[:notes])
     raise result.error if result.failure?
 
-    journaliser(Solution.sur_datagouv.filter_map(&:rafraichir_datagouv!))
+    journaliser(Solution.rafraichir_datagouv)
   end
 
   private

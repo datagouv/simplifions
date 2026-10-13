@@ -302,6 +302,20 @@ RSpec.describe Solution do
     end
   end
 
+  describe '.rafraichir_datagouv' do
+    it 'rafraîchit chaque solution référencée sur data.gouv et renvoie les notes d’échec' do
+      described_class.create!(nom: 'API QF', categorie: 'api', uid_datagouv: 'qf')
+      described_class.create!(nom: 'API perdue', categorie: 'api', uid_datagouv: 'perdue')
+      described_class.create!(nom: 'Brique sans fiche', categorie: 'brique_logicielle')
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/qf/')
+        .to_return(status: 200, body: { title: 'API Quotient familial' }.to_json)
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/perdue/').to_return(status: 404)
+
+      expect(described_class.rafraichir_datagouv).to eq(['perdue — HTTP 404'])
+      expect(described_class.find_by(uid_datagouv: 'qf').datagouv_titre).to eq('API Quotient familial')
+    end
+  end
+
   describe '#rafraichir_datagouv!' do
     let(:api) { described_class.create!(nom: 'API QF (Grist)', categorie: 'api', uid_datagouv: '672cf9') }
     let(:dataservice_url) { 'https://www.data.gouv.fr/api/1/dataservices/672cf9/' }
