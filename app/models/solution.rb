@@ -101,6 +101,8 @@ class Solution < ApplicationRecord
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end
 
+  def self.rafraichir_datagouv = sur_datagouv.filter_map(&:rafraichir_datagouv!)
+
   # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec. Une fiche disparue perd ses
   # métadonnées, une erreur passagère les conserve.
   def rafraichir_datagouv!
