@@ -5,3 +5,6 @@
     <%= lien_nouvel_onglet "proposer une modification du contenu de #{sujet}", lien %>.
   </p>
 </div>
+<a href="<%= lien %>" rel="noopener" target="_blank" aria-describedby="infobulle-proposer-modification"
+  class="fr-btn fr-btn--sm fr-btn--secondary bouton-proposer-modification"><span aria-hidden="true" class="fr-mr-1w">✒️</span><span class="fr-hidden-sm">Une modification ?</span><span class="fr-hidden fr-unhidden-sm">Proposer une modification</span><span class="fr-sr-only"> - nouvelle fenêtre</span></a>
+<span class="fr-tooltip fr-placement" id="infobulle-proposer-modification" role="tooltip" aria-hidden="true">Le contenu de Simplifions.data est collaboratif, si vous avez repéré une erreur ou un manque, écrivez-nous.</span>
