@@ -89,7 +89,6 @@ group :test do
   gem "rspec-its"
   gem "rspec-collection_matchers"
   gem "rspec-json_expectations"
-  gem "shoulda-matchers"
   gem "webmock"
   gem "timecop"
   gem "simplecov", require: false
