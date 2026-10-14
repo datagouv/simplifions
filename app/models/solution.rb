@@ -79,6 +79,12 @@ class Solution < ApplicationRecord
   end
 
   def fiche? = HORS_FICHES.exclude?(categorie)
+  def page_publique? = visible? && slug.present?
+
+  def champ_masque?(champ)
+    !fiche? && public_send(champ).blank? && !will_save_change_to_attribute?(champ) && !attachment_changes.key?(champ.to_s)
+  end
+
   scope :par_libelle_admin, -> { order(:nom, :categorie) }
   def libelle_admin = categorie ? "#{nom} (#{self.class.human_attribute_name("categorie.#{categorie}")})" : nom
 
@@ -94,7 +100,16 @@ class Solution < ApplicationRecord
 
   # Nombre de données intégrées en production par chaque intégratrice visible, tous fournisseurs confondus.
   def nb_donnees_integrees
-    Integration.consomme.en_production.where(integratrice: integratrices_visibles).group(:integratrice_id).count
+    @nb_donnees_integrees ||= Integration.consomme.en_production.where(integratrice: integratrices_visibles).group(:integratrice_id).count
+  end
+
+  CATEGORIES_INTEGRATRICES = %w[logiciel_metier_cle_en_main brique_logicielle site_de_consultation].freeze
+
+  def integratrices_par_categorie
+    nb_donnees = nb_donnees_integrees
+    integratrices_visibles.includes(:organisations, :vocabulaires)
+      .sort_by { |integratrice| [-nb_donnees.fetch(integratrice.id, 0), integratrice.nom] }
+      .group_by(&:categorie).slice(*CATEGORIES_INTEGRATRICES)
   end
 
   def lien_datagouv
