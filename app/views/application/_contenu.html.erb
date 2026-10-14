@@ -1,8 +1,5 @@
 <% if texte.present? %>
   <%= markdown(texte) %>
 <% else %>
-  <p class="fr-text--sm">
-    <i>Aucun contenu actuellement.</i>
-    <%= lien_nouvel_onglet "✒️ Proposer un contenu", lien_modification %>.
-  </p>
+  <p class="fr-text--sm"><i>Aucun contenu actuellement.</i></p>
 <% end %>

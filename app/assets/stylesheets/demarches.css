@@ -24,6 +24,39 @@
   padding: 1rem;
 }
 
+body:has(.bouton-proposer-modification) {
+  padding-bottom: 5rem;
+}
+
+.bouton-proposer-modification {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 700;
+  border-radius: 2rem;
+  background-color: var(--background-default-grey);
+  box-shadow: inset 0 0 0 1px var(--border-action-high-blue-france), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 35.98em) {
+  .bouton-proposer-modification {
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
+}
+
+.bouton-proposer-modification:hover {
+  background-color: var(--background-default-grey-hover);
+}
+
+.bouton-proposer-modification:active {
+  background-color: var(--background-default-grey-active);
+}
+
+.bouton-proposer-modification[target=_blank]::after {
+  display: none;
+}
+
 .fiche-page blockquote {
   border-left: 4px solid var(--border-default-grey);
   margin-left: 2rem;

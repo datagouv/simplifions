@@ -197,16 +197,20 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('Particuliers')
       expect(response.body).to include('Communes et groupements de communes')
       expect(response.body).to include('Direction interministérielle du numérique')
-      expect(response.body).to include('Proposer une modification')
       expect(response.body).to include('href="/contact/modifier-cas-usage?demarche=tarification-cantine-scolaire-a-1eur"')
       expect(response.body).not_to include('demarches-simplifiees.fr')
     end
 
-    it 'envoie chaque lien « Proposer » vers le formulaire de contact de ce cas d’usage, dans un nouvel onglet' do
-      expect(response.body).not_to include('href="#modification-contenu"')
-      liens = response.parsed_body.css('a[href^="/contact/modifier-cas-usage"]')
-      expect(liens.size).to be > 1
-      expect(liens).to all(satisfy { |lien| lien['target'] == '_blank' && lien['title'].end_with?(' - nouvelle fenêtre') })
+    it 'garde un bouton « Proposer une modification » toujours visible, sans liens éparpillés' do
+      bouton = response.parsed_body.at_css('a.bouton-proposer-modification')
+      expect(bouton['target']).to eq('_blank')
+      expect(bouton.at_css('.fr-hidden.fr-unhidden-sm').text).to eq('Proposer une modification')
+      expect(bouton.at_css('.fr-hidden-sm').text).to eq('Une modification ?')
+      expect(bouton.at_css('.fr-sr-only').text).to eq(' - nouvelle fenêtre')
+      expect(response.parsed_body.at_css("##{bouton['aria-describedby']}[role=tooltip]").text)
+        .to eq('Le contenu de Simplifions.data est collaboratif, si vous avez repéré une erreur ou un manque, écrivez-nous.')
+      expect(bouton['href']).to eq('/contact/modifier-cas-usage?demarche=tarification-cantine-scolaire-a-1eur')
+      expect(response.parsed_body.css('a[href="#modification-contenu"]')).to be_empty
     end
 
     it 'rend les sections contexte et cadre juridique en markdown' do

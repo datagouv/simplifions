@@ -23,6 +23,5 @@
       <% if record.cree_le %><br>le <time datetime="<%= record.cree_le.iso8601 %>"><%= l record.cree_le.to_date, format: :long %>.</time><% end %>
       <% if record.modifie_le %><br><span class="fr-text--xs">Modifié le <time datetime="<%= record.modifie_le.iso8601 %>"><%= l record.modifie_le.to_date, format: :long %>.</time></span><% end %>
     </p>
-    <%= lien_nouvel_onglet "✒️ Proposer une modification", lien_modification %>
   <% end %>
 </nav>
