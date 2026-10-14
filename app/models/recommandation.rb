@@ -40,8 +40,6 @@ class Recommandation < ApplicationRecord
     )
   end
 
-  # { integratrice_id => [x, y] } : comme sur le site actuel, x données utiles intégrées en production sur les y
-  # attendues, quelle que soit la démarche saisie sur l'intégration.
   def couvertures
     y = utiles.count
     return {} if y.zero?
@@ -55,13 +53,11 @@ class Recommandation < ApplicationRecord
     solutions_integratrices.order(:nom).group_by(&:categorie)
   end
 
-  # Même ordre que le site actuel : ordre éditorial, puis description la plus fournie, puis nom
   def apis_utiles
     utiles.joins(:solution).preload(:solution)
       .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC'))
   end
 
-  # Le contenu Grist est semi-confiance : seules les URLs http(s) deviennent des liens
   def lien_demande_acces
     uri = begin
       URI.parse((url_demande_acces.presence || solution.url_demande_acces).to_s)
