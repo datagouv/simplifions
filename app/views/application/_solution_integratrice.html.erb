@@ -1,6 +1,6 @@
 <div class="solution-integratrice-card fr-enlarge-link">
   <div class="solution-integratrice-card__header">
-    <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
+    <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug) %></p>
     <%= render "badge_operateur", solution: solution %>
   </div>
   <% if solution.types_solution.any? %>
