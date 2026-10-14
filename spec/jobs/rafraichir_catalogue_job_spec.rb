@@ -29,6 +29,31 @@ RSpec.describe RafraichirCatalogueJob do
     expect(a_request(:get, %r{data\.gouv\.fr/api/})).not_to have_been_made
   end
 
+  describe 'journal JSON' do
+    include_context 'with a captured LogStasher log'
+
+    it 'écrit une ligne au début et une à la fin, avec les comptes du passage' do
+      stub_request(:get, %r{data\.gouv\.fr/api/}).to_return(status: 500)
+
+      described_class.perform_now
+
+      expect(logstash_lines.pluck('event_type')).to eq(%w[rafraichissement_demarre rafraichissement_termine])
+      expect(logstash_lines.last).to include(
+        'demarches' => Demarche.count, 'solutions' => Solution.count,
+        'quarantaine' => a_kind_of(Integer), 'notes' => a_kind_of(Integer),
+        'datagouv_en_echec' => Solution.sur_datagouv.count
+      )
+    end
+
+    it "écrit le type d'erreur d'un passage en échec, jamais son message" do
+      stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_return(status: 500)
+
+      expect { described_class.perform_now }.to raise_error(RuntimeError)
+      expect(logstash_lines.last).to include('event_type' => 'rafraichissement_echoue', 'error_class' => 'RuntimeError')
+      expect(logstash_io.string).not_to include('Solutions')
+    end
+  end
+
   describe 'un seul passage à la fois' do
     around do |example|
       adaptateur = described_class.queue_adapter
