@@ -197,7 +197,18 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('Particuliers')
       expect(response.body).to include('Communes et groupements de communes')
       expect(response.body).to include('Direction interministérielle du numérique')
-      expect(response.body).to include('Proposer une modification')
+    end
+
+    it 'garde un bouton « Proposer une modification » toujours visible, sans liens éparpillés' do
+      bouton = response.parsed_body.at_css('a.bouton-proposer-modification')
+      expect(bouton['target']).to eq('_blank')
+      expect(bouton.at_css('.fr-hidden.fr-unhidden-sm').text).to eq('Proposer une modification')
+      expect(bouton.at_css('.fr-hidden-sm').text).to eq('Une modification ?')
+      expect(bouton.at_css('.fr-sr-only').text).to eq(' - nouvelle fenêtre')
+      expect(response.parsed_body.at_css("##{bouton['aria-describedby']}[role=tooltip]").text)
+        .to eq('Le contenu de Simplifions.data est collaboratif, si vous avez repéré une erreur ou un manque, écrivez-nous.')
+      expect(bouton['href']).to include('demarches-simplifiees.fr')
+      expect(response.parsed_body.css('a[href="#modification-contenu"]')).to be_empty
     end
 
     it 'replie le contexte et le cadre juridique derrière un bouton « Lire plus » chacun' do

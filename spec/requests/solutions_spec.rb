@@ -112,7 +112,18 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('#possibilites-simplification')
       expect(response.body).to include('#donnees-api-utilisees')
       expect(response.body).to include('#donnees-api-fournies')
-      expect(response.body).to include('Proposer une modification')
+    end
+
+    it 'garde un bouton « Proposer une modification » toujours visible, sans liens éparpillés' do
+      bouton = response.parsed_body.at_css('a.bouton-proposer-modification')
+      expect(bouton['target']).to eq('_blank')
+      expect(bouton.at_css('.fr-hidden.fr-unhidden-sm').text).to eq('Proposer une modification')
+      expect(bouton.at_css('.fr-hidden-sm').text).to eq('Une modification ?')
+      expect(bouton.at_css('.fr-sr-only').text).to eq(' - nouvelle fenêtre')
+      expect(response.parsed_body.at_css("##{bouton['aria-describedby']}[role=tooltip]").text)
+        .to eq('Le contenu de Simplifions.data est collaboratif, si vous avez repéré une erreur ou un manque, écrivez-nous.')
+      expect(bouton['href']).to include('demarches-simplifiees.fr')
+      expect(response.parsed_body.css('a[href="#modification-contenu"]')).to be_empty
     end
 
     it 'affiche les CTA vers le site et la demande d’accès, sans use_case' do
