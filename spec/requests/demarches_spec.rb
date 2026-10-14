@@ -539,7 +539,7 @@ RSpec.describe 'Demarches' do
 
       barre = response.parsed_body.at_css('.fil-ariane-collant')
       bouton = barre.at_css('button[aria-controls="menu-filtres"]')
-      expect(bouton.text.squish).to eq('Afficher le contenu')
+      expect(bouton.text.squish).to eq('Affichage personnalisé')
       expect(barre.at_css('#menu-filtres').text).to include('Affichez le contenu de cette page selon les solutions que vous recherchez :')
       expect(barre.css('#menu-filtres button.fr-tag').map { |etiquette| [etiquette.text.squish, etiquette['data-filtre'], etiquette['aria-pressed']] })
         .to eq([['API et bases de données', 'api', 'false'],
