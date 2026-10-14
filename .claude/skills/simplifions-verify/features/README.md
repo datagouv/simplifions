@@ -25,6 +25,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 
 - [catalogue-cas-usages.md](catalogue-cas-usages.md) — search and filter the cas d'usages list; the count matches the database.
 - [fiche-cas-usage.md](fiche-cas-usage.md) — open a cas d'usage from the list and unfold a recommended data source.
+- [fiche-solution.md](fiche-solution.md) — open a solution: operator badge, one tab per category of integrating solution with its count.
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
 - [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete from the edit page: the confirmation names the row and what goes with it (démarche drive created, organisation cancelled).

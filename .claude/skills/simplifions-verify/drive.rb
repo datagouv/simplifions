@@ -44,6 +44,20 @@ def fiche(page)
     "accordeons_ouverts=#{section.all('button[aria-expanded=true]').size}")
 end
 
+def fiche_solution(page)
+  solution = Solution.visibles.where.not(slug: nil).max_by { |candidate| candidate.integratrices_par_categorie.size }
+  onglets = solution.integratrices_par_categorie
+                    .map { |categorie, solutions| "#{I18n.t("public.onglets_integratrices.#{categorie}")} (#{solutions.size})" }
+  page.visit("/solutions/#{solution.slug}")
+  page.assert_text(/Solution (publique|privée) \|/i)
+  textes = page.all('[role=tab]').map(&:text)
+  raise "onglets #{textes} au lieu de #{onglets}" unless textes == onglets
+
+  page.all('[role=tab]').last.click
+  page.assert_selector "[role=tab][aria-selected='true']", text: onglets.last
+  Verify.evidence('fiche-solution', page, 'dernier-onglet', "slug=#{solution.slug} onglets=#{textes} attendus=#{onglets}")
+end
+
 def connexion(page)
   page.visit('/admin')
   page.assert_text 'Vous devez vous connecter pour accéder à cette page.'
@@ -1713,7 +1727,7 @@ def contact_reponse_sans_adresse(page)
   Verify.evidence('contact', page, 'reponse-sans-adresse', "path=#{page.current_path} mailto=0")
 end
 
-{ 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
+{ 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
