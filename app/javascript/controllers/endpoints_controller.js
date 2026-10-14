@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Filtre par mots-clés et pagination du tableau des endpoints utiles d'une recommandation.
 export default class extends Controller {
   static targets = ["input", "row", "empty", "footer", "count", "pagination"]
   static values = { perPage: { type: Number, default: 4 } }

@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Filtres, tri et compteurs de la section « Solutions intégrant … » d'une page solution.
 export default class extends Controller {
   static targets = ["casUsage", "nbApis", "tri", "compteur", "vide", "onglet", "panneau", "carte"]
 

@@ -1,5 +1,4 @@
 class ApplicationController < ActionController::Base
-  # Mêmes paramètres que les listes du site actuel ; tout le reste (tableaux, hashes, options de route) est ignoré.
   FACETTES_CATALOGUE = %w[fournisseurs-de-service target-users categorie-de-solution
                           types-de-simplification].freeze
   FILTRES_CATALOGUE = [:q, :sort, *FACETTES_CATALOGUE].freeze
@@ -11,8 +10,6 @@ class ApplicationController < ActionController::Base
     page.out_of_range? ? liste.page(page.total_pages).per(par_page) : page
   end
 
-  # Le site actuel publie les facettes sous leur forme tag (`simplifions-v2-target-users-particuliers`) :
-  # ces liens doivent continuer à filtrer.
   def filtres_catalogue
     params.permit(*FILTRES_CATALOGUE).tap do |filtres|
       FACETTES_CATALOGUE.each do |facette|
