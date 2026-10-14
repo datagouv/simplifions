@@ -1,11 +1,19 @@
 ---
 name: simplifions-verify
-description: Launch Simplifions (Rails 8 catalogue site with a Devise admin) on port 3101 and drive it with Capybara in headless Chrome and Firefox — the public catalogue of cas d'usages, a cas d'usage page, the admin login, the admin tables — then capture evidence. Read before starting the app, logging in as admin, or clicking through the site.
+description: Launch Simplifions (Rails 8 catalogue site with a Devise admin) on port 3101 and drive it with Capybara in headless Chrome and Firefox — the public catalogue of cas d'usages, a cas d'usage page, the admin login, the admin tables — then capture evidence; holds the procedure to keep the map up to date. Read before starting the app, logging in as admin, clicking through the site, or maintaining the feature map.
 ---
 
 # simplifions-verify
 
 Simplifions is a public catalogue (cas d'usages, solutions, articles) read by anyone, plus an administration behind a Devise login where an admin edits the catalogue tables. The dev database holds the catalogue imported from Grist; it has no admin account and `db/seeds.rb` is empty, so the map creates one dev-only admin for the run and removes it at cleanup.
+
+## Use the map
+
+1. Read this file and the `features/README.md` index; never improvise a launch or a login.
+2. Follow Launch and Doctor literally, then the feature file's driving bullets. Done when the evidence the feature file names exists under `tmp/verify/<feature>/`.
+3. A step the map describes that the app no longer does is either drift (fix the map in the same PR) or a regression (report it, do not paper over it).
+4. A change that adds or changes a user journey updates its feature file and its drive in the same PR; a new journey gets its file in the shape of [`feature-file.md`](feature-file.md).
+5. Keeping the whole map honest against the code: [`maintain.md`](maintain.md).
 
 ## Launch
 
@@ -77,6 +85,13 @@ bin/rails runner 'require "./.claude/skills/simplifions-verify/harness"; Verify.
 ```
 
 Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates (the vocabulaire row); a drive that failed midway leaves a `Vérif verify-map <browser>` row in `vocabulaires`: remove it with `bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'`. Chrome profiles go to a `mktmpdir` and vanish with the process.
+
+## Rules
+
+- Stable handles only: accessible names, labels, route paths, `data-*` attributes; never CSS position or generated classes.
+- Drive only an instance this run started, on its own port; a shared dev server is not verified through.
+- Evidence is the action and the resulting state, plus a read-back of any mutation; a final screenshot alone proves nothing.
+- The map is the user's point of view; class names and code paths stay out of the feature files, an agent finds them at run time.
 
 ## Gotchas
 
