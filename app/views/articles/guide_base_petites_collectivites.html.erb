@@ -3,10 +3,10 @@
     solution_card("formulaire-de-collecte-du-quotient-familial"),
     solution_card("annuaire-des-entreprises"),
     solution_card("data-subvention"),
-    demarche_card("tarification-sociale-municipale-a-lenfance").except(:acteurs),
-    demarche_card("tarification-cantine-scolaire-a-1-eur").except(:acteurs),
-    demarche_card("subventions-des-associations-attribution").except(:acteurs),
-    demarche_card("marches-publics-depot-et-instruction-des-candidatures").except(:acteurs)
+    demarche_card("tarification-sociale-des-services-municipaux-a-lenfance", acteurs: nil),
+    demarche_card("tarification-cantine-scolaire-a-1eur", acteurs: nil),
+    demarche_card("subventions-des-associations-attribution", acteurs: nil),
+    demarche_card("marches-publics-depot-et-instruction-des-candidatures", acteurs: nil)
   ]
 %>
 <%= render ArticleLayoutComponent.new(article: @article, mentions: mentions) do %>
@@ -122,7 +122,7 @@
     </p>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("formulaire-de-collecte-du-quotient-familial").except(:image)
+          solution_card("formulaire-de-collecte-du-quotient-familial", arrow: true, image: nil)
         ]) do %>
       <p>
         <b>Votre collectivité applique certaines tarifications sur la base du quotient familial de la CAF ou
@@ -135,7 +135,7 @@
     <% end %>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("annuaire-des-entreprises").except(:image)
+          solution_card("annuaire-des-entreprises", arrow: true, image: nil)
         ]) do %>
       <p>
         <b>Votre collectivité a besoin de données concernant les entreprises et les associations ?</b>
@@ -147,7 +147,7 @@
     <% end %>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("data-subvention").except(:image)
+          solution_card("data-subvention", arrow: true, image: nil)
         ]) do %>
       <p>
         <b>Votre collectivité a besoin de connaître les subventions déjà versées à une association ?</b>
@@ -263,8 +263,8 @@
     </p>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          demarche_card("tarification-sociale-municipale-a-lenfance"),
-          demarche_card("tarification-cantine-scolaire-a-1-eur")
+          demarche_card("tarification-sociale-des-services-municipaux-a-lenfance", arrow: true),
+          demarche_card("tarification-cantine-scolaire-a-1eur", arrow: true)
         ]) do %>
       <p>
         <b>Vos tarifications municipales se basent sur le quotient familial de la CAF ou de la MSA ?</b>
@@ -273,8 +273,8 @@
     <% end %>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          demarche_card("subventions-des-associations-attribution").except(:usagers, :acteurs),
-          demarche_card("marches-publics-depot-et-instruction-des-candidatures").except(:usagers, :acteurs)
+          demarche_card("subventions-des-associations-attribution", arrow: true, usagers: nil, acteurs: nil),
+          demarche_card("marches-publics-depot-et-instruction-des-candidatures", arrow: true, usagers: nil, acteurs: nil)
         ]) do %>
       <p>
         <b>Pour vos démarches auprès des entreprises et des associations</b>

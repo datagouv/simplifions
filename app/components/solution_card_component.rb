@@ -1,11 +1,11 @@
 class SolutionCardComponent < ApplicationComponent
-  def self.pour(solution, arrow: false)
+  def self.pour(solution, arrow: false, **retouches)
     new(arrow:, card: {
       title: solution.nom, href: "/solutions/#{solution.slug}", badge: badge_operateur(solution),
       description: solution.chapo,
       usagers: solution.usagers, acteurs: solution.acteurs,
       image: (solution.image if solution.image.attached?)
-    })
+    }.merge(retouches))
   end
 
   def initialize(card:, arrow: false)

@@ -87,7 +87,7 @@
         <ul class="carousel-track fr-p-0 fr-m-0" role="list" data-carousel-target="track">
           <% @mentions.each do |mention| %>
             <li class="carousel__item">
-              <%= render CatalogCardComponent.new(card: mention) %>
+              <%= render mention %>
             </li>
           <% end %>
         </ul>
