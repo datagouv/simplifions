@@ -51,8 +51,8 @@
         <br>
         <br>
         <%= render ArticleSpotlightComponent.new(cards: [
-              solution_card("bouquet-api-entreprise").except(:image),
-              solution_card("bouquet-api-particulier").except(:image)
+              solution_card("bouquet-api-entreprise", arrow: true, image: nil),
+              solution_card("bouquet-api-particulier", arrow: true, image: nil)
             ]) do %>
           <p>
             <strong>L'API Entreprise et l'API Particulier sont des bouquets d'API
@@ -81,7 +81,7 @@
     </p>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("api-impot-particulier")
+          solution_card("api-impot-particulier", arrow: true)
         ]) do %>
       <p>
         <strong>L'API Impôt Particulier de la DGFiP</strong> est un exemple
