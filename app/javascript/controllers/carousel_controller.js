@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Bloc « Sont mentionnés dans cet article » : boutons Précédent / Suivant à la place de la barre de défilement.
 export default class extends Controller {
   static targets = ["track", "nav"]
 

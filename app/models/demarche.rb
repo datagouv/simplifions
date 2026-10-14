@@ -31,7 +31,6 @@ class Demarche < ApplicationRecord
   scope :pour_vocabulaire, ->(slug) { where(id: Demarche.joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
   scope :pour_acteur, ->(slug) { where(id: Demarche.joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
 
-  # Mêmes paramètres et mêmes valeurs que les tags des topics du site actuel.
   def self.catalogue(params)
     visibles.pour_vocabulaire(params['target-users']).pour_vocabulaire(params['types-de-simplification'])
       .pour_vocabulaire(params['categorie-de-solution']).pour_acteur(params['fournisseurs-de-service'])

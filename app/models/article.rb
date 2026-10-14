@@ -24,8 +24,6 @@ class Article
     super
   end
 
-  # Un article matche s'il porte au moins un mot-clef sélectionné dans chaque
-  # catégorie où une sélection existe (même logique que l'ancien site).
   def matches?(selected_keywords, except_category: nil)
     KEYWORD_CATEGORIES.all? do |category, category_keywords|
       next true if category == except_category
@@ -47,8 +45,6 @@ class Article
     "articles/#{slug.tr('-', '_')}"
   end
 
-  # Un fichier YAML par article dans config/articles/, le préfixe numérique
-  # des noms de fichiers donne l'ordre d'affichage.
   ALL = Rails.root.glob('config/articles/*.yml')
     .map { |path| new(**YAML.load_file(path).transform_keys(&:to_sym)) }
     .freeze

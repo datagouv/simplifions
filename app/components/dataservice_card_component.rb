@@ -1,6 +1,4 @@
 class DataserviceCardComponent < ApplicationComponent
-  # Mêmes libellés, couleurs et icônes que le site actuel (accessTypeBadge.ts) : [nature, accès, accès des
-  # acteurs publics] → badge ; « ouvert avec compte » n'existe pas pour les jeux de données.
   BADGES = {
     %w[api open] => ['API ouverte', 'fr-badge--info', 'fr-icon-arrow-left-right-line'],
     %w[jeu open] => ['Jeu de données ouvert', 'fr-badge--info', 'fr-icon-arrow-left-right-line'],

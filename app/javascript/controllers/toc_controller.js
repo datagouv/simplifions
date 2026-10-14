@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Scroll-spy du sommaire d'article : surligne l'entrée dont la section est en cours de lecture.
 export default class extends Controller {
   static targets = ["link"]
 
