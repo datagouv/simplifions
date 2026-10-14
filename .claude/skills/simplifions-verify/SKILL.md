@@ -1,6 +1,6 @@
 ---
 name: simplifions-verify
-description: Launch Simplifions (Rails 8 catalogue site with a Devise admin) on port 3101 and drive it with Capybara in headless Chrome and Firefox — the public catalogue of cas d'usages, a cas d'usage page, the admin login, the admin tables — then capture evidence; holds the procedure to keep the map up to date. Read before starting the app, logging in as admin, clicking through the site, or maintaining the feature map.
+description: Launch Simplifions (Rails 8 catalogue site with a Devise admin) in Docker and drive it with Capybara in headless Chrome and Firefox containers — the public catalogue of cas d'usages, a cas d'usage page, the admin login, the admin tables — then capture evidence; holds the procedure to keep the map up to date. Read before starting the app, logging in as admin, clicking through the site, or maintaining the feature map.
 ---
 
 # simplifions-verify
@@ -17,35 +17,33 @@ Simplifions is a public catalogue (cas d'usages, solutions, articles) read by an
 
 ## Launch
 
-1. From the repo root or a worktree. No `.env` and no `config/master.key` needed in development (the only credential read is the Sentry DSN, optional).
-2. Database: `bin/rails db:prepare`. Catalogue present when `bin/rails runner 'puts Demarche.visibles.count'` is above zero; otherwise `bin/rails grist:import` (needs network, a few minutes).
-3. Web on the dedicated verify port:
+Everything runs in Docker: Docker Desktop on a Mac (Apple silicon or Intel), Docker Engine on Linux. No Ruby, browser or driver is installed on the machine. Commands run from the root of the checkout being verified.
+
+1. Once per machine: `make install` (image, gems, database, Grist catalogue).
+2. Browsers, one container each, started on demand by the `verify` profile:
 
    ```sh
-   mkdir -p tmp/verify
-   nohup bin/rails server -p 3101 -P tmp/verify/server.pid > tmp/verify/server.log 2>&1 &
+   docker compose --profile verify up -d --wait chrome firefox
    ```
 
-   Ready when `curl -s localhost:3101/up` answers 200 (under 10 s).
-4. Browsers, once per machine:
-   - Chrome: selenium-manager downloads its own Chrome and chromedriver into `~/.cache/selenium` on first run. Never point at the snap Chromium, it refuses to start under Selenium.
-   - Firefox: the snap Firefox and snap geckodriver are unusable. Download the Mozilla build once:
+   It returns once both browsers accept sessions. `selenium/standalone-chromium` and `selenium/standalone-firefox` are published for arm64 and amd64: `uname -m` may print `arm64` or `x86_64`, the same command works. The first pull downloads about 2 GB.
+3. Database schema up to date: `docker compose run --rm web bin/rails db:prepare`.
+4. A drive runs in a one-off `web` container: `bin/rails runner` loads the app, Capybara starts its own server inside that container on port 3101 (this checkout's code, the dev database), and the browser container opens it at the container's address. No server to start or stop, port 3000 and `make start` are left alone.
 
-     ```sh
-     mkdir -p ~/.cache/simplifions-verify && cd ~/.cache/simplifions-verify
-     curl -sL -o firefox.tar.xz 'https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=fr'
-     tar xf firefox.tar.xz && rm firefox.tar.xz
-     ```
+   ```sh
+   docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/drive.rb catalogue
+   ```
 
-     geckodriver comes from `~/.cache/selenium/geckodriver/linux64/<version>/` (selenium-manager fetches it on a first Firefox run; if the directory is empty, run the Chrome drive first, then `VERIFY_BROWSER=firefox`). Override paths with `VERIFY_FIREFOX`.
+From a git worktree, add `-p <folder name of the main checkout>` (`-p simplifions`) right after `docker compose` in every command: the worktree's code is the one mounted, the database, gems and browsers are the main checkout's. Without it Compose builds a separate stack for the worktree, with an empty database.
+
+No `.env` and no `config/master.key` are needed in development (the only credential read is the Sentry DSN, optional).
 
 ## Doctor
 
-- `curl -s -o /dev/null -w '%{http_code}' localhost:3101/up` → `200`.
-- `ss -ltnp | grep ':3101'` shows the pid in `tmp/verify/server.pid`; another pid means a foreign server owns the port: stop, do not verify through it. Thomas's own dev server lives on 3050, never target it.
-- `bin/rails runner 'puts ActiveRecord::Base.connection.current_database'` → `simplifions_development`.
-- `bin/rails runner 'puts Demarche.visibles.count'` above zero.
-- `VERIFY_BROWSER=chrome bin/rails runner .claude/skills/simplifions-verify/drive.rb catalogue` prints `ok catalogue`: the harness and the browser work.
+- `make check` is silent: Docker is installed and running (otherwise it says what to do, in French).
+- `docker compose --profile verify ps chrome firefox` shows both `healthy`; otherwise Launch step 2.
+- `docker compose run --rm web bin/rails runner 'puts ActiveRecord::Base.connection.current_database, Demarche.visibles.count'` → `simplifions_development`, then a number above zero; zero → `make import` (needs network, a few minutes).
+- `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/drive.rb catalogue` prints `ok catalogue`: the harness and the browser work.
 
 ## Enter
 
@@ -60,42 +58,47 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
 ## Drive
 
-- Harness: `harness.rb` next to this file registers two Capybara drivers (`:verify_chrome`, `:verify_firefox`) with the flags that work on this machine, targets `http://localhost:3101` with `run_server = false`, and provides `Verify.session`, `Verify.login`, `Verify.logout`, `Verify.ensure_admin`, `Verify.remove_admin`, `Verify.evidence`.
+- Harness: `harness.rb` next to this file registers two Capybara drivers (`:verify_chrome`, `:verify_firefox`) on the browser containers (`http://chrome:4444`, `http://firefox:4444`), starts the app server inside the drive's container and provides `Verify.session`, `Verify.login`, `Verify.logout`, `Verify.ensure_admin`, `Verify.remove_admin`, `Verify.evidence`.
 - Ready-made drive: `drive.rb` runs every feature file in order, or one by its short name:
 
   ```sh
-  VERIFY_BROWSER=chrome  bin/rails runner .claude/skills/simplifions-verify/drive.rb
-  VERIFY_BROWSER=firefox bin/rails runner .claude/skills/simplifions-verify/drive.rb vocabulaires
+  docker compose run --rm -e VERIFY_BROWSER=chrome  web bin/rails runner .claude/skills/simplifions-verify/drive.rb
+  docker compose run --rm -e VERIFY_BROWSER=firefox web bin/rails runner .claude/skills/simplifions-verify/drive.rb vocabulaires
   ```
 
   It prints `ok <feature>` or `ECHEC <feature>: <error>` and never aborts the other features.
-- A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join(".claude/skills/simplifions-verify/harness.rb")`, run with `bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
+- A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join('.claude/skills/simplifions-verify/harness.rb')` and `page = Verify.session`, run with `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
+- A `bin/rails …` command in a feature file runs the same way, `docker compose run --rm web bin/rails …`. The features on a throwaway database spell out each command in full, guarded by `test "$DATABASE_URL" = …`; copy them as they are, never drop the `-e` or the guard.
 - Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The filter selects auto-submit on change (Stimulus); the search field needs the `Rechercher` button.
-- Both browsers, every time: the user browses with Firefox, CI and Capybara defaults lean on Chrome.
+- Both browsers, every time: the users browse with Firefox, CI and Capybara defaults lean on Chrome.
 
 ## Evidence
 
-`tmp/verify/<feature>/`: `<browser>-<step>.png` screenshots and one `read-back.txt` line per step, `timestamp browser step: <state read from the page and from the database>`. A mutation is proven by the read-back after it, then by the read-back after its undo. `tmp/` is gitignored, so evidence stays on the machine and survives branch switches and cleanup.
+`tmp/verify/<feature>/` in the checkout (the container writes into it): `<browser>-<step>.png` screenshots and one `read-back.txt` line per step, `timestamp browser step: <state read from the page and from the database>`. A mutation is proven by the read-back after it, then by the read-back after its undo. `tmp/` is gitignored, so evidence stays on the machine and survives branch switches and cleanup.
+
+Nobody else can open that folder. For the PR reader, attach to the Linear issue the screenshots that show the change and the `read-back.txt` (the tracker's attach-a-file call: prepare the upload, PUT the bytes within 60 s, then create the attachment); the PR body names the evidence folders and says the files are on the issue.
 
 ## Cleanup
 
 ```sh
-kill "$(cat tmp/verify/server.pid)" && rm -f tmp/verify/server.pid
-bin/rails runner 'require "./.claude/skills/simplifions-verify/harness"; Verify.remove_admin'
+docker compose run --rm web bin/rails runner 'require "./.claude/skills/simplifions-verify/harness"; Verify.remove_admin'
+docker compose --profile verify stop chrome firefox
 ```
 
-Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates (the vocabulaire row); a drive that failed midway leaves a `Vérif verify-map <browser>` row in `vocabulaires`: remove it with `bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'`. Chrome profiles go to a `mktmpdir` and vanish with the process.
+Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates; a drive that failed midway can leave a `Vérif verify-map <browser>` row: remove it with `docker compose run --rm web bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'` (same for `Demarche` and `Solution`).
 
 ## Rules
 
 - Stable handles only: accessible names, labels, route paths, `data-*` attributes; never CSS position or generated classes.
-- Drive only an instance this run started, on its own port; a shared dev server is not verified through.
+- Drive only an instance this run started, on its own port; a shared dev server is not verified through. The server Capybara starts inside the drive's container is that instance.
 - Evidence is the action and the resulting state, plus a read-back of any mutation; a final screenshot alone proves nothing.
 - The map is the user's point of view; class names and code paths stay out of the feature files, an agent finds them at run time.
 
 ## Gotchas
 
-- The dev database is shared with the developer's server on 3050 and with `bin/rails grist:import`; never `db:reset`, never edit catalogue rows outside the vocabulaire the drive creates.
+- The dev database is shared with the site on port 3000 and with `make import`; never `db:reset`, never edit catalogue rows outside the rows a drive creates.
 - `Vérif` appears in the row name on purpose: it sorts last and is greppable.
-- `allow_browser versions: :modern` rejects old user agents; the headless browsers here are recent enough.
-- Random `EACCES … tmp/storage` in specs is a root-owned folder left by Docker, not a regression.
+- One browser session per container, held for the whole `drive.rb` run: a second drive started meanwhile waits 5 minutes, then fails on `session not created`. Run drives one after another.
+- `bin/rails runner` keeps the query cache on: a read-back after a mutation made by the browser goes inside `ActiveRecord::Base.uncached { … }`.
+- On Linux the container writes `tmp/` and `log/` as root; before removing a worktree, `docker compose run --rm web chown -R "$(id -u):$(id -g)" tmp log`. Docker Desktop on a Mac keeps the user as owner.
+- `allow_browser versions: :modern` rejects old user agents; the browser containers are recent enough.

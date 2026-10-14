@@ -4,7 +4,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 
 ## Baseline preconditions
 
-- App answers on `http://localhost:3101/up` (SKILL.md § Launch); nothing else listens on 3101.
+- Browsers up and doctor green (SKILL.md § Launch, § Doctor); each drive starts its own server inside its container.
 - Catalogue present: at least one visible démarche and one visible solution in `simplifions_development`.
 - Admin drives: the dev-only admin exists (`Verify.ensure_admin`), removed at cleanup.
 - Data reset: none needed for public features; admin drives delete what they create.

@@ -11,7 +11,7 @@ Les blocs markdown du Grist portent parfois du HTML (encadrés DSFR, `<details>`
 
 ## Driving it with Capybara
 
-Preconditions: app on `http://localhost:3101/up`; catalogue Grist importé dans `simplifions_development`. Lecture seule.
+Preconditions: launch done (SKILL.md § Launch); catalogue Grist importé dans `simplifions_development`. Lecture seule.
 
 - **Encadré.** Visit `/demarches/actes-detat-civil`, `find(".fr-callout", text: "Utilisez Comedec")`.
 - **Séparateur.** Visit `/solutions/passe-marche`, `find("hr:not([class])")` (les `hr` du gabarit portent `fr-hr`).

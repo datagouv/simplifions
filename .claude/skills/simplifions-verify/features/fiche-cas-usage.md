@@ -18,7 +18,7 @@ A cas d'usage page describes a démarche, its public, its legal frame, and the d
 
 Preconditions:
 
-- App answers on `http://localhost:3101/up`.
+- Launch done and doctor green (SKILL.md § Launch, § Doctor).
 - The first card on `/demarches` has at least one level-2 recommendation with an accordion.
 
 - **Open a fiche.** On `/demarches`, `titre = page.first("h3 a").text` then `click_link titre`. H1 equals `titre`.

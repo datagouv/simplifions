@@ -19,7 +19,7 @@ An admin signs in from the header, lands on the administration dashboard, and si
 
 Preconditions:
 
-- App answers on `http://localhost:3101/up`.
+- Launch done and doctor green (SKILL.md § Launch, § Doctor).
 - The dev-only admin exists (`Verify.ensure_admin`, SKILL.md § Enter).
 
 - **Guard.** `visit "/admin"` → text `Vous devez vous connecter pour accéder à cette page.`

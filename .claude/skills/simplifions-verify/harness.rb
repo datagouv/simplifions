@@ -1,39 +1,35 @@
 require 'capybara'
 require 'selenium-webdriver'
-require 'tmpdir'
+require 'socket'
 
 module Verify
-  PORT = ENV.fetch('VERIFY_PORT', '3101')
-  HOST = "http://localhost:#{PORT}".freeze
+  PORT = 3101
   ROOT = Rails.root.join('tmp/verify')
   ADMIN = { email: 'verif@simplifions.local', password: 'verif-simplifions-2026' }.freeze
-  FIREFOX = ENV.fetch('VERIFY_FIREFOX', File.expand_path('~/.cache/simplifions-verify/firefox/firefox'))
-  GECKODRIVER = Dir[File.expand_path('~/.cache/selenium/geckodriver/linux64/*/geckodriver')].max
+  CONTAINER_IP = Socket.ip_address_list.find(&:ipv4_private?).ip_address
 
   Capybara.register_driver :verify_chrome do |app|
     options = Selenium::WebDriver::Chrome::Options.new
-    %W[--headless=new --no-sandbox --disable-dev-shm-usage --remote-debugging-pipe --window-size=1280,1024
-       --lang=fr-FR --user-data-dir=#{Dir.mktmpdir('verify-chrome')}].each { |flag| options.add_argument(flag) }
-    Capybara::Selenium::Driver.new(app, browser: :chrome, options:)
+    %w[--headless=new --window-size=1280,1024 --lang=fr-FR].each { |flag| options.add_argument(flag) }
+    Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://chrome:4444', options:)
   end
 
   Capybara.register_driver :verify_firefox do |app|
-    options = Selenium::WebDriver::Firefox::Options.new(binary: FIREFOX)
-    options.add_argument('-headless')
-    options.add_argument('--width=1280')
-    options.add_argument('--height=1024')
+    options = Selenium::WebDriver::Firefox::Options.new
+    %w[-headless --width=1280 --height=1024].each { |flag| options.add_argument(flag) }
     options.add_preference('intl.accept_languages', 'fr-FR,fr')
-    service = Selenium::WebDriver::Service.firefox(path: GECKODRIVER)
-    Capybara::Selenium::Driver.new(app, browser: :firefox, options:, service:)
+    Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://firefox:4444', options:)
   end
 
   def self.browser = ENV.fetch('VERIFY_BROWSER', 'chrome')
 
   def self.session
-    Capybara.run_server = false
-    Capybara.app_host = HOST
+    Capybara.server = :puma, { Silent: true }
+    Capybara.server_host = '0.0.0.0'
+    Capybara.server_port = PORT
+    Capybara.app_host = "http://#{CONTAINER_IP}:#{PORT}"
     Capybara.default_max_wait_time = 5
-    Capybara::Session.new(:"verify_#{browser}")
+    Capybara::Session.new(:"verify_#{browser}", Rails.application)
   end
 
   def self.ensure_admin
