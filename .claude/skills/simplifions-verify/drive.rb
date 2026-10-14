@@ -536,7 +536,7 @@ def liste_filtrable(page)
   Verify.evidence(dossier, page, 'fleche-bas-puis-sortie-referme', "visibles=#{cases_affichees(groupe).size}")
   saisie = I18n.transliterate(cible.libelle).upcase.scan(/[[:alnum:]]+/).join(' ')
   groupe.fill_in 'Filtrer les intégrations', with: saisie
-  groupe.find('label', text: cible.libelle, exact_text: true)
+  groupe.find('label', text: cible.libelle.squish, exact_text: true)
   page.send_keys :enter
   raise 'Entrée a envoyé le formulaire' if page.has_text?('enregistré', wait: 1)
 
