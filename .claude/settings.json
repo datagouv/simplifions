@@ -1,14 +1,72 @@
 {
   "extraKnownMarketplaces": {
     "dsfr-skill": {
-      "source": { "source": "github", "repo": "numerique-gouv/dsfr-skill" }
+      "source": {
+        "source": "github",
+        "repo": "numerique-gouv/dsfr-skill"
+      }
     },
     "rgaa-toolkit": {
-      "source": { "source": "git", "url": "https://github.com/Isalafont/claude-skill-rgaa-dev.git" }
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Isalafont/claude-skill-rgaa-dev.git"
+      }
     }
   },
   "enabledPlugins": {
     "dsfr-skill@dsfr-skill": true,
     "accessibility@rgaa-toolkit": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(docker compose ps)",
+      "Bash(docker compose exec web bundle exec rspec *)",
+      "Bash(docker compose exec web bin/rubocop *)",
+      "Bash(docker compose exec web bin/rails runner .claude/skills/*)",
+      "Bash(docker compose exec web bin/rails db:migrate)",
+      "Bash(docker compose exec -e RAILS_ENV=test web bin/rails db:migrate)",
+      "Bash(make start)",
+      "Bash(make install)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch)",
+      "Bash(git branch --show-current)",
+      "Bash(git fetch *)",
+      "Bash(git switch *)",
+      "Bash(git checkout -b *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git rebase origin/main)",
+      "Bash(GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash origin/main)",
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh auth status)"
+    ],
+    "deny": [
+      "Bash(git push * main)",
+      "Bash(git push * main *)",
+      "Bash(git push *:main)",
+      "Bash(git push *:main *)",
+      "Bash(git push --force)",
+      "Bash(git push --force *)",
+      "Bash(git push * --force)",
+      "Bash(git push * --force *)",
+      "Bash(git push -f)",
+      "Bash(git push -f *)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push *+*)",
+      "Bash(* db:schema:load*)",
+      "Bash(* db:drop*)",
+      "Bash(* db:reset*)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(gh pr merge *)"
+    ]
   }
 }
