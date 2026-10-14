@@ -8,7 +8,7 @@
    onglets = [['donnees-disponibles', 'Données disponibles et utiles', @demarche.donnees_utiles_ids.size]]
    onglets << ['solutions-integratrices', 'Solutions ayant intégré ces données', integratrices.size]
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'], *onglets.first(integratrices.any? ? 2 : 1).map { |id, label, _| [id, label] }]
-   filtres = [['api', 'API et bases de données'], ['logiciel_metier_cle_en_main', 'Logiciels métiers « clé en main »'],
+   filtres = [['api', 'API et jeux de données'], ['logiciel_metier_cle_en_main', 'Logiciels métiers « clé en main »'],
               ['site_de_consultation', 'Sites de consultation des données']] %>
 <div data-controller="affichage-contenu">
   <div class="fil-ariane-collant fr-mt-1v">

@@ -522,7 +522,7 @@ RSpec.describe 'Demarches' do
 
       etiquettes = response.parsed_body.css('[data-affichage-contenu-target="bandeau"] button.fr-tag')
       expect(etiquettes.map { |etiquette| [etiquette.text.squish, etiquette['data-filtre'], etiquette['aria-pressed']] }).to eq([
-        ['API et bases de données', 'api', 'false'],
+        ['API et jeux de données', 'api', 'false'],
         ['Logiciels métiers « clé en main »', 'logiciel_metier_cle_en_main', 'false'],
         ['Sites de consultation des données', 'site_de_consultation', 'false']
       ])
@@ -542,7 +542,7 @@ RSpec.describe 'Demarches' do
       expect(bouton.text.squish).to eq('Affichage personnalisé')
       expect(barre.at_css('#menu-filtres').text).to include('Affichez le contenu de cette page selon les solutions que vous recherchez :')
       expect(barre.css('#menu-filtres button.fr-tag').map { |etiquette| [etiquette.text.squish, etiquette['data-filtre'], etiquette['aria-pressed']] })
-        .to eq([['API et bases de données', 'api', 'false'],
+        .to eq([['API et jeux de données', 'api', 'false'],
                 ['Logiciels métiers « clé en main »', 'logiciel_metier_cle_en_main', 'false'],
                 ['Sites de consultation des données', 'site_de_consultation', 'false']])
     end
