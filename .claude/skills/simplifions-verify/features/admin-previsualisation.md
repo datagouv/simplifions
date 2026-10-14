@@ -12,7 +12,7 @@ On a démarche or solution that holds a draft, the column `État et actions` sho
 
 - **Démarche.** No `Prévisualiser` before the draft; `Nom` `<nom> brouillon`, `Enregistrer`, `Prévisualiser` in a new window: H1 the draft name, the notice; at 640 px wide (200 % zoom) no horizontal scroll.
 - **Public page unchanged.** `/demarches/<slug>` H1 the published name, no notice; base `nom` unchanged.
-- **Solution image.** Attach `app/assets/images/solutions/data-subvention.png`, `Enregistrer`, `Prévisualiser`: the image shows, base image still not attached.
+- **Solution image.** Attach `app/assets/images/articles/api-franceconnectees-donnees-personnelles.png`, `Enregistrer`, `Prévisualiser`: the image shows, base image still not attached.
 - **Proof.** `tmp/verify/admin-previsualisation/`.
 
 ## Gotchas

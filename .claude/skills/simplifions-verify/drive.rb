@@ -58,6 +58,27 @@ def fiche_solution(page)
   Verify.evidence('fiche-solution', page, 'dernier-onglet', "slug=#{solution.slug} onglets=#{textes} attendus=#{onglets}")
 end
 
+def article_cartes(page)
+  page.visit('/articles/guide-base-petites-collectivites')
+  encart = page.find('.spotlight', text: 'Data.Subvention')
+  data_subvention = Solution.visibles.find_by!(slug: 'data-subvention')
+  operateur = data_subvention.organisations.first.nom
+  encart.assert_selector :link, data_subvention.nom, href: '/solutions/data-subvention'
+  encart.assert_selector '.fr-badge b', text: operateur
+  cantine = Demarche.visibles.find_by!(slug: 'tarification-cantine-scolaire-a-1eur')
+  page.assert_selector :link, cantine.titre, href: '/demarches/tarification-cantine-scolaire-a-1eur', minimum: 1
+  Verify.evidence('article-cartes', page, 'cartes-de-la-base',
+    "badge=#{encart.find('.fr-badge').text.squish} base=#{operateur} cantine=#{cantine.titre}")
+
+  data_subvention.update_columns(visible: false)
+  page.visit('/articles/guide-base-petites-collectivites')
+  page.assert_selector 'h1', text: 'Guide de base pour les petites collectivités'
+  page.assert_no_selector '.fr-card a[href="/solutions/data-subvention"]'
+  Verify.evidence('article-cartes', page, 'fiche-cachee', "visible=#{data_subvention.reload.visible} carte=absente")
+ensure
+  data_subvention&.update_columns(visible: true)
+end
+
 def connexion(page)
   page.visit('/admin')
   page.assert_text 'Vous devez vous connecter pour accéder à cette page.'
@@ -794,7 +815,7 @@ def formulaire_solution(page)
   dossier = 'admin-formulaire-solution'
   nom = "Vérif verify-map #{Verify.browser}"
   solution = Solution.new(nom:, categorie: 'brique_logicielle', legende_image: 'Écran de vérification')
-  solution.image.attach(io: Rails.root.join('app/assets/images/solutions/bouquet-api-entreprise.png').open, filename: 'verif.png')
+  solution.image.attach(io: Rails.root.join('app/assets/images/articles/api-franceconnectees-donnees-personnelles.png').open, filename: 'verif.png')
   solution.save!
   Verify.login(page)
   page.visit('/admin/solutions')
@@ -867,7 +888,7 @@ def saisie_solution(page)
   demarche = Demarche.visibles.order(:id).first
   solution = Solution.new(nom:, categorie: 'brique_logicielle', legende_image: 'Écran de vérification',
                           organisations: [Organisation.where(public_ou_prive: 'Public').order(:id).first])
-  solution.image.attach(io: Rails.root.join('app/assets/images/solutions/bouquet-api-entreprise.png').open, filename: 'verif.png')
+  solution.image.attach(io: Rails.root.join('app/assets/images/articles/api-franceconnectees-donnees-personnelles.png').open, filename: 'verif.png')
   solution.save!
   Integration.create!(integratrice: solution, integree: api, type_integration: 'consomme')
   Recommandation.create!(demarche:, solution:, niveau: :niveau_2)
@@ -1304,10 +1325,10 @@ def brouillon_image(page, dossier, nom, slug)
   solution = Solution.create!(nom:, slug:, visible: true)
   rubrique(page, 'Solutions')
   ouvrir_depuis_la_liste(page, nom)
-  page.attach_file('solution_image', Rails.root.join('app/assets/images/solutions/data-subvention.png').to_s)
+  page.attach_file('solution_image', Rails.root.join('app/assets/images/articles/api-franceconnectees-donnees-personnelles.png').to_s)
   page.click_button 'Enregistrer'
   page.assert_selector 'aside.admin-panneau', text: /Brouillon non publié/i
-  page.assert_selector '.fr-upload-group img[src*="data-subvention.png"]'
+  page.assert_selector '.fr-upload-group img[src*="api-franceconnectees-donnees-personnelles.png"]'
   attachee = ActiveRecord::Base.uncached { Solution.find(solution.id).image.attached? }
   raise 'image en brouillon déjà attachée' if attachee
 
@@ -1315,7 +1336,7 @@ def brouillon_image(page, dossier, nom, slug)
   page.click_button 'Publier'
   page.assert_text "« #{nom} » enregistré."
   fichier = ActiveRecord::Base.uncached { Solution.find(solution.id).image.filename.to_s }
-  raise "publication : image #{fichier}" unless fichier == 'data-subvention.png'
+  raise "publication : image #{fichier}" unless fichier == 'api-franceconnectees-donnees-personnelles.png'
 
   Verify.evidence(dossier, page, 'image-publiee', "image=#{fichier} brouillon=#{solution.reload.brouillon.inspect}")
 end
@@ -1363,10 +1384,10 @@ def previsualisation(page)
   solution = Solution.create!(nom:, slug:, visible: true)
   rubrique(page, 'Solutions')
   ouvrir_depuis_la_liste(page, nom)
-  page.attach_file('solution_image', Rails.root.join('app/assets/images/solutions/data-subvention.png').to_s)
+  page.attach_file('solution_image', Rails.root.join('app/assets/images/articles/api-franceconnectees-donnees-personnelles.png').to_s)
   page.click_button 'Enregistrer'
   previsualiser(page) do
-    page.assert_selector '.fr-content-media img[src*="data-subvention.png"]'
+    page.assert_selector '.fr-content-media img[src*="api-franceconnectees-donnees-personnelles.png"]'
     attachee = ActiveRecord::Base.uncached { Solution.find(solution.id).image.attached? }
     raise 'image attachée par la prévisualisation' if attachee
 
@@ -1386,7 +1407,7 @@ def image_refusee(page)
   Verify.login(page)
   solutions = [Solution.create!(nom: "#{nom} masquée"), Solution.create!(nom:, slug: "verif-verify-map-#{Verify.browser}", visible: true)]
   solutions.each { image_refusee_sur(page, dossier, it, faux_png) }
-  page.attach_file('solution_image', Rails.root.join('app/assets/images/solutions/data-subvention.png').to_s)
+  page.attach_file('solution_image', Rails.root.join('app/assets/images/articles/api-franceconnectees-donnees-personnelles.png').to_s)
   page.click_button 'Enregistrer'
   page.assert_selector 'aside.admin-panneau', text: /Brouillon non publié/i
   Verify.evidence(dossier, page, 'png-accepte', "brouillon_image=#{ActiveRecord::Base.uncached { solutions.last.reload.brouillon.to_h.key?('image') }}")
@@ -1727,7 +1748,8 @@ def contact_reponse_sans_adresse(page)
   Verify.evidence('contact', page, 'reponse-sans-adresse', "path=#{page.current_path} mailto=0")
 end
 
-{ 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
+{ 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'article-cartes' => :article_cartes,
+  'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
