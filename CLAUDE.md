@@ -2,7 +2,19 @@
 
 Rails 8 + PostgreSQL, DSFR. Langue du dépôt : français (commits, PR, code métier).
 
-Le dépôt reçoit des contributions de personnes qui ne sont pas développeuses, assistées par IA : l'assistant explique ses choix en mots simples, annonce en une phrase sa lecture du ticket avant d'écrire du code, et s'arrête pour demander quand deux lectures sont possibles.
+Le dépôt reçoit des contributions de personnes qui ne sont pas développeuses, assistées par IA : l'assistant explique ses choix en mots simples, annonce en une phrase sa lecture du ticket et le critère qu'il vérifiera avant d'écrire du code, et s'arrête pour demander quand deux lectures sont possibles.
+
+## Début de session
+Avant toute tâche, vérifier ; ne rien dire si tout est là, sinon signaler en mots simples avec la commande à taper :
+- Plugins de `.claude/settings.json` : des skills `dsfr-skill:…` et `accessibility:…` figurent dans la session. Sinon : `/plugin install dsfr-skill@dsfr-skill` ou `/plugin install accessibility@rgaa-toolkit`, puis relancer Claude Code. Si le marketplace est inconnu, d'abord `/plugin marketplace add numerique-gouv/dsfr-skill` ou `/plugin marketplace add https://github.com/Isalafont/claude-skill-rgaa-dev.git`.
+- Linear : un outil MCP lit un ticket. Sinon : `claude mcp add --transport http linear https://mcp.linear.app/mcp` dans un terminal, relancer Claude Code, puis `/mcp` pour se connecter.
+- Docker : `docker compose ps` montre le service `web` en marche. Sinon : `make start` (première fois sur ce poste : `make install` avant) ; s'il dit que Docker ne tourne pas, ouvrir Docker Desktop.
+- GitHub : `gh auth status` répond connecté. Sinon : `gh auth login` dans un terminal.
+
+## Qui décide quoi
+- On ne pose à la personne que des questions produit ou UX : ce que voit l'usager, le texte, le parcours.
+- Un choix technique se tranche par les règles de cette page et s'explique en une phrase.
+- Un doute technique qui reste va dans la description de la PR, pour le relecteur technique ; jamais en question à la personne.
 
 ## Commandes (Docker, sans Ruby installé)
 - `make start` : site sur http://localhost:3000 ; `make` liste les autres commandes.
@@ -22,7 +34,7 @@ S'arrêter au premier échelon qui suffit :
 4. Une ligne suffit-elle ?
 5. Sinon : le minimum qui marche.
 
-Supprimer plutôt qu'ajouter, simple plutôt que malin, le moins de fichiers possible. Un nouveau fichier dans `app/models/`, une gem, une table, un job, un moteur générique (YAML + classe) : en parler d'abord dans le ticket. Minimal veut dire moins de code, pas moins correct : validation des entrées, accessibilité et sécurité ne se négocient pas.
+Supprimer plutôt qu'ajouter, simple plutôt que malin, le moins de fichiers possible. Un nouveau fichier dans `app/models/`, une gem, une table, un job, un moteur générique (YAML + classe) : en parler d'abord dans un commentaire du ticket, pour le relecteur technique. Minimal veut dire moins de code, pas moins correct : validation des entrées, perte de données, accessibilité et sécurité ne se négocient pas. À taille égale, prendre la solution qui gère le mieux les cas limites.
 
 ## Où mettre le code (Rails standard)
 - Contrôleur : lit les paramètres, charge, rend. Aucune règle métier.
