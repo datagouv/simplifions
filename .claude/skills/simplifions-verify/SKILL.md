@@ -1,9 +1,9 @@
 ---
-name: verify-simplifions
+name: simplifions-verify
 description: Launch Simplifions (Rails 8 catalogue site with a Devise admin) on port 3101 and drive it with Capybara in headless Chrome and Firefox — the public catalogue of cas d'usages, a cas d'usage page, the admin login, the admin tables — then capture evidence. Read before starting the app, logging in as admin, or clicking through the site.
 ---
 
-# verify-simplifions
+# simplifions-verify
 
 Simplifions is a public catalogue (cas d'usages, solutions, articles) read by anyone, plus an administration behind a Devise login where an admin edits the catalogue tables. The dev database holds the catalogue imported from Grist; it has no admin account and `db/seeds.rb` is empty, so the map creates one dev-only admin for the run and removes it at cleanup.
 
@@ -37,7 +37,7 @@ Simplifions is a public catalogue (cas d'usages, solutions, articles) read by an
 - `ss -ltnp | grep ':3101'` shows the pid in `tmp/verify/server.pid`; another pid means a foreign server owns the port: stop, do not verify through it. Thomas's own dev server lives on 3050, never target it.
 - `bin/rails runner 'puts ActiveRecord::Base.connection.current_database'` → `simplifions_development`.
 - `bin/rails runner 'puts Demarche.visibles.count'` above zero.
-- `VERIFY_BROWSER=chrome bin/rails runner .claude/skills/verify-simplifions/drive.rb catalogue` prints `ok catalogue`: the harness and the browser work.
+- `VERIFY_BROWSER=chrome bin/rails runner .claude/skills/simplifions-verify/drive.rb catalogue` prints `ok catalogue`: the harness and the browser work.
 
 ## Enter
 
@@ -56,12 +56,12 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 - Ready-made drive: `drive.rb` runs every feature file in order, or one by its short name:
 
   ```sh
-  VERIFY_BROWSER=chrome  bin/rails runner .claude/skills/verify-simplifions/drive.rb
-  VERIFY_BROWSER=firefox bin/rails runner .claude/skills/verify-simplifions/drive.rb vocabulaires
+  VERIFY_BROWSER=chrome  bin/rails runner .claude/skills/simplifions-verify/drive.rb
+  VERIFY_BROWSER=firefox bin/rails runner .claude/skills/simplifions-verify/drive.rb vocabulaires
   ```
 
   It prints `ok <feature>` or `ECHEC <feature>: <error>` and never aborts the other features.
-- A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join(".claude/skills/verify-simplifions/harness.rb")`, run with `bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
+- A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join(".claude/skills/simplifions-verify/harness.rb")`, run with `bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
 - Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The filter selects auto-submit on change (Stimulus); the search field needs the `Rechercher` button.
 - Both browsers, every time: the user browses with Firefox, CI and Capybara defaults lean on Chrome.
 
@@ -73,7 +73,7 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
 ```sh
 kill "$(cat tmp/verify/server.pid)" && rm -f tmp/verify/server.pid
-bin/rails runner 'require "./.claude/skills/verify-simplifions/harness"; Verify.remove_admin'
+bin/rails runner 'require "./.claude/skills/simplifions-verify/harness"; Verify.remove_admin'
 ```
 
 Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates (the vocabulaire row); a drive that failed midway leaves a `Vérif verify-map <browser>` row in `vocabulaires`: remove it with `bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'`. Chrome profiles go to a `mktmpdir` and vanish with the process.
