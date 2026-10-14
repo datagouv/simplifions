@@ -10,9 +10,6 @@
    couvertures = @solution.couvertures
    nb_apis = @solution.nb_donnees_integrees
    onglets = @solution.integratrices_par_categorie
-   libelles_onglets = { 'logiciel_metier_cle_en_main' => 'Logiciels métiers',
-                        'brique_logicielle' => 'API, jeu de données ou brique logicielle',
-                        'site_de_consultation' => 'Sites de consultation' }
    sections = [['possibilites-simplification', 'Possibilités de simplification'],
                ['cas-usages-simplifiables', "Cas d'usages simplifiables"]]
    sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
@@ -187,7 +184,7 @@
       <div class="fr-tabs fr-mt-4w">
         <ul class="fr-tabs__list" role="tablist" aria-label="Catégories de solutions intégratrices">
           <% onglets.each_with_index do |(categorie, solutions), index| %>
-            <% label = libelles_onglets[categorie] %>
+            <% label = t("public.onglets_integratrices.#{categorie}") %>
             <li role="presentation">
               <button type="button" id="tab-<%= categorie.dasherize %>" class="fr-tabs__tab" tabindex="<%= index.zero? ? 0 : -1 %>" role="tab"
                 aria-selected="<%= index.zero? %>" aria-controls="tab-content-<%= categorie.dasherize %>"

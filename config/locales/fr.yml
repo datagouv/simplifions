@@ -204,3 +204,30 @@ fr:
         zero: ""
         one: "La solution %{noms} deviendra privée."
         other: "Ces solutions deviendront privées : %{noms}."
+  public:
+    solution:
+      privee: "Solution privée"
+      publique: "Solution publique"
+    onglets_integratrices:
+      logiciel_metier_cle_en_main: "Logiciels métiers"
+      brique_logicielle: "API, jeu de données ou brique logicielle"
+      site_de_consultation: "Sites de consultation"
+    moyens_acces:
+      brique_logicielle:
+        titre: "Via une brique logicielle à intégrer"
+        nombre:
+          zero: "Aucune brique"
+          one: "%{count} brique"
+          other: "%{count} briques"
+      logiciel_metier_cle_en_main:
+        titre: "Via un logiciel métier « clé en main »"
+        nombre:
+          zero: "Aucun logiciel"
+          one: "%{count} logiciel"
+          other: "%{count} logiciels"
+      site_de_consultation:
+        titre: "Via un site de consultation"
+        nombre:
+          zero: "Aucun site"
+          one: "%{count} site"
+          other: "%{count} sites"
