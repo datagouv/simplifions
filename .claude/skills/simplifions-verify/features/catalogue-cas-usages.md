@@ -20,7 +20,7 @@ Visitors browse the list of cas d'usages (démarches), narrow it by full-text se
 
 Preconditions:
 
-- App answers on `http://localhost:3101/up`.
+- Launch done and doctor green (SKILL.md § Launch, § Doctor).
 - At least one visible démarche whose title contains « marchés publics » and targets entreprises.
 
 - **Open the list.** `page.visit("/demarches")`. H1 `Cas d'usages`, a `[role=status]` paragraph `N résultats`.

@@ -10,20 +10,20 @@ A button on the admin dashboard enqueues `RafraichirCatalogueJob` (Grist import 
 
 Preconditions: a throwaway database, never `simplifions_development` (the job rewrites the catalogue).
 
+Every command of this file runs as `docker compose run --rm -e DATABASE_URL=postgres:///simplifions_verify_rafraichir -e SKIP_TEST_DATABASE=1 web bash -c 'test "$DATABASE_URL" = postgres:///simplifions_verify_rafraichir && <command>'`: the `test` stops a command whose `-e` was forgotten before it touches `simplifions_development`.
+
 ```sh
-export DATABASE_URL=postgres:///simplifions_verify_rafraichir SKIP_TEST_DATABASE=1
-bin/rails runner 'puts ActiveRecord::Base.connection.current_database'   # must print simplifions_verify_rafraichir
-bin/rails db:create db:schema:load && bin/rails grist:import
+docker compose run --rm -e DATABASE_URL=postgres:///simplifions_verify_rafraichir -e SKIP_TEST_DATABASE=1 web bash -c 'test "$DATABASE_URL" = postgres:///simplifions_verify_rafraichir && bin/rails db:create db:schema:load && bin/rails grist:import'
 ```
 
-Web on 3101 with the same `DATABASE_URL` (SKILL.md § Launch).
+The drive runs the same way (`… web bash -c 'test … && bin/rails runner tmp/verify/<file>.rb'`): the server it starts reads that database.
 
 - **Click.** Scratch drive: `Verify.login`, `page.accept_confirm { click_button 'Rafraîchir depuis Grist et data.gouv' }` returns the confirm text; assert `Rafraîchissement lancé.`, `en cours` and `page.find_button('Rafraîchissement en cours…', disabled: true)`. Read-back inside `ActiveRecord::Base.uncached`: one `SolidQueue::Job` of class `RafraichirCatalogueJob`.
-- **Run.** `timeout -s INT 400 bin/rails solid_queue:start` in the background (no `bin/jobs` in the repo). The worker polls every 60 s; the job is claimed, then finishes in about a minute.
+- **Run.** `docker compose run -d --name simplifions-verify-worker -e DATABASE_URL=postgres:///simplifions_verify_rafraichir -e SKIP_TEST_DATABASE=1 web bash -c 'test "$DATABASE_URL" = postgres:///simplifions_verify_rafraichir && timeout -s INT 400 bin/rails solid_queue:start'` (no `bin/jobs` in the repo). The worker polls every 60 s; the job is claimed, then finishes in about a minute.
 - **During the run** (`claimed?`): reload `/admin`, the button is still disabled; the server-side discard of a second request is covered by `spec/jobs/rafraichir_catalogue_job_spec.rb`.
 - **Finished.** Reload `/admin`: `terminé le … à HH:MM`, Paris time of `finished_at`, button enabled again.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/rafraichissement-admin/`, Chrome then Firefox.
-- **Cleanup.** Stop the server and the supervisor, `bin/rails db:drop` with the same `DATABASE_URL`, `unset DATABASE_URL`.
+- **Cleanup.** `docker rm -f simplifions-verify-worker`, then `docker compose run --rm -e DATABASE_URL=postgres:///simplifions_verify_rafraichir -e SKIP_TEST_DATABASE=1 web bash -c 'test "$DATABASE_URL" = postgres:///simplifions_verify_rafraichir && bin/rails db:drop'`.
 
 ## Gotchas
 

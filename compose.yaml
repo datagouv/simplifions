@@ -34,6 +34,20 @@ services:
     tty: true
     stdin_open: true
 
+  chrome: &browser
+    image: selenium/standalone-chromium:4.51.0-20261010
+    profiles: [verify]
+    shm_size: 2gb
+    healthcheck:
+      test: ["CMD", "/opt/bin/check-grid.sh"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  firefox:
+    <<: *browser
+    image: selenium/standalone-firefox:4.51.0-20261010
+
 volumes:
   db-data:
   bundle:
