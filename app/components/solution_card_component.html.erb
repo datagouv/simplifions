@@ -1,7 +1,8 @@
+<% badge = render("application/badge_operateur", solution: @card[:solution]).presence %>
 <div class="fr-card fr-card--no-icon fr-enlarge-link fr-card--shadow topic-card">
   <div class="fr-card__body">
     <div class="fr-card__content fr-px-2w fr-pt-3w">
-      <% if @card[:badge] && !@card[:image] %>
+      <% if badge && !@card[:image] %>
         <div class="fr-grid-row"><%= badge %></div>
       <% end %>
       <h3 class="fr-card__title fr-text--lead fr-mb-0">
@@ -23,7 +24,7 @@
       <div class="fr-card__img topic-image-container fr-mx-0">
         <%= image_tag @card[:image], alt: "", class: "card-image fr-responsive-img fr-ratio-16x9" %>
         <div class="topic-image-overlay"></div>
-        <%= tag.div(badge, class: "badge-absolute") if @card[:badge] %>
+        <%= tag.div(badge, class: "badge-absolute") if badge %>
       </div>
     </div>
   <% end %>
