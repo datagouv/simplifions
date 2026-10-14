@@ -24,6 +24,9 @@ gem "interactor"
 # Suivi des erreurs (sandbox, staging, production) ; inactif sans sentry_dsn dans les credentials
 gem "sentry-rails"
 
+# Journal JSON (log/logstash_<env>.log) que very_ansible expédie vers l'outil de logs central
+gem "logstasher", "~> 3.0"
+
 # Rend le markdown du catalogue Grist (HTML brut autorisé, nettoyé par sanitize dans ApplicationHelper#markdown)
 gem "commonmarker"
 

@@ -1,0 +1,7 @@
+development:
+  enabled: true
+  job_enabled: false
+  log_level: info
+
+test:
+  enabled: false
