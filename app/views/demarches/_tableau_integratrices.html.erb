@@ -39,8 +39,7 @@
             <% solutions.each_with_index do |solution, ordre| %>
               <% nombre_integrees, nombre_utiles = couvertures[solution.id]
                  integrees_solution = integrees.fetch(solution.id, Set.new) %>
-              <tr data-privee="<%= solution.privee? %>" data-nom="<%= solution.nom %>"
-                data-ordre="<%= ordre %>">
+              <tr data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
                 <th scope="row" class="fr-cell--fixed tableau-integratrices__solution">
                   <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
                   <% if (operateur = solution.organisations.first) %>

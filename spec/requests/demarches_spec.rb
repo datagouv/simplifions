@@ -432,7 +432,7 @@ RSpec.describe 'Demarches' do
       expect([proposition.text, proposition['target']]).to eq(['proposer une modification du contenu', '_blank'])
     end
 
-    it 'filtre par solution publique, sans phrase d’introduction' do
+    it 'liste toutes les solutions, sans filtre ni phrase d’introduction' do
       integre('Acheteza', 'logiciel_metier_cle_en_main', %w[Kbis])
       integre('Annuaire', 'site_de_consultation', %w[Kbis])
       Solution.find_by!(nom: 'Annuaire').organisations << Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
@@ -441,11 +441,11 @@ RSpec.describe 'Demarches' do
 
       section = response.parsed_body.at_css('#solutions-integratrices')
       expect(section.text).not_to include('Nombre d\'API et de jeux de données utiles')
-      expect(section.text).not_to include('Filtrer les solutions', 'Par catégorie :')
-      expect(section.at_css('label[for="filtre-solutions-publiques"]').text).to eq('Solutions publiques')
-      expect(section.at_css('input#filtre-solutions-publiques.fr-toggle__input')['checked']).to be_nil
-      expect(section.css('li[data-privee]').map { |carte| [carte.at_css('a').text, carte['data-privee']] })
-        .to eq([%w[Acheteza true], %w[Annuaire false]])
+      expect(section.text).not_to include('Filtrer les solutions', 'Par catégorie :', 'Solutions publiques')
+      expect(section.at_css('.fr-toggle')).to be_nil
+      expect(section.at_css('.fr-segmented legend.fr-sr-only').text).to eq('Affichage des solutions')
+      expect(section.css('ul[data-categories-integratrices-target~="cartes"] > li').map { it.at_css('a').text })
+        .to eq(%w[Acheteza Annuaire])
     end
 
     it 'propose une vue tableau qui compare les données intégrées par chaque solution' do
@@ -459,7 +459,7 @@ RSpec.describe 'Demarches' do
       section = response.parsed_body.at_css('#solutions-integratrices')
       expect(section.at_css('tbody tr th .fr-badge').text.squish).to eq('Public | DINUM')
       expect(section.at_css('tbody tr th .tableau-integratrices__detail').text).to eq('Annuaire en ligne')
-      expect(section.css('.fr-segmented input, .fr-toggle__input').map { |champ| champ.attr('autocomplete') }).to all(eq('off'))
+      expect(section.css('.fr-segmented input').map { |champ| champ.attr('autocomplete') }).to all(eq('off'))
       expect(section.css('.fr-segmented input[type="radio"]').map { |choix| choix.attr('value') }).to eq(%w[cartes tableau])
       tableaux = section.css('[data-categories-integratrices-target="tableau"]')
       expect(tableaux.pluck('class')).to all(include('fr-hidden'))

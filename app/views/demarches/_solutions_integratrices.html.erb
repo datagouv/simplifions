@@ -4,45 +4,31 @@
    triees = integratrices.sort_by { |sol| [-couvertures[sol.id].first, sol.nom] }
    par_categorie = triees.group_by(&:categorie) %>
 <div data-controller="categories-integratrices">
-  <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle fr-mb-2w">
-    <div class="fr-col-auto">
-      <div class="fr-toggle fr-toggle--label-left">
-        <input type="checkbox" class="fr-toggle__input" id="filtre-solutions-publiques" autocomplete="off"
-          data-categories-integratrices-target="publiques" data-action="change->categories-integratrices#filtrer">
-        <label class="fr-toggle__label" for="filtre-solutions-publiques">Solutions publiques</label>
-      </div>
-    </div>
-    <div class="fr-col">
-      <div class="fr-grid-row fr-grid-row--right fr-mb-1w">
-        <fieldset class="fr-segmented fr-segmented--sm">
-          <legend class="fr-segmented__legend fr-segmented__legend--inline">Affichage :</legend>
-          <div class="fr-segmented__elements">
-            <div class="fr-segmented__element">
-              <input type="radio" id="affichage-cartes" name="affichage-solutions" value="cartes" checked autocomplete="off"
-                data-action="change->categories-integratrices#afficher">
-              <label class="fr-label fr-icon-layout-grid-line" for="affichage-cartes">Cartes</label>
-            </div>
-            <div class="fr-segmented__element">
-              <input type="radio" id="affichage-tableau" name="affichage-solutions" value="tableau" autocomplete="off"
-                data-action="change->categories-integratrices#afficher">
-              <label class="fr-label fr-icon-table-line" for="affichage-tableau">Tableau comparatif</label>
-            </div>
-          </div>
-        </fieldset>
-      </div>
-      <div class="fr-grid-row fr-grid-row--right">
-        <div class="fr-select-group fr-grid-row fr-grid-row--middle fr-mb-0">
-          <label for="tri-solutions-integratrices" class="fr-label fr-text--sm fr-col-auto fr-m-0 fr-mr-1w">Trier par :</label>
-          <select id="tri-solutions-integratrices" class="fr-select fr-text--sm fr-col" autocomplete="off"
-            data-categories-integratrices-target="tri" data-action="change->categories-integratrices#trier">
-            <option value="integration">Le plus de données intégrées</option>
-            <option value="titre">Titre</option>
-          </select>
+  <div class="fr-grid-row fr-grid-row--middle fr-mb-2w">
+    <fieldset class="fr-segmented fr-segmented--sm">
+      <legend class="fr-segmented__legend fr-sr-only">Affichage des solutions</legend>
+      <div class="fr-segmented__elements">
+        <div class="fr-segmented__element">
+          <input type="radio" id="affichage-cartes" name="affichage-solutions" value="cartes" checked autocomplete="off"
+            data-action="change->categories-integratrices#afficher">
+          <label class="fr-label fr-icon-layout-grid-line" for="affichage-cartes">Cartes</label>
+        </div>
+        <div class="fr-segmented__element">
+          <input type="radio" id="affichage-tableau" name="affichage-solutions" value="tableau" autocomplete="off"
+            data-action="change->categories-integratrices#afficher">
+          <label class="fr-label fr-icon-table-line" for="affichage-tableau">Tableau comparatif</label>
         </div>
       </div>
+    </fieldset>
+    <div class="fr-select-group fr-grid-row fr-grid-row--middle fr-mb-0 fr-ml-auto">
+      <label for="tri-solutions-integratrices" class="fr-label fr-col-auto fr-m-0 fr-mr-1w">Trier par :</label>
+      <select id="tri-solutions-integratrices" class="fr-select fr-col" autocomplete="off"
+        data-categories-integratrices-target="tri" data-action="change->categories-integratrices#trier">
+        <option value="integration">Le plus de données intégrées</option>
+        <option value="titre">Titre</option>
+      </select>
     </div>
   </div>
-  <p class="fr-hidden" data-categories-integratrices-target="vide"><i>Aucune solution ne correspond aux filtres sélectionnés.</i></p>
 
   <% libelles.each do |categorie, titre| %>
     <% next unless par_categorie.key?(categorie) %>

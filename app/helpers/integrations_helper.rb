@@ -14,7 +14,7 @@ module IntegrationsHelper
 
   def badge_nombre_solutions(categorie, nombre)
     icone, singulier, pluriel = BADGES_SOLUTIONS.fetch(categorie)
-    tag.span("#{nombre} #{nombre > 1 ? pluriel : singulier}", data: { compte: categorie, singulier:, pluriel: },
+    tag.span("#{nombre} #{nombre > 1 ? pluriel : singulier}",
       class: "fr-badge fr-badge--sm fr-badge--icon-left fr-background-contrast--info fr-text-default--info fr-ml-1w #{icone}")
   end
 
