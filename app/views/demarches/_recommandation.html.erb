@@ -6,9 +6,9 @@
    nom_demarche = recommandation.demarche.titre
    couvertures = recommandation.couvertures
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
-   accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
-                 ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
-                 ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites']] %>
+   icones = { 'brique_logicielle' => 'fr-icon-code-box-fill',
+              'logiciel_metier_cle_en_main' => 'fr-icon-mac-fill',
+              'site_de_consultation' => 'fr-icon-seo-fill' } %>
 <div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>">
   <h3 class="fr-h4 fr-mb-2w">
     <span class="fr-text--alt"><em>Via «</em></span>
@@ -138,15 +138,17 @@
         </section>
       <% end %>
 
-      <% accordeons.each do |categorie, titre, icone, vide, singulier, pluriel| %>
-        <% solutions = moyens.fetch(categorie, []) %>
+      <% icones.each do |categorie, icone| %>
+        <% solutions = moyens.fetch(categorie, [])
+           titre = t("public.moyens_acces.#{categorie}.titre")
+           nombre = t("public.moyens_acces.#{categorie}.nombre", count: solutions.size) %>
         <% if solutions.empty? %>
           <section class="fr-accordion">
             <h5 class="fr-accordion__title">
               <span class="fr-accordion__btn fr-accordion__btn--empty">
                 <span class="fr-mr-auto">
                   <%= titre %>
-                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-text-mention--grey fr-ml-1w <%= icone %>"><%= vide %></span>
+                  <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-text-mention--grey fr-ml-1w <%= icone %>"><%= nombre %></span>
                 </span>
                 <span aria-hidden="true" class="fr-icon-subtract-line fr-icon--sm"></span>
                 <span class="fr-sr-only">(Aucune solution référencée)</span>
@@ -161,7 +163,7 @@
                 <span class="fr-mr-auto">
                   <%= titre %>
                   <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-background-contrast--info fr-text-default--info fr-ml-1w <%= icone %>">
-                    <%= solutions.size %> <%= solutions.size > 1 ? pluriel : singulier %>
+                    <%= nombre %>
                   </span>
                   <% unless categorie == 'brique_logicielle' %>
                     <span class="fr-badge fr-badge--sm fr-badge--new fr-ml-1w">Sans développement</span>
