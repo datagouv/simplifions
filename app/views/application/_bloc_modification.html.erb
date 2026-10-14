@@ -1,7 +1,11 @@
+<% formulaire = "https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions" %>
 <div id="modification-contenu" class="bloc-modifications fr-mt-10w">
   <h2 class="fr-h6">✒️ Proposer une modification du contenu</h2>
   <p class="fr-mb-0">
     Pour proposer une modification du contenu de <%= sujet %>, vous pouvez compléter
-    <a href="https://www.demarches-simplifiees.fr/commencer/proposer-un-contenu-pour-le-site-simplifions" rel="noopener external" target="_blank">ce formulaire</a>.
+    <a href="<%= formulaire %>" rel="noopener external" target="_blank">ce formulaire</a>.
   </p>
 </div>
+<a href="<%= formulaire %>" rel="noopener external" target="_blank" aria-describedby="infobulle-proposer-modification"
+  class="fr-btn fr-btn--sm fr-btn--secondary bouton-proposer-modification"><span aria-hidden="true" class="fr-mr-1w">✒️</span><span class="fr-hidden-sm">Une modification ?</span><span class="fr-hidden fr-unhidden-sm">Proposer une modification</span><span class="fr-sr-only"> - nouvelle fenêtre</span></a>
+<span class="fr-tooltip fr-placement" id="infobulle-proposer-modification" role="tooltip" aria-hidden="true">Le contenu de Simplifions.data est collaboratif, si vous avez repéré une erreur ou un manque, écrivez-nous.</span>

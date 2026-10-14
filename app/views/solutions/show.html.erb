@@ -84,11 +84,6 @@
 
       <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill icon-gray"></span> Périmètre de simplification non couvert :</h3>
       <%= render 'contenu', texte: @solution.ne_permet_pas %>
-
-      <p class="fr-text--sm fr-mt-4w">
-        <i>Une remarque concernant les possibilités de simplification de cette solution ? </i>
-        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
-      </p>
     <% end %>
   </div>
 
@@ -109,10 +104,7 @@
         <% end %>
       </div>
     <% else %>
-      <p class="fr-text--sm">
-        <i>Aucun cas d'usage n'est référencé pour cette solution actuellement.</i>
-        <a href="#modification-contenu">✒️ Proposer des cas d'usages</a>
-      </p>
+      <p class="fr-text--sm"><i>Aucun cas d'usage n'est référencé pour cette solution actuellement.</i></p>
     <% end %>
   <% end %>
 
@@ -129,10 +121,7 @@
   <% end %>
   <% if utilisees.empty? && fournies.empty? %>
     <%= render ArticleSectionComponent.new(id: 'donnees-api', label: 'Données et API') do %>
-      <p class="fr-text--sm">
-        <i>Aucun jeu de données ou API utilisé ou fourni par cette solution actuellement.</i>
-        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
-      </p>
+      <p class="fr-text--sm"><i>Aucun jeu de données ou API utilisé ou fourni par cette solution actuellement.</i></p>
     <% end %>
   <% end %>
 
