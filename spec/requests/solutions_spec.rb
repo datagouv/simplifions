@@ -252,4 +252,18 @@ RSpec.describe 'Solutions' do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe 'onglets des solutions intégratrices' do
+    it 'nomme l’onglet des briques logicielles' do
+      bouquet = Solution.create!(nom: 'Bouquet', slug: 'bouquet', categorie: 'brique_logicielle', visible: true)
+      api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose')
+      brique = Solution.create!(nom: 'Connecteur', slug: 'connecteur', categorie: 'brique_logicielle', visible: true)
+      Integration.create!(integratrice: brique, integree: api_qf, type_integration: 'consomme', statut: '✅ en production')
+
+      get solution_path('bouquet')
+
+      expect(response.parsed_body.css('.fr-tabs__tab').map { it.text.squish }).to eq(['API, jeu de données ou brique logicielle (1)'])
+    end
+  end
 end
