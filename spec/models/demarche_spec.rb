@@ -26,6 +26,27 @@ RSpec.describe Demarche do
     expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
   end
 
+  describe '#page_publique?' do
+    it 'n’a une page publique que visible et avec un slug' do
+      expect(described_class.new(visible: true, slug: 'cantine')).to be_page_publique
+      expect(described_class.new(visible: false, slug: 'cantine')).not_to be_page_publique
+      expect(described_class.new(visible: true, slug: nil)).not_to be_page_publique
+    end
+  end
+
+  describe '#recommandations_publiees' do
+    it 'liste les solutions recommandées visibles dans l’ordre éditorial, sans les données utiles' do
+      demarche = described_class.create!(nom: 'Cantine')
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      seconde = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Bouquet', organisations: [dinum]), niveau: :niveau_2, ordre: 2, visible: true)
+      premiere = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Portail', organisations: [dinum]), niveau: :niveau_2, ordre: 1, visible: true)
+      Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Masquée', organisations: [dinum]), niveau: :niveau_2, visible: false)
+      Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1, visible: true)
+
+      expect(demarche.recommandations_publiees).to eq([premiere, seconde])
+    end
+  end
+
   describe '.catalogue' do
     let(:particuliers) { Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
     let(:dlnuf) { Vocabulaire.create!(nom: 'DLNUF', slug: 'dlnuf', categorie: 'type_simplification') }

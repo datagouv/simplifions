@@ -27,8 +27,7 @@ module ApplicationHelper
 
   def champ_de_fiche(formulaire, champ)
     solution = formulaire.object
-    masque = !solution.fiche? && solution.public_send(champ).blank? &&
-             !solution.will_save_change_to_attribute?(champ) && !solution.attachment_changes.key?(champ.to_s)
+    masque = solution.champ_masque?(champ)
     { class: ('fr-hidden' if masque), disabled: masque,
       input_group_options: { data: { champ_fiche: true, rempli_en_base: rempli_en_base?(solution, champ) } } }
   end

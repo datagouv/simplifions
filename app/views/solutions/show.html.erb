@@ -7,16 +7,12 @@
    utilisees = @solution.consommees.visibles.sur_datagouv.load
    fournies = @solution.exposees.visibles.sur_datagouv.load
    demarches = @solution.demarches_simplifiables
-   integratrices = @solution.integratrices_visibles.includes(:organisations, :vocabulaires)
    couvertures = @solution.couvertures
    nb_apis = @solution.nb_donnees_integrees
-   onglets = { 'logiciel_metier_cle_en_main' => 'Logiciels métiers',
-               'brique_logicielle' => 'API, jeu de données ou brique logicielle',
-               'site_de_consultation' => 'Sites de consultation' }
-     .filter_map do |categorie, label|
-       solutions = integratrices.select { |integratrice| integratrice.categorie == categorie }
-       [categorie, label, solutions.sort_by { |sol| [-(nb_apis[sol.id] || 0), sol.nom] }] if solutions.any?
-     end
+   onglets = @solution.integratrices_par_categorie
+   libelles_onglets = { 'logiciel_metier_cle_en_main' => 'Logiciels métiers',
+                        'brique_logicielle' => 'API, jeu de données ou brique logicielle',
+                        'site_de_consultation' => 'Sites de consultation' }
    sections = [['possibilites-simplification', 'Possibilités de simplification'],
                ['cas-usages-simplifiables', "Cas d'usages simplifiables"]]
    sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
@@ -140,7 +136,7 @@
     <div id="solutions-integratices" class="solutions-integratices-container fr-p-3w fr-mt-8w" data-controller="integratrices">
       <h2 class="fr-h2 article-section__title fr-mb-4w">Solutions intégrant "<%= @solution.nom %>"</h2>
 
-      <% if integratrices.size > 1 %>
+      <% if @solution.integratrices_visibles.many? %>
         <div class="fr-py-3w fr-mb-2w">
           <div class="fr-grid-row fr-grid-row--gutters">
             <div class="fr-col-12 fr-col-md-6">
@@ -159,7 +155,7 @@
                 <label for="filtre-nb-apis" class="fr-label">API ou jeux de données intégrés :</label>
                 <select id="filtre-nb-apis" class="fr-select" data-integratrices-target="nbApis" data-action="integratrices#filter">
                   <option value="0">Tous</option>
-                  <% (1..onglets.flat_map(&:last).filter_map { |sol| nb_apis[sol.id] }.max.to_i).each do |nombre| %>
+                  <% (1..onglets.values.flatten.filter_map { |sol| nb_apis[sol.id] }.max.to_i).each do |nombre| %>
                     <option value="<%= nombre %>">Au moins <%= nombre %></option>
                   <% end %>
                 </select>
@@ -169,7 +165,7 @@
         </div>
         <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
           <div class="fr-col-12 fr-col-md-6">
-            <% affichees = onglets.sum { |_, _, solutions| solutions.size } %>
+            <% affichees = onglets.values.sum(&:size) %>
             <p class="fr-text--bold fr-mb-0 fr-ml-2w" data-integratrices-target="compteur"><%= affichees %> solution<%= 's' if affichees > 1 %> disponible<%= 's' if affichees > 1 %></p>
           </div>
           <div class="fr-col-auto fr-grid-row fr-grid-row--middle fr-ml-auto">
@@ -190,7 +186,8 @@
 
       <div class="fr-tabs fr-mt-4w">
         <ul class="fr-tabs__list" role="tablist" aria-label="Catégories de solutions intégratrices">
-          <% onglets.each_with_index do |(categorie, label, solutions), index| %>
+          <% onglets.each_with_index do |(categorie, solutions), index| %>
+            <% label = libelles_onglets[categorie] %>
             <li role="presentation">
               <button type="button" id="tab-<%= categorie.dasherize %>" class="fr-tabs__tab" tabindex="<%= index.zero? ? 0 : -1 %>" role="tab"
                 aria-selected="<%= index.zero? %>" aria-controls="tab-content-<%= categorie.dasherize %>"
@@ -198,7 +195,7 @@
             </li>
           <% end %>
         </ul>
-        <% onglets.each_with_index do |(categorie, _label, solutions), index| %>
+        <% onglets.each_with_index do |(categorie, solutions), index| %>
           <div id="tab-content-<%= categorie.dasherize %>" class="fr-tabs__panel fr-tabs__panel--white <%= 'fr-tabs__panel--selected' if index.zero? %>"
             role="tabpanel" aria-labelledby="tab-<%= categorie.dasherize %>" tabindex="0">
             <ul class="fr-grid-row fr-grid-row--gutters list-none" data-integratrices-target="panneau">
