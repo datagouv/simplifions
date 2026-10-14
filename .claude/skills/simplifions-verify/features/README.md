@@ -1,6 +1,6 @@
 # Features
 
-Index for `verify-simplifions`. One file per user-facing feature; each holds the entry points, the exact drive and what proves it.
+Index for `simplifions-verify`. One file per user-facing feature; each holds the entry points, the exact drive and what proves it.
 
 ## Baseline preconditions
 
