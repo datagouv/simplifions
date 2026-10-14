@@ -11,9 +11,20 @@
             <h2 id="<%= modale_id %>-titre" class="fr-modal__title fr-mb-1w"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></h2>
             <%= render 'badge_operateur', solution: %>
             <p class="integration-indicator fr-p-1w fr-mt-2w">
-              <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(nombre_integrees, nombre_utiles) %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
+              <% jeu_de_donnees = donnee_courante&.categorie_base_de_donnees?
+                 donnee_unique_integree = donnee_courante && [nombre_integrees, nombre_utiles] == [1, 1] %>
+              <% if donnee_unique_integree %>
+                <span class="fr-text--sm integration-indicator__count indicator--green fr-icon-check-line fr-icon--sm" aria-hidden="true"></span>
+              <% else %>
+                <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(nombre_integrees, nombre_utiles) %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
+              <% end %>
               <% if donnee_courante %>
-                <span class="fr-text--sm"><b>API et jeux de données «&nbsp;<%= donnee_courante.nom %>&nbsp;» intégrés par cette solution</b>, utiles pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»
+                <span class="fr-text--sm">
+                  <% if donnee_unique_integree %>
+                    <b>«&nbsp;<%= donnee_courante.nom %>&nbsp;» est <%= jeu_de_donnees ? 'intégré' : 'intégrée' %> par cette solution</b>, utile pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»
+                  <% else %>
+                    <b><%= jeu_de_donnees ? 'jeux de données' : 'API' %> «&nbsp;<%= donnee_courante.nom %>&nbsp;» <%= jeu_de_donnees ? 'intégrés' : 'intégrées' %> par cette solution</b>, utiles pour la démarche «&nbsp;<%= nom_demarche %>&nbsp;»
+                  <% end %>
                   <% if couverture_globale %>
                     <% total_integrees, total_utiles = couverture_globale %>
                     <span class="integration-indicator__global">

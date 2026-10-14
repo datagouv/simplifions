@@ -235,13 +235,14 @@ RSpec.describe 'Demarches' do
       expect(carte['class']).not_to include('fr-enlarge-link')
       expect(carte.at_css('a.fr-link[href="/solutions/acheteza"]').text.squish).to eq('Voir la fiche Acheteza')
       expect(carte.at_css('.integration-indicator').text.squish)
-        .to eq('2/2 API ou jeu de données utiles Bouquet API Particulier Voir les données intégrées par Acheteza')
+        .to eq('2/2 API « Bouquet API Particulier » Voir les données intégrées par Acheteza ' \
+               '2/2 API ou jeux de données au total pour ce cas d’usage')
       bouton = carte.at_css('button.fr-icon-eye-line')
       expect(bouton['title']).to eq('Voir les données intégrées par Acheteza')
       modale = response.parsed_body.at_css("dialog##{bouton['aria-controls']}")
       expect(modale.at_css('.fr-modal__title a[href="/solutions/acheteza"]').text).to eq('Acheteza')
       expect(modale.at_css('.integration-indicator').text.squish)
-        .to eq('2/2 API et jeux de données « Bouquet API Particulier » intégrés par cette solution, ' \
+        .to eq('2/2 API « Bouquet API Particulier » intégrées par cette solution, ' \
                'utiles pour la démarche « 🥣 Tarification cantine scolaire à 1€ » ' \
                'Sur l’ensemble du cas d’usage : 2/2 API et jeux de données utiles intégrés.')
       expect(modale.css('li').map { |ligne| ligne.text.squish })
@@ -360,7 +361,7 @@ RSpec.describe 'Demarches' do
       cartes = section.css('.solution-integratrice-card')
       expect(cartes.map { |carte| carte.at_css('.integration-indicator__count').text }).to eq(%w[2/2 1/2 1/2])
       expect(cartes.first.at_css('.integration-indicator').text.squish)
-        .to eq('2/2 API et jeux de données utiles Voir les données intégrées par Zeta achats')
+        .to eq('2/2 API ou jeux de données au total pour ce cas d’usage Voir les données intégrées par Zeta achats')
       alpha = response.parsed_body.at_css("dialog##{cartes[1].at_css('button.fr-icon-eye-line')['aria-controls']}")
       expect(alpha.at_css('details[open] > summary h3').text.squish).to eq('API Entreprise (1/2)')
       expect(alpha.css('li').map { |ligne| ligne.text.squish }).to eq(['Kbis : intégrée', 'Urssaf : non intégrée'])
@@ -382,6 +383,26 @@ RSpec.describe 'Demarches' do
       expect(section.css('tbody tr').map(&nom_et_ordre)).to eq([['Zeta achats', '0'], ['Alpha achats', '1']])
     end
 
+    it 'coche la carte d’une API recommandée sans endpoint utile, intégrée par la solution' do
+      bodacc = Solution.create!(nom: 'Bodacc', categorie: 'api')
+      reco = Recommandation.create!(demarche:, solution: bodacc, niveau: :niveau_2, visible: true)
+      integre('Alpha achats', 'logiciel_metier_cle_en_main', %w[Bodacc])
+
+      get demarche_path('marches-publics')
+
+      carte = response.parsed_body.at_css("#recommandation_#{reco.id} .solution-integratrice-card")
+      indicateur = carte.at_css('.integration-indicator')
+      expect(indicateur.at_css('.fr-icon-check-line')).to be_present
+      expect(indicateur.text.squish)
+        .to eq('API intégrée Voir les données intégrées par Alpha achats ' \
+               '1/3 API ou jeux de données au total pour ce cas d’usage')
+      modale = response.parsed_body.at_css("dialog##{indicateur.at_css('button.fr-icon-eye-line')['aria-controls']}")
+      expect(modale.at_css('.integration-indicator .fr-icon-check-line')).to be_present
+      expect(modale.at_css('.integration-indicator').text.squish)
+        .to eq('« Bodacc » est intégrée par cette solution, utile pour la démarche « Marchés publics » ' \
+               'Sur l’ensemble du cas d’usage : 1/3 API et jeux de données utiles intégrés.')
+    end
+
     it 'distingue dans la modale du bloc le compteur de la donnée et celui du cas d’usage' do
       autre = Solution.create!(nom: 'Bodacc', categorie: 'api')
       Recommandation.create!(demarche:, solution: autre, niveau: :niveau_2, visible: true)
@@ -392,7 +413,7 @@ RSpec.describe 'Demarches' do
       bouton = response.parsed_body.at_css('#donnees-disponibles button.fr-icon-eye-line')
       modale = response.parsed_body.at_css("dialog##{bouton['aria-controls']}")
       expect(modale.at_css('.integration-indicator').text.squish)
-        .to eq('1/2 API et jeux de données « API Entreprise » intégrés par cette solution, utiles pour la démarche « Marchés publics » ' \
+        .to eq('1/2 API « API Entreprise » intégrées par cette solution, utiles pour la démarche « Marchés publics » ' \
                'Sur l’ensemble du cas d’usage : 1/3 API et jeux de données utiles intégrés.')
       expect(modale.css('details.section-depliable > summary h3').map { |titre| titre.text.squish })
         .to eq(['API Entreprise (1/2)', 'Autres API et jeux de données (0/1)'])

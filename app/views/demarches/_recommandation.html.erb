@@ -7,8 +7,8 @@
    couvertures = recommandation.couvertures
    integrees = recommandation.integrees
    utiles_du_bloc = recommandation.solutions_utiles.to_a
-   type_donnee = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données'
-   libelle_compteur = "#{type_donnee} utiles #{cible.nom}"
+   libelle_compteur = "#{cible.categorie_base_de_donnees? ? 'jeux de données' : 'API'} « #{cible.nom} »"
+   libelle_unique = cible.categorie_base_de_donnees? ? 'Jeu de données intégré' : 'API intégrée'
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
    accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'Aucune brique'],
                  ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'Aucun logiciel'],
@@ -190,7 +190,7 @@
                   <div class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
                     <%= render 'solution_integratrice', solution:, couverture: couvertures[solution.id],
                           groupes: groupes_demarche, integrees: integrees_demarche.fetch(solution.id, Set.new),
-                          contexte: dom_id(recommandation), libelle: libelle_compteur, nom_demarche:,
+                          contexte: dom_id(recommandation), libelle: libelle_compteur, libelle_unique:, nom_demarche:,
                           donnee_courante: cible, couverture_globale: couvertures_demarche[solution.id] %>
                   </div>
                 <% end %>

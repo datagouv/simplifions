@@ -9,14 +9,28 @@
   <% end %>
   <% if couverture %>
     <% nombre_integrees, nombre_utiles = couverture
-       couleur = couleur_integration(nombre_integrees, nombre_utiles) %>
+       couleur = couleur_integration(nombre_integrees, nombre_utiles)
+       donnee_unique_integree = local_assigns[:libelle_unique] && couverture == [1, 1]
+       couleur_libelle = local_assigns[:libelle_unique] ? 'fr-text-default--grey' : 'fr-text-mention--grey' %>
     <div class="integration-indicator fr-p-1w">
-      <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
-      <span class="fr-text--xs fr-text-mention--grey"><%= libelle %></span>
+      <% if donnee_unique_integree %>
+        <span class="fr-text--sm integration-indicator__count indicator--green fr-icon-check-line fr-icon--sm" aria-hidden="true"></span>
+        <span class="fr-text--xs <%= couleur_libelle %>"><%= libelle_unique %></span>
+      <% else %>
+        <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur %>"><%= nombre_integrees %>/<%= nombre_utiles %></span>
+        <span class="fr-text--xs <%= couleur_libelle %>"><%= libelle %></span>
+      <% end %>
       <button type="button" class="integration-indicator__oeil fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-eye-line"
         aria-controls="<%= modale_id %>" data-fr-opened="false" title="Voir les données intégrées par <%= solution.nom %>">
         Voir les données intégrées par <%= solution.nom %>
       </button>
+      <% if local_assigns[:couverture_globale] %>
+        <% total_integrees, total_utiles = couverture_globale %>
+        <p class="integration-indicator__total fr-text-mention--grey">
+          <span class="fr-text--bold integration-indicator__count integration-indicator__count--attenue indicator--<%= couleur_integration(total_integrees, total_utiles) %>"><%= total_integrees %>/<%= total_utiles %></span>
+          <span>API ou jeux de données au total pour ce cas d’usage</span>
+        </p>
+      <% end %>
     </div>
     <% content_for :modales do %>
       <%= render 'modale_integrations', modale_id:, solution:, groupes:, integrees:,

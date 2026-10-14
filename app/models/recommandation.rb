@@ -43,14 +43,12 @@ class Recommandation < ApplicationRecord
   # { integratrice_id => [x, y] } : comme sur le site actuel, x données utiles intégrées en production sur les y
   # attendues, quelle que soit la démarche saisie sur l'intégration.
   def couvertures
-    y = utiles.count
-    return {} if y.zero?
-
+    y = ids_utiles.size
     solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, Set.new).size, y] }
   end
 
   def integrees
-    @integrees ||= Integration.integrees_par_integratrice(utiles.select(:solution_id))
+    @integrees ||= Integration.integrees_par_integratrice(ids_utiles)
   end
 
   def solutions_utiles = Solution.where(id: utiles.select(:solution_id)).order(:nom)
@@ -81,6 +79,8 @@ class Recommandation < ApplicationRecord
   private
 
   def utiles = demarche.recommandations.niveau_1.parues.where(solution: solution.fournies)
+
+  def ids_utiles = @ids_utiles ||= utiles.pluck(:solution_id).presence || [solution_id]
 
   def ne_recommande_pas_de_solution_privee
     errors.add(:solution, :privee) if solution&.privee?

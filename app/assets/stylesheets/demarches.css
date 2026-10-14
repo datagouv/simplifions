@@ -193,6 +193,21 @@
   }
 }
 
+.solution-integratrice-card .integration-indicator {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+}
+
+.integration-indicator__total {
+  grid-column: 1 / -1;
+  padding-left: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
 .integration-indicator > .integration-indicator__oeil {
   margin-left: auto !important;
   align-self: center;

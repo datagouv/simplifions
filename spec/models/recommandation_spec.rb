@@ -134,6 +134,17 @@ RSpec.describe Recommandation do
       expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2], hors_utiles.id => [0, 2])
     end
 
+    it 'compte l’API elle-même quand aucun de ses endpoints n’est utile' do
+      demarche = Demarche.create!(nom: 'Cantine')
+      api = Solution.create!(nom: 'API Effectifs', categorie: 'api')
+      reco = described_class.create!(demarche:, solution: api, niveau: :niveau_2)
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      Integration.create!(integratrice: logiciel, integree: api, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      expect(reco.couvertures).to eq(logiciel.id => [1, 1])
+    end
+
     it 'est vide sans donnée utile attendue' do
       demarche = Demarche.create!(nom: 'Cantine')
       bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
