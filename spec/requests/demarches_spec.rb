@@ -472,6 +472,12 @@ RSpec.describe 'Demarches' do
         expect(entete).to have_css('button.fr-tag', count: 3)
       end
 
+      it 'rouvre les tags sous le fil d’Ariane par le bouton « Affichage personnalisé »' do
+        bouton = page.find('.affichage-personnalise__entete button', text: 'Affichage personnalisé', visible: :all)
+
+        expect(page.find("##{bouton[:'aria-controls']}.fr-collapse", visible: :all)).to have_css('button.fr-tag', count: 3, visible: :all)
+      end
+
       it 'marque pour le filtre chaque bloc des deux onglets, tableaux compris, selon le type de solution' do
         reco = page.find('#donnees-disponibles .reco-card', text: 'Bouquet API Entreprise')
         blocs_de_reco = reco.all('[data-filtre]', visible: :all).map { [it[:'data-filtre'], it.find('.fr-accordion__title', visible: :all).text(:all).squish] }
