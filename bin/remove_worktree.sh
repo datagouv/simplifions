@@ -37,14 +37,28 @@ if [ -d "$WORKTREE_PATH" ]; then
     echo "Erreur : $WORKTREE_PATH a des changements non commités, rien n'est supprimé" >&2
     exit 1
   fi
-  PROJECT_LABEL="label=com.docker.compose.project=simplifions_${SLUG}"
-  if command -v docker >/dev/null 2>&1 &&
-    [ -n "$(docker ps -aq --filter "$PROJECT_LABEL"; docker volume ls -q --filter "$PROJECT_LABEL")" ]; then
-    (
-      cd "$WORKTREE_PATH" &&
-        docker compose run --rm --no-deps -T web chown -R "$(id -u):$(id -g)" /rails &&
-        docker compose down --volumes --rmi local
-    )
+  PROJECT="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' "$WORKTREE_PATH/.env" 2>/dev/null || true)"
+  PROJECT="${PROJECT:-simplifions_${SLUG}}"
+  if [ "$PROJECT" = simplifions ]; then
+    echo "Erreur : $WORKTREE_PATH/.env désigne le projet docker du dépôt principal, rien n'est supprimé" >&2
+    exit 1
+  fi
+  if command -v docker >/dev/null 2>&1; then
+    if ! docker info >/dev/null 2>&1; then
+      echo "Erreur : Docker ne répond pas, ses conteneurs et son volume resteraient." >&2
+      echo "Lancer Docker puis relancer ; rien n'est supprimé." >&2
+      exit 1
+    fi
+    PROJECT_LABEL="label=com.docker.compose.project=$PROJECT"
+    CONTAINERS="$(docker ps -aq --filter "$PROJECT_LABEL")"
+    VOLUMES="$(docker volume ls -q --filter "$PROJECT_LABEL")"
+    if [ -n "$CONTAINERS$VOLUMES" ]; then
+      (
+        cd "$WORKTREE_PATH" &&
+          docker compose --project-name "$PROJECT" run --rm --no-deps -T web chown -R "$(id -u):$(id -g)" /rails &&
+          docker compose --project-name "$PROJECT" down --volumes --rmi local
+      )
+    fi
   fi
   PORT="$(sed -n 's/^PORT=//p' "$WORKTREE_PATH/.env" 2>/dev/null || true)"
   PIDS="$( [ -n "$PORT" ] && lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
