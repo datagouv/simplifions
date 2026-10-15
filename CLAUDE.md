@@ -26,6 +26,7 @@ Supprimer plutôt qu'ajouter, simple plutôt que malin, le moins de fichiers pos
 - Vue : affiche seulement. Morceau d'interface répété → composant dans `app/components/` (ex. `SolutionCardComponent`) ; mise en forme → helper.
 - Import Grist et data.gouv : les interactors et organizers existants (`app/interactors/`, `app/organizers/`).
 - Pas de nouvelle couche (service, form object, presenter) pour un seul usage : on extrait à la troisième répétition.
+- Un secret propre à l'app (DSN Sentry, clé d'API) vit dans ses credentials chiffrés (`Rails.application.credentials`), pas dans une variable posée par l'infra (very_ansible) : l'ops déploie l'app, il ne porte pas sa configuration.
 
 ## Interface
 - DSFR d'abord : composants et utilitaires `fr-*` (plugin `dsfr-skill`). Une classe dans `application.css` seulement si aucun utilitaire ne convient.
