@@ -4,3 +4,4 @@ import "controllers"
 import "dsfr"
 
 Turbo.config.forms.submitter = "aria-disabled"
+addEventListener("turbo:render", () => dispatchEvent(new HashChangeEvent("hashchange")))
