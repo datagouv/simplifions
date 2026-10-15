@@ -1,7 +1,7 @@
 <% record = local_assigns[:record] %>
 <nav role="navigation" aria-labelledby="fr-summary-title" class="fr-summary">
   <h2 id="fr-summary-title" class="fr-summary__title fr-text--md">Sommaire</h2>
-  <ol>
+  <ol data-turbo="false">
     <% sections.each do |id, label, sous_sections| %>
       <li>
         <a href="#<%= id %>" class="fr-summary__link"><%= label %></a>
