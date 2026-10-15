@@ -7,20 +7,27 @@
               ['solutions-integratrices', 'Solutions ayant intégré ces données', par_categorie.values.sum(&:size)]]
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                *onglets.first(par_categorie.any? ? 2 : 1).map { it.first(2) }] %>
-<div class="affichage-personnalise">
+<div class="affichage-personnalise" data-controller="affichage-personnalise">
+  <div data-affichage-personnalise-target="haut"></div>
   <div class="affichage-personnalise__entete">
-    <div class="fr-container fr-pt-1v">
+    <div class="fr-container fr-pt-1v affichage-personnalise__fil">
       <%= render "breadcrumb", id: "breadcrumb-demarche",
             liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
+      <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-btn--icon-left fr-icon-filter-line fr-hidden"
+        aria-expanded="true" aria-controls="affichage-personnalise" data-affichage-personnalise-target="bouton">Affichage personnalisé</button>
     </div>
-    <div class="fr-background-alt--blue-france affichage-personnalise__bandeau">
-      <div class="fr-container fr-py-2w">
-        <p class="fr-mb-1w" id="affichage-personnalise-consigne">Affichez le contenu de cette page selon les solutions que vous recherchez</p>
-        <ul class="fr-tags-group" aria-labelledby="affichage-personnalise-consigne">
-          <% [['api', 'API et jeux de données'], ['logiciels', 'Logiciels métiers'], ['sites', 'Sites de consultation']].each do |filtre, libelle| %>
-            <li><button type="button" class="fr-tag" aria-pressed="false" data-filtre-tag="<%= filtre %>"><%= libelle %></button></li>
-          <% end %>
-        </ul>
+    <div class="fr-collapse fr-collapse--expanded affichage-personnalise__bandeau" id="affichage-personnalise"
+      data-affichage-personnalise-target="bandeau">
+      <div class="fr-background-alt--blue-france">
+        <div class="fr-container fr-py-2w">
+          <p class="fr-mb-1w" id="affichage-personnalise-consigne">Affichez le contenu de cette page selon les solutions que vous recherchez</p>
+          <ul class="fr-tags-group" aria-labelledby="affichage-personnalise-consigne"
+            data-action="click->affichage-personnalise#ouvrirLesAccordeonsApi">
+            <% [['api', 'API et jeux de données'], ['logiciels', 'Logiciels métiers'], ['sites', 'Sites de consultation']].each do |filtre, libelle| %>
+              <li><button type="button" class="fr-tag" aria-pressed="false" data-filtre-tag="<%= filtre %>"><%= libelle %></button></li>
+            <% end %>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
