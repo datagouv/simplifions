@@ -1,5 +1,4 @@
-<% pourcentage = integrees * 100 / utiles
-   couleur = pourcentage >= 75 ? 'green' : pourcentage >= 50 ? 'yellow' : pourcentage >= 25 ? 'orange' : 'red'
+<% couleur = couleur_integration(integrees, utiles)
    tooltip_id = "integration-indicator-#{SecureRandom.hex(4)}" %>
 <div class="integration-indicator fr-p-1w">
   <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur %>"><%= integrees %>/<%= utiles %></span>

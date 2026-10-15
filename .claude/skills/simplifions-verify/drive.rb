@@ -56,6 +56,20 @@ def fiche_solution(page)
   page.all('[role=tab]').last.click
   page.assert_selector "[role=tab][aria-selected='true']", text: onglets.last
   Verify.evidence('fiche-solution', page, 'dernier-onglet', "slug=#{solution.slug} onglets=#{textes} attendus=#{onglets}")
+  fiche_solution_fleche(page)
+end
+
+def fiche_solution_fleche(page)
+  page.assert_selector '[role=tabpanel] .solution-integratrice-card__arrow'
+  style = page.evaluate_script(<<~JS)
+    (() => {
+      const fleche = [...document.querySelectorAll('.solution-integratrice-card__arrow')].find(it => it.offsetParent)
+      return [getComputedStyle(fleche).position, getComputedStyle(fleche.querySelector('.fr-icon-arrow-right-line')).color]
+    })()
+  JS
+  raise "flèche #{style}" unless style == ['absolute', 'rgb(0, 0, 145)']
+
+  Verify.evidence('fiche-solution', page, 'fleche-carte', "position=#{style.first} couleur=#{style.last}")
 end
 
 def article_cartes(page)
