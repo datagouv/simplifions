@@ -138,7 +138,8 @@
 
 :root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=tableau]:checked) .vue-cartes,
 :root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=cartes]:checked) .vue-tableau,
-:root:not([data-fr-js]) .choix-affichage {
+:root:not([data-fr-js]) .choix-affichage,
+:root:not([data-fr-js]) .vue-tableau .fr-btn--sort {
   display: none;
 }
 
