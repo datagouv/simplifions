@@ -25,6 +25,7 @@ class Demarche < ApplicationRecord
   def self.ransackable_attributes(_auth_object = nil) = %w[nom]
   def self.ransackable_scopes(_auth_object = nil) = %w[recherche]
 
+  CATEGORIES_INTEGRATRICES = %w[logiciel_metier_cle_en_main brique_logicielle site_de_consultation].freeze
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 
   scope :pour_vocabulaire, ->(slug) { where(id: Demarche.joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
@@ -58,12 +59,18 @@ class Demarche < ApplicationRecord
   def integratrices
     return Solution.none if donnees_utiles.empty?
 
-    Solution.where(id: recommandations_affichees.flat_map { it.solutions_integratrices.ids }).includes(:organisations)
+    @integratrices ||= Solution.where(id: recommandations_affichees.flat_map { it.solutions_integratrices.ids }).includes(:organisations)
   end
 
   def donnees_integrees_par(solution)
     integrees = recommandations_affichees.flat_map { it.integrees.fetch(solution.id, []) }.to_set
     donnees_utiles.select { integrees.include?(it.solution_id) }
+  end
+
+  def integratrices_par_categorie
+    nombres = integratrices.index_with { donnees_integrees_par(it).size }.select { |_solution, nombre| nombre.positive? }
+    nombres.keys.sort_by { [-nombres[it], it.nom] }
+      .group_by(&:categorie).slice(*CATEGORIES_INTEGRATRICES).transform_keys(&:to_sym)
   end
 
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))

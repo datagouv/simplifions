@@ -82,6 +82,51 @@ RSpec.describe Demarche do
     end
   end
 
+  describe '#integratrices_par_categorie' do
+    let(:demarche) { described_class.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true) }
+    let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+    let(:bio) { Solution.create!(nom: 'API professionnels BIO', categorie: 'api') }
+    let(:en_attente) { Solution.create!(nom: 'API pas encore publiée', categorie: 'api') }
+
+    def integratrice(nom, categorie, *apis)
+      solution = Solution.create!(nom:, categorie:, visible: true, slug: (nom.parameterize unless categorie == 'api'))
+      apis.each do |api|
+        Integration.create!(integratrice: solution, integree: api, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      end
+      solution
+    end
+
+    before do
+      bouquet = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      [bodacc, bio, en_attente].each { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      [bodacc, bio].each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_1, visible: true) }
+      Recommandation.create!(demarche:, solution: en_attente, niveau: :niveau_1, brouillon: { 'visible' => '1' })
+    end
+
+    it 'range par catégorie, logiciels métier d’abord, les plus intégrées puis par nom' do
+      zeta = integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc, bio)
+      beta = integratrice('Beta', 'logiciel_metier_cle_en_main', bio)
+      alpha = integratrice('Alpha', 'logiciel_metier_cle_en_main', bodacc)
+      brique = integratrice('Brique marchés', 'brique_logicielle', bodacc)
+      site = integratrice('Site BODACC', 'site_de_consultation', bodacc)
+
+      expect(demarche.integratrices_par_categorie).to eq(
+        logiciel_metier_cle_en_main: [zeta, alpha, beta], brique_logicielle: [brique], site_de_consultation: [site]
+      )
+      expect(demarche.integratrices_par_categorie.keys).to eq(%i[logiciel_metier_cle_en_main brique_logicielle site_de_consultation])
+    end
+
+    it 'écarte les solutions sans donnée utile publiée intégrée, les API et les catégories vides' do
+      logiciel = integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+      integratrice('Attente', 'logiciel_metier_cle_en_main', en_attente)
+      integratrice('API relais', 'api', bodacc)
+
+      expect(demarche.integratrices_par_categorie).to eq(logiciel_metier_cle_en_main: [logiciel])
+    end
+  end
+
   describe 'brouillon' do
     let(:particuliers) { Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
     let!(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }

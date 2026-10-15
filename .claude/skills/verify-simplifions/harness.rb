@@ -10,30 +10,37 @@ module Verify
   FIREFOX = ENV.fetch('VERIFY_FIREFOX', File.expand_path('~/.cache/simplifions-verify/firefox/firefox'))
   GECKODRIVER = Dir[File.expand_path('~/.cache/selenium/geckodriver/linux64/*/geckodriver')].max
 
-  Capybara.register_driver :verify_chrome do |app|
+  def self.chrome(app, javascript: true)
     options = Selenium::WebDriver::Chrome::Options.new
     %W[--headless=new --no-sandbox --disable-dev-shm-usage --remote-debugging-pipe --window-size=1280,1024
        --lang=fr-FR --user-data-dir=#{Dir.mktmpdir('verify-chrome')}].each { |flag| options.add_argument(flag) }
+    options.add_argument('--blink-settings=scriptEnabled=false') unless javascript
     Capybara::Selenium::Driver.new(app, browser: :chrome, options:)
   end
 
-  Capybara.register_driver :verify_firefox do |app|
+  def self.firefox(app, javascript: true)
     options = Selenium::WebDriver::Firefox::Options.new(binary: FIREFOX)
     options.add_argument('-headless')
     options.add_argument('--width=1280')
     options.add_argument('--height=1024')
     options.add_preference('intl.accept_languages', 'fr-FR,fr')
+    options.add_preference('javascript.enabled', false) unless javascript
     service = Selenium::WebDriver::Service.firefox(path: GECKODRIVER)
     Capybara::Selenium::Driver.new(app, browser: :firefox, options:, service:)
   end
 
+  Capybara.register_driver(:verify_chrome) { chrome(it) }
+  Capybara.register_driver(:verify_firefox) { firefox(it) }
+  Capybara.register_driver(:verify_chrome_sans_js) { chrome(it, javascript: false) }
+  Capybara.register_driver(:verify_firefox_sans_js) { firefox(it, javascript: false) }
+
   def self.browser = ENV.fetch('VERIFY_BROWSER', 'chrome')
 
-  def self.session
+  def self.session(javascript: true)
     Capybara.run_server = false
     Capybara.app_host = HOST
     Capybara.default_max_wait_time = 5
-    Capybara::Session.new(:"verify_#{browser}")
+    Capybara::Session.new(:"verify_#{browser}#{'_sans_js' unless javascript}")
   end
 
   def self.ensure_admin

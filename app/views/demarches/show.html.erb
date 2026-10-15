@@ -2,14 +2,17 @@
    content_for :description, @demarche.chapo
    usagers = @demarche.usagers
    acteurs = @demarche.acteurs
+   par_categorie = @demarche.integratrices_par_categorie
+   onglets = [['donnees-disponibles', 'Données disponibles et utiles', @demarche.recommandations_affichees.size],
+              ['solutions-integratrices', 'Solutions ayant intégré ces données', par_categorie.values.sum(&:size)]]
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
-               ['donnees-disponibles', 'Données disponibles']] %>
+               *onglets.first(par_categorie.any? ? 2 : 1).map { it.first(2) }] %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-demarche",
         liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
 </div>
 
-<div class="fr-container fr-mt-1w fr-mb-8w fiche-page">
+<div class="fr-container fr-mt-1w fr-mb-5w fiche-page">
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <div class="fr-col-12 fr-col-md-8">
       <div class="topic__header fr-mb-4v">
@@ -34,14 +37,36 @@
       <%= render 'contenu', texte: @demarche.cadre_juridique %>
     <% end %>
   </div>
+</div>
 
-  <div class="fr-mt-5w">
-    <%= render ArticleSectionComponent.new(id: sections[1][0], label: sections[1][1]) do %>
-      <%= render partial: 'demarches/recommandation', collection: @demarche.recommandations_affichees, as: :recommandation %>
-      <%= render partial: 'demarches/modale_integrations', collection: @demarche.integratrices, as: :solution,
-            locals: { demarche: @demarche } %>
+<div class="fr-tabs onglets-pleine-largeur">
+  <ul class="fr-tabs__list" role="tablist" aria-label="Données et solutions de ce cas d'usage">
+    <% onglets.each_with_index do |(id, label, nombre), index| %>
+      <li role="presentation">
+        <button type="button" id="onglet-<%= id %>" class="fr-tabs__tab" tabindex="<%= index.zero? ? 0 : -1 %>" role="tab"
+          aria-selected="<%= index.zero? %>" aria-controls="<%= id %>" <%= 'disabled' if index.positive? && nombre.zero? %>><%= label %> (<%= nombre %>)</button>
+      </li>
     <% end %>
+  </ul>
+  <div id="donnees-disponibles" class="fr-tabs__panel fr-tabs__panel--selected" role="tabpanel"
+    aria-labelledby="onglet-donnees-disponibles" tabindex="0">
+    <div class="fr-container fiche-page">
+      <h2 class="fr-sr-only"><%= onglets[0][1] %></h2>
+      <%= render partial: 'demarches/recommandation', collection: @demarche.recommandations_affichees, as: :recommandation %>
+    </div>
   </div>
+  <div id="solutions-integratrices" class="fr-tabs__panel" role="tabpanel"
+    aria-labelledby="onglet-solutions-integratrices" tabindex="0">
+    <div class="fr-container fiche-page">
+      <h2 class="fr-sr-only"><%= onglets[1][1] %></h2>
+      <%= render 'demarches/solutions_integratrices', demarche: @demarche, par_categorie: %>
+    </div>
+  </div>
+</div>
 
+<%= render partial: 'demarches/modale_integrations', collection: @demarche.integratrices, as: :solution,
+      locals: { demarche: @demarche } %>
+
+<div class="fr-container fr-mt-5w fr-mb-8w fiche-page">
   <%= render "bloc_modification", sujet: "ce cas d'usage" %>
 </div>
