@@ -1,0 +1,76 @@
+<% groupes = demarche.groupes_donnees_utiles
+   prefixe = "tableau-#{categorie.to_s.dasherize}" %>
+<div class="fr-table fr-table--bordered fr-table--sm fr-table--multiline fr-table--no-caption fr-mt-1w vue-tableau tableau-integratrices">
+  <div class="fr-table__wrapper">
+    <div class="fr-table__container">
+      <div class="fr-table__content">
+        <table>
+          <caption>API et jeux de données utiles intégrés par chaque solution : <%= titre %></caption>
+          <colgroup span="2"></colgroup>
+          <% groupes.each do |_titre, utiles| %>
+            <colgroup span="<%= utiles.size %>"></colgroup>
+          <% end %>
+          <thead>
+            <tr>
+              <th scope="col" rowspan="2" id="<%= prefixe %>-solution" class="fr-cell--fixed tableau-integratrices__solution">Solution</th>
+              <th scope="col" rowspan="2" id="<%= prefixe %>-total" class="tableau-integratrices__total">Données intégrées pour ce cas d’usage</th>
+              <% groupes.each_with_index do |(bouquet, utiles), index| %>
+                <th scope="colgroup" colspan="<%= utiles.size %>" id="<%= prefixe %>-groupe-<%= index %>"><%= titre_groupe_donnees(bouquet) %></th>
+              <% end %>
+            </tr>
+            <tr>
+              <% groupes.each do |bouquet, utiles| %>
+                <% utiles.each do |donnee| %>
+                  <% badge = DataserviceCardComponent.badge(donnee)
+                     nom = donnee.nom.delete_suffix(" | #{titre_groupe_donnees(bouquet)}") %>
+                  <th scope="col" id="<%= prefixe %>-donnee-<%= donnee.id %>" class="fr-text--xs tableau-integratrices__donnee">
+                    <%= nom %>
+                    <% if badge %>
+                      <span class="fr-badge fr-badge--sm fr-badge--no-icon fr-mt-1w <%= badge[:classe] %>"><%= badge[:label] %></span>
+                    <% end %>
+                    <% if donnee.uid_datagouv.present? %>
+                      <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm fr-mt-1w', target: '_blank', rel: 'noopener external',
+                            title: "#{nom} sur data.gouv.fr - nouvelle fenêtre" do %>data.gouv.fr<span class="fr-sr-only"> : <%= nom %> - nouvelle fenêtre</span><% end %>
+                    <% end %>
+                  </th>
+                <% end %>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% solutions.each do |solution| %>
+              <% integrees = demarche.integrees_par(solution)
+                 total_integrees, total_utiles = demarche.couverture(solution)
+                 ligne = "#{prefixe}-solution-#{solution.id}" %>
+              <tr>
+                <th scope="row" id="<%= ligne %>" class="fr-cell--fixed tableau-integratrices__solution">
+                  <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
+                  <%= render 'badge_operateur', solution: %>
+                  <% if solution.types_solution.any? %>
+                    <span class="fr-text--xs fr-mb-0 tableau-integratrices__types"><%= solution.types_solution.join(' • ') %></span>
+                  <% end %>
+                </th>
+                <td headers="<%= ligne %> <%= prefixe %>-total" class="fr-cell--center tableau-integratrices__total">
+                  <span class="fr-text--sm fr-text--bold integration-indicator__count indicator--<%= couleur_integration(total_integrees, total_utiles) %>"><%= total_integrees %>/<%= total_utiles %></span>
+                </td>
+                <% groupes.each_with_index do |(_titre, utiles), index| %>
+                  <% utiles.each do |donnee| %>
+                    <td headers="<%= ligne %> <%= prefixe %>-groupe-<%= index %> <%= prefixe %>-donnee-<%= donnee.id %>" class="fr-cell--center">
+                      <% if integrees.include?(donnee.id) %>
+                        <span aria-hidden="true" class="fr-icon-checkbox-circle-fill fr-icon--sm icon-green"></span>
+                        <span class="fr-sr-only">Intégrée</span>
+                      <% else %>
+                        <span aria-hidden="true" class="fr-icon-subtract-line fr-icon--sm fr-text-mention--grey"></span>
+                        <span class="fr-sr-only">Non intégrée</span>
+                      <% end %>
+                    </td>
+                  <% end %>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

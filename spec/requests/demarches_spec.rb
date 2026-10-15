@@ -532,6 +532,43 @@ RSpec.describe 'Demarches' do
         expect(fenetre.text(:all).squish).to include('Sur l’ensemble du cas d’usage : 1/3').and include('API BODACC : intégrée')
       end
 
+      it 'propose d’afficher les solutions en cartes, choisies d’office, ou en tableau comparatif' do
+        choix = onglet_solutions.find('fieldset', text: 'Affichage des solutions', visible: :all)
+
+        expect(choix).to have_field('Cartes', type: 'radio', checked: true, visible: :all)
+        expect(choix).to have_field('Tableau comparatif', type: 'radio', checked: false, visible: :all)
+        expect(onglet_solutions.text(:all)).not_to include('Les solutions sont classées')
+      end
+
+      it 'compare par catégorie, colonnes groupées par bouquet, les données intégrées par chaque solution' do
+        tableaux = onglet_solutions.all('table', visible: :all)
+        lignes = tableaux.map do |tableau|
+          tableau.all('tbody tr', visible: :all).map { |ligne| ligne.all('th, td', visible: :all).map { it.text(:all).squish } }
+        end
+
+        expect(tableaux.map { it.find('caption', visible: :all).text(:all).squish }).to eq([
+          'API et jeux de données utiles intégrés par chaque solution : Logiciel métier « clé en main »',
+          'API et jeux de données utiles intégrés par chaque solution : Brique logicielle à intégrer'
+        ])
+        expect(tableaux.first.all('thead th[scope=colgroup]', visible: :all).map { it.text(:all).squish })
+          .to eq(['Bouquet API Entreprise', 'Autres API et jeux de données'])
+        expect(tableaux.first.all('thead th[scope=col]', visible: :all).map { it.text(:all).squish })
+          .to eq(['Solution', 'Données intégrées pour ce cas d’usage', 'API BODACC', 'API professionnels BIO', 'API Sirene'])
+        expect(lignes).to eq([
+          [['Zeta', '2/3', 'Intégrée', 'Intégrée', 'Non intégrée'], ['Acheteza', '1/3', 'Intégrée', 'Non intégrée', 'Non intégrée']],
+          [['Brique marchés', '1/3', 'Non intégrée', 'Intégrée', 'Non intégrée']]
+        ])
+      end
+
+      it 'annonce chaque case du tableau avec sa solution et sa donnée' do
+        tableau = onglet_solutions.first('table', visible: :all)
+        case_acheteza_bio = tableau.find('tbody tr', text: 'Acheteza', visible: :all).all('td', visible: :all)[2]
+        annonce = case_acheteza_bio['headers'].split.map { tableau.find("##{it}", visible: :all).text(:all).squish }
+
+        expect(annonce + [case_acheteza_bio.text(:all).squish])
+          .to eq(['Acheteza', 'Bouquet API Entreprise', 'API professionnels BIO', 'Non intégrée'])
+      end
+
       it 'rend les fenêtres hors des onglets' do
         expect(page).to have_no_css('[role=tabpanel] dialog', visible: :all)
       end
