@@ -52,7 +52,7 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
 ## Drive
 
-- Harness: `harness.rb` next to this file registers two Capybara drivers (`:verify_chrome`, `:verify_firefox`) with the flags that work on this machine, targets `http://localhost:3101` with `run_server = false`, and provides `Verify.session`, `Verify.login`, `Verify.logout`, `Verify.ensure_admin`, `Verify.remove_admin`, `Verify.evidence`.
+- Harness: `harness.rb` next to this file registers two Capybara drivers (`:verify_chrome`, `:verify_firefox`) with the flags that work on this machine, targets `http://localhost:3101` with `run_server = false`, and provides `Verify.session` (`javascript: false` for a no-JS page: `--blink-settings=scriptEnabled=false` in Chrome, `javascript.enabled` pref in Firefox), `Verify.login`, `Verify.logout`, `Verify.ensure_admin`, `Verify.remove_admin`, `Verify.evidence`.
 - Ready-made drive: `drive.rb` runs every feature file in order, or one by its short name:
 
   ```sh

@@ -1,3 +1,4 @@
+<% cible = local_assigns[:cible] %>
 <div class="solution-integratrice-card">
   <div class="solution-integratrice-card__header">
     <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></p>
@@ -11,13 +12,17 @@
       <% if couverture == [1, 1] %>
         <p class="integration-indicator fr-p-1w">
           <span aria-hidden="true" class="fr-text--sm integration-indicator__count indicator--green fr-icon-check-line fr-icon--sm"></span>
-          <span class="fr-text--xs">Donnée utile de « <%= cible.nom %> » intégrée</span>
+          <span class="fr-text--xs">Donnée utile <%= cible ? "de « #{cible.nom} »" : "du cas d'usage" %> intégrée</span>
         </p>
       <% elsif couverture %>
         <% integrees, utiles = couverture
-           type = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %>
-        <%= render 'integration_indicator', integrees:, utiles:, label: "#{type} utiles #{cible.nom}",
-              description: "#{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution." %>
+           label, description = if cible
+                                  type = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données'
+                                  ["#{type} utiles #{cible.nom}", "#{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution."]
+                                else
+                                  ["API et jeux de données utiles du cas d'usage", "API et jeux de données sur les #{utiles} utiles pour ce cas d'usage ont été intégrés par cette solution."]
+                                end %>
+        <%= render 'integration_indicator', integrees:, utiles:, label:, description: %>
       <% end %>
       <% if oeil %>
         <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-eye-line"

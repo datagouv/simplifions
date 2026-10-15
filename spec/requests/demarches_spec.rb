@@ -222,7 +222,7 @@ RSpec.describe 'Demarches' do
     end
 
     it 'rend chaque intégratrice en carte : titre vers la fiche, types de solution, données utiles intégrées toutes démarches confondues' do
-      carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
+      carte = Capybara.string(response.body).find('#donnees-disponibles .solution-integratrice-card', text: 'Acheteza')
 
       expect(carte).to have_link('Acheteza', href: '/solutions/acheteza')
       expect(carte).to have_link('Voir la fiche Acheteza', href: '/solutions/acheteza')
@@ -280,7 +280,7 @@ RSpec.describe 'Demarches' do
 
       get demarche_path('marches-publics')
 
-      carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
+      carte = Capybara.string(response.body).find('#donnees-disponibles .solution-integratrice-card', text: 'Acheteza')
       expect(carte).to have_css('.indicator--green.fr-icon-check-line')
       expect(carte).to have_text('Donnée utile de « Bouquet API Entreprise » intégrée')
       expect(carte).to have_no_text('1/1')
@@ -327,7 +327,7 @@ RSpec.describe 'Demarches' do
     it 'est ouverte par l’œil de chaque carte de la solution, même sans compteur, une seule fois pour la page' do
       boutons = page.all('.solution-integratrice-card button', text: 'Voir les données intégrées par Acheteza')
 
-      expect(boutons.size).to eq(3)
+      expect(boutons.size).to eq(4)
       expect(boutons.pluck('aria-controls').uniq).to eq([modale[:id]])
       expect(page).to have_css('dialog.fr-modal', count: 1, visible: :all)
     end
@@ -361,6 +361,95 @@ RSpec.describe 'Demarches' do
 
       expect(compte_carte).to eq('1/2')
       expect(compte_groupe).to eq(compte_carte)
+    end
+  end
+
+  describe 'onglets du cas d’usage' do
+    let(:demarche) { Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true) }
+    let(:page) { Capybara.string(response.body) }
+    let(:onglet_solutions) { page.find('#solutions-integratrices', visible: :all) }
+
+    def integratrice(nom, categorie, *apis)
+      solution = Solution.create!(nom:, categorie:, slug: nom.parameterize, visible: true)
+      apis.each do |api|
+        Integration.create!(integratrice: solution, integree: api, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      end
+    end
+
+    def recommande(*apis)
+      bouquet = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      apis.each { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true, ordre: 1)
+      apis.each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_1, visible: true) }
+      bouquet
+    end
+
+    describe 'avec des solutions ayant intégré des données utiles' do
+      before do
+        bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+        bio = Solution.create!(nom: 'API professionnels BIO', categorie: 'api')
+        bouquet = recommande(bodacc, bio)
+        Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API Sirene', categorie: 'api'), niveau: :niveau_2, visible: true, ordre: 2)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Brique marchés', 'brique_logicielle', bio)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc, bio)
+        integratrice('Sans donnée', 'logiciel_metier_cle_en_main', bouquet)
+
+        get demarche_path('marches-publics')
+      end
+
+      it 'sépare les données disponibles et les solutions en deux onglets comptés' do
+        expect(page).to have_css('[role=tab][aria-controls=donnees-disponibles]', text: 'Données disponibles et utiles (2)')
+        expect(page).to have_css('[role=tab][aria-controls=solutions-integratrices]:not([disabled])', text: 'Solutions ayant intégré ces données (3)')
+        expect(page).to have_css('#donnees-disponibles[role=tabpanel] .reco-card', count: 2)
+        expect(page).to have_css('nav.fr-summary a[href="#solutions-integratrices"]', text: 'Solutions ayant intégré ces données')
+      end
+
+      it 'range les solutions par catégorie, les plus intégrées d’abord, sous la règle de tri écrite' do
+        texte = onglet_solutions.text(:all).squish
+        regle = 'Les solutions sont classées de celle qui a intégré le plus de données utiles à celle qui en a intégré le moins, puis par ordre alphabétique.'
+
+        expect(texte).to include(regle)
+        expect(onglet_solutions.all('.fr-accordion__btn', visible: :all).map { it.text(:all).squish })
+          .to eq(['Logiciel métier « clé en main »', 'Brique logicielle à intégrer'])
+        expect(onglet_solutions.all('.solution-integratrice-card__title', visible: :all).map { it.text(:all).squish })
+          .to eq(['Zeta', 'Acheteza', 'Brique marchés'])
+        expect(texte.index(regle)).to be < texte.index('Zeta')
+      end
+
+      it 'compte sur chaque carte les données intégrées sur le total du cas d’usage, avec l’œil vers sa modale' do
+        carte = onglet_solutions.find('.solution-integratrice-card', text: 'Acheteza', visible: :all)
+
+        expect(carte).to have_css('.integration-indicator__count', text: '1/2', visible: :all)
+        expect(carte.text(:all)).to include("API et jeux de données utiles du cas d'usage")
+        expect(carte).to have_css("button[aria-controls='#{page.find('dialog', text: 'Acheteza', visible: :all)[:id]}']", visible: :all)
+      end
+
+      it 'rend chaque modale une seule fois, hors des onglets' do
+        expect(page).to have_css('dialog.fr-modal', count: 4, visible: :all)
+        expect(page).to have_no_css('[role=tabpanel] dialog', visible: :all)
+      end
+    end
+
+    it 'dit « Donnée utile du cas d’usage intégrée » pour une solution qui a intégré l’unique donnée utile' do
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+      recommande(bodacc)
+      integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+
+      get demarche_path('marches-publics')
+
+      expect(onglet_solutions.find('.solution-integratrice-card', visible: :all).text(:all)).to include("Donnée utile du cas d'usage intégrée")
+    end
+
+    it 'désactive l’onglet des solutions et le retire du sommaire quand aucune n’a intégré de donnée utile' do
+      recommande(Solution.create!(nom: 'API BODACC', categorie: 'api'))
+
+      get demarche_path('marches-publics')
+
+      expect(page).to have_css('[role=tab][aria-controls=solutions-integratrices][disabled]', text: 'Solutions ayant intégré ces données (0)')
+      expect(page).to have_no_css('nav.fr-summary a[href="#solutions-integratrices"]')
+      expect(page).to have_css('nav.fr-summary a[href="#donnees-disponibles"]', text: 'Données disponibles et utiles')
     end
   end
 
