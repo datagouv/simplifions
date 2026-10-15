@@ -17,7 +17,8 @@ Avec -p, le port donné.
 
 Branche, dans l'ordre :
   1. [branche] si elle est donnée
-  2. une branche locale ou distante dont le nom contient <nom>
+  2. la seule branche locale ou distante nommée <nom> ou <nom>-…,
+     derrière un éventuel préfixe (feature/<nom>-titre)
   3. une nouvelle branche feature/<nom> depuis origin/main
 USAGE
   exit 1
@@ -32,10 +33,11 @@ while getopts "p:h" opt; do
 done
 shift $((OPTIND - 1))
 
-[ $# -ge 1 ] && [ $# -le 2 ] || usage
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then usage; fi
 
 NAME="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 BRANCH="${2:-}"
+BRANCH="${BRANCH#origin/}"
 
 if [[ ! "$NAME" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   echo "Erreur : '$1' doit être un ticket (OPI-123) ou un mot-clé (import-grist)" >&2
@@ -73,8 +75,19 @@ fi
 git -C "$PRIMARY_ROOT" fetch --quiet origin
 
 if [ -z "$BRANCH" ]; then
-  BRANCH="$(git -C "$PRIMARY_ROOT" for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin \
-    | grep -v '/HEAD$' | grep -i -- "$NAME" | sed 's#^origin/##' | sort -u | head -n 1 || true)"
+  MATCHES="$(git -C "$PRIMARY_ROOT" for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin \
+    | grep -v '/HEAD$' | sed 's#^origin/##' | sort -u | grep -iE -- "(^|/)${NAME}(-|$)" || true)"
+  if [ "$(grep -c . <<< "$MATCHES")" -gt 1 ]; then
+    echo "Erreur : plusieurs branches correspondent à $NAME, en donner une :" >&2
+    printf '%s\n' "$MATCHES" | sed 's/^/  /' >&2
+    exit 1
+  fi
+  BRANCH="$MATCHES"
+fi
+
+if [ "$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]')" = main ]; then
+  echo "Erreur : main reste dans le dépôt principal, donner une autre branche" >&2
+  exit 1
 fi
 
 if [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/heads/$BRANCH"; then
@@ -83,10 +96,12 @@ if [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/he
 elif [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
   echo "Branche distante origin/$BRANCH"
   git -C "$PRIMARY_ROOT" worktree add --track -b "$BRANCH" "$WORKTREE_PATH" "origin/$BRANCH"
+  git -C "$PRIMARY_ROOT" config "branch.$BRANCH.simplifions-worktree" "$NAME"
 else
   BRANCH="${BRANCH:-feature/$NAME}"
   echo "Nouvelle branche $BRANCH depuis origin/main"
   git -C "$PRIMARY_ROOT" worktree add --no-track -b "$BRANCH" "$WORKTREE_PATH" origin/main
+  git -C "$PRIMARY_ROOT" config "branch.$BRANCH.simplifions-worktree" "$NAME"
 fi
 
 cat > "$WORKTREE_PATH/.env" <<ENV
