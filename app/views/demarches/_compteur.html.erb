@@ -1,6 +1,7 @@
-<% total = local_assigns[:total] %>
+<% total = local_assigns[:total]
+   attenue = local_assigns.fetch(:attenue, total) %>
 <% if couverture == [1, 1] && !total %>
   <span aria-hidden="true" class="fr-text--sm integration-indicator__count indicator--green fr-icon-check-line fr-icon--sm"></span>
 <% else %>
-  <span class="<%= class_names('fr-text--bold integration-indicator__count', "indicator--#{couleur_integration(*couverture)}", 'fr-text--sm': !total, 'integration-indicator__count--attenue': total) %>"><%= couverture.join('/') %></span>
+  <span class="<%= class_names('fr-text--bold integration-indicator__count', "indicator--#{couleur_integration(*couverture)}", 'fr-text--sm': !total, 'integration-indicator__count--attenue': attenue) %>"><%= couverture.join('/') %></span>
 <% end %>
