@@ -221,10 +221,15 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('Aucune solution référencée').size).to eq(2)
     end
 
-    it 'rend chaque intégratrice comme le site : titre en gras, types de solution, données utiles intégrées toutes démarches confondues' do
-      expect(response.body).to match(%r{<p class="[^"]*fr-text--bold[^"]*">\s*<a[^>]*>Acheteza</a>})
-      expect(response.body).to include('Profil acheteur • Portail agent')
-      expect(response.body).to match(%r{indicator--green">2/2</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeu de données utiles Bouquet API Particulier</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">2</span> API ou jeu de données « Bouquet API Particulier » sur les 2 utiles pour ce cas d&#39;usage ont été intégrées par cette solution\.</span>})
+    it 'rend chaque intégratrice en carte : titre vers la fiche, types de solution, données utiles intégrées toutes démarches confondues' do
+      carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
+
+      expect(carte).to have_link('Acheteza', href: '/solutions/acheteza')
+      expect(carte).to have_link('Voir la fiche Acheteza', href: '/solutions/acheteza')
+      expect(carte).to have_text('Profil acheteur • Portail agent')
+      expect(carte).to have_css('.indicator--green', text: '2/2')
+      expect(carte).to have_text('API ou jeu de données utiles Bouquet API Particulier')
+      expect(carte[:class]).not_to include('fr-enlarge-link')
     end
 
     it 'propose « Plus d’informations » vers la fiche de la solution recommandée, avant la demande d’accès' do
@@ -257,6 +262,105 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('src="https://avatars.test/dinum-100.png"')
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('Filtrer les endpoints')
+    end
+  end
+
+  describe 'carte d’une intégratrice d’une seule donnée utile' do
+    it 'montre une coche verte au lieu de 1/1' do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      api_bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+      bouquet = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      Integration.create!(integratrice: bouquet, integree: api_bodacc, type_integration: 'expose')
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche:, solution: api_bodacc, niveau: :niveau_1, visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_bodacc, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      get demarche_path('marches-publics')
+
+      carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
+      expect(carte).to have_css('.indicator--green.fr-icon-check-line')
+      expect(carte).to have_text('Donnée utile de « Bouquet API Entreprise » intégrée')
+      expect(carte).to have_no_text('1/1')
+    end
+  end
+
+  describe 'modale des données intégrées par une solution' do
+    before do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      entreprise = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', organisations: [dinum])
+      particulier = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [dinum])
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api', uid_datagouv: 'bodacc1',
+        datagouv_acces: 'open', datagouv_organisation: 'DILA')
+      bio = Solution.create!(nom: 'API professionnels BIO', categorie: 'api')
+      qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      en_attente = Solution.create!(nom: 'API pas encore publiée', categorie: 'api')
+      [bodacc, bio, en_attente].each { Integration.create!(integratrice: entreprise, integree: it, type_integration: 'expose') }
+      Integration.create!(integratrice: particulier, integree: qf, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: entreprise, niveau: :niveau_2, visible: true, ordre: 1)
+      Recommandation.create!(demarche:, solution: particulier, niveau: :niveau_2, visible: true, ordre: 2)
+      [bodacc, bio, qf].each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_1, visible: true) }
+      Recommandation.create!(demarche:, solution: en_attente, niveau: :niveau_1, brouillon: { 'visible' => '1' })
+
+      acheteza = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])
+      [bodacc, qf, en_attente].each do |api|
+        Integration.create!(integratrice: acheteza, integree: api, type_integration: 'consomme',
+          statut: '✅ en production', demarches: [demarche])
+      end
+      Integration.create!(integratrice: acheteza, integree: bio, type_integration: 'consomme',
+        statut: '⚙️ en développement', demarches: [demarche])
+      sirene = Solution.create!(nom: 'API Sirene', categorie: 'api')
+      Recommandation.create!(demarche:, solution: sirene, niveau: :niveau_2, visible: true, ordre: 3)
+      Integration.create!(integratrice: acheteza, integree: sirene, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      get demarche_path('marches-publics')
+    end
+
+    let(:page) { Capybara.string(response.body) }
+    let(:modale) { page.find('dialog.fr-modal', visible: :all) }
+
+    it 'est ouverte par l’œil de chaque carte de la solution, même sans compteur, une seule fois pour la page' do
+      boutons = page.all('.solution-integratrice-card button', text: 'Voir les données intégrées par Acheteza')
+
+      expect(boutons.size).to eq(3)
+      expect(boutons.pluck('aria-controls').uniq).to eq([modale[:id]])
+      expect(page).to have_css('dialog.fr-modal', count: 1, visible: :all)
+    end
+
+    it 'nomme la solution, son opérateur et compte par donnée recommandée puis au total' do
+      texte = modale.text(:all).squish
+
+      expect(modale).to have_css('h2', text: 'Acheteza', visible: :all)
+      expect(texte).to include('Solution privée | Éditeur SAS')
+      expect(texte).to include('Bouquet API Entreprise 1/2')
+      expect(texte).to include('Bouquet API Particulier 1/1')
+      expect(texte).to include("2/3 API et jeux de données utiles pour ce cas d'usage")
+    end
+
+    it 'coche chaque donnée utile intégrée, avec son lien data.gouv, sans la donnée qui attend sa publication' do
+      texte = modale.text(:all).squish
+
+      expect(texte).to include('API BODACC : intégrée')
+      expect(modale.find('li', text: 'API BODACC', visible: :all).text(:all)).to include('API ouverte').and include('DILA')
+      expect(texte).to include('API professionnels BIO : non intégrée')
+      expect(texte).to include('API Quotient familial : intégrée')
+      expect(modale).to have_link('Voir sur data.gouv.fr API BODACC - nouvelle fenêtre', href: 'https://www.data.gouv.fr/fr/dataservices/bodacc1', visible: :all)
+      expect(response.body).not_to include('API pas encore publiée')
+    end
+
+    it 'montre sur la carte le même compte que son groupe dans la modale' do
+      bloc = page.find('.reco-card', text: 'Bouquet API Entreprise', match: :first)
+      compte_carte = bloc.find('.solution-integratrice-card', text: 'Acheteza', visible: :all)
+        .first('.integration-indicator__count', visible: :all).text(:all)
+      compte_groupe = modale.find('h3', text: 'Bouquet API Entreprise', visible: :all).find('span', visible: :all).text(:all)
+
+      expect(compte_carte).to eq('1/2')
+      expect(compte_groupe).to eq(compte_carte)
     end
   end
 

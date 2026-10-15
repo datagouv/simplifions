@@ -37,9 +37,9 @@
 
   <div class="fr-mt-5w">
     <%= render ArticleSectionComponent.new(id: sections[1][0], label: sections[1][1]) do %>
-      <%= render partial: 'demarches/recommandation',
-            collection: @demarche.recommandations.visibles.niveau_2.includes(solution: [:exposees, :organisations]).order(:ordre, :id),
-            as: :recommandation %>
+      <%= render partial: 'demarches/recommandation', collection: @demarche.recommandations_affichees, as: :recommandation %>
+      <%= render partial: 'demarches/modale_integrations', collection: @demarche.integratrices, as: :solution,
+            locals: { demarche: @demarche } %>
     <% end %>
   </div>
 

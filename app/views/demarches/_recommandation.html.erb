@@ -1,6 +1,6 @@
 <% cible = recommandation.solution
    moyens = recommandation.moyens_acces
-   utiles = recommandation.apis_utiles.to_a
+   utiles = recommandation.apis_utiles
    lien_demande_acces = recommandation.lien_demande_acces
    lien_fiche = (solution_path(cible.slug) if cible.visible? && cible.slug.present?)
    nom_demarche = recommandation.demarche.titre
@@ -186,7 +186,7 @@
                 <% solutions.each do |solution| %>
                   <div class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
                     <%= render 'solution_integratrice', solution:, cible:,
-                          couverture: couvertures[solution.id] %>
+                          couverture: couvertures[solution.id], oeil: recommandation.demarche.donnees_utiles.any? %>
                   </div>
                 <% end %>
               </div>

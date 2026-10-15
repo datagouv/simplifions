@@ -1648,6 +1648,30 @@ ensure
   end
 end
 
+def donnees_integrees(page)
+  demarche = Demarche.visibles.order(:id).find { it.integratrices.any? }
+  page.visit("/demarches/#{demarche.slug}")
+  section = page.find('section', text: 'Données disponibles', match: :first)
+  oeil = section.first('.solution-integratrice-card button', text: 'Voir les données intégrées par', visible: :all)
+  accordeon = section.find("button.fr-accordion__btn[aria-controls='#{oeil.ancestor('.fr-collapse', visible: :all)[:id]}']")
+  accordeon.click
+  oeil.click
+  modale = page.find("dialog##{oeil['aria-controls']}[open]")
+  total = modale.find('.integration-indicator__count', match: :first).text
+  Verify.evidence('fiche-donnees-integrees', page, 'modale-ouverte',
+    "slug=#{demarche.slug} solution=#{modale.find('h2').text.inspect} total=#{total} " \
+    "donnees_utiles=#{demarche.donnees_utiles.size} modales=#{page.all('dialog.fr-modal', visible: :all).size} " \
+    "integratrices=#{demarche.integratrices.size} " \
+    "cartes=#{section.all('.solution-integratrice-card', visible: :all).size} " \
+    "yeux=#{section.all('.solution-integratrice-card button.fr-icon-eye-line', visible: :all).size}")
+  page.send_keys(:escape)
+  page.assert_no_selector("dialog##{oeil['aria-controls']}[open]")
+  focus = page.evaluate_script('document.activeElement.getAttribute("aria-controls")')
+  raise "focus sur #{focus.inspect}" unless focus == oeil['aria-controls']
+
+  Verify.evidence('fiche-donnees-integrees', page, 'modale-fermee', "focus=#{focus}")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1659,7 +1683,8 @@ end
   'fournisseurs' => :fournisseurs, 'colonne' => :colonne, 'historique' => :historique,
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
-  'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne }.each do |nom, fn|
+  'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
+  'donnees-integrees' => :donnees_integrees }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

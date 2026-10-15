@@ -132,6 +132,7 @@ RSpec.describe Recommandation do
       reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
 
       expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2], hors_utiles.id => [0, 2])
+      expect(reco.integrees).to match(logiciel.id => contain_exactly(api_qf.id, api_statut.id), portail.id => [api_qf.id])
     end
 
     it 'est vide sans donnée utile attendue' do

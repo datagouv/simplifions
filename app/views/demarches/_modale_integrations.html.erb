@@ -1,0 +1,55 @@
+<% modale_id = dom_id(solution, :modale_integrations)
+   utiles_au_total = demarche.donnees_utiles.size %>
+<dialog id="<%= modale_id %>" class="fr-modal" aria-labelledby="<%= modale_id %>_titre">
+  <div class="fr-container fr-container--fluid fr-container-md">
+    <div class="fr-grid-row fr-grid-row--center">
+      <div class="fr-col-12 fr-col-md-8">
+        <div class="fr-modal__body">
+          <div class="fr-modal__header">
+            <button type="button" class="fr-btn--close fr-btn" aria-controls="<%= modale_id %>" title="Fermer">Fermer</button>
+          </div>
+          <div class="fr-modal__content">
+            <h2 id="<%= modale_id %>_titre" class="fr-modal__title fr-mb-1w"><%= solution.nom %></h2>
+            <%= render 'badge_operateur', solution: %>
+            <div class="fr-mt-2w">
+              <%= render 'integration_indicator', integrees: demarche.donnees_integrees_par(solution).size, utiles: utiles_au_total,
+                    label: "API et jeux de données utiles pour ce cas d'usage",
+                    description: "API et jeux de données sur les #{utiles_au_total} utiles pour ce cas d'usage ont été intégrés par cette solution." %>
+            </div>
+            <% demarche.recommandations_affichees.each do |recommandation| %>
+              <% utiles = recommandation.apis_utiles
+                 integrees_ici = recommandation.integrees.fetch(solution.id, []) %>
+              <% next if utiles.empty? %>
+              <h3 class="fr-h6 fr-mt-3w fr-mb-1w">
+                <%= recommandation.solution.nom %>
+                <span class="fr-text--regular fr-text--sm fr-text-mention--grey"><%= recommandation.couverture(solution.id).join('/') %></span>
+              </h3>
+              <ul class="fr-raw-list">
+                <% utiles.each do |utile| %>
+                  <% integree = utile.solution_id.in?(integrees_ici) %>
+                  <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
+                    <span aria-hidden="true" class="fr-icon--sm <%= integree ? 'fr-icon-checkbox-circle-fill icon-green' : 'fr-icon-close-line' %>"></span>
+                    <%= utile.solution.nom.delete_suffix(" | #{recommandation.solution.nom}") %><span class="fr-sr-only"><%= integree ? ' : intégrée' : ' : non intégrée' %></span>
+                    <% if utile.solution.uid_datagouv.present? %>
+                      <%= link_to utile.solution.lien_datagouv, class: 'fr-link fr-link--sm fr-ml-1w', target: '_blank', rel: 'noopener external' do %>
+                        Voir sur data.gouv.fr<span class="fr-sr-only"> <%= utile.solution.nom %> - nouvelle fenêtre</span>
+                      <% end %>
+                    <% end %>
+                    <% badge = DataserviceCardComponent.badge(utile.solution)
+                       producteur = utile.solution.producteur %>
+                    <% if badge || producteur %>
+                      <p class="fr-text--xs fr-mb-0 fr-ml-3w">
+                        <% if badge %><span class="fr-badge fr-badge--sm fr-badge--no-icon fr-mr-1w <%= badge[:classe] %>"><%= badge[:label] %></span><% end %>
+                        <% if producteur %>Producteur : <%= producteur %><% end %>
+                      </p>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>

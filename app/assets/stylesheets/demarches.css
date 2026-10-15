@@ -85,8 +85,15 @@
   margin-bottom: 1rem;
 }
 
-.solution-integratrice-card .integration-indicator {
+.solution-integratrice-card__couverture {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 1rem;
+}
+
+.solution-integratrice-card__couverture .integration-indicator {
+  flex: 1;
 }
 
 .solution-integratrice-card__title {
@@ -94,21 +101,16 @@
   margin: 0 0 0.5rem;
 }
 
-.solution-integratrice-card__arrow {
+.solution-integratrice-card__fiche {
   position: absolute;
   bottom: 1rem;
-  right: 1rem;
-}
-
-.solution-integratrice-card__arrow .fr-icon-arrow-right-line {
-  color: var(--blue-france-sun-113-625);
+  right: 1.5rem;
 }
 
 @media (max-width: 767px) {
-  .solution-integratrice-card__arrow {
+  .solution-integratrice-card__fiche {
     position: static;
-    display: flex;
-    justify-content: flex-end;
+    text-align: right;
     margin-top: 1rem;
   }
 }

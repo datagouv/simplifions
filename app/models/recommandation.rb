@@ -43,12 +43,17 @@ class Recommandation < ApplicationRecord
   # { integratrice_id => [x, y] } : comme sur le site actuel, x données utiles intégrées en production sur les y
   # attendues, quelle que soit la démarche saisie sur l'intégration.
   def couvertures
-    y = utiles.count
-    return {} if y.zero?
+    return {} if apis_utiles.empty?
 
-    integrees = Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
-      .group(:integratrice_id).distinct.count(:integree_id)
-    solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, 0), y] }
+    solutions_integratrices.ids.index_with { |integratrice_id| couverture(integratrice_id) }
+  end
+
+  def couverture(integratrice_id) = [integrees.fetch(integratrice_id, []).size, apis_utiles.size]
+
+  def integrees
+    @integrees ||= Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
+      .distinct.pluck(:integratrice_id, :integree_id)
+      .group_by(&:first).transform_values { |paires| paires.map(&:last) }
   end
 
   def moyens_acces
@@ -57,8 +62,8 @@ class Recommandation < ApplicationRecord
 
   # Même ordre que le site actuel : ordre éditorial, puis description la plus fournie, puis nom
   def apis_utiles
-    utiles.joins(:solution).preload(:solution)
-      .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC'))
+    @apis_utiles ||= utiles.joins(:solution).preload(solution: :organisations)
+      .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC')).to_a
   end
 
   # Le contenu Grist est semi-confiance : seules les URLs http(s) deviennent des liens
