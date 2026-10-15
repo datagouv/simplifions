@@ -127,6 +127,7 @@
 
 .onglets-pleine-largeur .fr-tabs__panel {
   padding-inline: 0;
+  scroll-margin-top: 3rem;
 }
 
 :root:not([data-fr-js]) .onglets-pleine-largeur .fr-tabs__panel {
