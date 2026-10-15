@@ -214,6 +214,13 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('demarches-simplifiees.fr')
     end
 
+    it 'fait sauter les liens du sommaire dans la page, sans visite Turbo qui la recharge' do
+      liens = response.parsed_body.css('nav.fr-summary a[href^="#"]')
+
+      expect(liens).not_to be_empty
+      expect(liens).to all(satisfy { it.ancestors('[data-turbo="false"]').any? })
+    end
+
     it 'garde un bouton « Proposer une modification » toujours visible, sans liens éparpillés' do
       bouton = response.parsed_body.at_css('a.bouton-proposer-modification')
       expect(bouton['target']).to eq('_blank')
