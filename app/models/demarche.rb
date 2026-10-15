@@ -49,6 +49,23 @@ class Demarche < ApplicationRecord
     transaction { (super && publier_les_recommandations) || raise(ActiveRecord::Rollback) } || false
   end
 
+  def recommandations_affichees
+    @recommandations_affichees ||= recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
+  end
+
+  def donnees_utiles = recommandations_affichees.flat_map(&:apis_utiles).uniq
+
+  def integratrices
+    return Solution.none if donnees_utiles.empty?
+
+    Solution.where(id: recommandations_affichees.flat_map { it.solutions_integratrices.ids }).includes(:organisations)
+  end
+
+  def donnees_integrees_par(solution)
+    integrees = recommandations_affichees.flat_map { it.integrees.fetch(solution.id, []) }.to_set
+    donnees_utiles.select { integrees.include?(it.solution_id) }
+  end
+
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 

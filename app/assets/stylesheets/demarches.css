@@ -85,8 +85,15 @@
   margin-bottom: 1rem;
 }
 
-.solution-integratrice-card .integration-indicator {
+.solution-integratrice-card__couverture {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 1rem;
+}
+
+.solution-integratrice-card__couverture .integration-indicator {
+  flex: 1;
 }
 
 .solution-integratrice-card__title {

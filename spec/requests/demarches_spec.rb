@@ -287,6 +287,83 @@ RSpec.describe 'Demarches' do
     end
   end
 
+  describe 'modale des données intégrées par une solution' do
+    before do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      entreprise = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', organisations: [dinum])
+      particulier = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [dinum])
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api', uid_datagouv: 'bodacc1',
+        datagouv_acces: 'open', datagouv_organisation: 'DILA')
+      bio = Solution.create!(nom: 'API professionnels BIO', categorie: 'api')
+      qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      en_attente = Solution.create!(nom: 'API pas encore publiée', categorie: 'api')
+      [bodacc, bio, en_attente].each { Integration.create!(integratrice: entreprise, integree: it, type_integration: 'expose') }
+      Integration.create!(integratrice: particulier, integree: qf, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: entreprise, niveau: :niveau_2, visible: true, ordre: 1)
+      Recommandation.create!(demarche:, solution: particulier, niveau: :niveau_2, visible: true, ordre: 2)
+      [bodacc, bio, qf].each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_1, visible: true) }
+      Recommandation.create!(demarche:, solution: en_attente, niveau: :niveau_1, brouillon: { 'visible' => '1' })
+
+      acheteza = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])
+      [bodacc, qf, en_attente].each do |api|
+        Integration.create!(integratrice: acheteza, integree: api, type_integration: 'consomme',
+          statut: '✅ en production', demarches: [demarche])
+      end
+      Integration.create!(integratrice: acheteza, integree: bio, type_integration: 'consomme',
+        statut: '⚙️ en développement', demarches: [demarche])
+      sirene = Solution.create!(nom: 'API Sirene', categorie: 'api')
+      Recommandation.create!(demarche:, solution: sirene, niveau: :niveau_2, visible: true, ordre: 3)
+      Integration.create!(integratrice: acheteza, integree: sirene, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      get demarche_path('marches-publics')
+    end
+
+    let(:page) { Capybara.string(response.body) }
+    let(:modale) { page.find('dialog.fr-modal', visible: :all) }
+
+    it 'est ouverte par l’œil de chaque carte de la solution, même sans compteur, une seule fois pour la page' do
+      boutons = page.all('.solution-integratrice-card button', text: 'Voir les données intégrées par Acheteza')
+
+      expect(boutons.size).to eq(3)
+      expect(boutons.pluck('aria-controls').uniq).to eq([modale[:id]])
+      expect(page).to have_css('dialog.fr-modal', count: 1, visible: :all)
+    end
+
+    it 'nomme la solution, son opérateur et compte par donnée recommandée puis au total' do
+      texte = modale.text(:all).squish
+
+      expect(modale).to have_css('h2', text: 'Acheteza', visible: :all)
+      expect(texte).to include('Solution privée | Éditeur SAS')
+      expect(texte).to include('Bouquet API Entreprise 1/2')
+      expect(texte).to include('Bouquet API Particulier 1/1')
+      expect(texte).to include("2/3 API et jeux de données utiles pour ce cas d'usage")
+    end
+
+    it 'coche chaque donnée utile intégrée, avec son lien data.gouv, sans la donnée qui attend sa publication' do
+      texte = modale.text(:all).squish
+
+      expect(texte).to include('API BODACC : intégrée')
+      expect(modale.find('li', text: 'API BODACC', visible: :all).text(:all)).to include('API ouverte').and include('DILA')
+      expect(texte).to include('API professionnels BIO : non intégrée')
+      expect(texte).to include('API Quotient familial : intégrée')
+      expect(modale).to have_link('Voir sur data.gouv.fr API BODACC - nouvelle fenêtre', href: 'https://www.data.gouv.fr/fr/dataservices/bodacc1', visible: :all)
+      expect(response.body).not_to include('API pas encore publiée')
+    end
+
+    it 'montre sur la carte le même compte que son groupe dans la modale' do
+      bloc = page.find('.reco-card', text: 'Bouquet API Entreprise', match: :first)
+      compte_carte = bloc.find('.solution-integratrice-card', text: 'Acheteza', visible: :all)
+        .first('.integration-indicator__count', visible: :all).text(:all)
+      compte_groupe = modale.find('h3', text: 'Bouquet API Entreprise', visible: :all).find('span', visible: :all).text(:all)
+
+      expect(compte_carte).to eq('1/2')
+      expect(compte_groupe).to eq(compte_carte)
+    end
+  end
+
   describe 'accès direct à la donnée recommandée' do
     it 'ne renvoie pas vers une fiche retirée du site' do
       demarche = Demarche.create!(nom: 'Démarches proactives', slug: 'demarches-proactives', visible: true)

@@ -6,16 +6,25 @@
   <% if solution.types_solution.any? %>
     <p class="fr-text--sm fr-mb-0"><%= solution.types_solution.join(' • ') %></p>
   <% end %>
-  <% if couverture == [1, 1] %>
-    <p class="integration-indicator fr-p-1w">
-      <span aria-hidden="true" class="fr-text--sm integration-indicator__count indicator--green fr-icon-check-line fr-icon--sm"></span>
-      <span class="fr-text--xs">Donnée utile de « <%= cible.nom %> » intégrée</span>
-    </p>
-  <% elsif couverture %>
-    <% integrees, utiles = couverture
-       type = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %>
-    <%= render 'integration_indicator', integrees:, utiles:, label: "#{type} utiles #{cible.nom}",
-          description: "#{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution." %>
+  <% if couverture || oeil %>
+    <div class="solution-integratrice-card__couverture">
+      <% if couverture == [1, 1] %>
+        <p class="integration-indicator fr-p-1w">
+          <span aria-hidden="true" class="fr-text--sm integration-indicator__count indicator--green fr-icon-check-line fr-icon--sm"></span>
+          <span class="fr-text--xs">Donnée utile de « <%= cible.nom %> » intégrée</span>
+        </p>
+      <% elsif couverture %>
+        <% integrees, utiles = couverture
+           type = cible.categorie_api? ? 'API' : cible.categorie_base_de_donnees? ? 'jeu de données' : 'API ou jeu de données' %>
+        <%= render 'integration_indicator', integrees:, utiles:, label: "#{type} utiles #{cible.nom}",
+              description: "#{type} « #{cible.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrées par cette solution." %>
+      <% end %>
+      <% if oeil %>
+        <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-eye-line"
+          aria-controls="<%= dom_id(solution, :modale_integrations) %>" data-fr-opened="false"
+          title="Voir les données intégrées par <%= solution.nom %>">Voir les données intégrées par <%= solution.nom %></button>
+      <% end %>
+    </div>
   <% end %>
   <% if solution.slug.present? %>
     <p class="solution-integratrice-card__fiche fr-mb-0">
