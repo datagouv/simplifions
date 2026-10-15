@@ -20,6 +20,8 @@ Branche, dans l'ordre :
   2. la seule branche locale ou distante nommée <nom> ou <nom>-…,
      derrière un éventuel préfixe (feature/<nom>-titre)
   3. une nouvelle branche feature/<nom> depuis origin/main
+Refuse une branche dont config/database.yml et compose.yaml ont des noms
+de base et un port fixes (antérieure à ce script) : la rebaser d'abord.
 USAGE
   exit 1
 }
@@ -92,15 +94,30 @@ fi
 
 if [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/heads/$BRANCH"; then
   echo "Branche locale $BRANCH"
-  git -C "$PRIMARY_ROOT" worktree add "$WORKTREE_PATH" "$BRANCH"
+  SOURCE="$BRANCH"
 elif [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
   echo "Branche distante origin/$BRANCH"
-  git -C "$PRIMARY_ROOT" worktree add --track -b "$BRANCH" "$WORKTREE_PATH" "origin/$BRANCH"
-  git -C "$PRIMARY_ROOT" config "branch.$BRANCH.simplifions-worktree" "$NAME"
+  SOURCE="origin/$BRANCH"
 else
   BRANCH="${BRANCH:-feature/$NAME}"
   echo "Nouvelle branche $BRANCH depuis origin/main"
-  git -C "$PRIMARY_ROOT" worktree add --no-track -b "$BRANCH" "$WORKTREE_PATH" origin/main
+  SOURCE="origin/main"
+fi
+
+if ! git -C "$PRIMARY_ROOT" show "$SOURCE:config/database.yml" | grep -q DATABASE_NAME_DEVELOPMENT ||
+  ! git -C "$PRIMARY_ROOT" show "$SOURCE:compose.yaml" | grep -q 'PORT:-'; then
+  echo "Erreur : $SOURCE a des noms de base et un port fixes, son worktree" >&2
+  echo "utiliserait ceux du dépôt principal. Rebaser $BRANCH sur origin/main, puis relancer." >&2
+  exit 1
+fi
+
+case "$SOURCE" in
+  "$BRANCH") git -C "$PRIMARY_ROOT" worktree add "$WORKTREE_PATH" "$BRANCH" ;;
+  origin/main) git -C "$PRIMARY_ROOT" worktree add --no-track -b "$BRANCH" "$WORKTREE_PATH" origin/main ;;
+  *) git -C "$PRIMARY_ROOT" worktree add --track -b "$BRANCH" "$WORKTREE_PATH" "$SOURCE" ;;
+esac
+
+if [ "$SOURCE" != "$BRANCH" ]; then
   git -C "$PRIMARY_ROOT" config "branch.$BRANCH.simplifions-worktree" "$NAME"
 fi
 
@@ -116,5 +133,7 @@ echo "Worktree prêt : $WORKTREE_PATH"
 echo "Branche :       $BRANCH"
 echo "Bases :         simplifions_development_${SLUG}, simplifions_test_${SLUG}"
 echo "Démarrer :      cd $WORKTREE_PATH && make start"
-echo "Sans Docker :   set -a && . ./.env && set +a && bin/rails db:prepare && bin/rails server"
+echo "Sans Docker :   (set -a && . ./.env && bin/rails db:prepare && bin/rails server)"
+echo "                chaque commande bin/rails entre ces parenthèses, sinon elle touche"
+echo "                les bases du dépôt principal"
 echo "Site :          http://localhost:${PORT}"
