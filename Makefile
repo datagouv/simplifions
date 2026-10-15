@@ -9,7 +9,7 @@ help: ## Affiche cette aide
 	@echo ""
 	@echo "Commandes disponibles :"
 	@echo ""
-	@grep -E '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
+	@grep -hE '^[a-z]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
 	@echo ""
 
 install: check ## Prépare tout (images docker + base de données)
