@@ -1,6 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Démonstrateur : interroge l'API Recherche d'entreprises avec un SIRET saisi.
 export default class extends Controller {
   static targets = ["input", "button", "error", "loading", "result",
     "name", "siret", "adresse", "adresseWrapper", "naf", "nafWrapper",

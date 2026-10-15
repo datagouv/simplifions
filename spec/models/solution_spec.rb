@@ -8,6 +8,24 @@ RSpec.describe Solution do
     expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
   end
 
+  describe '#page_publique?' do
+    it 'n’a une page publique que visible et avec un slug' do
+      expect(described_class.new(visible: true, slug: 'acheteza')).to be_page_publique
+      expect(described_class.new(visible: false, slug: 'acheteza')).not_to be_page_publique
+      expect(described_class.new(visible: true, slug: nil)).not_to be_page_publique
+    end
+  end
+
+  describe '#champ_masque?' do
+    it 'masque un champ de fiche vide pour une API, tant qu’il n’est ni rempli ni en cours de saisie' do
+      api = described_class.create!(nom: 'API QF', categorie: 'api')
+      expect(api.champ_masque?(:site_internet)).to be(true)
+      expect(described_class.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main').champ_masque?(:site_internet)).to be(false)
+      api.site_internet = 'https://exemple.fr'
+      expect(api.champ_masque?(:site_internet)).to be(false)
+    end
+  end
+
   describe '#libelle_admin' do
     it 'distingue deux homonymes par leur catégorie' do
       api = described_class.new(nom: 'API Impôt particulier', categorie: 'api')
@@ -185,6 +203,23 @@ RSpec.describe Solution do
         statut: '✅ en production')
 
       expect(bouquet.nb_donnees_integrees).to eq(logiciel.id => 2)
+    end
+  end
+
+  describe '#integratrices_par_categorie' do
+    it 'range les intégratrices des onglets publics, les plus intégrées puis par nom, sans onglet vide' do
+      api_qf = described_class.create!(nom: 'API Quotient familial', categorie: 'api')
+      api_autre = described_class.create!(nom: 'API d’un autre fournisseur', categorie: 'api')
+      portail = described_class.create!(nom: 'Portail', slug: 'portail', categorie: 'site_de_consultation', visible: true)
+      alpha = described_class.create!(nom: 'Alpha', slug: 'alpha', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      zeta = described_class.create!(nom: 'Zeta', slug: 'zeta', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      agregatrice = described_class.create!(nom: 'API agrégatrice', categorie: 'api', visible: true)
+      [[portail, api_qf], [alpha, api_qf], [zeta, api_qf], [zeta, api_autre], [agregatrice, api_qf]].each do |integratrice, integree|
+        Integration.create!(integratrice:, integree:, type_integration: 'consomme', statut: '✅ en production')
+      end
+
+      expect(api_qf.integratrices_par_categorie).to eq('logiciel_metier_cle_en_main' => [zeta, alpha], 'site_de_consultation' => [portail])
+      expect(api_qf.integratrices_par_categorie.keys).to eq(%w[logiciel_metier_cle_en_main site_de_consultation])
     end
   end
 

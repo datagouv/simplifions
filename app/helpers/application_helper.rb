@@ -2,7 +2,6 @@ module ApplicationHelper
   MARKDOWN_TAGS = (Rails::HTML5::SafeListSanitizer.allowed_tags + %w[details summary table thead tbody tr th td]).freeze
   EVENEMENTS = { 'create' => 'Création', 'update' => 'Modification', 'destroy' => 'Suppression' }.freeze
 
-  # Liste "A, B et C" avec les éléments en gras, séparateurs en graisse normale.
   def liste_humaine(items)
     parts = []
     items.each_with_index do |item, index|
@@ -27,8 +26,7 @@ module ApplicationHelper
 
   def champ_de_fiche(formulaire, champ)
     solution = formulaire.object
-    masque = !solution.fiche? && solution.public_send(champ).blank? &&
-             !solution.will_save_change_to_attribute?(champ) && !solution.attachment_changes.key?(champ.to_s)
+    masque = solution.champ_masque?(champ)
     { class: ('fr-hidden' if masque), disabled: masque,
       input_group_options: { data: { champ_fiche: true, rempli_en_base: rempli_en_base?(solution, champ) } } }
   end
@@ -96,7 +94,6 @@ module ApplicationHelper
 
   def rafraichissement_en_cours?(passage) = passage.present? && !passage.finished? && !passage.failed?
 
-  # Contenu Grist semi-confiance : HTML brut autorisé, nettoyé par la liste blanche Rails (ni script, ni on*, ni javascript:/data:)
   def markdown(texte)
     return '' if texte.blank?
 

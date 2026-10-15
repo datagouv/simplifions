@@ -11,7 +11,6 @@ class Solution < ApplicationRecord
   validates :slug, format: { with: FORMAT_SLUG, message: :format_slug }, allow_nil: true
   validates :slug, presence: true, if: -> { visible? && fiche? }
 
-  # Le contenu Grist est semi-confiance : seules les URLs http(s) sont conservées.
   normalizes :site_internet, :url_demande_acces, with: lambda { |url|
     url = url.strip
     url = "https://#{url}" if url.match?(%r{\A[^\s/:@]+\.[^\s/:@]+(?:[/?#]\S*)?\z})
@@ -56,7 +55,6 @@ class Solution < ApplicationRecord
   scope :visibles, -> { where(visible: true) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
   scope :fiches, -> { where(categorie: [nil, *categories.keys - HORS_FICHES]) }
-  # Même filtre et même ordre (Grist) que la liste de l'article du site actuel.
   scope :franceconnectees, -> { visibles.categorie_api.where(france_connectee: true).sur_datagouv.order(:id) }
   def chapo = description_courte.to_s.lines.first&.strip
   def usagers = vocabulaires.select(&:categorie_usager?).map(&:nom)
@@ -71,7 +69,6 @@ class Solution < ApplicationRecord
   scope :pour_vocabulaire, ->(slug) { where(id: Solution.joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
   scope :pour_acteur, ->(slug) { where(id: Solution.joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
 
-  # Mêmes paramètres et mêmes valeurs que les tags des topics du site actuel.
   def self.catalogue(params)
     visibles.fiches.pour_vocabulaire(params['target-users']).pour_vocabulaire(params['types-de-simplification'])
       .pour_vocabulaire(params['categorie-de-solution']).pour_acteur(params['fournisseurs-de-service'])
@@ -79,22 +76,34 @@ class Solution < ApplicationRecord
   end
 
   def fiche? = HORS_FICHES.exclude?(categorie)
+  def page_publique? = visible? && slug.present?
+
+  def champ_masque?(champ)
+    !fiche? && public_send(champ).blank? && !will_save_change_to_attribute?(champ) && !attachment_changes.key?(champ.to_s)
+  end
+
   scope :par_libelle_admin, -> { order(:nom, :categorie) }
   def libelle_admin = categorie ? "#{nom} (#{self.class.human_attribute_name("categorie.#{categorie}")})" : nom
 
-  # Comme le site actuel : une fiche n'est publique que si un opérateur est explicitement « Public ».
   def privee? = fiche? && organisations.none?(&:publique?)
 
-  # Les données que la solution fournit : elle-même quand c'est une API, plus celles qu'elle expose.
   def fournies = [self, *exposees]
 
   def integratrices_visibles
     Solution.visibles.where(id: Integration.en_production.where(integree: fournies).select(:integratrice_id))
   end
 
-  # Nombre de données intégrées en production par chaque intégratrice visible, tous fournisseurs confondus.
   def nb_donnees_integrees
-    Integration.consomme.en_production.where(integratrice: integratrices_visibles).group(:integratrice_id).count
+    @nb_donnees_integrees ||= Integration.consomme.en_production.where(integratrice: integratrices_visibles).group(:integratrice_id).count
+  end
+
+  CATEGORIES_INTEGRATRICES = %w[logiciel_metier_cle_en_main brique_logicielle site_de_consultation].freeze
+
+  def integratrices_par_categorie
+    nb_donnees = nb_donnees_integrees
+    integratrices_visibles.includes(:organisations, :vocabulaires)
+      .sort_by { |integratrice| [-nb_donnees.fetch(integratrice.id, 0), integratrice.nom] }
+      .group_by(&:categorie).slice(*CATEGORIES_INTEGRATRICES)
   end
 
   def lien_datagouv
@@ -103,8 +112,6 @@ class Solution < ApplicationRecord
 
   def self.rafraichir_datagouv = sur_datagouv.filter_map(&:rafraichir_datagouv!)
 
-  # Recopie les métadonnées data.gouv ; renvoie une note en cas d'échec. Une fiche disparue perd ses
-  # métadonnées, une erreur passagère les conserve.
   def rafraichir_datagouv!
     PaperTrail.request(whodunnit: 'data.gouv') do
       response = fiche_datagouv
@@ -118,8 +125,6 @@ class Solution < ApplicationRecord
     "#{uid_datagouv} — #{e.class} — #{e.message}"
   end
 
-  # { integratrice_id => { demarche visible => [intégrées, utiles] } } : pour chaque démarche où
-  # l'intégratrice visible consomme en production une donnée fournie, x données marquées utiles sur y attendues.
   def couvertures
     paires_integrees.each_with_object({}) do |(integratrice_id, demarche, integree_id), couvertures|
       y = y_par_demarche[demarche.id] || next
@@ -128,9 +133,6 @@ class Solution < ApplicationRecord
     end
   end
 
-  # Même règle et même ordre que le site actuel (formule Grist Recommande_pour_les_cas_d_usages) :
-  # démarches recommandant la solution, dans l'ordre de saisie des recommandations, puis celles
-  # où elle intègre en production une donnée d'une reco visible.
   def demarches_simplifiables
     ordre = recommandations.visibles.order(:id).pluck(:demarche_id) + demarche_ids_integres
     Demarche.visibles.where(id: ordre).sort_by { |demarche| ordre.index(demarche.id) }
@@ -165,7 +167,6 @@ class Solution < ApplicationRecord
 
   def datagouv_vides = DATAGOUV.index_with(nil).merge(datagouv_organisation_badges: [])
 
-  # [demarche_id, solution_id] des données fournies marquées utiles pour une démarche (le « y » attendu)
   def paires_utiles
     @paires_utiles ||= Recommandation.niveau_1.parues.where(solution: fournies).pluck(:demarche_id, :solution_id).to_set
   end
@@ -174,7 +175,6 @@ class Solution < ApplicationRecord
     @y_par_demarche ||= paires_utiles.map(&:first).tally
   end
 
-  # [integratrice_id, demarche visible, integree_id] des intégrations en production des données fournies
   def paires_integrees
     Integration.en_production.where(integree: fournies, integratrice: Solution.visibles)
       .preload(:demarches).flat_map do |integration|

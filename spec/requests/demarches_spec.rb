@@ -312,6 +312,26 @@ RSpec.describe 'Demarches' do
     end
   end
 
+  describe 'libellés des moyens d’accès' do
+    it 'nomme chaque accordéon par catégorie, avec son compte ou son absence' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+      api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      Recommandation.create!(demarche:, solution: api_qf, niveau: :niveau_2, visible: true)
+      [%w[Alpha brique_logicielle], %w[Beta brique_logicielle], %w[Acheteza logiciel_metier_cle_en_main]].each do |nom, categorie|
+        integratrice = Solution.create!(nom:, slug: nom.downcase, categorie:, visible: true)
+        Integration.create!(integratrice:, integree: api_qf, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      end
+
+      get demarche_path('cantine')
+
+      expect(response.parsed_body.css('.fr-accordion__title').map { it.text.squish }.drop(1)).to eq([
+        'Via une brique logicielle à intégrer 2 briques',
+        'Via un logiciel métier « clé en main » 1 logiciel Sans développement',
+        'Via un site de consultation Aucun site (Aucune solution référencée)'
+      ])
+    end
+  end
+
   describe 'anciennes URLs /cas-d-usages' do
     it 'redirige la liste en 301 vers /demarches en conservant les filtres' do
       get '/cas-d-usages?target-users=particuliers'
