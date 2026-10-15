@@ -3,16 +3,24 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<USAGE
-Usage : $(basename "$0") <nom>
+Usage : $(basename "$0") [--force] <nom>
 
 Arrête le site de worktrees/<nom>, supprime ses conteneurs et son volume
 Postgres docker, ses bases dans le Postgres local s'il y en a, le worktree,
 puis sa branche locale si setup_worktree.sh l'a créée et qu'elle est mergée
 (la branche distante reste).
 <nom> : celui donné à setup_worktree.sh.
+Liste les fichiers ignorés par git qui seraient perdus (hors tmp/ et .env)
+et demande confirmation ; --force supprime sans demander.
 USAGE
   exit 1
 }
+
+FORCE=""
+if [ "${1:-}" = "--force" ]; then
+  FORCE=1
+  shift
+fi
 
 [ $# -eq 1 ] || usage
 
@@ -36,6 +44,16 @@ if [ -d "$WORKTREE_PATH" ]; then
   if [ -n "$(git -C "$WORKTREE_PATH" status --porcelain)" ]; then
     echo "Erreur : $WORKTREE_PATH a des changements non commités, rien n'est supprimé" >&2
     exit 1
+  fi
+  IGNORED="$(git -C "$WORKTREE_PATH" status --porcelain --ignored | sed -n 's/^!! //p' | grep -vx -e '\.env' -e 'tmp/.*' || true)"
+  if [ -n "$IGNORED" ] && [ -z "$FORCE" ]; then
+    echo "Ces fichiers ignorés par git seront perdus :" >&2
+    printf '%s\n' "$IGNORED" | sed 's/^/  /' >&2
+    read -r -p "Supprimer quand même ? [o/N] " ANSWER || true
+    if [[ ! "${ANSWER:-}" =~ ^[oO]$ ]]; then
+      echo "Rien n'est supprimé (--force pour ne pas demander)" >&2
+      exit 1
+    fi
   fi
   PROJECT="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' "$WORKTREE_PATH/.env" 2>/dev/null || true)"
   PROJECT="${PROJECT:-simplifions_${SLUG}}"
