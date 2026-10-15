@@ -3,6 +3,17 @@
               site_de_consultation: 'Site de consultation' }
    utiles_au_total = demarche.donnees_utiles.size %>
 <p class="fr-text--sm">Les solutions sont classées de celle qui a intégré le plus de données utiles à celle qui en a intégré le moins, puis par ordre alphabétique.</p>
+<fieldset class="fr-segmented fr-segmented--sm fr-mb-2w choix-affichage">
+  <legend class="fr-segmented__legend fr-segmented__legend--inline">Affichage des solutions</legend>
+  <div class="fr-segmented__elements">
+    <% [%w[cartes Cartes fr-icon-layout-grid-line], %w[tableau Tableau fr-icon-table-line]].each do |valeur, libelle, icone| %>
+      <div class="fr-segmented__element">
+        <input type="radio" id="affichage-solutions-<%= valeur %>" name="affichage-solutions" value="<%= valeur %>" <%= 'checked' if valeur == 'cartes' %>>
+        <label class="fr-label <%= icone %>" for="affichage-solutions-<%= valeur %>"><%= libelle %></label>
+      </div>
+    <% end %>
+  </div>
+</fieldset>
 <% par_categorie.each do |categorie, solutions| %>
   <section class="fr-accordion">
     <h3 class="fr-accordion__title">
@@ -10,13 +21,14 @@
         aria-controls="solutions-integratrices-<%= categorie.to_s.dasherize %>"><%= titres.fetch(categorie) %></button>
     </h3>
     <div class="fr-collapse fr-collapse--expanded" id="solutions-integratrices-<%= categorie.to_s.dasherize %>">
-      <ul class="fr-grid-row fr-grid-row--gutters fr-mt-1w list-none">
+      <ul class="fr-grid-row fr-grid-row--gutters fr-mt-1w list-none vue-cartes">
         <% solutions.each do |solution| %>
           <li class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
             <%= render 'solution_integratrice', solution:, couverture: [demarche.donnees_integrees_par(solution).size, utiles_au_total], oeil: true %>
           </li>
         <% end %>
       </ul>
+      <%= render 'tableau_integratrices', solutions:, demarche:, titre: titres.fetch(categorie) %>
     </div>
   </section>
 <% end %>
