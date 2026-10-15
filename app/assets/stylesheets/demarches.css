@@ -143,6 +143,16 @@
   display: none;
 }
 
+.affichage-personnalise:has([data-filtre-tag][aria-pressed=true]):has([data-filtre-tag=api][aria-pressed=false]) [data-filtre=api],
+.affichage-personnalise:has([data-filtre-tag][aria-pressed=true]):has([data-filtre-tag=logiciels][aria-pressed=false]) [data-filtre=logiciels],
+.affichage-personnalise:has([data-filtre-tag][aria-pressed=true]):has([data-filtre-tag=sites][aria-pressed=false]) [data-filtre=sites] {
+  display: none;
+}
+
+:root:not([data-fr-js]) .affichage-personnalise__bandeau {
+  display: none;
+}
+
 /* Page solution */
 
 .solution-page .icon-gray {
