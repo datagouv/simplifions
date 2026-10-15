@@ -39,6 +39,7 @@ Index for `verify-simplifions`. One file per user-facing feature; each holds the
 - [admin-libelles.md](admin-libelles.md) — admin forms in the Grist words: French labels and list values, hints inside labels, fields in the Grist record-card order.
 - [onglet-solutions-integratrices.md](onglet-solutions-integratrices.md) — the second tab of a cas d'usage ranks the solutions that integrated its data; same card and modal; without JavaScript both tabs read one after the other.
 - [tableau-solutions-integratrices.md](tableau-solutions-integratrices.md) — the same solutions as a table per category, one column per useful datum, sorted by name or count; scrolls sideways on mobile.
+- [affichage-personnalise.md](affichage-personnalise.md) — three tags under the breadcrumb filter both tabs of a cas d'usage by type of solution; the breadcrumb sticks, a button brings the tags back after scrolling.
 - [fiche-donnees-integrees.md](fiche-donnees-integrees.md) — from a cas d'usage, open the data integrated by a solution; the modal closes with Escape and gives focus back.
 - [admin-erreurs-formulaire.md](admin-erreurs-formulaire.md) — a refused admin form: titled summary with focus and links to the fields, DSFR error under each field, French messages, required fields marked.
 - [admin-previsualisation.md](admin-previsualisation.md) — preview a démarche or solution draft as its public page, under a « Prévisualisation » notice; the public page stays as published.
