@@ -442,12 +442,23 @@ RSpec.describe 'Demarches' do
         expect(tableaux.map { it.find('caption', visible: :all).text(:all).squish })
           .to eq(['Logiciel métier « clé en main »', 'Brique logicielle à intégrer'])
         expect(tableaux.first.all('thead th[scope=col]', visible: :all).map { it.text(:all).squish })
-          .to eq(['Solution', 'Données intégrées', 'API BODACC', 'API professionnels BIO'])
+          .to eq(['Solution Trier par solution', 'Données intégrées Trier par données intégrées', 'API BODACC', 'API professionnels BIO'])
         expect(lignes).to eq([
           [['Zeta', '2/2', 'Intégrée', 'Intégrée'], ['Acheteza', '1/2', 'Intégrée', 'Non intégrée']],
           [['Brique marchés', '1/2', 'Non intégrée', 'Intégrée']]
         ])
         expect(tableaux.first.all('tbody th[scope=row]', visible: :all).map { it.text(:all).squish }).to eq(%w[Zeta Acheteza])
+      end
+
+      it 'trie le tableau par solution ou par données intégrées, annoncé dans l’ordre servi' do
+        tableau = onglet_solutions.first('table', visible: :all)
+
+        expect(tableau.all('th[aria-sort]', visible: :all).map { [it.find('.fr-cell__title', visible: :all).text(:all), it[:'aria-sort']] })
+          .to eq([['Données intégrées', 'descending']])
+        expect(tableau).to have_button('Trier par solution', visible: :all)
+        expect(tableau).to have_button('Trier par données intégrées', visible: :all)
+        expect(tableau.all('tbody tr', visible: :all).map { [it[:'data-nom'], it[:'data-integrees']] })
+          .to eq([%w[Zeta 2], %w[Acheteza 1]])
       end
 
       it 'rend chaque modale une seule fois, hors des onglets' do

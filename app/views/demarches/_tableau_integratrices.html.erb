@@ -3,12 +3,20 @@
   <div class="fr-table__wrapper">
     <div class="fr-table__container">
       <div class="fr-table__content">
-        <table>
+        <table data-controller="tri-tableau">
           <caption><%= titre %></caption>
           <thead>
             <tr>
-              <th scope="col">Solution</th>
-              <th scope="col">Données intégrées</th>
+              <% [['nom', 'Solution', 'ascending', nil], ['integrees', 'Données intégrées', 'descending', 'descending']].each do |cle, libelle, ordre, tri| %>
+                <th scope="col" <%= tag.attributes(aria: { sort: tri }) %>>
+                  <div class="fr-cell--sort">
+                    <span class="fr-cell__title"><%= libelle %></span>
+                    <button type="button" class="fr-btn--sort fr-btn fr-btn--sm <%= 'fr-btn--sort-desc' if tri %>"
+                      data-action="tri-tableau#trier" data-tri-tableau-cle-param="<%= cle %>" data-tri-tableau-ordre-param="<%= ordre %>"
+                      title="Trier par <%= libelle.downcase %>">Trier par <%= libelle.downcase %></button>
+                  </div>
+                </th>
+              <% end %>
               <% utiles.each do |utile| %>
                 <th scope="col"><%= utile.solution.nom %></th>
               <% end %>
@@ -17,7 +25,7 @@
           <tbody>
             <% solutions.each do |solution| %>
               <% integrees = demarche.donnees_integrees_par(solution) %>
-              <tr>
+              <tr data-nom="<%= solution.nom %>" data-integrees="<%= integrees.size %>">
                 <th scope="row"><%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %></th>
                 <td><%= integrees.size %>/<%= utiles.size %></td>
                 <% utiles.each do |utile| %>
