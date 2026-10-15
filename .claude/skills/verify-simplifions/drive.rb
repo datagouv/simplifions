@@ -1708,7 +1708,32 @@ def onglet_solutions(page)
   Verify.evidence('onglet-solutions-integratrices', page, 'modale', "solution=#{modale.find('h2').text.inspect} carte=#{carte} modale=#{total}")
   page.send_keys(:escape)
   page.assert_no_selector("dialog##{oeil['aria-controls']}[open]")
+  ancre(page, demarche)
   sans_js(demarche)
+end
+
+def haut(page, selecteur) = page.evaluate_script("document.querySelector('#{selecteur}').getBoundingClientRect().top").round
+def hauts(page) = "haut_des_onglets=#{haut(page, '.fr-tabs')} haut_du_panneau=#{haut(page, '#solutions-integratrices')}"
+
+def arrivee_sur_l_onglet_solutions(page) = page.assert_selector('#solutions-integratrices.fr-tabs__panel--selected', wait: 20)
+
+def ancre(page, demarche)
+  page.visit("/demarches/#{demarche.slug}#solutions-integratrices")
+  arrivee_sur_l_onglet_solutions(page)
+  sleep 0.5
+  Verify.evidence('onglet-solutions-integratrices', page, 'lien-externe', "url=#{page.current_url} #{hauts(page)}")
+  page.visit('/demarches')
+  page.execute_script("Turbo.visit('/demarches/#{demarche.slug}#solutions-integratrices')")
+  arrivee_sur_l_onglet_solutions(page)
+  sleep 0.5
+  Verify.evidence('onglet-solutions-integratrices', page, 'lien-interne', "url=#{page.current_url} #{hauts(page)}")
+  page.visit("/demarches/#{demarche.slug}")
+  page.assert_selector('#donnees-disponibles.fr-tabs__panel--selected')
+  page.find('nav.fr-summary').click_link('Solutions ayant intégré ces données')
+  arrivee_sur_l_onglet_solutions(page)
+  sleep 0.5
+  page.assert_selector('#solutions-integratrices.fr-tabs__panel--selected')
+  Verify.evidence('onglet-solutions-integratrices', page, 'sommaire', "url=#{page.current_url} #{hauts(page)}")
 end
 
 def sans_js(demarche)
