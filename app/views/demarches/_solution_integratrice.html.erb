@@ -1,4 +1,4 @@
-<% cible = recommandation.solution %>
+<% cible = recommandation&.solution %>
 <div class="solution-integratrice-card">
   <div class="solution-integratrice-card__header">
     <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug) %></p>
@@ -8,7 +8,7 @@
     <p class="fr-text--sm fr-mb-0"><%= solution.types_solution.join(' • ') %></p>
   <% end %>
   <% if demarche.donnees_utiles.any? %>
-    <% modale_id = "#{dom_id(recommandation)}_donnees_integrees_#{solution.id}" %>
+    <% modale_id = "#{recommandation ? dom_id(recommandation) : 'cas_usage'}_donnees_integrees_#{solution.id}" %>
     <div class="integration-indicator solution-integratrice-card__couverture fr-p-1w">
       <% if couverture %>
         <% jeu_de_donnees = cible.categorie_base_de_donnees? %>
@@ -23,7 +23,7 @@
         aria-controls="<%= modale_id %>" data-fr-opened="false"
         title="Voir les données intégrées par <%= solution.nom %>">Voir les données intégrées par <%= solution.nom %></button>
       <p class="solution-integratrice-card__total fr-text--xs fr-text-mention--grey">
-        <%= render 'compteur', couverture: demarche.couverture(solution), total: true %>
+        <%= render 'compteur', couverture: demarche.couverture(solution), total: true, attenue: couverture.present? %>
         <span>API ou jeux de données au total pour ce cas d’usage</span>
       </p>
     </div>
