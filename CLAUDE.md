@@ -10,6 +10,10 @@ Le dépôt reçoit des contributions de personnes qui ne sont pas développeuses
 - Lint : `docker compose exec web bin/rubocop -a`.
 - Après chaque étape : lint, puis les specs du fichier touché.
 
+## Worktrees
+- `bin/setup_worktree.sh <nom> [branche]` : crée `worktrees/<nom>` avec ses bases, son port et ses conteneurs, puis `make start` dedans.
+- `bin/remove_worktree.sh <nom>` : arrête son site, supprime ses bases et le worktree.
+
 ## Simplicité
 S'arrêter au premier échelon qui suffit :
 1. Faut-il vraiment le faire ? Rien hors du ticket.

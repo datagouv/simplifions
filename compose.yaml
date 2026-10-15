@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile.dev
     command: bash -c "(bundle check || bundle install) && bin/rails db:prepare && rm -f tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     volumes:
       - .:/rails
       - bundle:/usr/local/bundle
@@ -26,6 +26,8 @@ services:
       DB_HOST: db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      DATABASE_NAME_DEVELOPMENT: ${DATABASE_NAME_DEVELOPMENT:-simplifions_development}
+      DATABASE_NAME_TEST: ${DATABASE_NAME_TEST:-simplifions_test}
     depends_on:
       db:
         condition: service_healthy

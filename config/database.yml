@@ -8,11 +8,11 @@ default: &default
 
 development:
   <<: *default
-  database: simplifions_development
+  database: <%= ENV.fetch("DATABASE_NAME_DEVELOPMENT", "simplifions_development") %>
 
 test:
   <<: *default
-  database: simplifions_test
+  database: <%= ENV.fetch("DATABASE_NAME_TEST", "simplifions_test") %>
 
 # En staging/sandbox/production, ce fichier est remplacé au déploiement par
 # le template ansible (very_ansible, rails_config/simplifions/database.yml.j2).

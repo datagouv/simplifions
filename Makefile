@@ -2,6 +2,8 @@
 .PHONY: help install import start stop restart logs console check
 
 COMPOSE = docker compose
+-include .env
+PORT ?= 3000
 
 help: ## Affiche cette aide
 	@echo ""
@@ -33,9 +35,9 @@ start: check ## Démarre le site sur http://localhost:3000
 	@$(COMPOSE) up --detach
 	@echo "→ Démarrage du site..."
 	@for i in $$(seq 1 60); do \
-		if curl -s -o /dev/null http://localhost:3000/up; then \
+		if curl -s -o /dev/null http://localhost:$(PORT)/up; then \
 			echo ""; \
-			echo "✓ Le site tourne : http://localhost:3000"; \
+			echo "✓ Le site tourne : http://localhost:$(PORT)"; \
 			echo "  Pour l'arrêter : make stop"; \
 			exit 0; \
 		fi; \
