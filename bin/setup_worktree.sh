@@ -69,8 +69,9 @@ if [ -e "$WORKTREE_PATH" ]; then
   exit 1
 fi
 
-if (echo > "/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
-  echo "Erreur : le port $PORT est déjà pris, en choisir un autre avec -p" >&2
+if (echo > "/dev/tcp/127.0.0.1/$PORT") 2>/dev/null ||
+  grep -qsx "PORT=$PORT" "$PRIMARY_ROOT"/worktrees/*/.env; then
+  echo "Erreur : le port $PORT est déjà pris ou donné à un autre worktree, en choisir un autre avec -p" >&2
   exit 1
 fi
 

@@ -61,11 +61,18 @@ if [ -d "$WORKTREE_PATH" ]; then
     fi
   fi
   PORT="$(sed -n 's/^PORT=//p' "$WORKTREE_PATH/.env" 2>/dev/null || true)"
-  PIDS="$( [ -n "$PORT" ] && lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
-  if [ -n "$PIDS" ]; then
-    echo "$PIDS" | xargs kill
-    echo "Serveur local arrêté sur le port $PORT"
-  fi
+  PIDS=""
+  [ -z "$PORT" ] || PIDS="$(lsof -nP -iTCP:"$PORT" -sTCP:LISTEN -t 2>/dev/null || true)"
+  WORKTREE_REAL="$(cd "$WORKTREE_PATH" && pwd -P)"
+  for pid in $PIDS; do
+    PID_CWD="$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')"
+    if [ "$PID_CWD" = "$WORKTREE_REAL" ] || [[ "$PID_CWD" == "$WORKTREE_REAL/"* ]]; then
+      kill "$pid"
+      echo "Serveur local arrêté sur le port $PORT"
+    else
+      echo "Attention : le port $PORT est tenu par le processus $pid (${PID_CWD:-dossier inconnu}), hors du worktree : laissé tel quel" >&2
+    fi
+  done
   BRANCH="$(git -C "$WORKTREE_PATH" rev-parse --abbrev-ref HEAD)"
   CREATED_FOR="$(git -C "$PRIMARY_ROOT" config --get "branch.$BRANCH.simplifions-worktree" || true)"
   DEFAULT_BRANCH="$(git -C "$PRIMARY_ROOT" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
