@@ -106,6 +106,8 @@ class Solution < ApplicationRecord
       .group_by(&:categorie).slice(*CATEGORIES_INTEGRATRICES)
   end
 
+  def producteur = datagouv_organisation.presence || organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
+
   def lien_datagouv
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end
