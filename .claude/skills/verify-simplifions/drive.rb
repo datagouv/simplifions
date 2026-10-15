@@ -1749,6 +1749,97 @@ ensure
   page&.quit
 end
 
+def lignes_du_tableau(tableau) = tableau.all('tbody tr').map { [it['data-nom'], it['data-integrees'].to_i] }
+def tri_de(tableau) = tableau.all('th[aria-sort]').map { "#{it.find('.fr-cell__title').text}:#{it['aria-sort']}" }.join(',')
+
+def trier(page, tableau, bouton, attendu)
+  tableau.click_button(bouton)
+  lignes = lignes_du_tableau(tableau)
+  raise "#{bouton} #{tri_de(tableau)} : #{lignes.inspect} != #{attendu.inspect}" unless lignes == attendu
+
+  Verify.evidence('tableau-solutions-integratrices', page, "tri-#{bouton.parameterize}-#{tri_de(tableau).split(':').last}",
+    "tri=#{tri_de(tableau)} lignes=#{lignes.map { it.join('=') }.join(' | ')}")
+end
+
+def tableau_solutions(page)
+  demarche = Demarche.visibles.order(:id).find { it.integratrices_par_categorie.any? }
+  par_categorie = demarche.integratrices_par_categorie
+  page.current_window.resize_to(1280, 1024)
+  page.visit("/demarches/#{demarche.slug}")
+  page.find('[role=tab][aria-controls=solutions-integratrices]').click
+  panneau = page.find('#solutions-integratrices.fr-tabs__panel--selected')
+  raise 'Cartes non coché' unless panneau.find_field('Cartes', visible: :all).checked?
+
+  page.assert_no_selector('#solutions-integratrices .vue-tableau')
+  panneau.choose('Tableau', allow_label_click: true)
+  page.assert_no_selector('#solutions-integratrices .solution-integratrice-card')
+  tableaux = panneau.all('.vue-tableau table', count: par_categorie.size)
+  tableau = tableaux.first
+  servi = par_categorie.values.first.map { [it.nom, demarche.donnees_integrees_par(it).size] }
+  raise "lignes #{lignes_du_tableau(tableau).inspect} != base #{servi.inspect}" unless lignes_du_tableau(tableau) == servi
+
+  colonnes = tableau.all('thead th').size - 2
+  raise "colonnes #{colonnes} != utiles #{demarche.donnees_utiles.size}" unless colonnes == demarche.donnees_utiles.size
+
+  Verify.evidence('tableau-solutions-integratrices', page, 'tableau',
+    "slug=#{demarche.slug} tableaux=#{tableaux.size} categories=#{par_categorie.size} lignes=#{servi.size} colonnes=#{colonnes} " \
+    "utiles_base=#{demarche.donnees_utiles.size} tri=#{tri_de(tableau)}")
+  par_nom = servi.sort { |a, b| I18n.transliterate(a[0]).downcase <=> I18n.transliterate(b[0]).downcase }
+  trier(page, tableau, 'Trier par solution', par_nom)
+  trier(page, tableau, 'Trier par solution', par_nom.reverse)
+  trier(page, tableau, 'Trier par données intégrées', servi)
+  trier(page, tableau, 'Trier par données intégrées', servi.sort_by { [it[1], I18n.transliterate(it[0]).downcase] })
+  roles = [tableau.first('thead th').native.aria_role, tableau.first('tbody th').native.aria_role]
+  raise "rôles #{roles}" unless roles == %w[columnheader rowheader]
+
+  Verify.evidence('tableau-solutions-integratrices', page, 'roles', "en_tete_colonne=#{roles[0]} en_tete_ligne=#{roles[1]} " \
+    "nom_premiere_ligne=#{tableau.first('tbody th').native.accessible_name.inspect}")
+  panneau.choose('Cartes', allow_label_click: true)
+  page.assert_no_selector('#solutions-integratrices .vue-tableau')
+  page.assert_selector('#solutions-integratrices .solution-integratrice-card', count: par_categorie.values.sum(&:size))
+  Verify.evidence('tableau-solutions-integratrices', page, 'retour-cartes', "cartes=#{par_categorie.values.sum(&:size)}")
+  tableau_mobile(page, demarche)
+  tableau_sans_js(demarche)
+ensure
+  page.current_window.resize_to(1280, 1024)
+end
+
+def tableau_mobile(page, demarche)
+  page.current_window.resize_to(375, 800)
+  page.visit("/demarches/#{demarche.slug}#solutions-integratrices")
+  panneau = page.find('#solutions-integratrices.fr-tabs__panel--selected')
+  panneau.choose('Tableau', allow_label_click: true)
+  conteneur = panneau.first('.vue-tableau .fr-table__container')
+  page.scroll_to(conteneur, align: :top)
+  largeurs = page.evaluate_script(<<~JS)
+    (() => { const c = document.querySelector('#solutions-integratrices .vue-tableau .fr-table__container')
+             c.scrollLeft = 300
+             return [document.documentElement.scrollWidth, document.documentElement.clientWidth, c.scrollWidth, c.clientWidth, c.scrollLeft] })()
+  JS
+  page_large, fenetre, tableau_large, cadre, defile = largeurs
+  raise "la page déborde : #{page_large} > #{fenetre}" if page_large > fenetre
+  raise "le tableau ne défile pas : #{largeurs}" unless tableau_large > cadre && defile.positive?
+
+  Verify.evidence('tableau-solutions-integratrices', page, 'mobile',
+    "page=#{page_large}/#{fenetre} tableau=#{tableau_large}/#{cadre} defilement=#{defile}")
+end
+
+def tableau_sans_js(demarche)
+  page = Verify.session(javascript: false)
+  page.visit("/demarches/#{demarche.slug}")
+  solutions = page.find('#solutions-integratrices')
+  page.scroll_to(solutions.first('.vue-tableau'), align: :top)
+  cartes = solutions.all('.solution-integratrice-card').size
+  lignes = solutions.all('.vue-tableau tbody tr').size
+  raise "sans JS cartes=#{cartes} lignes=#{lignes}" unless cartes.positive? && cartes == lignes
+  raise 'choix affiché sans JS' if solutions.has_css?('.choix-affichage', wait: 0)
+  raise 'bouton de tri affiché sans JS' if solutions.has_css?('.fr-btn--sort', wait: 0)
+
+  Verify.evidence('tableau-solutions-integratrices', page, 'sans-js', "cartes=#{cartes} lignes=#{lignes} choix=masque tri=masque")
+ensure
+  page&.quit
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1761,7 +1852,8 @@ end
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
-  'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions }.each do |nom, fn|
+  'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
+  'tableau-solutions' => :tableau_solutions }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
