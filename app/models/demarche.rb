@@ -72,6 +72,14 @@ class Demarche < ApplicationRecord
     [donnees_utiles.count { integrees.include?(it.id) }, donnees_utiles.size]
   end
 
+  def integratrices = Solution.where(id: recommandations_publiees.flat_map { it.solutions_integratrices.ids }).includes(:organisations)
+
+  def integratrices_par_categorie
+    nombres = integratrices.index_with { couverture(it).first }.select { |_solution, nombre| nombre.positive? }
+    nombres.keys.sort_by { [-nombres[it], I18n.transliterate(it.nom).downcase] }
+      .group_by(&:categorie).slice(*Solution::CATEGORIES_INTEGRATRICES).transform_keys(&:to_sym)
+  end
+
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 

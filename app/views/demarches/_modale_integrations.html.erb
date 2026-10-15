@@ -1,5 +1,5 @@
-<% cible = recommandation.solution
-   jeu_de_donnees = cible.categorie_base_de_donnees?
+<% cible = recommandation&.solution
+   jeu_de_donnees = cible&.categorie_base_de_donnees?
    integrees_par_la_solution = demarche.integrees_par(solution) %>
 <dialog id="<%= modale_id %>" class="fr-modal" aria-labelledby="<%= modale_id %>_titre">
   <div class="fr-container fr-container--fluid fr-container-md">
@@ -29,7 +29,7 @@
             </div>
             <% demarche.groupes_donnees_utiles.each do |bouquet, utiles, recommandations| %>
               <% titre = titre_groupe_donnees(bouquet) %>
-              <details class="donnees-integrees fr-mt-3w" <%= 'open' if utiles.intersect?(recommandation.donnees_attendues) %>>
+              <details class="donnees-integrees fr-mt-3w" <%= 'open' if recommandation.nil? || utiles.intersect?(recommandation.donnees_attendues) %>>
                 <summary class="fr-text--bold fr-mb-1w">
                   <span aria-hidden="true" class="donnees-integrees__fleche fr-icon-arrow-down-s-fill"></span>
                   <%= titre %>
