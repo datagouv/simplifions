@@ -38,9 +38,9 @@
 
   <div class="fr-mt-5w">
     <%= render ArticleSectionComponent.new(id: sections[1][0], label: sections[1][1]) do %>
-      <%= render partial: 'demarches/recommandation',
-            collection: @demarche.recommandations_publiees,
-            as: :recommandation %>
+      <%= render partial: 'demarches/recommandation', collection: @demarche.recommandations_publiees, as: :recommandation,
+            locals: { lien_modification:, demarche: @demarche } %>
+      <%= yield :modales_integrations %>
     <% end %>
   </div>
 </div>

@@ -309,7 +309,114 @@ RSpec.describe 'Demarches' do
       carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
       expect(carte).to have_css('.indicator--green.fr-icon-check-line')
       expect(carte).to have_text('API intégrée')
-      expect(carte).to have_no_text('1/1')
+      expect(carte).to have_no_text('1/1 API « Bouquet API Entreprise »')
+    end
+  end
+
+  describe 'fenêtre des données intégrées ouverte depuis une carte' do
+    before do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      entreprise = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', organisations: [dinum])
+      particulier = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [dinum])
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api', uid_datagouv: 'bodacc1',
+        datagouv_acces: 'open', datagouv_organisation: 'DILA')
+      bio = Solution.create!(nom: 'API professionnels BIO', categorie: 'api')
+      qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      en_attente = Solution.create!(nom: 'API pas encore publiée', categorie: 'api')
+      [bodacc, bio, en_attente].each { Integration.create!(integratrice: entreprise, integree: it, type_integration: 'expose') }
+      Integration.create!(integratrice: particulier, integree: qf, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: entreprise, niveau: :niveau_2, visible: true, ordre: 1)
+      Recommandation.create!(demarche:, solution: particulier, niveau: :niveau_2, visible: true, ordre: 2)
+      [bodacc, bio, qf].each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_1, visible: true) }
+      Recommandation.create!(demarche:, solution: en_attente, niveau: :niveau_1, brouillon: { 'visible' => '1' })
+
+      acheteza = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])
+      [bodacc, qf, en_attente].each do |api|
+        Integration.create!(integratrice: acheteza, integree: api, type_integration: 'consomme',
+          statut: '✅ en production', demarches: [demarche])
+      end
+      Integration.create!(integratrice: acheteza, integree: bio, type_integration: 'consomme',
+        statut: '⚙️ en développement', demarches: [demarche])
+      sirene = Solution.create!(nom: 'API Sirene', categorie: 'api')
+      Recommandation.create!(demarche:, solution: sirene, niveau: :niveau_2, visible: true, ordre: 3)
+      Integration.create!(integratrice: acheteza, integree: sirene, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      get demarche_path('marches-publics')
+    end
+
+    let(:page) { Capybara.string(response.body) }
+
+    def oeil(recommandee)
+      page.find('.reco-card', text: /Via «\s+#{recommandee}\s+»/).find('button', text: 'Voir les données intégrées par Acheteza')
+    end
+
+    def fenetre(recommandee) = page.find("dialog.fr-modal##{oeil(recommandee)['aria-controls']}", visible: :all)
+    def texte(recommandee) = fenetre(recommandee).text(:all).squish
+
+    it 'ouvre une fenêtre par carte, même sans compteur' do
+      fenetres = ['Bouquet API Entreprise', 'Bouquet API Particulier', 'API Sirene'].map { fenetre(it)[:id] }
+
+      expect(fenetres.uniq.size).to eq(3)
+      expect(page).to have_css('dialog.fr-modal', count: 3, visible: :all)
+    end
+
+    it 'reprend le haut de la carte : compteur de la recommandation puis total du cas d’usage' do
+      expect(fenetre('Bouquet API Entreprise')).to have_css('h2', text: 'Acheteza', visible: :all)
+      expect(texte('Bouquet API Entreprise')).to include('Solution privée | Éditeur SAS')
+        .and include('1/2 API « Bouquet API Entreprise » intégrées par cette solution, utiles pour la démarche « Marchés publics »')
+        .and include('Sur l’ensemble du cas d’usage : 2/3 API et jeux de données utiles intégrés.')
+    end
+
+    it 'reprend la coche d’une carte à une seule donnée utile, puis le total' do
+      expect(fenetre('Bouquet API Particulier')).to have_css('.indicator--green.fr-icon-check-line', visible: :all)
+      expect(texte('Bouquet API Particulier')).to include('« Bouquet API Particulier » est intégrée par cette solution')
+        .and include('Sur l’ensemble du cas d’usage : 2/3')
+      expect(texte('Bouquet API Particulier')).not_to include('1/1 API')
+    end
+
+    it 'ne reprend que le total pour une carte sans compteur' do
+      expect(texte('API Sirene')).to include('Sur l’ensemble du cas d’usage : 2/3')
+      expect(texte('API Sirene')).not_to include('intégrées par cette solution, utiles')
+    end
+
+    it 'groupe les données par donnée recommandée, chaque groupe avec son compte' do
+      expect(texte('Bouquet API Entreprise')).to include('Bouquet API Entreprise (1/2)')
+        .and include('Bouquet API Particulier (1/1)')
+    end
+
+    it 'montre en tête d’un groupe le même compte que la carte de sa donnée recommandée' do
+      carte = oeil('Bouquet API Entreprise').ancestor('.solution-integratrice-card')
+      compte = carte.find('.solution-integratrice-card__couverture > .integration-indicator__count').text
+
+      expect(texte('Bouquet API Entreprise')).to include("Bouquet API Entreprise (#{compte})")
+    end
+
+    it 'compte au total les coches sur les lignes' do
+      lignes = fenetre('Bouquet API Entreprise').all('li', visible: :all).map { it.text(:all) }
+
+      expect(lignes.size).to eq(3)
+      expect(lignes.count { it.include?(': intégrée') }).to eq(2)
+    end
+
+    it 'coche chaque donnée utile intégrée, avec son détail data.gouv, sans la donnée qui attend sa publication' do
+      fenetre = fenetre('Bouquet API Entreprise')
+
+      expect(texte('Bouquet API Entreprise')).to include('API BODACC : intégrée')
+        .and include('API professionnels BIO : non intégrée')
+        .and include('API Quotient familial : intégrée')
+      expect(fenetre.find('li', text: 'API BODACC', visible: :all).text(:all)).to include('API ouverte').and include('DILA')
+      expect(fenetre).to have_link('Voir sur data.gouv.fr API BODACC - nouvelle fenêtre', href: 'https://www.data.gouv.fr/fr/dataservices/bodacc1', visible: :all)
+      expect(response.body).not_to include('API pas encore publiée')
+    end
+
+    it 'montre sur la carte le compte de sa recommandation et le total, comme sa fenêtre' do
+      carte = oeil('Bouquet API Entreprise').ancestor('.solution-integratrice-card').text.squish
+
+      expect(carte).to include('1/2 API « Bouquet API Entreprise »')
+        .and include('2/3 API ou jeux de données au total pour ce cas d’usage')
     end
   end
 

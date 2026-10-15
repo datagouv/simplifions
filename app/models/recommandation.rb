@@ -41,11 +41,12 @@ class Recommandation < ApplicationRecord
   end
 
   def couvertures
-    y = apis_utiles.size
-    return {} if y.zero?
+    return {} if apis_utiles.empty?
 
-    solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, []).size, y] }
+    solutions_integratrices.ids.index_with { |integratrice_id| couverture(integratrice_id) }
   end
+
+  def couverture(integratrice_id) = [integrees.fetch(integratrice_id, []).size, apis_utiles.size]
 
   def integrees
     @integrees ||= Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
@@ -60,7 +61,7 @@ class Recommandation < ApplicationRecord
   end
 
   def apis_utiles
-    @apis_utiles ||= utiles.joins(:solution).preload(:solution)
+    @apis_utiles ||= utiles.joins(:solution).preload(solution: :organisations)
       .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC')).to_a
   end
 

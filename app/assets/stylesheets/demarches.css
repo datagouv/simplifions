@@ -123,8 +123,23 @@ body:has(.bouton-proposer-modification) {
   margin-bottom: 1rem;
 }
 
-.solution-integratrice-card .integration-indicator {
+.solution-integratrice-card .solution-integratrice-card__couverture {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   margin-top: 1rem;
+}
+
+.solution-integratrice-card__oeil {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+}
+
+.solution-integratrice-card__total {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
 }
 
 .solution-integratrice-card__title {
@@ -256,6 +271,26 @@ body:has(.bouton-proposer-modification) {
 .integration-indicator__count {
   padding: 0 0.25rem;
   border-radius: 4px;
+}
+
+.integration-indicator__count--attenue {
+  box-shadow: inset 0 0 0 10rem rgba(255, 255, 255, 0.5);
+}
+
+.donnees-integrees > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.donnees-integrees > summary::-webkit-details-marker {
+  display: none;
+}
+
+.donnees-integrees:not([open]) > summary > .donnees-integrees__fleche {
+  transform: rotate(-90deg);
 }
 
 .integration-indicator__count.indicator--green {
