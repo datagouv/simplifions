@@ -1,6 +1,7 @@
 <% titres = { logiciel_metier_cle_en_main: 'Logiciel métier « clé en main »',
               brique_logicielle: 'Brique logicielle à intégrer',
               site_de_consultation: 'Site de consultation' }
+   filtres = { logiciel_metier_cle_en_main: 'logiciels', brique_logicielle: 'api', site_de_consultation: 'sites' }
    utiles_au_total = demarche.donnees_utiles.size %>
 <p class="fr-text--sm">Les solutions sont classées de celle qui a intégré le plus de données utiles à celle qui en a intégré le moins, puis par ordre alphabétique.</p>
 <fieldset class="fr-segmented fr-segmented--sm fr-mb-2w choix-affichage">
@@ -15,7 +16,7 @@
   </div>
 </fieldset>
 <% par_categorie.each do |categorie, solutions| %>
-  <section class="fr-accordion">
+  <section class="fr-accordion" data-filtre="<%= filtres.fetch(categorie) %>">
     <h3 class="fr-accordion__title">
       <button type="button" class="fr-accordion__btn" aria-expanded="true"
         aria-controls="solutions-integratrices-<%= categorie.to_s.dasherize %>"><%= titres.fetch(categorie) %></button>
