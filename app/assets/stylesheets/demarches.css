@@ -222,6 +222,47 @@ body:has(.bouton-proposer-modification) {
   display: none;
 }
 
+:root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=tableau]:checked) .vue-cartes,
+:root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=cartes]:checked) .vue-tableau,
+:root:not([data-fr-js]) .choix-affichage {
+  display: none;
+}
+
+.tableau-integratrices {
+  --largeur-solution: 9rem;
+}
+
+.tableau-integratrices .fr-table__container {
+  scroll-padding-left: var(--largeur-solution);
+}
+
+.tableau-integratrices .tableau-integratrices__solution {
+  width: var(--largeur-solution);
+  min-width: var(--largeur-solution);
+  max-width: var(--largeur-solution);
+}
+
+.tableau-integratrices .tableau-integratrices__total {
+  min-width: 5.5rem;
+}
+
+.tableau-integratrices .tableau-integratrices__donnee {
+  min-width: 10rem;
+  vertical-align: top;
+}
+
+.tableau-integratrices__donnee > *,
+.tableau-integratrices__types {
+  display: block;
+  width: fit-content;
+}
+
+@media (min-width: 48em) {
+  .tableau-integratrices {
+    --largeur-solution: 14rem;
+  }
+}
+
 /* Page solution */
 
 .solution-page .icon-gray {
