@@ -1762,6 +1762,74 @@ def contact_reponse_sans_adresse(page)
   Verify.evidence('contact', page, 'reponse-sans-adresse', "path=#{page.current_path} mailto=0")
 end
 
+def donnees_integrees(page)
+  demarche = Demarche.visibles.order(:id).find { it.donnees_utiles.any? && it.recommandations_publiees.any? { |reco| reco.solutions_integratrices.exists? } }
+  page.visit("/demarches/#{demarche.slug}")
+  section = page.find('section', text: 'Données disponibles', match: :first)
+  oeil = section.first('.solution-integratrice-card button', text: 'Voir les données intégrées par', visible: :all)
+  section.find("button.fr-accordion__btn[aria-controls='#{oeil.ancestor('.fr-collapse', visible: :all)[:id]}']").click
+  oeil.ancestor('.solution-integratrice-card').assert_selector('.solution-integratrice-card__total')
+  modale = donnees_integrees_ouvrir(page, demarche, oeil)
+  donnees_integrees_fermer(page, oeil, modale)
+  donnees_integrees_ordre(page)
+end
+
+CARTES_PAR_GRILLE = <<~JS.freeze
+  [...document.querySelectorAll('section.fr-accordion .fr-collapse .fr-grid-row')].map(grille =>
+    [...grille.querySelectorAll('.solution-integratrice-card')].map(carte => {
+      const compte = carte.querySelector('.solution-integratrice-card__couverture > .integration-indicator__count')
+      const total = carte.querySelector('.solution-integratrice-card__total .integration-indicator__count')
+      const valeur = !compte ? 0 : compte.classList.contains('fr-icon-check-line') ? 1 : parseInt(compte.textContent, 10)
+      return [carte.querySelector('.solution-integratrice-card__title').textContent.replace(/\s+/g, ' ').trim(), valeur, total && total.textContent]
+    })).filter(cartes => cartes.length > 0)
+JS
+
+def donnees_integrees_ordre(page)
+  grilles = Demarche.visibles.order(:id).flat_map do |demarche|
+    page.visit("/demarches/#{demarche.slug}")
+    page.evaluate_script(CARTES_PAR_GRILLE).map { [demarche.slug, it] }
+  end
+  grilles.each do |slug, cartes|
+    rangs_par_nom = Solution.order(:nom).pluck(:nom).map(&:squish).uniq
+    raise "#{slug} : sans nom en base #{cartes.map(&:first) - rangs_par_nom}" unless (cartes.map(&:first) - rangs_par_nom).empty?
+
+    attendu = cartes.sort_by { |nom, compte| [-compte, rangs_par_nom.index(nom)] }
+    raise "#{slug} : cartes mal classées #{cartes.inspect}" unless cartes == attendu
+  end
+  slug, cartes = grilles.find { |_, une_grille| une_grille != une_grille.sort_by.with_index { |(_, _, total), rang| [-total.to_i, rang] } } ||
+                 grilles.max_by { |_, une_grille| une_grille.map { it[1] }.uniq.size }
+  page.visit("/demarches/#{slug}")
+  Verify.evidence('fiche-donnees-integrees', page, 'cartes-classees',
+    "grilles=#{grilles.size} plus_variee=#{slug} cartes=#{cartes.map { |nom, compte, total| "#{nom} #{compte} (total #{total})" }.inspect}")
+end
+
+def donnees_integrees_ouvrir(page, demarche, oeil)
+  carte = oeil.ancestor('.solution-integratrice-card').text.squish
+  oeil.click
+  modale = page.find("dialog##{oeil['aria-controls']}[open]")
+  total = demarche.couverture(Solution.find_by!(nom: modale.find('h2').text)).join('/')
+  lignes = modale.all('li', visible: :all).map { it.text(:all) }
+  coches = lignes.count { it.include?(': intégrée') }
+  raise "carte sans le total #{total} : #{carte}" unless carte.include?("#{total} API ou jeux de données au total")
+  raise "fenêtre sans le total #{total}" unless modale.text.squish.include?("Sur l’ensemble du cas d’usage : #{total}")
+  raise "#{coches}/#{lignes.size} lignes != #{total}" unless "#{coches}/#{lignes.size}" == total
+
+  Verify.evidence('fiche-donnees-integrees', page, 'modale-ouverte',
+    "slug=#{demarche.slug} solution=#{modale.find('h2').text.inspect} total=#{total} lignes=#{coches}/#{lignes.size} " \
+    "carte=#{carte.inspect} fenetres=#{page.all('dialog.fr-modal', visible: :all).size} " \
+    "yeux=#{page.all('.solution-integratrice-card button.fr-icon-eye-line', visible: :all).size}")
+  modale
+end
+
+def donnees_integrees_fermer(page, oeil, modale)
+  page.send_keys(:escape)
+  page.assert_no_selector("dialog##{modale[:id]}[open]")
+  focus = page.evaluate_script('document.activeElement.getAttribute("aria-controls")')
+  raise "focus sur #{focus.inspect}" unless focus == oeil['aria-controls']
+
+  Verify.evidence('fiche-donnees-integrees', page, 'modale-fermee', "focus=#{focus}")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'article-cartes' => :article_cartes,
   'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
@@ -1775,7 +1843,8 @@ end
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
-  'contact' => :contact }.each do |nom, fn|
+  'contact' => :contact,
+  'donnees-integrees' => :donnees_integrees }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
