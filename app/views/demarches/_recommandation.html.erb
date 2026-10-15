@@ -1,6 +1,6 @@
 <% cible = recommandation.solution
    moyens = recommandation.moyens_acces
-   utiles = recommandation.apis_utiles.to_a
+   utiles = recommandation.apis_utiles
    lien_demande_acces = recommandation.lien_demande_acces
    lien_fiche = (solution_path(cible.slug) if cible.page_publique?)
    nom_demarche = recommandation.demarche.titre

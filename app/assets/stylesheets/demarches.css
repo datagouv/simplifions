@@ -142,11 +142,23 @@ body:has(.bouton-proposer-modification) {
   color: var(--blue-france-sun-113-625);
 }
 
+.solution-integratrice-card__fiche {
+  position: absolute;
+  bottom: 1rem;
+  right: 1.5rem;
+}
+
 @media (max-width: 767px) {
   .solution-integratrice-card__arrow {
     position: static;
     display: flex;
     justify-content: flex-end;
+    margin-top: 1rem;
+  }
+
+  .solution-integratrice-card__fiche {
+    position: static;
+    text-align: right;
     margin-top: 1rem;
   }
 }
