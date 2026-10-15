@@ -136,6 +136,12 @@
   margin-right: 0;
 }
 
+:root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=tableau]:checked) .vue-cartes,
+:root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=cartes]:checked) .vue-tableau,
+:root:not([data-fr-js]) .choix-affichage {
+  display: none;
+}
+
 /* Page solution */
 
 .solution-page .icon-gray {

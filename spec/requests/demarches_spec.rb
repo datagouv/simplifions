@@ -426,6 +426,30 @@ RSpec.describe 'Demarches' do
         expect(carte).to have_css("button[aria-controls='#{page.find('dialog', text: 'Acheteza', visible: :all)[:id]}']", visible: :all)
       end
 
+      it 'propose d’afficher les solutions en cartes, choisies d’office, ou en tableau' do
+        choix = onglet_solutions.find('fieldset', text: 'Affichage des solutions', visible: :all)
+
+        expect(choix).to have_field('Cartes', type: 'radio', checked: true, visible: :all)
+        expect(choix).to have_field('Tableau', type: 'radio', checked: false, visible: :all)
+      end
+
+      it 'compare dans un tableau par catégorie les données intégrées par chaque solution' do
+        tableaux = onglet_solutions.all('table', visible: :all)
+        lignes = tableaux.map do |tableau|
+          tableau.all('tbody tr', visible: :all).map { |ligne| ligne.all('th, td', visible: :all).map { it.text(:all).squish } }
+        end
+
+        expect(tableaux.map { it.find('caption', visible: :all).text(:all).squish })
+          .to eq(['Logiciel métier « clé en main »', 'Brique logicielle à intégrer'])
+        expect(tableaux.first.all('thead th[scope=col]', visible: :all).map { it.text(:all).squish })
+          .to eq(['Solution', 'Données intégrées', 'API BODACC', 'API professionnels BIO'])
+        expect(lignes).to eq([
+          [['Zeta', '2/2', 'Intégrée', 'Intégrée'], ['Acheteza', '1/2', 'Intégrée', 'Non intégrée']],
+          [['Brique marchés', '1/2', 'Non intégrée', 'Intégrée']]
+        ])
+        expect(tableaux.first.all('tbody th[scope=row]', visible: :all).map { it.text(:all).squish }).to eq(%w[Zeta Acheteza])
+      end
+
       it 'rend chaque modale une seule fois, hors des onglets' do
         expect(page).to have_css('dialog.fr-modal', count: 4, visible: :all)
         expect(page).to have_no_css('[role=tabpanel] dialog', visible: :all)
