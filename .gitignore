@@ -40,3 +40,5 @@
 
 # Project notes live in the vault, symlinked locally.
 /.notes
+
+/worktrees

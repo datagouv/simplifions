@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<USAGE
+Usage : $(basename "$0") [-p port] <nom> [branche]
+
+Crée le worktree git worktrees/<nom> et son fichier .env : ses propres bases
+(simplifions_development_<nom>, simplifions_test_<nom>), son propre port et
+son propre projet docker compose (conteneurs et volume Postgres à part).
+
+<nom> : un ticket Linear (OPI-123) ou un mot-clé (import-grist).
+
+Port : 3NNNN, NNNN étant le numéro du ticket sur quatre chiffres
+(OPI-123 -> 30123) ou, pour un mot-clé, quatre chiffres tirés du nom.
+Avec -p, le port donné.
+
+Branche, dans l'ordre :
+  1. [branche] si elle est donnée
+  2. une branche locale ou distante dont le nom contient <nom>
+  3. une nouvelle branche feature/<nom> depuis origin/main
+USAGE
+  exit 1
+}
+
+PORT=""
+while getopts "p:h" opt; do
+  case "$opt" in
+    p) PORT="$OPTARG" ;;
+    *) usage ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+[ $# -ge 1 ] && [ $# -le 2 ] || usage
+
+NAME="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+BRANCH="${2:-}"
+
+if [[ ! "$NAME" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+  echo "Erreur : '$1' doit être un ticket (OPI-123) ou un mot-clé (import-grist)" >&2
+  exit 1
+fi
+
+if [ -n "$PORT" ] && { [[ ! "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1024 ] || [ "$PORT" -gt 65535 ]; }; then
+  echo "Erreur : port '$PORT' invalide (attendu entre 1024 et 65535)" >&2
+  exit 1
+fi
+
+if [ -z "$PORT" ]; then
+  if [[ "$NAME" =~ ^[a-z]+-([0-9]+)$ ]]; then
+    PORT_SEED="$((10#${BASH_REMATCH[1]}))"
+  else
+    PORT_SEED="$(printf '%s' "$NAME" | cksum | cut -d' ' -f1)"
+  fi
+  PORT="$((30000 + PORT_SEED % 10000))"
+fi
+
+PRIMARY_ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+WORKTREE_PATH="$PRIMARY_ROOT/worktrees/$NAME"
+SLUG="${NAME//-/_}"
+
+if [ -e "$WORKTREE_PATH" ]; then
+  echo "Erreur : $WORKTREE_PATH existe déjà" >&2
+  exit 1
+fi
+
+if (echo > "/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
+  echo "Erreur : le port $PORT est déjà pris, en choisir un autre avec -p" >&2
+  exit 1
+fi
+
+git -C "$PRIMARY_ROOT" fetch --quiet origin
+
+if [ -z "$BRANCH" ]; then
+  BRANCH="$(git -C "$PRIMARY_ROOT" for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin \
+    | grep -v '/HEAD$' | grep -i -- "$NAME" | sed 's#^origin/##' | sort -u | head -n 1 || true)"
+fi
+
+if [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/heads/$BRANCH"; then
+  echo "Branche locale $BRANCH"
+  git -C "$PRIMARY_ROOT" worktree add "$WORKTREE_PATH" "$BRANCH"
+elif [ -n "$BRANCH" ] && git -C "$PRIMARY_ROOT" show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+  echo "Branche distante origin/$BRANCH"
+  git -C "$PRIMARY_ROOT" worktree add --track -b "$BRANCH" "$WORKTREE_PATH" "origin/$BRANCH"
+else
+  BRANCH="${BRANCH:-feature/$NAME}"
+  echo "Nouvelle branche $BRANCH depuis origin/main"
+  git -C "$PRIMARY_ROOT" worktree add --no-track -b "$BRANCH" "$WORKTREE_PATH" origin/main
+fi
+
+cat > "$WORKTREE_PATH/.env" <<ENV
+COMPOSE_PROJECT_NAME=simplifions_${SLUG}
+PORT=${PORT}
+DATABASE_NAME_DEVELOPMENT=simplifions_development_${SLUG}
+DATABASE_NAME_TEST=simplifions_test_${SLUG}
+ENV
+
+echo
+echo "Worktree prêt : $WORKTREE_PATH"
+echo "Branche :       $BRANCH"
+echo "Bases :         simplifions_development_${SLUG}, simplifions_test_${SLUG}"
+echo "Démarrer :      cd $WORKTREE_PATH && make start"
+echo "Sans Docker :   set -a && . ./.env && set +a && bin/rails db:prepare && bin/rails server"
+echo "Site :          http://localhost:${PORT}"

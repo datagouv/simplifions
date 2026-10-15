@@ -14,6 +14,7 @@ AllCops:
     - "db/**/*"
     - "config/**/*"
     - "vendor/**/*"
+    - "worktrees/**/*"
 
 Layout/ArgumentAlignment:
   EnforcedStyle: with_fixed_indentation
