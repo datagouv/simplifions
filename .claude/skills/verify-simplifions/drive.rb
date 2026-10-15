@@ -1842,6 +1842,198 @@ ensure
   page&.quit
 end
 
+FILTRES_DES_CATEGORIES = { logiciel_metier_cle_en_main: 'logiciels', brique_logicielle: 'api', site_de_consultation: 'sites' }.freeze
+
+def blocs_visibles(page, panneau)
+  %w[api logiciels sites].index_with do
+    page.evaluate_script("[...document.querySelectorAll('##{panneau} [data-filtre=#{it}]')].filter((bloc) => bloc.checkVisibility()).length")
+  end
+end
+
+def tag(page, libelle) = page.find('button.fr-tag', text: libelle)
+
+def basculer_au_clavier(page, libelle)
+  page.click_button('Affichage personnalisé') unless page.has_css?('button.fr-tag', text: libelle, wait: 1)
+  bouton = tag(page, libelle)
+  avant = bouton['aria-pressed']
+  bouton.send_keys(:space)
+  page.assert_selector("button.fr-tag[aria-pressed=#{avant == 'true' ? 'false' : 'true'}]", text: libelle)
+end
+
+def attendre_le_filtre(page, panneau, attendu)
+  Timeout.timeout(5) { sleep 0.1 until blocs_visibles(page, panneau) == attendu }
+rescue Timeout::Error
+  raise "#{panneau} : #{blocs_visibles(page, panneau)} != #{attendu}"
+end
+
+def ouvrir_onglet(page, id)
+  page.find("[role=tab][aria-controls=#{id}]").click
+  page.assert_selector("##{id}.fr-tabs__panel--selected")
+  page.assert_no_selector('.fr-collapsing')
+end
+
+def affichage_personnalise(page)
+  demarche = Demarche.visibles.order(:id).find { it.integratrices_par_categorie.size > 1 }
+  recos = demarche.recommandations_affichees.size
+  categories = demarche.integratrices_par_categorie.keys.map { FILTRES_DES_CATEGORIES.fetch(it) }
+  tous_reco = { 'api' => 2 * recos, 'logiciels' => recos, 'sites' => recos }
+  tous_solutions = %w[api logiciels sites].index_with { categories.count(it) }
+  seulement = ->(tous, *choisis) { tous.to_h { |filtre, nombre| [filtre, choisis.include?(filtre) ? nombre : 0] } }
+  page.current_window.resize_to(1280, 1024)
+  page.visit("/demarches/#{demarche.slug}")
+  tags = page.all('button.fr-tag').map { "#{it.text}:#{it['aria-pressed']}:#{it.native.aria_role}" }
+  raise "tags #{tags}" unless tags.size == 3 && tags.all? { it.end_with?(':false:button') }
+  raise 'bouton visible en haut de page' if page.has_button?('Affichage personnalisé', wait: 0)
+
+  attendre_le_filtre(page, 'donnees-disponibles', tous_reco)
+  Verify.evidence('affichage-personnalise', page, 'arrivee',
+    "slug=#{demarche.slug} recos=#{recos} categories=#{categories.join(',')} tags=#{tags.join(' | ')} blocs=#{blocs_visibles(page, 'donnees-disponibles')}")
+
+  basculer_au_clavier(page, 'Logiciels métiers')
+  attendre_le_filtre(page, 'donnees-disponibles', seulement.call(tous_reco, 'logiciels'))
+  Verify.evidence('affichage-personnalise', page, 'logiciels-onglet-1',
+    "aria-pressed=#{tag(page, 'Logiciels métiers')['aria-pressed']} focus=#{page.evaluate_script('document.activeElement.textContent')} " \
+    "blocs=#{blocs_visibles(page, 'donnees-disponibles')}")
+  ouvrir_onglet(page, 'solutions-integratrices')
+  attendre_le_filtre(page, 'solutions-integratrices', seulement.call(tous_solutions, 'logiciels'))
+  page.find('#solutions-integratrices').choose('Tableau', allow_label_click: true)
+  page.assert_selector('#solutions-integratrices .vue-tableau table')
+  tableaux = page.evaluate_script("[...document.querySelectorAll('#solutions-integratrices .vue-tableau table')].filter((t) => t.checkVisibility()).length")
+  raise "tableaux visibles #{tableaux}" unless tableaux == categories.count('logiciels')
+
+  Verify.evidence('affichage-personnalise', page, 'logiciels-onglet-2-tableau',
+    "blocs=#{blocs_visibles(page, 'solutions-integratrices')} tableaux_visibles=#{tableaux}")
+  page.find('#solutions-integratrices').choose('Cartes', allow_label_click: true)
+
+  basculer_au_clavier(page, 'Sites de consultation')
+  attendre_le_filtre(page, 'solutions-integratrices', seulement.call(tous_solutions, 'logiciels', 'sites'))
+  ouvrir_onglet(page, 'donnees-disponibles')
+  attendre_le_filtre(page, 'donnees-disponibles', seulement.call(tous_reco, 'logiciels', 'sites'))
+  Verify.evidence('affichage-personnalise', page, 'union', "blocs=#{blocs_visibles(page, 'donnees-disponibles')}")
+  basculer_au_clavier(page, 'Logiciels métiers')
+  basculer_au_clavier(page, 'Sites de consultation')
+  attendre_le_filtre(page, 'donnees-disponibles', tous_reco)
+
+  basculer_au_clavier(page, 'API et jeux de données')
+  attendre_le_filtre(page, 'donnees-disponibles', seulement.call(tous_reco, 'api'))
+  page.assert_no_selector('.fr-collapsing')
+  volets = page.all('#donnees-disponibles [data-filtre=api] > .fr-collapse', visible: :all)
+  ouverts = volets.count { it[:class].include?('fr-collapse--expanded') }
+  raise "accordéons API ouverts #{ouverts}/#{volets.size}" unless volets.any? && ouverts == volets.size
+
+  Verify.evidence('affichage-personnalise', page, 'api-ouverts', "blocs=#{blocs_visibles(page, 'donnees-disponibles')} accordeons_api_ouverts=#{ouverts}/#{volets.size}")
+  ouvrir_onglet(page, 'solutions-integratrices')
+  attendre_le_filtre(page, 'solutions-integratrices', seulement.call(tous_solutions, 'api'))
+  Verify.evidence('affichage-personnalise', page, 'api-onglet-2', "blocs=#{blocs_visibles(page, 'solutions-integratrices')}")
+  basculer_au_clavier(page, 'API et jeux de données')
+  attendre_le_filtre(page, 'solutions-integratrices', tous_solutions)
+
+  affichage_apres_defilement(page, demarche)
+  affichage_defilement_lent(page, demarche)
+  affichage_par_turbo(page, demarche)
+  affichage_mobile(page, demarche)
+  affichage_sans_js(demarche, tous_reco)
+end
+
+def entete(page) = page.evaluate_script("(() => { const r = document.querySelector('.affichage-personnalise__entete').getBoundingClientRect(); return [Math.round(r.top), Math.round(r.bottom)] })()")
+
+def attendre_la_fin_du_depliage(page)
+  Timeout.timeout(3) do
+    precedent = nil
+    until (actuel = entete(page)) == precedent
+      precedent = actuel
+      sleep 0.2
+    end
+  end
+end
+
+def affichage_apres_defilement(page, demarche)
+  page.visit("/demarches/#{demarche.slug}")
+  page.execute_script('window.scrollTo(0, 1500)')
+  bouton = page.find_button('Affichage personnalisé')
+  page.assert_no_selector('button.fr-tag')
+  haut, bas = entete(page)
+  fil = page.find('.affichage-personnalise__entete nav.fr-breadcrumb')
+  raise "en-tête à #{haut}" unless haut.zero? && fil.visible?
+
+  Verify.evidence('affichage-personnalise', page, 'defile', "scrollY=#{page.evaluate_script('window.scrollY')} entete=#{haut}..#{bas} " \
+    "bouton=#{bouton['aria-expanded']} tags=masques")
+  bouton.click
+  page.assert_selector('button.fr-tag', count: 3)
+  attendre_la_fin_du_depliage(page)
+  haut_tag = page.evaluate_script("document.querySelector('button.fr-tag').getBoundingClientRect().top").round
+  bas_fil = page.evaluate_script("document.querySelector('.affichage-personnalise__entete nav').getBoundingClientRect().bottom").round
+  haut, bas = entete(page)
+  raise "tags à #{haut_tag}, fil jusqu'à #{bas_fil}, en-tête #{haut}..#{bas}" unless haut.zero? && haut_tag > bas_fil && haut_tag < bas
+
+  basculer_au_clavier(page, 'Logiciels métiers')
+  Verify.evidence('affichage-personnalise', page, 'bouton-rouvre', "bouton=#{bouton['aria-expanded']} fil_bas=#{bas_fil} premier_tag=#{haut_tag} " \
+    "entete=#{haut}..#{bas} blocs=#{blocs_visibles(page, 'donnees-disponibles')}")
+  page.execute_script('window.scrollTo(0, 0)')
+  page.assert_selector(:button, 'Affichage personnalisé')
+  page.assert_selector('button.fr-tag[aria-pressed=true]', text: 'Logiciels métiers')
+end
+
+def affichage_defilement_lent(page, demarche)
+  [[1280, 1024], [375, 800]].each do |largeur, hauteur|
+    page.current_window.resize_to(largeur, hauteur)
+    page.visit("/demarches/#{demarche.slug}")
+    page.assert_selector('button.fr-tag', count: 3)
+    positions = 15.times.map do
+      page.execute_script('window.scrollBy(0, 40)')
+      sleep 0.4
+      page.evaluate_script('Math.round(window.scrollY)')
+    end
+    raise "défilement lent à #{largeur} px bloqué : #{positions.join(' ')}" if positions.last < 300
+
+    Verify.evidence('affichage-personnalise', page, "defilement-lent-#{largeur}", "scrollY=#{positions.join(' ')}")
+  end
+  page.current_window.resize_to(1280, 1024)
+end
+
+def affichage_par_turbo(page, demarche)
+  page.visit('/demarches')
+  page.execute_script("Turbo.visit('/demarches/#{demarche.slug}')")
+  page.assert_current_path("/demarches/#{demarche.slug}")
+  page.assert_selector('h1', text: demarche.titre)
+  page.execute_script('window.scrollTo(0, 1500)')
+  page.find_button('Affichage personnalisé').click
+  basculer_au_clavier(page, 'Sites de consultation')
+  page.assert_selector('#donnees-disponibles [data-filtre=sites]')
+  page.assert_no_selector('#donnees-disponibles [data-filtre=logiciels]')
+  Verify.evidence('affichage-personnalise', page, 'turbo', "apres_visite_turbo blocs=#{blocs_visibles(page, 'donnees-disponibles')}")
+end
+
+def affichage_mobile(page, demarche)
+  page.current_window.resize_to(375, 800)
+  page.visit("/demarches/#{demarche.slug}")
+  page.execute_script('window.scrollTo(0, 2500)')
+  page.find_button('Affichage personnalisé').click
+  page.assert_selector('button.fr-tag', count: 3)
+  largeurs = page.evaluate_script('[document.documentElement.scrollWidth, document.documentElement.clientWidth]')
+  raise "la page déborde : #{largeurs}" if largeurs[0] > largeurs[1]
+
+  haut, bas = entete(page)
+  raise "en-tête à #{haut}" unless haut.zero?
+
+  Verify.evidence('affichage-personnalise', page, 'mobile', "page=#{largeurs.join('/')} entete=#{haut}..#{bas} fenetre=#{page.evaluate_script('window.innerWidth')}")
+  page.current_window.resize_to(1280, 1024)
+end
+
+def affichage_sans_js(demarche, tous_reco)
+  page = Verify.session(javascript: false)
+  page.visit("/demarches/#{demarche.slug}")
+  raise 'tags affichés sans JS' if page.has_css?('button.fr-tag', wait: 0)
+  raise 'bouton affiché sans JS' if page.has_button?('Affichage personnalisé', wait: 0)
+
+  blocs = blocs_visibles(page, 'donnees-disponibles')
+  raise "sans JS #{blocs} != #{tous_reco}" unless blocs == tous_reco
+
+  Verify.evidence('affichage-personnalise', page, 'sans-js', "tags=masques bouton=masque blocs=#{blocs}")
+ensure
+  page&.quit
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1855,7 +2047,7 @@ end
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
-  'tableau-solutions' => :tableau_solutions }.each do |nom, fn|
+  'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
