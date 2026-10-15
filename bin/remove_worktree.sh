@@ -7,7 +7,8 @@ Usage : $(basename "$0") <nom>
 
 Arrête le site de worktrees/<nom>, supprime ses conteneurs et son volume
 Postgres docker, ses bases dans le Postgres local s'il y en a, le worktree,
-puis sa branche locale si elle est mergée (la branche distante reste).
+puis sa branche locale si setup_worktree.sh l'a créée et qu'elle est mergée
+(la branche distante reste).
 <nom> : celui donné à setup_worktree.sh.
 USAGE
   exit 1
@@ -52,9 +53,15 @@ if [ -d "$WORKTREE_PATH" ]; then
     echo "Serveur local arrêté sur le port $PORT"
   fi
   BRANCH="$(git -C "$WORKTREE_PATH" rev-parse --abbrev-ref HEAD)"
+  CREATED_FOR="$(git -C "$PRIMARY_ROOT" config --get "branch.$BRANCH.simplifions-worktree" || true)"
+  DEFAULT_BRANCH="$(git -C "$PRIMARY_ROOT" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
   git -C "$PRIMARY_ROOT" worktree remove "$WORKTREE_PATH"
   echo "Worktree supprimé : $WORKTREE_PATH"
-  if [ "$BRANCH" != "HEAD" ] && git -C "$PRIMARY_ROOT" branch -d "$BRANCH" 2>/dev/null; then
+  if [ "$BRANCH" = HEAD ]; then
+    echo "Aucune branche supprimée : le worktree n'était sur aucune branche"
+  elif [ "$CREATED_FOR" != "$NAME" ] || [ "$BRANCH" = main ] || [ "$BRANCH" = "${DEFAULT_BRANCH#origin/}" ]; then
+    echo "Branche locale $BRANCH gardée : setup_worktree.sh ne l'a pas créée"
+  elif git -C "$PRIMARY_ROOT" branch -d "$BRANCH" 2>/dev/null; then
     echo "Branche locale $BRANCH supprimée"
   else
     echo "Branche locale $BRANCH gardée (pas mergée) : git branch -D $BRANCH pour la supprimer" >&2
