@@ -115,6 +115,27 @@
   }
 }
 
+.onglets-pleine-largeur .fr-tabs__list {
+  padding-inline: 1rem;
+}
+
+@media (min-width: 48em) {
+  .onglets-pleine-largeur .fr-tabs__list {
+    padding-inline: max(1.5rem, calc((100% - 78rem) / 2 + 1.5rem));
+  }
+}
+
+.onglets-pleine-largeur .fr-tabs__panel {
+  padding-inline: 0;
+  scroll-margin-top: 3rem;
+}
+
+:root:not([data-fr-js]) .onglets-pleine-largeur .fr-tabs__panel {
+  visibility: visible;
+  left: 0;
+  margin-right: 0;
+}
+
 /* Page solution */
 
 .solution-page .icon-gray {
