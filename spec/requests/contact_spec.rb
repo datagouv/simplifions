@@ -208,13 +208,16 @@ RSpec.describe 'Contact' do
       expect(response.parsed_body.at('#modele-message').text).not_to include("Le nom de la solution et l'URL de sa fiche")
     end
 
-    it 'cite la solution dans l’objet et le message' do
-      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+    it 'cite la solution et son opérateur dans l’objet et le message' do
+      dinum = Organisation.create!(nom: 'DINUM', nom_long: 'Direction interministérielle du numérique')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle', organisations: [dinum])
 
       get contact_path('modifier-solution', solution: 'babily')
 
-      expect(response.body).to include('Fiche concernée : Babily – http://www.example.com/solutions/babily')
-      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une fiche solution : Babily")
+      expect(response.parsed_body.at('#modele-message').text)
+        .to include('Fiche concernée : Babily – DINUM – http://www.example.com/solutions/babily')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une fiche solution : Babily – DINUM")
+      expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).to include('fiche solution : Babily – DINUM')
     end
 
     it 'propose de choisir le cas d’usage publié quand on n’arrive pas d’une fiche' do
