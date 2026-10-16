@@ -21,9 +21,9 @@
 
   <div class="fr-background-default--grey fr-p-2w">
     <h3 class="fr-text--md fr-mb-1w">Copier/coller le modèle pour écrire vous-même le mail :</h3>
-    <% [["adresse-message", "E-mail de Simplifions.data :", email, "Copier l'e-mail", "E-mail copié."],
-        ["objet-message", "Objet du mail :", sujet, "Copier l'objet", "Objet du mail copié."],
-        ["modele-message", "Modèle de mail :", corps, "Copier le modèle", "Modèle de mail copié."]].each do |id, intitule, texte, bouton, confirmation| %>
+    <% [["adresse-message", "E-mail de Simplifions.data :", email, "Copier l'e-mail", "E-mail copié"],
+        ["objet-message", "Objet du mail :", sujet, "Copier l'objet", "Objet du mail copié"],
+        ["modele-message", "Modèle de mail :", corps, "Copier le modèle", "Modèle de mail copié"]].each do |id, intitule, texte, bouton, confirmation| %>
       <div class="fr-mt-3w">
         <p class="fr-text--sm fr-text--bold fr-mb-1w"><%= intitule %></p>
         <div class="contact-bloc-a-copier fr-background-alt--grey fr-p-2w">
