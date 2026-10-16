@@ -50,11 +50,19 @@
 
     <div class="fr-col-12 fr-col-md-8 fr-mt-5w">
       <%= render ArticleSectionComponent.new(id: sections[0][0], label: sections[0][1]) do %>
-        <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-map-pin-2-fill"></span> Contexte</h3>
-        <%= render 'contenu', texte: @demarche.contexte %>
-
-        <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-newspaper-fill"></span> Cadre juridique</h3>
-        <%= render 'contenu', texte: @demarche.cadre_juridique %>
+        <% [['contexte', 'Contexte', 'fr-icon-map-pin-2-fill', @demarche.contexte],
+            ['cadre-juridique', 'Cadre juridique', 'fr-icon-newspaper-fill', @demarche.cadre_juridique]].each do |id, titre, icone, texte| %>
+          <h3 class="fr-h6"><span aria-hidden="true" class="<%= icone %>"></span> <%= titre %></h3>
+          <% if texte.present? %>
+            <div data-controller="lire-plus">
+              <div id="<%= id %>-texte" data-lire-plus-target="texte" data-action="focusin->lire-plus#deplier"><%= markdown(texte) %></div>
+              <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-mb-3w fr-hidden" aria-expanded="false"
+                aria-controls="<%= id %>-texte" data-lire-plus-target="bouton" data-action="lire-plus#basculer"><span data-lire-plus-target="libelle">Lire plus</span><span class="fr-sr-only"> : <%= titre %></span></button>
+            </div>
+          <% else %>
+            <%= render 'contenu', texte: %>
+          <% end %>
+        <% end %>
       <% end %>
     </div>
   </div>
