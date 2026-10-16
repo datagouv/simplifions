@@ -70,9 +70,8 @@ RSpec.describe 'Contact' do
       expect(response.body).to include('Avant de nous écrire :', 'href="/doctrine-referencement-cas-usages"')
       expect(response.body).to include('Informations à nous transmettre')
       expect(response.body).to include('<li>Le public concerné</li>', '<li>Les types d&#39;administrations concernées</li>')
-      expect(response.body).to include("Envoyez votre message à <strong>#{email}</strong>")
-      expect(response.body).to include('<input class="fr-input" id="objet-message" type="text" readonly ' \
-                                       'value="[Simplifions.data] Proposition d&#39;un nouveau cas d&#39;usage">')
+      expect(response.parsed_body.at('#adresse-message').text).to eq(email)
+      expect(response.parsed_body.at('#objet-message').text).to eq("[Simplifions.data] Proposition d'un nouveau cas d'usage")
       expect(response.body).to include("href=\"mailto:#{email}?body=Bonjour%2C")
       expect(response.body).to include('&amp;subject=%5BSimplifions.data%5D%20Proposition%20d%27un%20nouveau%20cas%20d%27usage"')
       expect(response.body).to include(ERB::Util.html_escape(
@@ -81,19 +80,34 @@ RSpec.describe 'Contact' do
       expect(response.body).to include(ERB::Util.html_escape(
         "Le public concerné (gardez les mentions utiles) :\n- Particuliers\n- Associations"
       ))
-      expect(response.body).to include("Écrire à l'équipe")
+      expect(response.parsed_body.at('a[href^="mailto:"]').text).to eq('E-mail pré-rempli')
       expect(response.body).to include('href="/contact/contenu"')
+      expect(response.parsed_body.css('input, textarea')).to be_empty
+    end
+
+    it 'présente le modèle prêt à l’emploi, puis les modèles à copier soi-même' do
+      get contact_path('autre')
+
+      texte = response.parsed_body.text
+      expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
+                               'qui nous seront utiles pour comprendre votre proposition.')
+      expect(texte).to include("l'adresse, l'objet et les rubriques du message déjà remplis")
+      titres = response.parsed_body.css('h3').map(&:text)
+      expect(titres).to include("Utiliser le mail prêt à l'emploi :", 'Copier/coller le modèle pour écrire vous-même le mail :')
+      expect(titres).not_to include("Écrire à l'équipe :")
+      expect(response.parsed_body.css('h4')).to be_empty
+      expect(response.body.index('href="mailto:')).to be < response.body.index('Copier/coller le modèle')
     end
 
     it 'propose de copier l’adresse, l’objet et le modèle, boutons cachés jusqu’au chargement du script' do
       get contact_path('autre')
 
       boutons = response.parsed_body.css('[data-controller="copier"] button[data-action="copier#copier"]')
-      expect(boutons.map(&:text)).to eq(["Copier l'adresse", "Copier l'objet du message", 'Copier le modèle de message'])
+      expect(boutons.map(&:text)).to eq(["Copier l'adresse", "Copier l'objet du message", 'Copier le modèle de mail'])
       expect(boutons).to all(satisfy { |bouton| bouton['class'].include?('fr-hidden') })
       expect(boutons.first['data-copier-texte-param']).to eq(email)
       expect(boutons[1]['data-copier-texte-param']).to eq('[Simplifions.data] Prise de contact - autre sujet')
-      expect(response.parsed_body.at('textarea#modele-message')['data-copier-target']).to eq('source')
+      expect(boutons.last['data-copier-texte-param']).to eq(response.parsed_body.at('#modele-message').text)
       expect(response.parsed_body.at('[aria-live="polite"][data-copier-target="statut"]')).to be_present
     end
 
@@ -109,7 +123,7 @@ RSpec.describe 'Contact' do
       end
 
       get contact_path('nouvelle-solution')
-      modele = response.parsed_body.at('textarea#modele-message').text
+      modele = response.parsed_body.at('#modele-message').text
       expect(modele).to include("Les types d'administrations concernées (gardez les mentions utiles) :\n- Communes et groupements de communes")
       expect(modele).to include('- Établissements publics nationaux à caractère administratif 29', '- Particuliers')
       lien = CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])
