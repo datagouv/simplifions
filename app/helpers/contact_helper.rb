@@ -1,6 +1,6 @@
 module ContactHelper
   def objet_du_message(objet, fiche)
-    ["[Simplifions.data] #{objet}", fiche&.first].compact.join(' : ')
+    [objet, fiche&.first].compact.join(' : ')
   end
 
   def corps_du_message(informations, fiche)

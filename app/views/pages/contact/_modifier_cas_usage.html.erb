@@ -1,23 +1,23 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
-<%= render "pages/contact/titre", titre: "Proposer une modification d'un cas d'usage existant" %>
+<%= render "pages/contact/titre", titre: "Proposer une modification d'une démarche existante" %>
 <%= form_with url: contact_path("modifier-cas-usage"), method: :get, class: "fr-mb-4w",
       data: { controller: "form", turbo_frame: "modele-de-mail", turbo_action: "advance" } do %>
   <div class="fr-select-group">
     <%= label_tag :demarche, class: "fr-label" do %>
-      Cas d'usage concerné
+      Démarche concernée
       <span class="fr-hint-text">Le modèle de mail ci-dessous se met à jour selon votre choix.</span>
     <% end %>
     <%= select_tag :demarche, options_from_collection_for_select(@demarches, :slug, :titre, @fiche&.slug),
-          prompt: "Sélectionner un cas d'usage", class: "fr-select", data: { action: "change->form#submit" } %>
+          prompt: "Sélectionner une démarche", class: "fr-select", data: { action: "change->form#submit" } %>
   </div>
   <noscript>
     <button type="submit" class="fr-btn fr-btn--secondary">Préremplir le message</button>
   </noscript>
 <% end %>
 <%= turbo_frame_tag "modele-de-mail" do %>
-  <%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.titre, demarche_url(@fiche.slug)], objet: "Modification d'un cas d'usage", informations: [
+  <%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.titre, demarche_url(@fiche.slug)], objet: "Modification d'une démarche", informations: [
         "Votre organisation et votre fonction",
-        "Le nom et l'URL du cas d'usage concerné",
+        ("Le nom et l'URL de la démarche concernée" unless @fiche),
         "Vos propositions pour améliorer la fiche"
-      ] %>
+      ].compact %>
 <% end %>

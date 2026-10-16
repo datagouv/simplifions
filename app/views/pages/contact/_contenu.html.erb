@@ -2,12 +2,12 @@
 <%= render "pages/contact/retour", vers: contact_path %>
 <h2 class="fr-sr-only">Précisez votre demande</h2>
 
-<%= render "pages/contact/groupe", titre: "Cas d'usages", catalogue: ["Voir les cas d'usages", demarches_path] %>
+<%= render "pages/contact/groupe", titre: "Démarches", catalogue: ["Voir les démarches", demarches_path] %>
 <div class="fr-grid-row fr-grid-row--gutters">
-  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouveau-cas-usage", titre: "Proposer un nouveau cas d'usage", pictogramme: "digital/innovation",
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouveau-cas-usage", titre: "Proposer une nouvelle démarche", pictogramme: "digital/innovation",
         description: "Une démarche qui peut être simplifiée grâce à la donnée n'est pas encore sur le site." %>
-  <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-cas-usage", titre: "Proposer une modification d'un cas d'usage existant", pictogramme: "document/sign-document",
-        description: "Une information est manquante, obsolète ou erronée sur une fiche cas d'usage." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-cas-usage", titre: "Proposer une modification d'une démarche existante", pictogramme: "document/sign-document",
+        description: "Une information est manquante, obsolète ou erronée sur une fiche démarche." %>
 </div>
 
 <%= render "pages/contact/groupe", titre: "Solutions", catalogue: ["Voir les solutions", solutions_path] %>

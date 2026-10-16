@@ -36,16 +36,16 @@ RSpec.describe 'Contact' do
     it 'précise la demande de contenu en sept besoins groupés, sans donner l’adresse' do
       expect(response.body).to include('Précisez votre demande')
       expect(titres_des_tuiles).to eq([
-        ['/contact/nouveau-cas-usage', "Proposer un nouveau cas d'usage"],
-        ['/contact/modifier-cas-usage', "Proposer une modification d'un cas d'usage existant"],
+        ['/contact/nouveau-cas-usage', 'Proposer une nouvelle démarche'],
+        ['/contact/modifier-cas-usage', "Proposer une modification d'une démarche existante"],
         ['/contact/nouvelle-solution', 'Référencer une nouvelle solution'],
         ['/contact/modifier-solution', "Proposer une modification d'une fiche solution existante"],
         ['/contact/nouvel-article', 'Proposer un nouvel article'],
         ['/contact/modifier-article', "Proposer une modification d'un article existant"],
         ['/contact/autre-contenu', "Proposer la modification d'un autre contenu"]
       ])
-      expect(response.parsed_body.css('h3').map(&:text)).to eq(["Cas d'usages", 'Solutions', 'Articles', 'Autre contenu'])
-      expect(response.body).to include('title="Voir les cas d&#39;usages - nouvelle fenêtre"')
+      expect(response.parsed_body.css('h3').map(&:text)).to eq(['Démarches', 'Solutions', 'Articles', 'Autre contenu'])
+      expect(response.body).to include('title="Voir les démarches - nouvelle fenêtre"')
       expect(response.body).not_to include(email)
     end
 
@@ -66,13 +66,13 @@ RSpec.describe 'Contact' do
     it 'donne les ressources à vérifier, l’adresse et un mail prérempli' do
       get contact_path('nouveau-cas-usage')
 
-      expect(response.parsed_body.at('h2.fr-h3').text).to eq("Proposer un nouveau cas d'usage")
+      expect(response.parsed_body.at('h2.fr-h3').text).to eq('Proposer une nouvelle démarche')
       expect(response.body).to include('Avant de nous écrire :', 'href="/doctrine-referencement-cas-usages"')
       expect(response.body).not_to include('Informations à nous transmettre')
       expect(response.parsed_body.at('#adresse-message').text).to eq(email)
-      expect(response.parsed_body.at('#objet-message').text).to eq("[Simplifions.data] Proposition d'un nouveau cas d'usage")
+      expect(response.parsed_body.at('#objet-message').text).to eq("Proposition d'une nouvelle démarche")
       expect(response.body).to include("href=\"mailto:#{email}?body=Bonjour%2C")
-      expect(response.body).to include('&amp;subject=%5BSimplifions.data%5D%20Proposition%20d%27un%20nouveau%20cas%20d%27usage"')
+      expect(response.body).to include('&amp;subject=Proposition%20d%27une%20nouvelle%20d%C3%A9marche"')
       expect(response.body).to include(ERB::Util.html_escape(
         "Les types d'administrations concernées (gardez les mentions utiles) :\n- Communes et groupements de communes\n- Caisses des écoles"
       ))
@@ -105,7 +105,7 @@ RSpec.describe 'Contact' do
       expect(boutons.map(&:text)).to eq(["Copier l'e-mail", "Copier l'objet", 'Copier le modèle'])
       expect(boutons).to all(satisfy { |bouton| bouton['class'].include?('fr-hidden') })
       expect(boutons.first['data-copier-texte-param']).to eq(email)
-      expect(boutons[1]['data-copier-texte-param']).to eq('[Simplifions.data] Prise de contact - autre sujet')
+      expect(boutons[1]['data-copier-texte-param']).to eq('Prise de contact - autre sujet')
       expect(boutons.last['data-copier-texte-param']).to eq(response.parsed_body.at('#modele-message').text)
       expect(response.parsed_body.at('[aria-live="polite"][data-copier-target="statut"]')).to be_present
     end
@@ -138,7 +138,7 @@ RSpec.describe 'Contact' do
     end
 
     {
-      'modifier-cas-usage' => "Modification d'un cas d'usage",
+      'modifier-cas-usage' => "Modification d'une démarche",
       'nouvelle-solution' => "Référencement d'une nouvelle solution",
       'modifier-solution' => "Modification d'une fiche solution",
       'nouvel-article' => "Proposition d'un nouvel article",
@@ -150,7 +150,7 @@ RSpec.describe 'Contact' do
       it "donne l’adresse et l’objet « #{objet} » sur /contact/#{besoin}" do
         get contact_path(besoin)
 
-        expect(response.body).to include(ERB::Util.html_escape("[Simplifions.data] #{objet}"))
+        expect(response.parsed_body.at('#objet-message').text).to eq(objet)
         expect(response.body).to include("mailto:#{email}")
       end
     end
@@ -163,7 +163,20 @@ RSpec.describe 'Contact' do
       get contact_path('modifier-cas-usage', demarche: 'cantine')
 
       expect(response.body).to include('Fiche concernée : 🍽️ Cantine à 1€ – http://www.example.com/demarches/cantine')
-      expect(response.body).to include('.data] Modification d&#39;un cas d&#39;usage : 🍽️ Cantine à 1€')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une démarche : 🍽️ Cantine à 1€")
+    end
+
+    it 'ne demande plus le nom et l’URL du cas d’usage une fois celui-ci choisi' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+
+      get contact_path('modifier-cas-usage')
+      expect(response.parsed_body.at('#modele-message').text).to include("Le nom et l'URL de la démarche concernée")
+
+      get contact_path('modifier-cas-usage', demarche: 'cantine')
+      modele = response.parsed_body.at('#modele-message').text
+      expect(modele).not_to include("Le nom et l'URL de la démarche concernée")
+      expect(modele).to include('Votre organisation et votre fonction', 'Vos propositions pour améliorer la fiche')
+      expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).not_to include("Le nom et l'URL")
     end
 
     it 'cite la solution dans l’objet et le message' do
@@ -172,7 +185,7 @@ RSpec.describe 'Contact' do
       get contact_path('modifier-solution', solution: 'babily')
 
       expect(response.body).to include('Fiche concernée : Babily – http://www.example.com/solutions/babily')
-      expect(response.body).to include('.data] Modification d&#39;une fiche solution : Babily')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une fiche solution : Babily")
     end
 
     it 'propose de choisir le cas d’usage publié quand on n’arrive pas d’une fiche' do
@@ -184,8 +197,8 @@ RSpec.describe 'Contact' do
 
       formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-cas-usage"]')
       options = formulaire.css('select[name="demarche"] option').map { |option| [option['value'], option.text] }
-      expect(options).to eq([['', "Sélectionner un cas d'usage"], %w[bourse Bourse], ['cantine', '🍽️ Cantine à 1€']])
-      expect(formulaire.at('label[for="demarche"]').text).to include("Cas d'usage concerné",
+      expect(options).to eq([['', 'Sélectionner une démarche'], %w[bourse Bourse], ['cantine', '🍽️ Cantine à 1€']])
+      expect(formulaire.at('label[for="demarche"]').text).to include('Démarche concernée',
         'Le modèle de mail ci-dessous se met à jour selon votre choix.')
       expect(formulaire.at('noscript button[type="submit"]').text.strip).to eq('Préremplir le message')
     end
