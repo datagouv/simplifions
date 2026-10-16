@@ -18,7 +18,7 @@ Recommandations follow their démarche: `Enregistrer` on a published one keeps a
 - **Reopen and publish.** Row from the list (still under the published name): `Nom` holds the draft; `Publier`: `« … brouillon » enregistré.`, no draft badge, public H1 the new name, base `brouillon` nil.
 - **Abandon.** New draft, `Abandonner le brouillon`, accept the confirm: `Brouillon de « … » abandonné.`, `Nom` back to the published value, base `brouillon` nil.
 - **Recommandations.** Two own API solutions `<nom> a` / `<nom> b` (no slug), a published `niveau_2` recommandation on `a` with `Données utiles` `Avant`. Change it to `Après`, `Enregistrer`: draft badge, base unchanged. `/admin/recommandations/new?demarche_id=…`, pick `b`, `Solution recommandée`, `Enregistrer`: notice, `Masquée` + draft badge, base `visible` false, draft `visible: "1"`. Public page: one `.reco-card`, with `Avant`. Démarche fiche: `2 recommandations en brouillon`; `Publier`: two cards, `Après` shown, no draft left in base.
-- **Image.** Own published solution `Vérif verify-map <browser>`: attach `app/assets/images/solutions/data-subvention.png`, `Enregistrer`: draft badge, the form shows the new image, base image not attached; `Publier`: base image `data-subvention.png`, draft nil.
+- **Image.** Own published solution `Vérif verify-map <browser>`: attach `app/assets/images/articles/api-franceconnectees-donnees-personnelles.png`, `Enregistrer`: draft badge, the form shows the new image, base image not attached; `Publier`: base image `api-franceconnectees-donnees-personnelles.png`, draft nil.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-brouillon/`.
 
 ## Gotchas
