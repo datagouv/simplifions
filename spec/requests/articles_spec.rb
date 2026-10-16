@@ -70,6 +70,25 @@ RSpec.describe 'Articles' do
       expect(response.body).not_to include('/solutions/bouquet-api-particulier')
     end
 
+    it 'signale à Sentry une fiche citée introuvable, mais pas une fiche masquée' do
+      Solution.create!(nom: 'FranceConnect', slug: 'franceconnect-2')
+      allow(Sentry).to receive(:capture_message)
+
+      get article_path('apis-franceconnectees')
+
+      expect(Sentry).to have_received(:capture_message).at_least(:once).with(/solution.*bouquet-api-particulier/)
+      expect(Sentry).not_to have_received(:capture_message).with(/franceconnect-2/)
+    end
+
+    it 'signale à Sentry une démarche citée introuvable' do
+      allow(Sentry).to receive(:capture_message)
+
+      get article_path('guide-base-petites-collectivites')
+
+      expect(Sentry).to have_received(:capture_message)
+        .at_least(:once).with(/démarche.*marches-publics-depot-et-instruction-des-candidatures/)
+    end
+
     it 'fait défiler le bloc « Sont mentionnés » avec Précédent / Suivant' do
       Solution.create!(nom: 'Bouquet API Entreprise', slug: 'bouquet-api-entreprise', visible: true)
 
