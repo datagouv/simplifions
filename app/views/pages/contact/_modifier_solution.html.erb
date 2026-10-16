@@ -1,5 +1,5 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
-<%= render "pages/contact/titre", titre: "Proposer une modification d'une fiche solution existante" %>
+<%= render "pages/contact/titre", titre: "Proposer une modification d'une fiche solution existante", pictogramme: "document/sign-document" %>
 <%= form_with url: contact_path("modifier-solution"), method: :get, class: "fr-mb-4w",
       data: { controller: "form", turbo_frame: "modele-de-mail", turbo_action: "advance" } do %>
   <div class="fr-select-group">

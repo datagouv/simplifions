@@ -25,6 +25,18 @@ RSpec.describe 'Contact' do
       expect(response.body).not_to include(email)
     end
 
+    it 'reprend le pictogramme de chaque tuile à côté du titre de la page suivante' do
+      tuiles = %w[/contact /contact/contenu].flat_map do |chemin|
+        get chemin
+        response.parsed_body.css('.fr-tile').map { |tuile| [tuile.at('a')['href'], tuile.at('use')['href']] }
+      end
+
+      tuiles.to_h.except('/contact/contenu').each do |lien, pictogramme|
+        get lien
+        expect(response.parsed_body.at('.contact-titre h2 + svg[aria-hidden="true"] use')['href']).to eq(pictogramme)
+      end
+    end
+
     it 'reste indexable' do
       expect(response.body).not_to include('<meta name="robots"')
     end

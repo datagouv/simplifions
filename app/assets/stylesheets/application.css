@@ -133,6 +133,17 @@ form :target {
   resize: vertical;
 }
 
+.contact-titre {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.contact-titre .fr-artwork {
+  flex-shrink: 0;
+}
+
 .contact-groupe {
   display: flex;
   flex-wrap: wrap;
