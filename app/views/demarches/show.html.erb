@@ -49,11 +49,10 @@
 
     <div class="fr-col-12 fr-col-md-8 fr-mt-5w">
       <%= render ArticleSectionComponent.new(id: sections[0][0], label: sections[0][1]) do %>
-        <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-map-pin-2-fill"></span> Contexte</h3>
-        <%= render 'contenu', texte: @demarche.contexte %>
-
-        <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-newspaper-fill"></span> Cadre juridique</h3>
-        <%= render 'contenu', texte: @demarche.cadre_juridique %>
+        <%= render 'demarches/lire_plus', id: 'contexte-texte', titre: 'Contexte', icone: 'fr-icon-map-pin-2-fill',
+              texte: @demarche.contexte %>
+        <%= render 'demarches/lire_plus', id: 'cadre-juridique-texte', titre: 'Cadre juridique', icone: 'fr-icon-newspaper-fill',
+              texte: @demarche.cadre_juridique %>
       <% end %>
     </div>
   </div>

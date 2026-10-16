@@ -1,0 +1,14 @@
+<% titre_section = tag.h3(class: 'fr-h6') { safe_join([tag.span(class: icone, aria: { hidden: true }), " #{titre}"]) } %>
+<% if texte.present? %>
+  <div class="fr-mb-3w" data-controller="lire-plus">
+    <%= titre_section %>
+    <div id="<%= id %>" class="lire-plus__texte" data-lire-plus-target="texte" data-action="focusin->lire-plus#deplier"><%= markdown(texte) %></div>
+    <button type="button" class="fr-link fr-link--icon-right fr-icon-arrow-down-s-line fr-mt-1w fr-hidden" aria-expanded="false"
+      aria-controls="<%= id %>" data-lire-plus-target="bouton" data-action="lire-plus#basculer">
+      <span data-lire-plus-target="libelle">Lire plus</span><span class="fr-sr-only"> : <%= titre %></span>
+    </button>
+  </div>
+<% else %>
+  <%= titre_section %>
+  <%= render 'contenu', texte: %>
+<% end %>
