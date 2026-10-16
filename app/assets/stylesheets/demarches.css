@@ -314,3 +314,8 @@ html:has(.affichage-personnalise__entete) {
 .catalogue-vide__loupe {
   width: 5rem;
 }
+
+.lire-plus--replie {
+  max-height: 8lh;
+  overflow: hidden;
+}

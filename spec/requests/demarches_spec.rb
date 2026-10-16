@@ -141,6 +141,15 @@ RSpec.describe 'Demarches' do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'garde « Aucun contenu actuellement » sans bouton « Lire plus » quand Contexte et Cadre juridique sont vides' do
+      Demarche.create!(nom: 'Vide', slug: 'vide', visible: true)
+
+      get demarche_path('vide')
+
+      expect(response.body.scan('Aucun contenu actuellement').size).to eq(2)
+      expect(response.body).not_to include('Lire plus')
+    end
+
     it 'renvoie 404 pour un slug inconnu' do
       get demarche_path('nexiste-pas')
 
@@ -203,6 +212,16 @@ RSpec.describe 'Demarches' do
     it 'rend les sections contexte et cadre juridique en markdown' do
       expect(response.body).to include('<strong>progressive</strong>')
       expect(response.body).to include('href="https://legifrance.gouv.fr/codes/article_lc/LEGIARTI000039036672"')
+    end
+
+    it 'prépare Contexte et Cadre juridique à être repliés derrière « Lire plus », texte entier sans JavaScript' do
+      page = Capybara.string(response.body)
+
+      { 'contexte-texte' => 'progressive', 'cadre-juridique-texte' => 'R.531-52' }.each do |id, extrait|
+        expect(page).to have_css("##{id}", text: extrait)
+        expect(page).to have_no_css("##{id}.lire-plus--replie")
+        expect(page).to have_css("button.fr-hidden[aria-expanded='false'][aria-controls='#{id}']", text: 'Lire plus')
+      end
     end
 
     it 'rend un bloc « Données disponibles » par recommandation de niveau 2 visible, même si un niveau 1 est visible' do
