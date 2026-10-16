@@ -63,13 +63,12 @@ RSpec.describe 'Contact' do
       Vocabulaire.create!(nom: 'Associations', slug: 'associations', categorie: 'usager')
     end
 
-    it 'donne les ressources à vérifier, les informations, l’adresse et un mail prérempli' do
+    it 'donne les ressources à vérifier, l’adresse et un mail prérempli' do
       get contact_path('nouveau-cas-usage')
 
       expect(response.parsed_body.at('h2.fr-h3').text).to eq("Proposer un nouveau cas d'usage")
       expect(response.body).to include('Avant de nous écrire :', 'href="/doctrine-referencement-cas-usages"')
-      expect(response.body).to include('Informations à nous transmettre')
-      expect(response.body).to include('<li>Le public concerné</li>', '<li>Les types d&#39;administrations concernées</li>')
+      expect(response.body).not_to include('Informations à nous transmettre')
       expect(response.parsed_body.at('#adresse-message').text).to eq(email)
       expect(response.parsed_body.at('#objet-message').text).to eq("[Simplifions.data] Proposition d'un nouveau cas d'usage")
       expect(response.body).to include("href=\"mailto:#{email}?body=Bonjour%2C")
@@ -80,7 +79,7 @@ RSpec.describe 'Contact' do
       expect(response.body).to include(ERB::Util.html_escape(
         "Le public concerné (gardez les mentions utiles) :\n- Particuliers\n- Associations"
       ))
-      expect(response.parsed_body.at('a[href^="mailto:"]').text).to eq('E-mail pré-rempli')
+      expect(response.parsed_body.at('a[href^="mailto:"]').text).to eq('Ouvrir un e-mail déjà pré-rempli')
       expect(response.body).to include('href="/contact/contenu"')
       expect(response.parsed_body.css('input, textarea')).to be_empty
     end
@@ -103,7 +102,7 @@ RSpec.describe 'Contact' do
       get contact_path('autre')
 
       boutons = response.parsed_body.css('[data-controller="copier"] button[data-action="copier#copier"]')
-      expect(boutons.map(&:text)).to eq(["Copier l'adresse", "Copier l'objet du message", 'Copier le modèle de mail'])
+      expect(boutons.map(&:text)).to eq(["Copier l'e-mail", "Copier l'objet", 'Copier le modèle'])
       expect(boutons).to all(satisfy { |bouton| bouton['class'].include?('fr-hidden') })
       expect(boutons.first['data-copier-texte-param']).to eq(email)
       expect(boutons[1]['data-copier-texte-param']).to eq('[Simplifions.data] Prise de contact - autre sujet')
@@ -158,14 +157,13 @@ RSpec.describe 'Contact' do
   end
 
   describe 'fiche d’origine' do
-    it 'cite le cas d’usage dans l’objet et le message' do
-      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+    it 'cite le cas d’usage, avec son picto, dans l’objet et le message' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', icone: '🍽️', visible: true)
 
       get contact_path('modifier-cas-usage', demarche: 'cantine')
 
-      expect(response.body).to include('Fiche concernée : <a href="http://www.example.com/demarches/cantine">Cantine à 1€</a>')
-      expect(response.body).to include('Fiche concernée : Cantine à 1€ – http://www.example.com/demarches/cantine')
-      expect(response.body).to include('.data] Modification d&#39;un cas d&#39;usage : Cantine à 1€')
+      expect(response.body).to include('Fiche concernée : 🍽️ Cantine à 1€ – http://www.example.com/demarches/cantine')
+      expect(response.body).to include('.data] Modification d&#39;un cas d&#39;usage : 🍽️ Cantine à 1€')
     end
 
     it 'cite la solution dans l’objet et le message' do
@@ -178,7 +176,7 @@ RSpec.describe 'Contact' do
     end
 
     it 'propose de choisir le cas d’usage publié quand on n’arrive pas d’une fiche' do
-      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', icone: '🍽️', visible: true)
       Demarche.create!(nom: 'Bourse', slug: 'bourse', visible: true)
       Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
 
@@ -186,17 +184,31 @@ RSpec.describe 'Contact' do
 
       formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-cas-usage"]')
       options = formulaire.css('select[name="demarche"] option').map { |option| [option['value'], option.text] }
-      expect(options).to eq([['', "Sélectionner un cas d'usage"], %w[bourse Bourse], ['cantine', 'Cantine à 1€']])
-      expect(formulaire.at('label[for="demarche"]').text.strip).to eq("Cas d'usage concerné")
-      expect(formulaire.at('button[type="submit"]').text.strip).to eq('Préremplir le message')
+      expect(options).to eq([['', "Sélectionner un cas d'usage"], %w[bourse Bourse], ['cantine', '🍽️ Cantine à 1€']])
+      expect(formulaire.at('label[for="demarche"]').text).to include("Cas d'usage concerné",
+        'Le modèle de mail ci-dessous se met à jour selon votre choix.')
+      expect(formulaire.at('noscript button[type="submit"]').text.strip).to eq('Préremplir le message')
     end
 
-    it 'ne propose plus la liste quand le cas d’usage est choisi' do
+    it 'met à jour le modèle de mail dès qu’on choisit le cas d’usage' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+
+      get contact_path('modifier-cas-usage')
+
+      formulaire = response.parsed_body.at('form[action="/contact/modifier-cas-usage"]')
+      expect(formulaire['data-controller']).to eq('form')
+      expect(formulaire['data-turbo-frame']).to eq('modele-de-mail')
+      expect(formulaire['data-turbo-action']).to eq('advance')
+      expect(formulaire.at('select[name="demarche"]')['data-action']).to eq('change->form#submit')
+      expect(response.parsed_body.at('turbo-frame#modele-de-mail a[href^="mailto:"]')).to be_present
+    end
+
+    it 'garde la liste, avec le cas d’usage choisi présélectionné' do
       Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
 
       get contact_path('modifier-cas-usage', demarche: 'cantine')
 
-      expect(response.parsed_body.at('select[name="demarche"]')).to be_nil
+      expect(response.parsed_body.at('select[name="demarche"] option[selected]')['value']).to eq('cantine')
     end
 
     it 'ignore une fiche inconnue, non publiée, d’un autre type ou qui n’est pas un texte' do
@@ -215,7 +227,7 @@ RSpec.describe 'Contact' do
   end
 
   describe 'GET /contact/autre' do
-    it 'rappelle les autres sujets, avec un lien, avant les informations à transmettre' do
+    it 'rappelle les autres sujets, avec un lien, avant le modèle de mail' do
       get contact_path('autre')
 
       corps = response.body
@@ -224,7 +236,7 @@ RSpec.describe 'Contact' do
         expect(corps).to include(%(href="/contact/#{besoin}"))
       end
       expect(corps).not_to include('href="/contact/autre"')
-      expect(corps.index('Veuillez vérifier')).to be < corps.index('Informations à nous transmettre')
+      expect(corps.index('Veuillez vérifier')).to be < corps.index('id="modele-message"')
     end
   end
 
