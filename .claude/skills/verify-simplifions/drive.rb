@@ -2034,6 +2034,100 @@ ensure
   page&.quit
 end
 
+def etat_lire_plus(page, id)
+  page.evaluate_script(<<~JS)
+    (() => {
+      const texte = document.getElementById('#{id}')
+      const bouton = document.querySelector("[aria-controls='#{id}']")
+      return { replie: texte.classList.contains('lire-plus--replie'), coupe: texte.scrollHeight > texte.clientHeight,
+               hauteur: texte.clientHeight, bouton: bouton.checkVisibility() ? bouton.textContent.trim() : null,
+               expanded: bouton.getAttribute('aria-expanded') }
+    })()
+  JS
+end
+
+def attendre_lire_plus(page, id, attendu)
+  etat = nil
+  20.times do
+    etat = etat_lire_plus(page, id)
+    return etat if attendu.all? { |cle, valeur| etat[cle] == valeur }
+
+    sleep 0.25
+  end
+  raise "#{id} #{etat} au lieu de #{attendu}"
+end
+
+def lire_plus(page)
+  long = Demarche.visibles.max_by { it.contexte.to_s.size }
+  court = Demarche.visibles.select { it.cadre_juridique.present? }.min_by { it.cadre_juridique.size }
+  page.current_window.resize_to(1280, 1024)
+  page.visit("/demarches/#{long.slug}")
+  replie = attendre_lire_plus(page, 'contexte-texte', 'replie' => true, 'coupe' => true, 'bouton' => 'Lire plus : Contexte', 'expanded' => 'false')
+  Verify.evidence('lire-plus', page, 'replie', "slug=#{long.slug} #{replie}")
+
+  page.find_button('Lire plus : Contexte').click
+  deplie = attendre_lire_plus(page, 'contexte-texte', 'replie' => false, 'coupe' => false, 'bouton' => 'Lire moins : Contexte', 'expanded' => 'true')
+  raise "déplié moins haut que replié #{deplie}" unless deplie['hauteur'] > replie['hauteur']
+
+  Verify.evidence('lire-plus', page, 'deplie', deplie.to_s)
+  page.find_button('Lire moins : Contexte').click
+  Verify.evidence('lire-plus', page, 'repli',
+    attendre_lire_plus(page, 'contexte-texte', 'replie' => true, 'bouton' => 'Lire plus : Contexte', 'expanded' => 'false').to_s)
+
+  page.execute_script("[...document.querySelectorAll('#contexte-texte a')].at(-1).focus()")
+  Verify.evidence('lire-plus', page, 'focus-lien',
+    attendre_lire_plus(page, 'contexte-texte', 'replie' => false, 'expanded' => 'true', 'bouton' => 'Lire moins : Contexte').to_s)
+
+  page.current_window.resize_to(375, 800)
+  page.visit("/demarches/#{long.slug}")
+  Verify.evidence('lire-plus', page, 'mobile',
+    attendre_lire_plus(page, 'contexte-texte', 'replie' => true, 'coupe' => true, 'bouton' => 'Lire plus : Contexte').to_s)
+  page.current_window.resize_to(1280, 1024)
+
+  page.visit("/demarches/#{court.slug}")
+  Verify.evidence('lire-plus', page, 'court',
+    "slug=#{court.slug} #{attendre_lire_plus(page, 'cadre-juridique-texte', 'replie' => true, 'coupe' => false, 'bouton' => nil)}")
+  lire_plus_seuil(page)
+  lire_plus_sans_js(long)
+end
+
+def lire_plus_seuil(page)
+  faux = Demarche.visibles.flat_map do |demarche|
+    page.visit("/demarches/#{demarche.slug}")
+    %w[contexte-texte cadre-juridique-texte].filter_map do |id|
+      next unless page.has_css?("##{id}.lire-plus--replie", wait: 10)
+
+      sleep 0.3
+      etat = page.evaluate_script(<<~JS)
+        (() => {
+          const texte = document.getElementById('#{id}')
+          const replie = texte.clientHeight
+          texte.classList.remove('lire-plus--replie')
+          const entier = texte.clientHeight
+          texte.classList.add('lire-plus--replie')
+          return { bouton: document.querySelector("[aria-controls='#{id}']").checkVisibility(), revele: entier - replie }
+        })()
+      JS
+      "#{demarche.slug}##{id} #{etat}" if etat['bouton'] != etat['revele'].positive?
+    end
+  end
+  raise "bouton sans texte à révéler (ou l'inverse) : #{faux.join(' ; ')}" if faux.any?
+
+  Verify.evidence('lire-plus', page, 'seuil', "#{Demarche.visibles.count} cas d'usage : bouton si et seulement si le dépliage révèle du texte")
+end
+
+def lire_plus_sans_js(demarche)
+  page = Verify.session(javascript: false)
+  page.visit("/demarches/#{demarche.slug}")
+  texte = page.find('#contexte-texte')
+  raise 'replié sans JS' if texte[:class].to_s.include?('lire-plus--replie')
+  raise 'bouton affiché sans JS' if page.has_button?('Lire plus : Contexte', wait: 0)
+
+  Verify.evidence('lire-plus', page, 'sans-js', "classe=#{texte[:class].inspect} bouton=masque caracteres=#{texte.text.size}")
+ensure
+  page&.quit
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -2047,7 +2141,8 @@ end
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
-  'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise }.each do |nom, fn|
+  'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
+  'lire-plus' => :lire_plus }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

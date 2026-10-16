@@ -314,3 +314,12 @@ html:has(.affichage-personnalise__entete) {
 .catalogue-vide__loupe {
   width: 5rem;
 }
+
+.lire-plus__texte > :last-child {
+  margin-bottom: 0;
+}
+
+.lire-plus--replie {
+  max-height: 8lh;
+  overflow: hidden;
+}
