@@ -461,6 +461,33 @@ RSpec.describe 'Demarches' do
           .to eq([%w[Zeta 2], %w[Acheteza 1]])
       end
 
+      it 'propose une seule fois, avec le fil d’Ariane, les trois tags de l’affichage personnalisé, aucun choisi' do
+        entete = page.find('.affichage-personnalise__entete')
+        tags = page.all('button.fr-tag[aria-pressed]', visible: :all)
+
+        expect(entete).to have_css('nav.fr-breadcrumb')
+        expect(entete).to have_text('Affichez le contenu de cette page selon les solutions que vous recherchez')
+        expect(tags.map { [it.text.squish, it[:'aria-pressed']] })
+          .to eq([['API et jeux de données', 'false'], ['Logiciels métiers', 'false'], ['Sites de consultation', 'false']])
+        expect(entete).to have_css('button.fr-tag', count: 3)
+      end
+
+      it 'rouvre les tags sous le fil d’Ariane par le bouton « Affichage personnalisé »' do
+        bouton = page.find('.affichage-personnalise__entete button', text: 'Affichage personnalisé', visible: :all)
+
+        expect(page.find("##{bouton[:'aria-controls']}.fr-collapse", visible: :all)).to have_css('button.fr-tag', count: 3, visible: :all)
+      end
+
+      it 'marque pour le filtre chaque bloc des deux onglets, tableaux compris, selon le type de solution' do
+        reco = page.find('#donnees-disponibles .reco-card', text: 'Bouquet API Entreprise')
+        blocs_de_reco = reco.all('[data-filtre]', visible: :all).map { [it[:'data-filtre'], it.find('.fr-accordion__title', visible: :all).text(:all).squish] }
+        blocs_de_solutions = onglet_solutions.all('[data-filtre]', visible: :all).map { [it[:'data-filtre'], it.find('caption', visible: :all).text(:all)] }
+
+        expect(blocs_de_reco).to match([['api', "Par l'API directement"], ['api', start_with('Via une brique logicielle')],
+                                        ['logiciels', start_with('Via un logiciel métier')], ['sites', start_with('Via un site de consultation')]])
+        expect(blocs_de_solutions).to eq([['logiciels', 'Logiciel métier « clé en main »'], ['api', 'Brique logicielle à intégrer']])
+      end
+
       it 'rend chaque modale une seule fois, hors des onglets' do
         expect(page).to have_css('dialog.fr-modal', count: 4, visible: :all)
         expect(page).to have_no_css('[role=tabpanel] dialog', visible: :all)

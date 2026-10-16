@@ -6,9 +6,9 @@
    nom_demarche = recommandation.demarche.titre
    couvertures = recommandation.couvertures
    acces_direct = cible.categorie_base_de_donnees? ? 'Par le jeu de données directement' : "Par l'API directement"
-   accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques'],
-                 ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels'],
-                 ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites']] %>
+   accordeons = [['brique_logicielle', 'Via une brique logicielle à intégrer', 'fr-icon-code-box-fill', 'Aucune brique', 'brique', 'briques', 'api'],
+                 ['logiciel_metier_cle_en_main', 'Via un logiciel métier « clé en main »', 'fr-icon-mac-fill', 'Aucun logiciel', 'logiciel', 'logiciels', 'logiciels'],
+                 ['site_de_consultation', 'Via un site de consultation', 'fr-icon-seo-fill', 'Aucun site', 'site', 'sites', 'sites']] %>
 <div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>">
   <h3 class="fr-h4 fr-mb-2w">
     <span class="fr-text--alt"><em>Via «</em></span>
@@ -39,9 +39,9 @@
   <div class="fr-mt-2w fr-mx-2w">
     <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
 
-    <div class="fr-accordions-group">
+    <div class="fr-accordions-group" data-fr-group="false">
       <% if lien_fiche || lien_demande_acces || utiles.any? || cible.uid_datagouv.present? %>
-        <section class="fr-accordion">
+        <section class="fr-accordion" data-filtre="api">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
               aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
@@ -127,7 +127,7 @@
           </div>
         </section>
       <% else %>
-        <section class="fr-accordion">
+        <section class="fr-accordion" data-filtre="api">
           <h5 class="fr-accordion__title">
             <span class="fr-accordion__btn fr-accordion__btn--empty">
               <span class="fr-mr-auto"><%= acces_direct %></span>
@@ -138,10 +138,10 @@
         </section>
       <% end %>
 
-      <% accordeons.each do |categorie, titre, icone, vide, singulier, pluriel| %>
+      <% accordeons.each do |categorie, titre, icone, vide, singulier, pluriel, filtre| %>
         <% solutions = moyens.fetch(categorie, []) %>
         <% if solutions.empty? %>
-          <section class="fr-accordion">
+          <section class="fr-accordion" data-filtre="<%= filtre %>">
             <h5 class="fr-accordion__title">
               <span class="fr-accordion__btn fr-accordion__btn--empty">
                 <span class="fr-mr-auto">
@@ -154,7 +154,7 @@
             </h5>
           </section>
         <% else %>
-          <section class="fr-accordion">
+          <section class="fr-accordion" data-filtre="<%= filtre %>">
             <h5 class="fr-accordion__title">
               <button type="button" class="fr-accordion__btn" aria-expanded="false"
                 aria-controls="<%= dom_id(recommandation, categorie) %>">
