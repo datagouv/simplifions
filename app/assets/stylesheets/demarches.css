@@ -460,3 +460,16 @@ body:has(.bouton-proposer-modification) {
 .catalogue-vide__loupe {
   width: 5rem;
 }
+
+.lire-plus__texte > :last-child {
+  margin-bottom: 0;
+}
+
+.lire-plus--replie {
+  max-height: 8lh;
+  overflow: hidden;
+}
+
+.lire-plus--replie.lire-plus--coupe {
+  mask-image: linear-gradient(to bottom, black 60%, transparent);
+}
