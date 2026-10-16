@@ -97,6 +97,10 @@ class Solution < ApplicationRecord
     Integration.consomme.en_production.where(integratrice: integratrices_visibles).group(:integratrice_id).count
   end
 
+  def producteur
+    datagouv_organisation.presence || organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
+  end
+
   def lien_datagouv
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end

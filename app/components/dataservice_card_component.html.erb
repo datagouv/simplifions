@@ -1,11 +1,6 @@
 <div class="fr-p-2w dataservice-card fr-enlarge-link">
   <% if badge %>
-    <div class="fr-grid-row fr-mt-n6v fr-mb-2w fr-ml-n1v">
-      <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= badge[:classe] %>">
-        <span class="<%= badge[:icone] %> fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
-        <%= badge[:label] %>
-      </p>
-    </div>
+    <div class="fr-grid-row fr-mt-n6v fr-mb-2w fr-ml-n1v"><%= badge %></div>
   <% end %>
   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--top">
     <% if datagouv_logo.present? %>

@@ -4,11 +4,11 @@
   <ol>
     <% sections.each do |id, label, sous_sections| %>
       <li>
-        <a href="#<%= id %>" class="fr-summary__link"><%= label %></a>
+        <a href="#<%= id %>" class="fr-summary__link" data-turbo="false"><%= label %></a>
         <% if sous_sections %>
           <ol>
             <% sous_sections.each do |sous_id, sous_label| %>
-              <li><a href="#<%= sous_id %>" class="fr-summary__link"><%= sous_label %></a></li>
+              <li><a href="#<%= sous_id %>" class="fr-summary__link" data-turbo="false"><%= sous_label %></a></li>
             <% end %>
           </ol>
         <% end %>
