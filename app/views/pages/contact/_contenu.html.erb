@@ -4,26 +4,26 @@
 
 <%= render "pages/contact/groupe", titre: "Démarches", catalogue: ["Voir les démarches", demarches_path] %>
 <div class="fr-grid-row fr-grid-row--gutters">
-  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouveau-cas-usage", titre: "Proposer une nouvelle démarche", pictogramme: "digital/innovation",
-        description: "Une démarche qui peut être simplifiée grâce à la donnée n'est pas encore sur le site." %>
   <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-cas-usage", titre: "Proposer une modification d'une démarche existante", pictogramme: "document/sign-document",
         description: "Une information est manquante, obsolète ou erronée sur une fiche démarche." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouveau-cas-usage", titre: "Proposer une nouvelle démarche", pictogramme: "digital/innovation",
+        description: "Une démarche qui peut être simplifiée grâce à la donnée n'est pas encore sur le site." %>
 </div>
 
 <%= render "pages/contact/groupe", titre: "Solutions", catalogue: ["Voir les solutions", solutions_path] %>
 <div class="fr-grid-row fr-grid-row--gutters">
-  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouvelle-solution", titre: "Référencer une nouvelle solution", pictogramme: "digital/innovation",
-        description: "Un logiciel, un portail, une API ou un jeu de données permet de simplifier une démarche." %>
   <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-solution", titre: "Proposer une modification d'une fiche solution existante", pictogramme: "document/sign-document",
         description: "Une information est manquante, obsolète ou erronée sur une fiche solution." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouvelle-solution", titre: "Référencer une nouvelle solution", pictogramme: "digital/innovation",
+        description: "Un logiciel, un portail, une API ou un jeu de données permet de simplifier une démarche." %>
 </div>
 
 <%= render "pages/contact/groupe", titre: "Articles", catalogue: ["Voir les articles", articles_path] %>
 <div class="fr-grid-row fr-grid-row--gutters">
-  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouvel-article", titre: "Proposer un nouvel article", pictogramme: "digital/innovation",
-        description: "Un guide utile aux administrations qui simplifient leurs démarches." %>
   <%= render "pages/contact/tuile", niveau: :h4, besoin: "modifier-article", titre: "Proposer une modification d'un article existant", pictogramme: "document/sign-document",
         description: "Une information est manquante, obsolète ou erronée dans un article." %>
+  <%= render "pages/contact/tuile", niveau: :h4, besoin: "nouvel-article", titre: "Proposer un nouvel article", pictogramme: "digital/innovation",
+        description: "Un guide utile aux administrations qui simplifient leurs démarches." %>
 </div>
 
 <%= render "pages/contact/groupe", titre: "Autre contenu" %>

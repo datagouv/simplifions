@@ -36,12 +36,12 @@ RSpec.describe 'Contact' do
     it 'précise la demande de contenu en sept besoins groupés, sans donner l’adresse' do
       expect(response.body).to include('Précisez votre demande')
       expect(titres_des_tuiles).to eq([
-        ['/contact/nouveau-cas-usage', 'Proposer une nouvelle démarche'],
         ['/contact/modifier-cas-usage', "Proposer une modification d'une démarche existante"],
-        ['/contact/nouvelle-solution', 'Référencer une nouvelle solution'],
+        ['/contact/nouveau-cas-usage', 'Proposer une nouvelle démarche'],
         ['/contact/modifier-solution', "Proposer une modification d'une fiche solution existante"],
-        ['/contact/nouvel-article', 'Proposer un nouvel article'],
+        ['/contact/nouvelle-solution', 'Référencer une nouvelle solution'],
         ['/contact/modifier-article', "Proposer une modification d'un article existant"],
+        ['/contact/nouvel-article', 'Proposer un nouvel article'],
         ['/contact/autre-contenu', "Proposer la modification d'un autre contenu"]
       ])
       expect(response.parsed_body.css('h3').map(&:text)).to eq(['Démarches', 'Solutions', 'Articles', 'Autre contenu'])
