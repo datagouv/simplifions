@@ -97,7 +97,7 @@ RSpec.describe 'Contact' do
     end
 
     it 'présente le modèle prêt à l’emploi, puis les modèles à copier soi-même' do
-      get contact_path('autre')
+      get contact_path('nouvel-article')
 
       texte = response.parsed_body.text
       expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
@@ -108,6 +108,33 @@ RSpec.describe 'Contact' do
       expect(titres).not_to include("Écrire à l'équipe :")
       expect(response.parsed_body.css('h4')).to be_empty
       expect(response.body.index('href="mailto:')).to be < response.body.index('Copier/coller le modèle')
+    end
+
+    it 'termine le modèle sur la dernière rubrique, sans formule de politesse' do
+      get contact_path('nouvel-article')
+
+      modele = response.parsed_body.at('#modele-message').text
+      expect(modele).to start_with('Bonjour,')
+      expect(modele).not_to include('Cordialement')
+      expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).not_to include('Cordialement')
+    end
+
+    it 'parle du problème rencontré, et non d’une proposition, sur le signalement d’un problème' do
+      get contact_path('probleme-site')
+
+      texte = response.parsed_body.text
+      expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
+                               'qui nous seront utiles pour comprendre le problème que vous avez rencontré.')
+      expect(texte).not_to include('comprendre votre proposition')
+    end
+
+    it 'parle du sujet, et non d’une proposition, sur la rubrique Autre sujet' do
+      get contact_path('autre')
+
+      texte = response.parsed_body.text
+      expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
+                               'qui nous seront utiles pour comprendre votre sujet.')
+      expect(texte).not_to include('comprendre votre proposition')
     end
 
     it 'propose de copier l’adresse, l’objet et le modèle, boutons cachés jusqu’au chargement du script' do

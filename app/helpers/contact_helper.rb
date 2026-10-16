@@ -14,6 +14,6 @@ module ContactHelper
 
       ["#{libelle} (gardez les mentions utiles) :", *options.map { |option| "- #{option}" }, '']
     end
-    ['Bonjour,', '', *lignes, '', 'Cordialement,'].join("\n")
+    ['Bonjour,', '', *lignes].join("\n")
   end
 end
