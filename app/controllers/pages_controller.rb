@@ -16,6 +16,7 @@ class PagesController < ApplicationController
 
     @fiche = fiche_d_origine
     @demarches = Demarche.visibles.order(:nom) if @besoin == 'modifier-cas-usage'
+    @solutions = Solution.visibles.fiches.includes(:organisations).order(:nom) if @besoin == 'modifier-solution'
   end
 
   def sitemap

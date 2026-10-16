@@ -179,6 +179,35 @@ RSpec.describe 'Contact' do
       expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).not_to include("Le nom et l'URL")
     end
 
+    it 'propose de choisir la solution publiée, avec le nom court de son opérateur' do
+      dinum = Organisation.create!(nom: 'DINUM', nom_long: 'Direction interministérielle du numérique')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle', organisations: [dinum])
+      Solution.create!(nom: 'Annuaire', slug: 'annuaire', visible: true, categorie: 'brique_logicielle')
+      Solution.create!(nom: 'API hors fiche', visible: true, categorie: 'api')
+      Solution.create!(nom: 'Brouillon', slug: 'brouillon', categorie: 'brique_logicielle')
+
+      get contact_path('modifier-solution')
+
+      formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-solution"]')
+      expect(formulaire['data-turbo-frame']).to eq('modele-de-mail')
+      options = formulaire.css('select[name="solution"] option').map { |option| [option['value'], option.text] }
+      expect(options).to eq([['', 'Sélectionner une solution'], %w[annuaire Annuaire], ['babily', 'Babily – DINUM']])
+      expect(formulaire.at('select[name="solution"]')['data-action']).to eq('change->form#submit')
+      expect(formulaire.at('label[for="solution"]').text).to include('Solution concernée', 'se met à jour selon votre choix')
+      expect(formulaire.at('noscript button[type="submit"]')).to be_present
+      expect(response.parsed_body.at('turbo-frame#modele-de-mail #modele-message').text)
+        .to include("Le nom de la solution et l'URL de sa fiche")
+    end
+
+    it 'garde la liste des solutions, avec la solution choisie présélectionnée et le modèle allégé' do
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+
+      get contact_path('modifier-solution', solution: 'babily')
+
+      expect(response.parsed_body.at('select[name="solution"] option[selected]')['value']).to eq('babily')
+      expect(response.parsed_body.at('#modele-message').text).not_to include("Le nom de la solution et l'URL de sa fiche")
+    end
+
     it 'cite la solution dans l’objet et le message' do
       Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
 
@@ -234,7 +263,8 @@ RSpec.describe 'Contact' do
         get chemin
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).not_to include('Fiche concernée', 'Brouillon', 'Solution homonyme')
+        expect(response.body).not_to include('Fiche concernée', 'Brouillon')
+        expect(response.parsed_body.at('#objet-message').text).not_to include('Solution homonyme')
       end
     end
   end

@@ -1,7 +1,23 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
 <%= render "pages/contact/titre", titre: "Proposer une modification d'une fiche solution existante" %>
-<%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.nom, solution_url(@fiche.slug)], objet: "Modification d'une fiche solution", informations: [
-      "Votre organisation et votre fonction",
-      "Le nom de la solution et l'URL de sa fiche",
-      "Vos propositions pour améliorer la fiche"
-    ] %>
+<%= form_with url: contact_path("modifier-solution"), method: :get, class: "fr-mb-4w",
+      data: { controller: "form", turbo_frame: "modele-de-mail", turbo_action: "advance" } do %>
+  <div class="fr-select-group">
+    <%= label_tag :solution, class: "fr-label" do %>
+      Solution concernée
+      <span class="fr-hint-text">Le modèle de mail ci-dessous se met à jour selon votre choix.</span>
+    <% end %>
+    <%= select_tag :solution, options_for_select(@solutions.map { |solution| [libelle_solution(solution), solution.slug] }, @fiche&.slug),
+          prompt: "Sélectionner une solution", class: "fr-select", data: { action: "change->form#submit" } %>
+  </div>
+  <noscript>
+    <button type="submit" class="fr-btn fr-btn--secondary">Préremplir le message</button>
+  </noscript>
+<% end %>
+<%= turbo_frame_tag "modele-de-mail" do %>
+  <%= render "pages/contact/ecrire", fiche: @fiche && [@fiche.nom, solution_url(@fiche.slug)], objet: "Modification d'une fiche solution", informations: [
+        "Votre organisation et votre fonction",
+        ("Le nom de la solution et l'URL de sa fiche" unless @fiche),
+        "Vos propositions pour améliorer la fiche"
+      ].compact %>
+<% end %>
