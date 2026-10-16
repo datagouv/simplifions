@@ -3,7 +3,8 @@
    usagers = @demarche.usagers
    acteurs = @demarche.acteurs
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
-               ['donnees-disponibles', 'Données disponibles']] %>
+               ['donnees-disponibles', 'Données disponibles']]
+   lien_modification = contact_path("modifier-cas-usage", demarche: @demarche.slug) %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-demarche",
         liens: [["Accueil", root_path], ["Cas d'usages", demarches_path], [@demarche.titre, nil]] %>
@@ -21,17 +22,17 @@
     </div>
 
     <div class="fr-col-12 fr-col-md-4">
-      <%= render "sommaire", sections:, record: @demarche %>
+      <%= render "sommaire", sections:, record: @demarche, lien_modification: %>
     </div>
   </div>
 
   <div class="fr-col-12 fr-col-md-8 fr-mt-5w">
     <%= render ArticleSectionComponent.new(id: sections[0][0], label: sections[0][1]) do %>
       <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-map-pin-2-fill"></span> Contexte</h3>
-      <%= render 'contenu', texte: @demarche.contexte %>
+      <%= render 'contenu', texte: @demarche.contexte, lien_modification: %>
 
       <h3 class="fr-h6"><span aria-hidden="true" class="fr-icon-newspaper-fill"></span> Cadre juridique</h3>
-      <%= render 'contenu', texte: @demarche.cadre_juridique %>
+      <%= render 'contenu', texte: @demarche.cadre_juridique, lien_modification: %>
     <% end %>
   </div>
 
@@ -39,9 +40,9 @@
     <%= render ArticleSectionComponent.new(id: sections[1][0], label: sections[1][1]) do %>
       <%= render partial: 'demarches/recommandation',
             collection: @demarche.recommandations.visibles.niveau_2.includes(solution: [:exposees, :organisations]).order(:ordre, :id),
-            as: :recommandation %>
+            as: :recommandation, locals: { lien_modification: } %>
     <% end %>
   </div>
 
-  <%= render "bloc_modification", sujet: "ce cas d'usage", lien: contact_path("modifier-cas-usage", demarche: @demarche.slug) %>
+  <%= render "bloc_modification", sujet: "ce cas d'usage", lien: lien_modification %>
 </div>
