@@ -42,7 +42,7 @@ gem "strong_migrations"
 gem "paper_trail", "~> 17.0"
 
 # Recherche des listes de l'administration, comme DataPass
-gem "ransack", "~> 5.0"
+gem "ransack", "~> 6.0"
 
 # Pagination de l'administration et du catalogue, gabarits DSFR de DataPass
 gem "kaminari", "~> 1.2"
