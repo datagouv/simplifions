@@ -146,7 +146,7 @@ RSpec.describe 'Contact' do
       expect(boutons.first['data-copier-texte-param']).to eq(email)
       expect(boutons[1]['data-copier-texte-param']).to eq('Prise de contact - autre sujet')
       expect(boutons.last['data-copier-texte-param']).to eq(response.parsed_body.at('#modele-message').text)
-      expect(boutons.map { |bouton| bouton['data-copier-confirmation-param'] })
+      expect(boutons.pluck('data-copier-confirmation-param'))
         .to eq(['E-mail copié', 'Objet du mail copié', 'Modèle de mail copié'])
       expect(response.parsed_body.at('[aria-live="polite"][data-copier-target="statut"]')).to be_present
     end
