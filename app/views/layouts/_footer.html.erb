@@ -1,4 +1,30 @@
 <footer class="fr-footer" role="contentinfo" id="footer">
+  <div class="fr-footer__top">
+    <div class="fr-container">
+      <div class="fr-grid-row fr-grid-row--start fr-grid-row--gutters">
+        <div class="fr-col-12 fr-col-sm-6 fr-col-md-4">
+          <h3 class="fr-footer__top-cat">Simplifions.data.gouv.fr</h3>
+          <ul class="fr-footer__top-list">
+            <li><%= link_to "À propos", about_path, class: "fr-footer__top-link" %></li>
+            <li><%= link_to "Comment est rédigé le contenu ?", root_path(anchor: "redaction-contenu"), class: "fr-footer__top-link" %></li>
+          </ul>
+          <h3 class="fr-footer__top-cat fr-mt-3w">Aide</h3>
+          <ul class="fr-footer__top-list">
+            <li><%= link_to "Signaler un problème sur le site", contact_path("probleme-site"), class: "fr-footer__top-link" %></li>
+            <li><%= link_to "Nous contacter", contact_path, class: "fr-footer__top-link" %></li>
+          </ul>
+        </div>
+        <div class="fr-col-12 fr-col-sm-6 fr-col-md-4">
+          <h3 class="fr-footer__top-cat">Contribution</h3>
+          <ul class="fr-footer__top-list">
+            <li><%= link_to "Proposer une modification de contenu", contact_path("contenu"), class: "fr-footer__top-link" %></li>
+            <li><%= link_to "Demander le référencement d'une démarche", contact_path("nouveau-cas-usage"), class: "fr-footer__top-link" %></li>
+            <li><%= link_to "Demander le référencement d'une solution", contact_path("nouvelle-solution"), class: "fr-footer__top-link" %></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="fr-container">
     <div class="fr-footer__body">
       <div class="fr-footer__brand footer-brand">

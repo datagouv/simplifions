@@ -27,7 +27,7 @@ RSpec.describe 'Demarches' do
       expect(response.parsed_body.text).to include('Proposer une nouvelle démarche')
       expect(response.parsed_body.text).to include('Doctrine de référencement des démarches')
       expect(response.body).to include('href="/contact/nouveau-cas-usage"')
-      expect(response.body).not_to include('href="/#redaction-contenu"')
+      expect(response.parsed_body.css('main a[href="/#redaction-contenu"]')).to be_empty
       expect(response.body).to include('href="/doctrine-referencement-cas-usages"')
       expect(response.parsed_body.css('a.bouton-proposer-modification')).to be_empty
     end

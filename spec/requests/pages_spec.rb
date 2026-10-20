@@ -19,6 +19,20 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('alt="numerique.gouv - L’alliance du numérique de l’État"')
     end
 
+    it 'propose dans le pied de page les liens d’aide et ceux du site' do
+      get root_path
+
+      expect(response.body).to include('fr-footer__top')
+      expect(response.parsed_body.css('.fr-footer__top-cat').map(&:text)).to eq(['Simplifions.data.gouv.fr', 'Aide', 'Contribution'])
+      expect(response.body).to include('href="/contact/probleme-site">Signaler un problème sur le site</a>')
+      expect(response.body).to include('href="/contact/contenu">Proposer une modification de contenu</a>')
+      expect(response.body).to include('href="/contact/nouveau-cas-usage">Demander le référencement d&#39;une démarche</a>')
+      expect(response.body).to include('href="/contact/nouvelle-solution">Demander le référencement d&#39;une solution</a>')
+      expect(response.body).to include('href="/contact">Nous contacter</a>')
+      expect(response.body).to include('href="/about">À propos</a>')
+      expect(response.body).to include('href="/#redaction-contenu">Comment est rédigé le contenu ?</a>')
+    end
+
     it 'présente la page de contact, et non des espaces de discussion disparus, comme moyen de contribuer' do
       get root_path
       expect(response.body).to include('Une page de contact guidée permet aux usagers')
