@@ -19,6 +19,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).not_to include('API Quotient familial')
       expect(response.body).not_to include('Brouillon')
       expect(response.body).not_to include('fr-pagination')
+      expect(response.body).not_to include('href="/#redaction-contenu"')
     end
 
     it 'remplace la liste vide par l’invitation à réinitialiser les filtres' do
@@ -186,6 +187,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Proposer une modification du contenu')
       expect(response.body).to include('de cette solution')
       expect(response.body).to include('href="/contact/modifier-solution?solution=bouquet-api-particulier"')
+      expect(response.body).to include('href="/#redaction-contenu"')
       expect(response.body).not_to include('demarches-simplifiees.fr')
     end
   end

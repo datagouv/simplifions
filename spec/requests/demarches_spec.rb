@@ -21,6 +21,17 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('Brouillon invisible')
     end
 
+    it 'propose une nouvelle démarche, avec la doctrine de référencement' do
+      get demarches_path
+
+      expect(response.parsed_body.text).to include('Proposer une nouvelle démarche')
+      expect(response.parsed_body.text).to include('Doctrine de référencement des démarches')
+      expect(response.body).to include('href="/contact/nouveau-cas-usage"')
+      expect(response.body).not_to include('href="/#redaction-contenu"')
+      expect(response.body).to include('href="/doctrine-referencement-cas-usages"')
+      expect(response.parsed_body.css('a.bouton-proposer-modification')).to be_empty
+    end
+
     it 'rend chaque carte comme le site : titre, chapo, usagers et acteurs triés' do
       Demarche.create!(nom: 'Cantine à 1€', icone: '🥣', slug: 'cantine', visible: true,
         description_courte: "Communes, simplifiez.\nDeuxième ligne ignorée.",
@@ -198,6 +209,8 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('Communes et groupements de communes')
       expect(response.body).to include('Direction interministérielle du numérique')
       expect(response.body).to include('href="/contact/modifier-cas-usage?demarche=tarification-cantine-scolaire-a-1eur"')
+      expect(response.body).to include('href="/#redaction-contenu"')
+      expect(response.parsed_body.text).to include('proposer vos modifications de cette démarche')
       expect(response.body).not_to include('demarches-simplifiees.fr')
     end
 

@@ -83,3 +83,17 @@
     </div>
   <% end %>
 </section>
+
+<% if @catalogue.klass == Demarche %>
+  <section class="fond-beige-gris-galet" aria-labelledby="titre-proposer-demarche">
+    <div class="fr-container fr-py-3w">
+      <h2 id="titre-proposer-demarche" class="fr-h4">✒️ Proposer une nouvelle démarche</h2>
+      <p>
+        Une démarche manque ? Écrivez-nous pour
+        <%= lien_nouvel_onglet "proposer une nouvelle démarche", contact_path("nouveau-cas-usage") %>.
+      </p>
+      <%= link_to "Doctrine de référencement des démarches", doctrine_referencement_cas_usages_path,
+            class: "fr-link fr-icon-arrow-right-line fr-link--icon-right" %>
+    </div>
+  </section>
+<% end %>

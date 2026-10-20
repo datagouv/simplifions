@@ -19,11 +19,6 @@
   font-weight: 700;
 }
 
-.fiche-page .bloc-modifications {
-  background-color: #f1f1f1;
-  padding: 1rem;
-}
-
 body:has(.bouton-proposer-modification) {
   padding-bottom: 5rem;
 }
