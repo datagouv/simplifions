@@ -11,6 +11,7 @@ module Verify
   Capybara.register_driver :verify_chrome do |app|
     options = Selenium::WebDriver::Chrome::Options.new
     %w[--headless=new --window-size=1280,1024 --lang=fr-FR].each { |flag| options.add_argument(flag) }
+    options.add_argument("--unsafely-treat-insecure-origin-as-secure=http://#{CONTAINER_IP}:#{PORT}")
     Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://chrome:4444', options:)
   end
 
@@ -18,6 +19,7 @@ module Verify
     options = Selenium::WebDriver::Firefox::Options.new
     %w[-headless --width=1280 --height=1024].each { |flag| options.add_argument(flag) }
     options.add_preference('intl.accept_languages', 'fr-FR,fr')
+    options.add_preference('dom.securecontext.allowlist', CONTAINER_IP)
     Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://firefox:4444', options:)
   end
 

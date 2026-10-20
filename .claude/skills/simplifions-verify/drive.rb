@@ -1649,47 +1649,68 @@ ensure
 end
 
 def contact(page)
-  demarche = Demarche.visibles.order(:id).first
+  demarche, autre = Demarche.visibles.order(:nom).first(2)
   page.visit("/demarches/#{demarche.slug}")
-  page.click_link "proposer une modification du contenu de ce cas d'usage"
+  lien = page.find_link("proposer une modification du contenu de ce cas d'usage")
+  raise "lien hors nouvel onglet : #{lien[:target]}" unless lien[:target] == '_blank'
+
+  page.visit(lien[:href])
   page.assert_current_path("/contact/modifier-cas-usage?demarche=#{demarche.slug}")
-  objet = page.find_field('Objet du message', readonly: true).value
-  raise "objet sans la fiche : #{objet}" unless objet.end_with?(" : #{demarche.nom}")
-
-  mailto = URI.decode_www_form_component(page.find_link("Écrire à l'équipe")[:href])
-  raise "mailto sans la fiche : #{mailto}" unless mailto.include?("Fiche concernée : #{demarche.nom}")
-
-  page.driver.browser.add_permission('clipboard-write', 'granted') if Verify.browser == 'chrome'
-  page.click_button "Copier l'objet du message"
-  page.assert_selector '[data-copier-target=statut]', text: 'Objet du message copié.', visible: :all
-  Verify.evidence('contact', page, 'fiche-citee', "slug=#{demarche.slug} objet=#{objet} copie=ok")
+  contact_fiche_citee(page, demarche)
+  contact_changer_de_demarche(page, autre)
   page.click_link 'Retour'
   page.assert_current_path('/contact/contenu')
-  page.assert_selector 'h3', text: "Cas d'usages"
-  contact_cas_usage_choisi(page, demarche)
+  page.assert_selector 'h3', text: 'Démarches'
+  contact_demarche_choisie(page, demarche)
+  contact_reponse_sans_adresse(page)
+end
+
+def contact_objet(page) = page.find('#objet-message').text
+
+def contact_fiche_citee(page, demarche)
+  raise 'démarche non présélectionnée' unless page.has_select?('Démarche concernée', selected: demarche.titre)
+  raise "objet sans la fiche : #{contact_objet(page)}" unless contact_objet(page).end_with?(" : #{demarche.titre}")
+
+  mailto = URI.decode_www_form_component(page.find_link('Ouvrir un e-mail déjà pré-rempli')[:href])
+  raise "mailto sans la fiche : #{mailto}" unless mailto.include?("Fiche concernée : #{demarche.titre}")
+
+  page.driver.browser.add_permission('clipboard-write', 'granted') if Verify.browser == 'chrome'
+  ["Copier l'e-mail", "Copier l'objet", 'Copier le modèle'].each { page.assert_selector :button, it }
+  page.click_button "Copier l'objet"
+  page.assert_selector '[data-copier-target=statut]', text: 'Objet du mail copié', visible: :all
+  Verify.evidence('contact', page, 'fiche-citee', "slug=#{demarche.slug} objet=#{contact_objet(page)} copie=ok")
+end
+
+def contact_changer_de_demarche(page, autre)
+  page.execute_script('window.verifSansRecharger = true')
+  page.select autre.titre, from: 'Démarche concernée'
+  page.assert_current_path("/contact/modifier-cas-usage?demarche=#{autre.slug}")
+  page.assert_selector '#objet-message', text: " : #{autre.titre}"
+  raise 'page rechargée' unless page.evaluate_script('window.verifSansRecharger')
+
+  Verify.evidence('contact', page, 'demarche-changee', "slug=#{autre.slug} objet=#{contact_objet(page)} sans_recharger=true")
+end
+
+def contact_demarche_choisie(page, demarche)
+  page.click_link "Proposer une modification d'une démarche existante"
+  raise "objet cité sans fiche : #{contact_objet(page)}" if contact_objet(page).include?(' : ')
+
+  page.select demarche.titre, from: 'Démarche concernée'
+  page.assert_current_path("/contact/modifier-cas-usage?demarche=#{demarche.slug}")
+  page.assert_selector '#objet-message', text: " : #{demarche.titre}"
+  Verify.evidence('contact', page, 'demarche-choisie', "slug=#{demarche.slug} objet=#{contact_objet(page)}")
+  page.click_link 'Retour'
+  page.assert_current_path('/contact/contenu')
+end
+
+def contact_reponse_sans_adresse(page)
   page.click_link 'Retour'
   page.assert_current_path('/contact')
   page.click_link "J'ai une question sur ma propre démarche administrative"
   page.assert_text 'Nous ne sommes pas en mesure de vous aider à ce sujet.'
-  raise 'adresse donnée sans contact' if page.has_link?("Écrire à l'équipe", wait: 0)
+  raise 'adresse donnée sans contact' if page.find('section', text: 'Nous ne sommes pas').has_css?('a[href^="mailto:"]', wait: 0)
 
   Verify.evidence('contact', page, 'reponse-sans-adresse', "path=#{page.current_path} mailto=0")
-end
-
-def contact_cas_usage_choisi(page, demarche)
-  page.click_link "Proposer une modification d'un cas d'usage existant"
-  raise 'objet cité sans fiche' if page.find_field('Objet du message', readonly: true).value.include?(' : ')
-
-  page.select demarche.nom, from: "Cas d'usage concerné"
-  page.click_button 'Préremplir le message'
-  page.assert_current_path("/contact/modifier-cas-usage?demarche=#{demarche.slug}")
-  objet = page.find_field('Objet du message', readonly: true).value
-  raise "objet sans le cas d'usage choisi : #{objet}" unless objet.end_with?(" : #{demarche.nom}")
-  raise 'liste encore affichée' if page.has_select?("Cas d'usage concerné", wait: 0)
-
-  Verify.evidence('contact', page, 'cas-usage-choisi', "slug=#{demarche.slug} objet=#{objet}")
-  page.click_link 'Retour'
-  page.assert_current_path('/contact/contenu')
 end
 
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
