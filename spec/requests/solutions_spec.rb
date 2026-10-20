@@ -177,6 +177,13 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('href="/contact/modifier-solution?solution=bouquet-api-particulier"')
       expect(response.body).not_to include('demarches-simplifiees.fr')
     end
+
+    it 'envoie chaque lien « Proposer » vers le formulaire de contact de cette solution, dans un nouvel onglet' do
+      expect(response.body).not_to include('href="#modification-contenu"')
+      liens = response.parsed_body.css('a[href^="/contact/modifier-solution"]')
+      expect(liens.size).to be > 1
+      expect(liens).to all(satisfy { |lien| lien['target'] == '_blank' && lien['title'].end_with?(' - nouvelle fenêtre') })
+    end
   end
 
   describe 'GET /solutions/:slug' do

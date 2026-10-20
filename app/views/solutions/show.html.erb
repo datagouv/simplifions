@@ -22,7 +22,8 @@
    sections << ['donnees-api-utilisees', 'Données et API utilisées'] if utilisees.any?
    sections << ['donnees-api-fournies', 'Données et API fournies'] if fournies.any?
    sections << ['donnees-api', 'Données et API'] if utilisees.empty? && fournies.empty?
-   sections << ['solutions-integratices', 'Solutions intégratrices'] if onglets.any? %>
+   sections << ['solutions-integratices', 'Solutions intégratrices'] if onglets.any?
+   lien_modification = contact_path("modifier-solution", solution: @solution.slug) %>
 <div class="fr-container fr-mt-1v">
   <%= render "breadcrumb", id: "breadcrumb-solution",
         liens: [["Accueil", root_path], ["Solutions", solutions_path], [@solution.nom, nil]] %>
@@ -60,7 +61,7 @@
     </div>
 
     <div class="fr-col-12 fr-col-md-4">
-      <%= render "sommaire", sections:, record: @solution %>
+      <%= render "sommaire", sections:, record: @solution, lien_modification: %>
     </div>
   </div>
 
@@ -80,14 +81,14 @@
   <div class="fr-col-12 fr-col-md-8 fr-mb-4w">
     <%= render ArticleSectionComponent.new(id: 'possibilites-simplification', label: 'Possibilités de simplification') do %>
       <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Simplification par la donnée grâce à cette solution :</h3>
-      <%= render 'contenu', texte: @solution.permet %>
+      <%= render 'contenu', texte: @solution.permet, lien_modification: %>
 
       <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill icon-gray"></span> Périmètre de simplification non couvert :</h3>
-      <%= render 'contenu', texte: @solution.ne_permet_pas %>
+      <%= render 'contenu', texte: @solution.ne_permet_pas, lien_modification: %>
 
       <p class="fr-text--sm fr-mt-4w">
         <i>Une remarque concernant les possibilités de simplification de cette solution ? </i>
-        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
+        <%= lien_nouvel_onglet "✒️ Proposer un contenu", lien_modification %>.
       </p>
     <% end %>
   </div>
@@ -111,7 +112,7 @@
     <% else %>
       <p class="fr-text--sm">
         <i>Aucun cas d'usage n'est référencé pour cette solution actuellement.</i>
-        <a href="#modification-contenu">✒️ Proposer des cas d'usages</a>
+        <%= lien_nouvel_onglet "✒️ Proposer des cas d'usages", lien_modification %>
       </p>
     <% end %>
   <% end %>
@@ -131,7 +132,7 @@
     <%= render ArticleSectionComponent.new(id: 'donnees-api', label: 'Données et API') do %>
       <p class="fr-text--sm">
         <i>Aucun jeu de données ou API utilisé ou fourni par cette solution actuellement.</i>
-        <a href="#modification-contenu">✒️ Proposer un contenu</a>.
+        <%= lien_nouvel_onglet "✒️ Proposer un contenu", lien_modification %>.
       </p>
     <% end %>
   <% end %>
@@ -217,5 +218,5 @@
     </div>
   <% end %>
 
-  <%= render "bloc_modification", sujet: "cette solution", lien: contact_path("modifier-solution", solution: @solution.slug) %>
+  <%= render "bloc_modification", sujet: "cette solution", lien: lien_modification %>
 </div>

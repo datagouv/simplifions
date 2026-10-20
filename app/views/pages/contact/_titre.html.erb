@@ -1,2 +1,5 @@
 <% content_for :etape, titre %>
-<h2 class="fr-h3"><%= titre %></h2>
+<div class="contact-titre fr-mb-3w">
+  <h2 class="fr-h3 fr-mb-0"><%= titre %></h2>
+  <%= render "pages/contact/pictogramme", pictogramme: %>
+</div>

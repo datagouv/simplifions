@@ -25,6 +25,18 @@ RSpec.describe 'Contact' do
       expect(response.body).not_to include(email)
     end
 
+    it 'reprend le pictogramme de chaque tuile à côté du titre de la page suivante' do
+      tuiles = %w[/contact /contact/contenu].flat_map do |chemin|
+        get chemin
+        response.parsed_body.css('.fr-tile').map { |tuile| [tuile.at('a')['href'], tuile.at('use')['href']] }
+      end
+
+      tuiles.to_h.except('/contact/contenu').each do |lien, pictogramme|
+        get lien
+        expect(response.parsed_body.at('.contact-titre h2 + svg[aria-hidden="true"] use')['href']).to eq(pictogramme)
+      end
+    end
+
     it 'reste indexable' do
       expect(response.body).not_to include('<meta name="robots"')
     end
@@ -36,16 +48,16 @@ RSpec.describe 'Contact' do
     it 'précise la demande de contenu en sept besoins groupés, sans donner l’adresse' do
       expect(response.body).to include('Précisez votre demande')
       expect(titres_des_tuiles).to eq([
-        ['/contact/nouveau-cas-usage', "Proposer un nouveau cas d'usage"],
-        ['/contact/modifier-cas-usage', "Proposer une modification d'un cas d'usage existant"],
-        ['/contact/nouvelle-solution', 'Référencer une nouvelle solution'],
+        ['/contact/modifier-cas-usage', "Proposer une modification d'une démarche existante"],
+        ['/contact/nouveau-cas-usage', 'Proposer une nouvelle démarche'],
         ['/contact/modifier-solution', "Proposer une modification d'une fiche solution existante"],
-        ['/contact/nouvel-article', 'Proposer un nouvel article'],
+        ['/contact/nouvelle-solution', 'Référencer une nouvelle solution'],
         ['/contact/modifier-article', "Proposer une modification d'un article existant"],
+        ['/contact/nouvel-article', 'Proposer un nouvel article'],
         ['/contact/autre-contenu', "Proposer la modification d'un autre contenu"]
       ])
-      expect(response.parsed_body.css('h3').map(&:text)).to eq(["Cas d'usages", 'Solutions', 'Articles', 'Autre contenu'])
-      expect(response.body).to include('title="Voir les cas d&#39;usages - nouvelle fenêtre"')
+      expect(response.parsed_body.css('h3').map(&:text)).to eq(['Démarches', 'Solutions', 'Articles', 'Autre contenu'])
+      expect(response.body).to include('title="Voir les démarches - nouvelle fenêtre"')
       expect(response.body).not_to include(email)
     end
 
@@ -63,37 +75,79 @@ RSpec.describe 'Contact' do
       Vocabulaire.create!(nom: 'Associations', slug: 'associations', categorie: 'usager')
     end
 
-    it 'donne les ressources à vérifier, les informations, l’adresse et un mail prérempli' do
+    it 'donne les ressources à vérifier, l’adresse et un mail prérempli' do
       get contact_path('nouveau-cas-usage')
 
-      expect(response.parsed_body.at('h2.fr-h3').text).to eq("Proposer un nouveau cas d'usage")
+      expect(response.parsed_body.at('h2.fr-h3').text).to eq('Proposer une nouvelle démarche')
       expect(response.body).to include('Avant de nous écrire :', 'href="/doctrine-referencement-cas-usages"')
-      expect(response.body).to include('Informations à nous transmettre')
-      expect(response.body).to include('<li>Le public concerné</li>', '<li>Les types d&#39;administrations concernées</li>')
-      expect(response.body).to include("Envoyez votre message à <strong>#{email}</strong>")
-      expect(response.body).to include('<input class="fr-input" id="objet-message" type="text" readonly ' \
-                                       'value="[Simplifions.data] Proposition d&#39;un nouveau cas d&#39;usage">')
+      expect(response.body).not_to include('Informations à nous transmettre')
+      expect(response.parsed_body.at('#adresse-message').text).to eq(email)
+      expect(response.parsed_body.at('#objet-message').text).to eq("Proposition d'une nouvelle démarche")
       expect(response.body).to include("href=\"mailto:#{email}?body=Bonjour%2C")
-      expect(response.body).to include('&amp;subject=%5BSimplifions.data%5D%20Proposition%20d%27un%20nouveau%20cas%20d%27usage"')
+      expect(response.body).to include('&amp;subject=Proposition%20d%27une%20nouvelle%20d%C3%A9marche"')
       expect(response.body).to include(ERB::Util.html_escape(
         "Les types d'administrations concernées (gardez les mentions utiles) :\n- Communes et groupements de communes\n- Caisses des écoles"
       ))
       expect(response.body).to include(ERB::Util.html_escape(
         "Le public concerné (gardez les mentions utiles) :\n- Particuliers\n- Associations"
       ))
-      expect(response.body).to include("Écrire à l'équipe")
+      expect(response.parsed_body.at('a[href^="mailto:"]').text).to eq('Ouvrir un e-mail déjà pré-rempli')
       expect(response.body).to include('href="/contact/contenu"')
+      expect(response.parsed_body.css('input, textarea')).to be_empty
+    end
+
+    it 'présente le modèle prêt à l’emploi, puis les modèles à copier soi-même' do
+      get contact_path('nouvel-article')
+
+      texte = response.parsed_body.text
+      expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
+                               'qui nous seront utiles pour comprendre votre proposition.')
+      expect(texte).to include("l'adresse, l'objet et les rubriques du message déjà remplis")
+      titres = response.parsed_body.css('h3').map(&:text)
+      expect(titres).to include("Utiliser le mail prêt à l'emploi :", 'Copier/coller le modèle pour écrire vous-même le mail :')
+      expect(titres).not_to include("Écrire à l'équipe :")
+      expect(response.parsed_body.css('h4')).to be_empty
+      expect(response.body.index('href="mailto:')).to be < response.body.index('Copier/coller le modèle')
+    end
+
+    it 'termine le modèle sur la dernière rubrique, sans formule de politesse' do
+      get contact_path('nouvel-article')
+
+      modele = response.parsed_body.at('#modele-message').text
+      expect(modele).to start_with('Bonjour,')
+      expect(modele).not_to include('Cordialement')
+      expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).not_to include('Cordialement')
+    end
+
+    it 'parle du problème rencontré, et non d’une proposition, sur le signalement d’un problème' do
+      get contact_path('probleme-site')
+
+      texte = response.parsed_body.text
+      expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
+                               'qui nous seront utiles pour comprendre le problème que vous avez rencontré.')
+      expect(texte).not_to include('comprendre votre proposition')
+    end
+
+    it 'parle du sujet, et non d’une proposition, sur la rubrique Autre sujet' do
+      get contact_path('autre')
+
+      texte = response.parsed_body.text
+      expect(texte).to include("Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations " \
+                               'qui nous seront utiles pour comprendre votre sujet.')
+      expect(texte).not_to include('comprendre votre proposition')
     end
 
     it 'propose de copier l’adresse, l’objet et le modèle, boutons cachés jusqu’au chargement du script' do
       get contact_path('autre')
 
       boutons = response.parsed_body.css('[data-controller="copier"] button[data-action="copier#copier"]')
-      expect(boutons.map(&:text)).to eq(["Copier l'adresse", "Copier l'objet du message", 'Copier le modèle de message'])
+      expect(boutons.map(&:text)).to eq(["Copier l'e-mail", "Copier l'objet", 'Copier le modèle'])
       expect(boutons).to all(satisfy { |bouton| bouton['class'].include?('fr-hidden') })
       expect(boutons.first['data-copier-texte-param']).to eq(email)
-      expect(boutons[1]['data-copier-texte-param']).to eq('[Simplifions.data] Prise de contact - autre sujet')
-      expect(response.parsed_body.at('textarea#modele-message')['data-copier-target']).to eq('source')
+      expect(boutons[1]['data-copier-texte-param']).to eq('Prise de contact - autre sujet')
+      expect(boutons.last['data-copier-texte-param']).to eq(response.parsed_body.at('#modele-message').text)
+      expect(boutons.pluck('data-copier-confirmation-param'))
+        .to eq(['E-mail copié', 'Objet du mail copié', 'Modèle de mail copié'])
       expect(response.parsed_body.at('[aria-live="polite"][data-copier-target="statut"]')).to be_present
     end
 
@@ -109,7 +163,7 @@ RSpec.describe 'Contact' do
       end
 
       get contact_path('nouvelle-solution')
-      modele = response.parsed_body.at('textarea#modele-message').text
+      modele = response.parsed_body.at('#modele-message').text
       expect(modele).to include("Les types d'administrations concernées (gardez les mentions utiles) :\n- Communes et groupements de communes")
       expect(modele).to include('- Établissements publics nationaux à caractère administratif 29', '- Particuliers')
       lien = CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])
@@ -125,7 +179,7 @@ RSpec.describe 'Contact' do
     end
 
     {
-      'modifier-cas-usage' => "Modification d'un cas d'usage",
+      'modifier-cas-usage' => "Modification d'une démarche",
       'nouvelle-solution' => "Référencement d'une nouvelle solution",
       'modifier-solution' => "Modification d'une fiche solution",
       'nouvel-article' => "Proposition d'un nouvel article",
@@ -137,34 +191,91 @@ RSpec.describe 'Contact' do
       it "donne l’adresse et l’objet « #{objet} » sur /contact/#{besoin}" do
         get contact_path(besoin)
 
-        expect(response.body).to include(ERB::Util.html_escape("[Simplifions.data] #{objet}"))
+        expect(response.parsed_body.at('#objet-message').text).to eq(objet)
         expect(response.body).to include("mailto:#{email}")
       end
     end
   end
 
   describe 'fiche d’origine' do
-    it 'cite le cas d’usage dans l’objet et le message' do
-      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+    it 'cite le cas d’usage, avec son picto, dans l’objet et le message' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', icone: '🍽️', visible: true)
 
       get contact_path('modifier-cas-usage', demarche: 'cantine')
 
-      expect(response.body).to include('Fiche concernée : <a href="http://www.example.com/demarches/cantine">Cantine à 1€</a>')
-      expect(response.body).to include('Fiche concernée : Cantine à 1€ – http://www.example.com/demarches/cantine')
-      expect(response.body).to include('.data] Modification d&#39;un cas d&#39;usage : Cantine à 1€')
+      expect(response.body).to include('Fiche concernée : 🍽️ Cantine à 1€ – http://www.example.com/demarches/cantine')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une démarche : 🍽️ Cantine à 1€")
     end
 
-    it 'cite la solution dans l’objet et le message' do
+    it 'ne demande plus le nom et l’URL du cas d’usage une fois celui-ci choisi' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+
+      get contact_path('modifier-cas-usage')
+      expect(response.parsed_body.at('#modele-message').text).to include("Le nom et l'URL de la démarche concernée")
+
+      get contact_path('modifier-cas-usage', demarche: 'cantine')
+      modele = response.parsed_body.at('#modele-message').text
+      expect(modele).not_to include("Le nom et l'URL de la démarche concernée")
+      expect(modele).to include('Votre organisation et votre fonction', 'Vos propositions pour améliorer la fiche')
+      expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).not_to include("Le nom et l'URL")
+    end
+
+    it 'propose de choisir la solution publiée, avec le nom court de son opérateur' do
+      dinum = Organisation.create!(nom: 'DINUM', nom_long: 'Direction interministérielle du numérique')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle', organisations: [dinum])
+      Solution.create!(nom: 'Annuaire', slug: 'annuaire', visible: true, categorie: 'brique_logicielle')
+      Solution.create!(nom: 'API hors fiche', visible: true, categorie: 'api')
+      Solution.create!(nom: 'Brouillon', slug: 'brouillon', categorie: 'brique_logicielle')
+
+      get contact_path('modifier-solution')
+
+      formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-solution"]')
+      expect(formulaire['data-turbo-frame']).to eq('modele-de-mail')
+      options = formulaire.css('select[name="solution"] option').map { |option| [option['value'], option.text] }
+      expect(options).to eq([['', 'Sélectionner une solution'], %w[annuaire Annuaire], ['babily', 'Babily – DINUM']])
+      expect(formulaire.at('select[name="solution"]')['data-action']).to eq('change->form#submit')
+      expect(formulaire.at('label[for="solution"]').text).to include('Solution concernée', 'se met à jour selon votre choix')
+      expect(formulaire.at('noscript button[type="submit"]')).to be_present
+      expect(response.parsed_body.at('turbo-frame#modele-de-mail #modele-message').text)
+        .to include("Le nom de la solution et l'URL de sa fiche")
+    end
+
+    it 'garde la liste des solutions, avec la solution choisie présélectionnée et le modèle allégé' do
       Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
 
       get contact_path('modifier-solution', solution: 'babily')
 
-      expect(response.body).to include('Fiche concernée : Babily – http://www.example.com/solutions/babily')
-      expect(response.body).to include('.data] Modification d&#39;une fiche solution : Babily')
+      expect(response.parsed_body.at('select[name="solution"] option[selected]')['value']).to eq('babily')
+      expect(response.parsed_body.at('#modele-message').text).not_to include("Le nom de la solution et l'URL de sa fiche")
+    end
+
+    it 'cite la solution et son opérateur dans l’objet et le message' do
+      dinum = Organisation.create!(nom: 'DINUM', nom_long: 'Direction interministérielle du numérique')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle', organisations: [dinum])
+
+      get contact_path('modifier-solution', solution: 'babily')
+
+      expect(response.parsed_body.at('#modele-message').text)
+        .to include('Fiche concernée : Babily – DINUM – http://www.example.com/solutions/babily')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une fiche solution : Babily – DINUM")
+      expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).to include('fiche solution : Babily – DINUM')
+    end
+
+    it 'nomme le même opérateur dans la liste et dans l’objet quand la solution en a plusieurs' do
+      djepva = Organisation.create!(nom: 'DJEPVA')
+      dinum = Organisation.create!(nom: 'DINUM')
+      Solution.create!(nom: 'Data.Subvention', slug: 'data-subvention', visible: true, categorie: 'brique_logicielle',
+        organisations: [dinum, djepva])
+
+      get contact_path('modifier-solution')
+      libelle = response.parsed_body.at('select[name="solution"] option[value="data-subvention"]').text
+
+      get contact_path('modifier-solution', solution: 'data-subvention')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une fiche solution : #{libelle}")
     end
 
     it 'propose de choisir le cas d’usage publié quand on n’arrive pas d’une fiche' do
-      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', icone: '🍽️', visible: true)
       Demarche.create!(nom: 'Bourse', slug: 'bourse', visible: true)
       Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
 
@@ -172,17 +283,31 @@ RSpec.describe 'Contact' do
 
       formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-cas-usage"]')
       options = formulaire.css('select[name="demarche"] option').map { |option| [option['value'], option.text] }
-      expect(options).to eq([['', "Sélectionner un cas d'usage"], %w[bourse Bourse], ['cantine', 'Cantine à 1€']])
-      expect(formulaire.at('label[for="demarche"]').text.strip).to eq("Cas d'usage concerné")
-      expect(formulaire.at('button[type="submit"]').text.strip).to eq('Préremplir le message')
+      expect(options).to eq([['', 'Sélectionner une démarche'], %w[bourse Bourse], ['cantine', '🍽️ Cantine à 1€']])
+      expect(formulaire.at('label[for="demarche"]').text).to include('Démarche concernée',
+        'Le modèle de mail ci-dessous se met à jour selon votre choix.')
+      expect(formulaire.at('noscript button[type="submit"]').text.strip).to eq('Préremplir le message')
     end
 
-    it 'ne propose plus la liste quand le cas d’usage est choisi' do
+    it 'met à jour le modèle de mail dès qu’on choisit le cas d’usage' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
+
+      get contact_path('modifier-cas-usage')
+
+      formulaire = response.parsed_body.at('form[action="/contact/modifier-cas-usage"]')
+      expect(formulaire['data-controller']).to eq('form')
+      expect(formulaire['data-turbo-frame']).to eq('modele-de-mail')
+      expect(formulaire['data-turbo-action']).to eq('advance')
+      expect(formulaire.at('select[name="demarche"]')['data-action']).to eq('change->form#submit')
+      expect(response.parsed_body.at('turbo-frame#modele-de-mail a[href^="mailto:"]')).to be_present
+    end
+
+    it 'garde la liste, avec le cas d’usage choisi présélectionné' do
       Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', visible: true)
 
       get contact_path('modifier-cas-usage', demarche: 'cantine')
 
-      expect(response.parsed_body.at('select[name="demarche"]')).to be_nil
+      expect(response.parsed_body.at('select[name="demarche"] option[selected]')['value']).to eq('cantine')
     end
 
     it 'ignore une fiche inconnue, non publiée, d’un autre type ou qui n’est pas un texte' do
@@ -195,13 +320,14 @@ RSpec.describe 'Contact' do
         get chemin
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).not_to include('Fiche concernée', 'Brouillon', 'Solution homonyme')
+        expect(response.body).not_to include('Fiche concernée', 'Brouillon')
+        expect(response.parsed_body.at('#objet-message').text).not_to include('Solution homonyme')
       end
     end
   end
 
   describe 'GET /contact/autre' do
-    it 'rappelle les autres sujets, avec un lien, avant les informations à transmettre' do
+    it 'rappelle les autres sujets, avec un lien, avant le modèle de mail' do
       get contact_path('autre')
 
       corps = response.body
@@ -210,7 +336,7 @@ RSpec.describe 'Contact' do
         expect(corps).to include(%(href="/contact/#{besoin}"))
       end
       expect(corps).not_to include('href="/contact/autre"')
-      expect(corps.index('Veuillez vérifier')).to be < corps.index('Informations à nous transmettre')
+      expect(corps.index('Veuillez vérifier')).to be < corps.index('id="modele-message"')
     end
   end
 
