@@ -56,7 +56,7 @@ RSpec.describe 'Contact' do
         ['/contact/nouvel-article', 'Proposer un nouvel article'],
         ['/contact/autre-contenu', "Proposer la modification d'un autre contenu"]
       ])
-      expect(response.parsed_body.css('h3').map(&:text)).to eq(['Démarches', 'Solutions', 'Articles', 'Autre contenu'])
+      expect(response.parsed_body.css('main h3').map(&:text)).to eq(['Démarches', 'Solutions', 'Articles', 'Autre contenu'])
       expect(response.body).to include('title="Voir les démarches - nouvelle fenêtre"')
       expect(response.body).not_to include(email)
     end
