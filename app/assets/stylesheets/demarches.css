@@ -48,8 +48,18 @@ body:has(.bouton-proposer-modification) {
   background-color: var(--background-default-grey-active);
 }
 
-.bouton-proposer-modification[target=_blank]::after {
-  display: none;
+@media (max-width: 61.98em) {
+  .bouton-proposer-modification[target=_blank]::after {
+    display: none;
+  }
+}
+
+@media (min-width: 62em) {
+  .bouton-proposer-modification {
+    font-size: 1rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+  }
 }
 
 .fiche-page blockquote {
