@@ -261,6 +261,19 @@ RSpec.describe 'Contact' do
       expect(CGI.unescape(response.parsed_body.at('a[href^="mailto:"]')['href'])).to include('fiche solution : Babily – DINUM')
     end
 
+    it 'nomme le même opérateur dans la liste et dans l’objet quand la solution en a plusieurs' do
+      djepva = Organisation.create!(nom: 'DJEPVA')
+      dinum = Organisation.create!(nom: 'DINUM')
+      Solution.create!(nom: 'Data.Subvention', slug: 'data-subvention', visible: true, categorie: 'brique_logicielle',
+        organisations: [dinum, djepva])
+
+      get contact_path('modifier-solution')
+      libelle = response.parsed_body.at('select[name="solution"] option[value="data-subvention"]').text
+
+      get contact_path('modifier-solution', solution: 'data-subvention')
+      expect(response.parsed_body.at('#objet-message').text).to eq("Modification d'une fiche solution : #{libelle}")
+    end
+
     it 'propose de choisir le cas d’usage publié quand on n’arrive pas d’une fiche' do
       Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', icone: '🍽️', visible: true)
       Demarche.create!(nom: 'Bourse', slug: 'bourse', visible: true)

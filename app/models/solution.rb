@@ -33,7 +33,7 @@ class Solution < ApplicationRecord
                 datagouv_acces_acteurs_publics].freeze
   before_save -> { assign_attributes(datagouv_vides) }, if: -> { uid_datagouv_changed? && uid_datagouv_was.present? }
 
-  has_and_belongs_to_many :organisations
+  has_and_belongs_to_many :organisations, -> { order(:id) }
   has_and_belongs_to_many :vocabulaires
   has_and_belongs_to_many :types_acteurs, class_name: 'TypeActeur'
   has_many :recommandations, dependent: :destroy
