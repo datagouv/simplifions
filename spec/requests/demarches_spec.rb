@@ -202,6 +202,13 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('demarches-simplifiees.fr')
     end
 
+    it 'envoie chaque lien « Proposer » vers le formulaire de contact de ce cas d’usage, dans un nouvel onglet' do
+      expect(response.body).not_to include('href="#modification-contenu"')
+      liens = response.parsed_body.css('a[href^="/contact/modifier-cas-usage"]')
+      expect(liens.size).to be > 1
+      expect(liens).to all(satisfy { |lien| lien['target'] == '_blank' && lien['title'].end_with?(' - nouvelle fenêtre') })
+    end
+
     it 'rend les sections contexte et cadre juridique en markdown' do
       expect(response.body).to include('<strong>progressive</strong>')
       expect(response.body).to include('href="https://legifrance.gouv.fr/codes/article_lc/LEGIARTI000039036672"')

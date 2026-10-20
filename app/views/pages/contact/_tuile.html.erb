@@ -8,12 +8,7 @@
     </div>
     <div class="fr-tile__header">
       <div class="fr-tile__pictogram">
-        <% chemin = asset_path("artwork/pictograms/#{pictogramme}.svg") %>
-        <svg aria-hidden="true" class="fr-artwork" viewBox="0 0 80 80" width="80" height="80">
-          <use class="fr-artwork-decorative fr-artwork-decorative--blue-france" href="<%= chemin %>#artwork-decorative"></use>
-          <use class="fr-artwork-minor fr-artwork-minor--red-marianne" href="<%= chemin %>#artwork-minor"></use>
-          <use class="fr-artwork-major fr-artwork-major--blue-france" href="<%= chemin %>#artwork-major"></use>
-        </svg>
+        <%= render "pages/contact/pictogramme", pictogramme: %>
       </div>
     </div>
   </div>

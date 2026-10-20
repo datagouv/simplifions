@@ -147,6 +147,17 @@ form :target {
   resize: vertical;
 }
 
+.contact-titre {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.contact-titre .fr-artwork {
+  flex-shrink: 0;
+}
+
 .contact-groupe {
   display: flex;
   flex-wrap: wrap;
@@ -155,9 +166,34 @@ form :target {
   gap: 0.5rem;
 }
 
-.contact-adresse {
+.fond-beige-gris-galet {
+  background-color: var(--background-alt-beige-gris-galet);
+}
+
+.contact-separateur {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: 0.25rem;
+  gap: 1rem;
+}
+
+.contact-separateur::before,
+.contact-separateur::after {
+  content: "";
+  width: 3rem;
+  border-top: 1px solid var(--border-default-grey);
+}
+
+.contact-bloc-a-copier {
+  display: flow-root;
+}
+
+.contact-bloc-a-copier .fr-btn {
+  float: right;
+  margin-left: 1rem;
+}
+
+.contact-a-copier {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
