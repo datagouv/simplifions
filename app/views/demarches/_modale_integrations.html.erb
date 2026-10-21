@@ -37,21 +37,35 @@
                 <ul class="fr-raw-list fr-pl-1v">
                   <% utiles.each do |donnee| %>
                     <% integree = integrees_par_la_solution.include?(donnee.id) %>
-                    <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
+                    <% badge = DataserviceCardComponent.badge(donnee)
+                       producteur = donnee.producteur
+                       ligne = capture do %>
                       <span aria-hidden="true" class="fr-icon--sm <%= integree ? 'fr-icon-checkbox-circle-fill icon-green' : 'fr-icon-close-line' %>"></span>
-                      <%= donnee.nom.delete_suffix(" | #{titre}") %><span class="fr-sr-only"><%= integree ? ' : intégrée' : ' : non intégrée' %></span>
-                      <% if donnee.uid_datagouv.present? %>
-                        <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm fr-ml-1w', target: '_blank', rel: 'noopener external' do %>
-                          Voir sur data.gouv.fr<span class="fr-sr-only"> <%= donnee.nom %> - nouvelle fenêtre</span>
-                        <% end %>
-                      <% end %>
-                      <% badge = DataserviceCardComponent.badge(donnee)
-                         producteur = donnee.producteur %>
-                      <% if badge || producteur %>
-                        <p class="fr-text--xs fr-mb-0 fr-ml-3w">
-                          <% if badge %><span class="fr-badge fr-badge--sm fr-badge--no-icon fr-mr-1w <%= badge[:classe] %>"><%= badge[:label] %></span><% end %>
-                          <% if producteur %>Producteur : <%= producteur %><% end %>
-                        </p>
+                      <span><%= donnee.nom.delete_suffix(" | #{titre}") %><span class="fr-sr-only"><%= integree ? ' : intégrée' : ' : non intégrée' %></span></span>
+                    <% end %>
+                    <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
+                      <% if badge || producteur || donnee.uid_datagouv.present? %>
+                        <details class="donnees-integrees">
+                          <summary>
+                            <%= ligne %>
+                            <span aria-hidden="true" class="donnees-integrees__fleche fr-icon-arrow-down-s-line fr-icon--sm"></span>
+                          </summary>
+                          <div class="fr-ml-3w fr-mt-1v fr-mb-1w">
+                            <% if badge || producteur %>
+                              <p class="fr-text--xs fr-mb-1v">
+                                <% if badge %><span class="fr-badge fr-badge--sm fr-badge--no-icon fr-mr-1w <%= badge[:classe] %>"><%= badge[:label] %></span><% end %>
+                                <% if producteur %>Producteur : <%= producteur %><% end %>
+                              </p>
+                            <% end %>
+                            <% if donnee.uid_datagouv.present? %>
+                              <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm', target: '_blank', rel: 'noopener external' do %>
+                                Voir sur data.gouv.fr<span class="fr-sr-only"> <%= donnee.nom %> - nouvelle fenêtre</span>
+                              <% end %>
+                            <% end %>
+                          </div>
+                        </details>
+                      <% else %>
+                        <%= ligne %>
                       <% end %>
                     </li>
                   <% end %>
