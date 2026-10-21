@@ -224,8 +224,8 @@
     </p>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("bouquet-api-entreprise").except(:image),
-          solution_card("bouquet-api-particulier").except(:image)
+          solution_card("bouquet-api-entreprise", arrow: true, image: nil),
+          solution_card("bouquet-api-particulier", arrow: true, image: nil)
         ]) do %>
       <p>
         Pour que les administrations n'aient pas à brancher des dizaines de connexions différentes à chaque
@@ -235,8 +235,8 @@
     <% end %>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("api-impot-particulier"),
-          solution_card("api-service-finances-publiques-sfip")
+          solution_card("api-impot-particulier", arrow: true),
+          solution_card("api-service-finances-publiques-sfip", arrow: true)
         ]) do %>
       <p>
         <b>La direction générale des finances publiques a également mis en œuvre deux API dédiées à la
@@ -248,7 +248,7 @@
     <% end %>
 
     <%= render ArticleSpotlightComponent.new(cards: [
-          solution_card("franceconnect-2").except(:image)
+          solution_card("franceconnect-2", arrow: true, image: nil)
         ]) do %>
       <p>
         L'utilisation de l'<b>API FranceConnect permet d'utiliser en données d'appel une connexion de l'usager

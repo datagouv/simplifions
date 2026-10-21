@@ -49,7 +49,49 @@ RSpec.describe 'Articles' do
       expect(response.body).not_to include('Base FC')
     end
 
+    it 'tire les cartes citées de la fiche en base : nom et opérateur' do
+      Solution.create!(nom: 'FranceConnect v2', slug: 'franceconnect-2', visible: true,
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+
+      get article_path('apis-franceconnectees')
+
+      cartes = response.parsed_body.css('.spotlight')
+      expect(cartes.css('a[href="/solutions/franceconnect-2"]').text).to eq('FranceConnect v2')
+      expect(cartes.css('.fr-badge').text.squish).to eq('Solution publique | DINUM')
+    end
+
+    it 'rend l’article sans la carte d’une solution cachée ou disparue' do
+      Solution.create!(nom: 'FranceConnect', slug: 'franceconnect-2')
+
+      get article_path('apis-franceconnectees')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('/solutions/franceconnect-2')
+      expect(response.body).not_to include('/solutions/bouquet-api-particulier')
+    end
+
+    it 'signale à Sentry une fiche citée introuvable, mais pas une fiche masquée' do
+      Solution.create!(nom: 'FranceConnect', slug: 'franceconnect-2')
+      allow(Sentry).to receive(:capture_message)
+
+      get article_path('apis-franceconnectees')
+
+      expect(Sentry).to have_received(:capture_message).at_least(:once).with(/solution.*bouquet-api-particulier/)
+      expect(Sentry).not_to have_received(:capture_message).with(/franceconnect-2/)
+    end
+
+    it 'signale à Sentry une démarche citée introuvable' do
+      allow(Sentry).to receive(:capture_message)
+
+      get article_path('guide-base-petites-collectivites')
+
+      expect(Sentry).to have_received(:capture_message)
+        .at_least(:once).with(/démarche.*marches-publics-depot-et-instruction-des-candidatures/)
+    end
+
     it 'fait défiler le bloc « Sont mentionnés » avec Précédent / Suivant' do
+      Solution.create!(nom: 'Bouquet API Entreprise', slug: 'bouquet-api-entreprise', visible: true)
+
       get article_path('qu-est-ce-qu-une-api')
       carrousel = response.parsed_body.css('[data-controller="carousel"]')
       expect(carrousel.css('.carousel-track')).to be_present
@@ -58,11 +100,21 @@ RSpec.describe 'Articles' do
     end
 
     it 'rend les tuiles des encarts comme le site actuel : sans tag de catégorie, description ou audience selon l’article' do
+      particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      communes = TypeActeur.create!(nom: 'Communes')
+      %w[franceconnect-2 bouquet-api-particulier formulaire-de-collecte-du-quotient-familial].each do |slug|
+        Solution.create!(nom: slug, slug:, visible: true, description_courte: 'Chapo de la fiche',
+          vocabulaires: [particuliers], types_acteurs: [communes])
+      end
+      Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics-depot-et-instruction-des-candidatures', visible: true,
+        vocabulaires: [particuliers], types_acteurs: [communes])
+
       get article_path('apis-franceconnectees')
       spotlights = response.parsed_body.css('.spotlight')
       expect(spotlights.text).to include('FranceConnect est une solution d’identification')
       expect(spotlights.text).to include('API distribuant les données des particuliers')
       expect(spotlights.text).not_to include('Pour simplifier les démarches')
+      expect(response.body).not_to include('Chapo de la fiche')
 
       get article_path('guide-base-petites-collectivites')
       page = response.parsed_body
