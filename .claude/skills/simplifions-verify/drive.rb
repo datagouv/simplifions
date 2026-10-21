@@ -1770,6 +1770,7 @@ def donnees_integrees(page)
   section.find("button.fr-accordion__btn[aria-controls='#{oeil.ancestor('.fr-collapse', visible: :all)[:id]}']").click
   oeil.ancestor('.solution-integratrice-card').assert_selector('.solution-integratrice-card__total')
   modale = donnees_integrees_ouvrir(page, demarche, oeil)
+  donnees_integrees_detail(page, modale)
   donnees_integrees_fermer(page, oeil, modale)
   donnees_integrees_ordre(page)
 end
@@ -1801,6 +1802,20 @@ def donnees_integrees_ordre(page)
   page.visit("/demarches/#{slug}")
   Verify.evidence('fiche-donnees-integrees', page, 'cartes-classees',
     "grilles=#{grilles.size} plus_variee=#{slug} cartes=#{cartes.map { |nom, compte, total| "#{nom} #{compte} (total #{total})" }.inspect}")
+end
+
+def donnees_integrees_detail(page, modale)
+  ligne = modale.first('li details', minimum: 1).ancestor('li')
+  ligne.find('summary').click
+  detail = ligne.find('details[open] > div').text
+  raise 'détail vide' if detail.blank?
+
+  Verify.evidence('fiche-donnees-integrees', page, 'detail-ouvert', "ligne=#{ligne.find('summary').text.inspect} detail=#{detail.squish.inspect}")
+  ligne.find('summary').click
+  ligne.assert_no_selector('details[open]')
+  raise 'détail encore visible' if ligne.has_text?(detail.lines.first.strip, wait: 0)
+
+  Verify.evidence('fiche-donnees-integrees', page, 'detail-masque', "ligne=#{ligne.find('summary').text.inspect} detail_visible=false")
 end
 
 def donnees_integrees_ouvrir(page, demarche, oeil)
