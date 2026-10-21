@@ -229,6 +229,28 @@ body:has(.bouton-proposer-modification) {
   display: none;
 }
 
+.affichage-personnalise__fil {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 1rem;
+}
+
+@media (min-width: 48em) {
+  html:has(.affichage-personnalise__entete) {
+    scroll-padding-top: 4rem;
+  }
+
+  .affichage-personnalise__entete {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--background-default-grey);
+    box-shadow: 0 1px 0 var(--border-default-grey);
+  }
+}
+
 .tri-solutions {
   display: flex;
   flex-wrap: wrap;
