@@ -37,12 +37,12 @@
               <% end %>
             </tr>
           </thead>
-          <tbody>
-            <% solutions.each do |solution| %>
+          <tbody data-tri-solutions-target="liste">
+            <% solutions.each_with_index do |solution, ordre| %>
               <% integrees = demarche.integrees_par(solution)
                  total_integrees, total_utiles = demarche.couverture(solution)
                  ligne = "#{prefixe}-solution-#{solution.id}" %>
-              <tr>
+              <tr data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
                 <th scope="row" id="<%= ligne %>" class="fr-cell--fixed tableau-integratrices__solution">
                   <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
                   <%= render 'badge_operateur', solution: %>
