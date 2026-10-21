@@ -168,6 +168,30 @@ RSpec.describe Recommandation do
 
       expect(described_class.create!(demarche:, solution: bouquet, niveau: :niveau_2).couvertures).to eq({})
     end
+
+    it 'est vide pour un bouquet qui n’expose aucune API, même intégré' do
+      demarche = Demarche.create!(nom: 'Authentification d’un particulier')
+      nc_connect = Solution.create!(nom: 'NC Connect', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'Nouvelle-Calédonie', public_ou_prive: 'Public')])
+      logiciel = Solution.create!(nom: 'CIVIL Enfance', slug: 'civil-enfance', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      reco = described_class.create!(demarche:, solution: nc_connect, niveau: :niveau_2)
+      Integration.create!(integratrice: logiciel, integree: nc_connect, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+
+      expect(reco.solutions_integratrices).to eq([logiciel])
+      expect(reco.couvertures).to eq({})
+    end
+
+    it 'compte une API recommandée seule pour sa propre donnée utile' do
+      demarche = Demarche.create!(nom: 'Marchés publics')
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      portail = Solution.create!(nom: 'Portail', slug: 'portail', categorie: 'site_de_consultation', visible: true)
+      reco = described_class.create!(demarche:, solution: bodacc, niveau: :niveau_2)
+      Integration.create!(integratrice: logiciel, integree: bodacc, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      Integration.create!(integratrice: portail, integree: bodacc, type_integration: 'expose', statut: '✅ en production', demarches: [demarche])
+
+      expect(reco.couvertures).to eq(logiciel.id => [1, 1], portail.id => [0, 1])
+    end
   end
 
   it 'exige un type de recommandation' do

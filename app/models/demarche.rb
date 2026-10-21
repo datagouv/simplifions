@@ -54,8 +54,11 @@ class Demarche < ApplicationRecord
   end
 
   def groupes_donnees_utiles
-    @groupes_donnees_utiles ||= recommandations_publiees.select { it.apis_utiles.any? }
-      .map { [it.solution.nom, it.apis_utiles.map(&:solution), [it]] }
+    @groupes_donnees_utiles ||= begin
+      seules, bouquets = recommandations_publiees.select { it.donnees_attendues.any? }.partition { !it.solution.fiche? }
+      autres = seules.flat_map(&:donnees_attendues)
+      bouquets.map { [it.solution.nom, it.donnees_attendues, [it]] } + (autres.any? ? [[nil, autres, seules]] : [])
+    end
   end
 
   def donnees_utiles = groupes_donnees_utiles.flat_map(&:second)

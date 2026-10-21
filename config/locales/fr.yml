@@ -205,6 +205,7 @@ fr:
         one: "La solution %{noms} deviendra privée."
         other: "Ces solutions deviendront privées : %{noms}."
   public:
+    autres_donnees_utiles: "Autres API et jeux de données"
     solution:
       privee: "Solution privée"
       publique: "Solution publique"

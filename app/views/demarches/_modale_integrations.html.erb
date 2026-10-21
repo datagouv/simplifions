@@ -27,8 +27,9 @@
                 </p>
               </div>
             </div>
-            <% demarche.groupes_donnees_utiles.each do |titre, utiles, recommandations| %>
-              <details class="donnees-integrees fr-mt-3w" <%= 'open' if recommandation.apis_utiles.empty? || utiles.intersect?(recommandation.apis_utiles.map(&:solution)) %>>
+            <% demarche.groupes_donnees_utiles.each do |bouquet, utiles, recommandations| %>
+              <% titre = titre_groupe_donnees(bouquet) %>
+              <details class="donnees-integrees fr-mt-3w" <%= 'open' if utiles.intersect?(recommandation.donnees_attendues) %>>
                 <summary class="fr-text--bold fr-mb-1w">
                   <span aria-hidden="true" class="donnees-integrees__fleche fr-icon-arrow-down-s-fill"></span>
                   <%= titre %>
