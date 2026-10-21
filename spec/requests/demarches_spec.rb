@@ -343,6 +343,8 @@ RSpec.describe 'Demarches' do
       Recommandation.create!(demarche:, solution: sirene, niveau: :niveau_2, visible: true, ordre: 3)
       Integration.create!(integratrice: acheteza, integree: sirene, type_integration: 'consomme',
         statut: '✅ en production', demarches: [demarche])
+      inclusion = Solution.create!(nom: 'API Marché de l’inclusion', categorie: 'api')
+      Recommandation.create!(demarche:, solution: inclusion, niveau: :niveau_2, visible: true, ordre: 4)
 
       get demarche_path('marches-publics')
     end
@@ -356,7 +358,7 @@ RSpec.describe 'Demarches' do
     def fenetre(recommandee) = page.find("dialog.fr-modal##{oeil(recommandee)['aria-controls']}", visible: :all)
     def texte(recommandee) = fenetre(recommandee).text(:all).squish
 
-    it 'ouvre une fenêtre par carte, même sans compteur' do
+    it 'ouvre une fenêtre par carte' do
       fenetres = ['Bouquet API Entreprise', 'Bouquet API Particulier', 'API Sirene'].map { fenetre(it)[:id] }
 
       expect(fenetres.uniq.size).to eq(3)
@@ -367,24 +369,29 @@ RSpec.describe 'Demarches' do
       expect(fenetre('Bouquet API Entreprise')).to have_css('h2', text: 'Acheteza', visible: :all)
       expect(texte('Bouquet API Entreprise')).to include('Solution privée | Éditeur SAS')
         .and include('1/2 API « Bouquet API Entreprise » intégrées par cette solution, utiles pour la démarche « Marchés publics »')
-        .and include('Sur l’ensemble du cas d’usage : 2/3 API et jeux de données utiles intégrés.')
+        .and include('Sur l’ensemble du cas d’usage : 3/5 API et jeux de données utiles intégrés.')
     end
 
     it 'reprend la coche d’une carte à une seule donnée utile, puis le total' do
       expect(fenetre('Bouquet API Particulier')).to have_css('.indicator--green.fr-icon-check-line', visible: :all)
       expect(texte('Bouquet API Particulier')).to include('« Bouquet API Particulier » est intégrée par cette solution')
-        .and include('Sur l’ensemble du cas d’usage : 2/3')
+        .and include('Sur l’ensemble du cas d’usage : 3/5')
       expect(texte('Bouquet API Particulier')).not_to include('1/1 API')
     end
 
-    it 'ne reprend que le total pour une carte sans compteur' do
-      expect(texte('API Sirene')).to include('Sur l’ensemble du cas d’usage : 2/3')
-      expect(texte('API Sirene')).not_to include('intégrées par cette solution, utiles')
+    it 'compte une API recommandée seule pour une donnée utile, cochée sur sa carte' do
+      carte = oeil('API Sirene').ancestor('.solution-integratrice-card')
+
+      expect(carte).to have_css('.indicator--green.fr-icon-check-line')
+      expect(carte).to have_text('API intégrée')
+      expect(texte('API Sirene')).to include('« API Sirene » est intégrée par cette solution')
     end
 
-    it 'groupe les données par donnée recommandée, chaque groupe avec son compte' do
+    it 'groupe les données par bouquet, les API seules ensemble, chaque groupe avec son compte' do
       expect(texte('Bouquet API Entreprise')).to include('Bouquet API Entreprise (1/2)')
         .and include('Bouquet API Particulier (1/1)')
+        .and include('Autres API et jeux de données (1/2)')
+      expect(texte('Bouquet API Entreprise')).to include('API Sirene : intégrée').and include('API Marché de l’inclusion : non intégrée')
     end
 
     it 'montre en tête d’un groupe le même compte que la carte de sa donnée recommandée' do
@@ -397,8 +404,8 @@ RSpec.describe 'Demarches' do
     it 'compte au total les coches sur les lignes' do
       lignes = fenetre('Bouquet API Entreprise').all('li', visible: :all).map { it.text(:all) }
 
-      expect(lignes.size).to eq(3)
-      expect(lignes.count { it.include?(': intégrée') }).to eq(2)
+      expect(lignes.size).to eq(5)
+      expect(lignes.count { it.include?(': intégrée') }).to eq(3)
     end
 
     it 'coche chaque donnée utile intégrée, avec son détail data.gouv, sans la donnée qui attend sa publication' do
@@ -424,7 +431,35 @@ RSpec.describe 'Demarches' do
       carte = oeil('Bouquet API Entreprise').ancestor('.solution-integratrice-card').text.squish
 
       expect(carte).to include('1/2 API « Bouquet API Entreprise »')
-        .and include('2/3 API ou jeux de données au total pour ce cas d’usage')
+        .and include('3/5 API ou jeux de données au total pour ce cas d’usage')
+    end
+  end
+
+  describe 'bouquet recommandé qui n’expose aucune API' do
+    it 'n’a pas de compteur sur ses cartes et sort du total du cas d’usage' do
+      demarche = Demarche.create!(nom: 'Authentification d’un particulier', slug: 'authentification-particulier', visible: true)
+      etat = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      franceconnect = Solution.create!(nom: 'FranceConnect', categorie: 'brique_logicielle', organisations: [etat])
+      nc_connect = Solution.create!(nom: 'NC Connect', categorie: 'brique_logicielle', organisations: [etat])
+      api_franceconnect = Solution.create!(nom: 'API FranceConnect', categorie: 'api')
+      Integration.create!(integratrice: franceconnect, integree: api_franceconnect, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: franceconnect, niveau: :niveau_2, visible: true, ordre: 1)
+      Recommandation.create!(demarche:, solution: nc_connect, niveau: :niveau_2, visible: true, ordre: 2)
+      Recommandation.create!(demarche:, solution: api_franceconnect, niveau: :niveau_1, visible: true)
+      civil = Solution.create!(nom: 'CIVIL Enfance', slug: 'civil-enfance', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      [api_franceconnect, nc_connect].each do |integree|
+        Integration.create!(integratrice: civil, integree:, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      end
+
+      get demarche_path('authentification-particulier')
+
+      page = Capybara.string(response.body)
+      carte_nc_connect = page.find('.reco-card', text: /Via «\s+NC Connect\s+»/).find('.solution-integratrice-card')
+      expect(carte_nc_connect).to have_no_css('.solution-integratrice-card__couverture > .integration-indicator__count')
+      expect(carte_nc_connect.text.squish).to include('1/1 API ou jeux de données au total pour ce cas d’usage')
+      fenetres = page.all('dialog.fr-modal', visible: :all).map { it.text(:all).squish }.join
+      expect(fenetres).to include('API FranceConnect : intégrée')
+      expect(fenetres).not_to include('NC Connect : non intégrée')
     end
   end
 

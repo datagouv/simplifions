@@ -41,17 +41,21 @@ class Recommandation < ApplicationRecord
   end
 
   def couvertures
-    return {} if apis_utiles.empty?
+    return {} if donnees_attendues.empty?
 
     solutions_integratrices.ids.index_with { |integratrice_id| couverture(integratrice_id) }
   end
 
-  def couverture(integratrice_id) = [integrees.fetch(integratrice_id, []).size, apis_utiles.size]
+  def couverture(integratrice_id) = [integrees.fetch(integratrice_id, []).size, donnees_attendues.size]
 
   def integrees
-    @integrees ||= Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
+    @integrees ||= Integration.consomme.en_production.where(integree_id: donnees_attendues.map(&:id))
       .distinct.pluck(:integratrice_id, :integree_id)
       .group_by(&:first).transform_values { |paires| paires.map(&:last) }
+  end
+
+  def donnees_attendues
+    @donnees_attendues ||= solution.fiche? ? apis_utiles.map(&:solution) : [solution]
   end
 
   def moyens_acces

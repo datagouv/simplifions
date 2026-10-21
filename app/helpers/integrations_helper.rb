@@ -7,4 +7,6 @@ module IntegrationsHelper
     else 'red'
     end
   end
+
+  def titre_groupe_donnees(bouquet) = bouquet || t('public.autres_donnees_utiles')
 end
