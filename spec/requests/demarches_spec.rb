@@ -587,6 +587,13 @@ RSpec.describe 'Demarches' do
         ])
       end
 
+      it 'rouvre les tags sous le fil d’Ariane par le bouton « Affichage personnalisé », caché sans JavaScript' do
+        bouton = page.find('.affichage-personnalise__entete button', text: 'Affichage personnalisé', visible: :all)
+
+        expect(bouton[:class]).to include('fr-hidden')
+        expect(page.find("##{bouton[:'aria-controls']}.fr-collapse", visible: :all)).to have_css('button.fr-tag', count: 3, visible: :all)
+      end
+
       it 'rattache chaque section des deux onglets à un tag, repliée dans le premier, dépliée dans le second' do
         section = ->(bloc) { [bloc[:'data-filtre'], bloc.find('h3, h5', visible: :all).text(:all).squish] }
         reco = page.find('#donnees-disponibles .reco-card', text: 'Bouquet API Entreprise')
