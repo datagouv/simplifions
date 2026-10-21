@@ -228,6 +228,19 @@ body:has(.bouton-proposer-modification) {
   display: none;
 }
 
+.tri-solutions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.tri-solutions .fr-select {
+  width: auto;
+  margin-top: 0;
+}
+
 .tableau-integratrices {
   --largeur-solution: 9rem;
 }

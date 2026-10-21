@@ -576,6 +576,18 @@ RSpec.describe 'Demarches' do
           .to eq(['Acheteza', 'Bouquet API Entreprise', 'API professionnels BIO', 'Non intégrée'])
       end
 
+      it 'propose de trier par données intégrées, choisi d’office, ou par titre, cartes et tableaux ensemble' do
+        tri = onglet_solutions.find_field('Trier par :', visible: :all)
+        ordre_servi = ->(liste) { liste.all('[data-nom]', visible: :all).map { [it['data-nom'], it['data-ordre']] } }
+
+        expect(tri.all('option', visible: :all).map { [it.text(:all), it.selected?] })
+          .to eq([['Le plus de données intégrées', true], ['Titre', false]])
+        expect(onglet_solutions.all('[data-tri-solutions-target=liste]', visible: :all).map(&ordre_servi)).to eq([
+          [%w[Zeta 0], %w[Acheteza 1]], [%w[Zeta 0], %w[Acheteza 1]], [['Brique marchés', '0']], [['Brique marchés', '0']]
+        ])
+        expect(onglet_solutions).to have_no_button(text: /Trier par/, visible: :all)
+      end
+
       it 'rend les fenêtres hors des onglets' do
         expect(page).to have_no_css('[role=tabpanel] dialog', visible: :all)
       end
