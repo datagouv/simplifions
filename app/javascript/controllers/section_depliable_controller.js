@@ -4,7 +4,14 @@ export default class extends Controller {
   static targets = ["bouton", "contenu"]
 
   basculer() {
-    const deplie = this.boutonTarget.getAttribute("aria-expanded") !== "true"
+    this.deplier(this.boutonTarget.getAttribute("aria-expanded") !== "true")
+  }
+
+  appliquer({ detail: { deplie } }) {
+    this.deplier(deplie)
+  }
+
+  deplier(deplie) {
     this.boutonTarget.setAttribute("aria-expanded", deplie)
     this.contenuTarget.hidden = !deplie
   }
