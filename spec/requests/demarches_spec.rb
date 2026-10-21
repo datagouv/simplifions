@@ -412,6 +412,14 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('API pas encore publiée')
     end
 
+    it 'replie le détail d’une donnée derrière sa ligne, qui s’ouvre et se referme au clic' do
+      ligne = fenetre('Bouquet API Entreprise').find('li', text: 'API BODACC', visible: :all)
+      bascule = ligne.find('details > summary', visible: :all).text(:all).squish
+
+      expect(bascule).to eq('API BODACC : intégrée')
+      expect(ligne.text(:all)).to include('API ouverte').and include('Producteur : DILA').and include('Voir sur data.gouv.fr')
+    end
+
     it 'montre sur la carte le compte de sa recommandation et le total, comme sa fenêtre' do
       carte = oeil('Bouquet API Entreprise').ancestor('.solution-integratrice-card').text.squish
 
