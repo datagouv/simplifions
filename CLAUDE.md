@@ -36,9 +36,12 @@ S'arrêter au premier échelon qui suffit :
 
 Supprimer plutôt qu'ajouter, simple plutôt que malin, le moins de fichiers possible. Un nouveau fichier dans `app/models/`, une gem, une table, un job, un moteur générique (YAML + classe) : en parler d'abord dans un commentaire du ticket, pour le relecteur technique. Minimal veut dire moins de code, pas moins correct : validation des entrées, perte de données, accessibilité et sécurité ne se négocient pas. À taille égale, prendre la solution qui gère le mieux les cas limites.
 
+Avant d'écrire à la main un formulaire ou une liste admin en DSFR, regarder ce que DataPass (`etalab/data_pass`, même équipe) a déjà, comme son `DsfrFormBuilder`, et les gems reconnues (`ransack` et `kaminari` sont déjà installées) : un code déjà écrit et testé ailleurs coûte moins qu'un nouveau. Une gem qui fait le travail se propose dans le ticket, elle ne s'écarte pas par réflexe.
+
 ## Où mettre le code (Rails standard)
 - Contrôleur : lit les paramètres, charge, rend. Aucune règle métier.
 - Modèle : règles métier, validations, scopes.
+- `normalizes` transforme aussi les valeurs passées à `where` et `find_by` : un normaliseur qui rend `nil` (`presence`) change le sens des scopes sur cette colonne. Sur une colonne filtrée par un scope, garder une valeur du même type (`strip`), ou tester le scope avec la valeur brute.
 - Vue : affiche seulement. Morceau d'interface répété → composant dans `app/components/` (ex. `SolutionCardComponent`) ; mise en forme → helper.
 - Import Grist et data.gouv : les interactors et organizers existants (`app/interactors/`, `app/organizers/`).
 - Pas de nouvelle couche (service, form object, presenter) pour un seul usage : on extrait à la troisième répétition.
