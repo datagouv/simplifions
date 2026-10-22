@@ -27,7 +27,7 @@ Linear issue ──> challenge ──> plan ──> user approves ──> ship (
 | a PR to look at | `/simplifions-review <url>`, fresh subagent | report relayed, in the PR's language |
 | an explicit command | as given | — |
 
-The feature map (`.claude/skills/verify-simplifions/`) is how the agent proves the change to the user and to Thomas: ship drives the feature it touched there and the PR cites the evidence.
+The feature map (`.claude/skills/simplifions-verify/`) is how the agent proves the change to the user and to Thomas: ship drives the feature it touched there and the PR cites the evidence.
 
 ## Who decides
 
