@@ -26,7 +26,7 @@ Les fichiers modifiés localement sont pris en compte immédiatement (le code es
 
 ## Démarrer sans Docker
 
-Prérequis : Ruby 4.0.7 (voir `.ruby-version`) et PostgreSQL.
+Prérequis : Ruby 4.0.9 (voir `.ruby-version`) et PostgreSQL.
 
 ```bash
 bin/setup      # installe les gems, crée la base, démarre le serveur
