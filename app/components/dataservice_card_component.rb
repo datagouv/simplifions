@@ -15,6 +15,13 @@ class DataserviceCardComponent < ApplicationComponent
     %w[jeu restricted] => ['Jeu de données en accès restreint', 'fr-badge--orange-terre-battue', 'fr-icon-lock-line']
   }.freeze
 
+  def self.badge(solution)
+    nature = solution.categorie_base_de_donnees? ? 'jeu' : 'api'
+    acces = solution.datagouv_acces
+    label, classe, icone = BADGES[[nature, acces, solution.datagouv_acces_acteurs_publics]] || BADGES[[nature, acces]] || return
+    { label:, classe:, icone: }
+  end
+
   def initialize(solution, heading: 'h3')
     @solution = solution
     @heading = heading
@@ -24,22 +31,11 @@ class DataserviceCardComponent < ApplicationComponent
 
   attr_reader :solution
 
-  delegate :datagouv_logo, :lien_datagouv, to: :solution
+  delegate :datagouv_logo, :lien_datagouv, :producteur, to: :solution
 
   def jeu_de_donnees? = solution.categorie_base_de_donnees?
   def titre = solution.datagouv_titre.presence || solution.nom
-
-  def producteur
-    solution.datagouv_organisation.presence ||
-      solution.organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
-  end
-
-  def badge
-    nature = jeu_de_donnees? ? 'jeu' : 'api'
-    acces = solution.datagouv_acces
-    label, classe, icone = BADGES[[nature, acces, solution.datagouv_acces_acteurs_publics]] || BADGES[[nature, acces]] || return
-    { label:, classe:, icone: }
-  end
+  def badge = self.class.badge(solution)
 
   def service_public? = solution.datagouv_organisation_badges.include?('public-service')
   def certifiee? = solution.datagouv_organisation_badges.include?('certified')

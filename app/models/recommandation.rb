@@ -41,21 +41,32 @@ class Recommandation < ApplicationRecord
   end
 
   def couvertures
-    y = utiles.count
-    return {} if y.zero?
+    return {} if donnees_attendues.empty?
 
-    integrees = Integration.consomme.en_production.where(integree_id: utiles.select(:solution_id))
-      .group(:integratrice_id).distinct.count(:integree_id)
-    solutions_integratrices.ids.index_with { |integratrice_id| [integrees.fetch(integratrice_id, 0), y] }
+    solutions_integratrices.ids.index_with { |integratrice_id| couverture(integratrice_id) }
+  end
+
+  def couverture(integratrice_id) = [integrees.fetch(integratrice_id, []).size, donnees_attendues.size]
+
+  def integrees
+    @integrees ||= Integration.consomme.en_production.where(integree_id: donnees_attendues.map(&:id))
+      .distinct.pluck(:integratrice_id, :integree_id)
+      .group_by(&:first).transform_values { |paires| paires.map(&:last) }
+  end
+
+  def donnees_attendues
+    @donnees_attendues ||= solution.fiche? ? apis_utiles.map(&:solution) : [solution]
   end
 
   def moyens_acces
-    solutions_integratrices.order(:nom).group_by(&:categorie)
+    solutions_integratrices.order(:nom)
+      .sort_by.with_index { |solution, rang_par_nom| [-integrees.fetch(solution.id, []).size, rang_par_nom] }
+      .group_by(&:categorie)
   end
 
   def apis_utiles
-    utiles.joins(:solution).preload(:solution)
-      .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC'))
+    @apis_utiles ||= utiles.joins(:solution).preload(solution: :organisations)
+      .order(Arel.sql('recommandations.ordre ASC NULLS LAST, length(recommandations.description) DESC NULLS LAST, solutions.nom ASC')).to_a
   end
 
   def lien_demande_acces

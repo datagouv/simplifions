@@ -95,6 +95,33 @@ RSpec.describe Recommandation do
 
       expect(reco.moyens_acces['logiciel_metier_cle_en_main']).to eq([acheteza, editions, zed])
     end
+
+    it 'place d’abord les intégratrices qui intègrent le plus de données de cette recommandation, puis par nom' do
+      cantine = Demarche.create!(nom: 'Cantine à 1€')
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      api_qf, api_statut = ['API Quotient familial', 'API Statut étudiant'].map do |nom|
+        Solution.create!(nom:, categorie: 'api').tap do |api|
+          Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+          described_class.create!(demarche: cantine, solution: api, niveau: :niveau_1)
+        end
+      end
+      api_hors_reco = Solution.create!(nom: 'API Hors recommandation', categorie: 'api')
+      described_class.create!(demarche: cantine, solution: api_hors_reco, niveau: :niveau_2)
+      reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
+      integrations = { 'Acheteza' => [api_qf], 'Zed' => [api_qf, api_statut], 'Berger' => [api_qf, api_hors_reco],
+                       'Éditions du Sud' => [api_statut] }
+      logiciels = integrations.to_h do |nom, apis|
+        logiciel = Solution.create!(nom:, slug: nom.parameterize, categorie: 'logiciel_metier_cle_en_main', visible: true)
+        apis.each do |api|
+          Integration.create!(integratrice: logiciel, integree: api, type_integration: 'consomme',
+            statut: '✅ en production', demarches: [cantine])
+        end
+        [nom, logiciel]
+      end
+
+      expect(reco.moyens_acces['logiciel_metier_cle_en_main'])
+        .to eq(logiciels.values_at('Zed', 'Acheteza', 'Berger', 'Éditions du Sud'))
+    end
   end
 
   describe '#couvertures' do
@@ -132,6 +159,7 @@ RSpec.describe Recommandation do
       reco = described_class.create!(demarche: cantine, solution: bouquet, niveau: :niveau_2)
 
       expect(reco.couvertures).to eq(logiciel.id => [2, 2], portail.id => [1, 2], hors_utiles.id => [0, 2])
+      expect(reco.integrees).to match(logiciel.id => contain_exactly(api_qf.id, api_statut.id), portail.id => [api_qf.id])
     end
 
     it 'est vide sans donnée utile attendue' do
@@ -139,6 +167,30 @@ RSpec.describe Recommandation do
       bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
 
       expect(described_class.create!(demarche:, solution: bouquet, niveau: :niveau_2).couvertures).to eq({})
+    end
+
+    it 'est vide pour un bouquet qui n’expose aucune API, même intégré' do
+      demarche = Demarche.create!(nom: 'Authentification d’un particulier')
+      nc_connect = Solution.create!(nom: 'NC Connect', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'Nouvelle-Calédonie', public_ou_prive: 'Public')])
+      logiciel = Solution.create!(nom: 'CIVIL Enfance', slug: 'civil-enfance', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      reco = described_class.create!(demarche:, solution: nc_connect, niveau: :niveau_2)
+      Integration.create!(integratrice: logiciel, integree: nc_connect, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+
+      expect(reco.solutions_integratrices).to eq([logiciel])
+      expect(reco.couvertures).to eq({})
+    end
+
+    it 'compte une API recommandée seule pour sa propre donnée utile' do
+      demarche = Demarche.create!(nom: 'Marchés publics')
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      portail = Solution.create!(nom: 'Portail', slug: 'portail', categorie: 'site_de_consultation', visible: true)
+      reco = described_class.create!(demarche:, solution: bodacc, niveau: :niveau_2)
+      Integration.create!(integratrice: logiciel, integree: bodacc, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      Integration.create!(integratrice: portail, integree: bodacc, type_integration: 'expose', statut: '✅ en production', demarches: [demarche])
+
+      expect(reco.couvertures).to eq(logiciel.id => [1, 1], portail.id => [0, 1])
     end
   end
 

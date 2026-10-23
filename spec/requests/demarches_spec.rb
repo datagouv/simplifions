@@ -247,10 +247,15 @@ RSpec.describe 'Demarches' do
       expect(response.body.scan('Aucune solution référencée').size).to eq(2)
     end
 
-    it 'rend chaque intégratrice comme le site : titre en gras, types de solution, données utiles intégrées toutes démarches confondues' do
-      expect(response.body).to match(%r{<p class="[^"]*fr-text--bold[^"]*">\s*<a[^>]*>Acheteza</a>})
-      expect(response.body).to include('Profil acheteur • Portail agent')
-      expect(response.body).to match(%r{indicator--green">2/2</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeu de données utiles Bouquet API Particulier</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">2</span> API ou jeu de données « Bouquet API Particulier » sur les 2 utiles pour ce cas d&#39;usage ont été intégrées par cette solution\.</span>})
+    it 'rend chaque intégratrice en carte : titre vers la fiche, types de solution, données utiles intégrées toutes démarches confondues' do
+      carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
+
+      expect(carte).to have_link('Acheteza', href: '/solutions/acheteza')
+      expect(carte).to have_link('Voir la fiche Acheteza', href: '/solutions/acheteza')
+      expect(carte).to have_text('Profil acheteur • Portail agent')
+      expect(carte).to have_css('.indicator--green', text: '2/2')
+      expect(carte).to have_text('API « Bouquet API Particulier »')
+      expect(carte[:class]).not_to include('fr-enlarge-link')
     end
 
     it 'propose « Plus d’informations » vers la fiche de la solution recommandée, avant la demande d’accès' do
@@ -283,6 +288,178 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('src="https://avatars.test/dinum-100.png"')
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('Filtrer les endpoints')
+    end
+  end
+
+  describe 'carte d’une intégratrice d’une seule donnée utile' do
+    it 'montre une coche verte au lieu de 1/1' do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      api_bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api')
+      bouquet = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      Integration.create!(integratrice: bouquet, integree: api_bodacc, type_integration: 'expose')
+      logiciel = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche:, solution: api_bodacc, niveau: :niveau_1, visible: true)
+      Integration.create!(integratrice: logiciel, integree: api_bodacc, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+
+      get demarche_path('marches-publics')
+
+      carte = Capybara.string(response.body).find('.solution-integratrice-card', text: 'Acheteza')
+      expect(carte).to have_css('.indicator--green.fr-icon-check-line')
+      expect(carte).to have_text('API intégrée')
+      expect(carte).to have_no_text('1/1 API « Bouquet API Entreprise »')
+    end
+  end
+
+  describe 'fenêtre des données intégrées ouverte depuis une carte' do
+    before do
+      demarche = Demarche.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true)
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      entreprise = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', organisations: [dinum])
+      particulier = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [dinum])
+      bodacc = Solution.create!(nom: 'API BODACC', categorie: 'api', uid_datagouv: 'bodacc1',
+        datagouv_acces: 'open', datagouv_organisation: 'DILA')
+      bio = Solution.create!(nom: 'API professionnels BIO', categorie: 'api')
+      qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api')
+      en_attente = Solution.create!(nom: 'API pas encore publiée', categorie: 'api')
+      [bodacc, bio, en_attente].each { Integration.create!(integratrice: entreprise, integree: it, type_integration: 'expose') }
+      Integration.create!(integratrice: particulier, integree: qf, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: entreprise, niveau: :niveau_2, visible: true, ordre: 1)
+      Recommandation.create!(demarche:, solution: particulier, niveau: :niveau_2, visible: true, ordre: 2)
+      [bodacc, bio, qf].each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_1, visible: true) }
+      Recommandation.create!(demarche:, solution: en_attente, niveau: :niveau_1, brouillon: { 'visible' => '1' })
+
+      acheteza = Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true,
+        organisations: [Organisation.create!(nom: 'Éditeur SAS', public_ou_prive: 'Privé')])
+      [bodacc, qf, en_attente].each do |api|
+        Integration.create!(integratrice: acheteza, integree: api, type_integration: 'consomme',
+          statut: '✅ en production', demarches: [demarche])
+      end
+      Integration.create!(integratrice: acheteza, integree: bio, type_integration: 'consomme',
+        statut: '⚙️ en développement', demarches: [demarche])
+      sirene = Solution.create!(nom: 'API Sirene', categorie: 'api')
+      Recommandation.create!(demarche:, solution: sirene, niveau: :niveau_2, visible: true, ordre: 3)
+      Integration.create!(integratrice: acheteza, integree: sirene, type_integration: 'consomme',
+        statut: '✅ en production', demarches: [demarche])
+      inclusion = Solution.create!(nom: 'API Marché de l’inclusion', categorie: 'api')
+      Recommandation.create!(demarche:, solution: inclusion, niveau: :niveau_2, visible: true, ordre: 4)
+
+      get demarche_path('marches-publics')
+    end
+
+    let(:page) { Capybara.string(response.body) }
+
+    def oeil(recommandee)
+      page.find('.reco-card', text: /Via «\s+#{recommandee}\s+»/).find('button', text: 'Voir les données intégrées par Acheteza')
+    end
+
+    def fenetre(recommandee) = page.find("dialog.fr-modal##{oeil(recommandee)['aria-controls']}", visible: :all)
+    def texte(recommandee) = fenetre(recommandee).text(:all).squish
+
+    it 'ouvre une fenêtre par carte' do
+      fenetres = ['Bouquet API Entreprise', 'Bouquet API Particulier', 'API Sirene'].map { fenetre(it)[:id] }
+
+      expect(fenetres.uniq.size).to eq(3)
+      expect(page).to have_css('dialog.fr-modal', count: 3, visible: :all)
+    end
+
+    it 'reprend le haut de la carte : compteur de la recommandation puis total du cas d’usage' do
+      expect(fenetre('Bouquet API Entreprise')).to have_css('h2', text: 'Acheteza', visible: :all)
+      expect(texte('Bouquet API Entreprise')).to include('Solution privée | Éditeur SAS')
+        .and include('1/2 API « Bouquet API Entreprise » intégrées par cette solution, utiles pour la démarche « Marchés publics »')
+        .and include('Sur l’ensemble du cas d’usage : 3/5 API et jeux de données utiles intégrés.')
+    end
+
+    it 'reprend la coche d’une carte à une seule donnée utile, puis le total' do
+      expect(fenetre('Bouquet API Particulier')).to have_css('.indicator--green.fr-icon-check-line', visible: :all)
+      expect(texte('Bouquet API Particulier')).to include('« Bouquet API Particulier » est intégrée par cette solution')
+        .and include('Sur l’ensemble du cas d’usage : 3/5')
+      expect(texte('Bouquet API Particulier')).not_to include('1/1 API')
+    end
+
+    it 'compte une API recommandée seule pour une donnée utile, cochée sur sa carte' do
+      carte = oeil('API Sirene').ancestor('.solution-integratrice-card')
+
+      expect(carte).to have_css('.indicator--green.fr-icon-check-line')
+      expect(carte).to have_text('API intégrée')
+      expect(texte('API Sirene')).to include('« API Sirene » est intégrée par cette solution')
+    end
+
+    it 'groupe les données par bouquet, les API seules ensemble, chaque groupe avec son compte' do
+      expect(texte('Bouquet API Entreprise')).to include('Bouquet API Entreprise (1/2)')
+        .and include('Bouquet API Particulier (1/1)')
+        .and include('Autres API et jeux de données (1/2)')
+      expect(texte('Bouquet API Entreprise')).to include('API Sirene : intégrée').and include('API Marché de l’inclusion : non intégrée')
+    end
+
+    it 'montre en tête d’un groupe le même compte que la carte de sa donnée recommandée' do
+      carte = oeil('Bouquet API Entreprise').ancestor('.solution-integratrice-card')
+      compte = carte.find('.solution-integratrice-card__couverture > .integration-indicator__count').text
+
+      expect(texte('Bouquet API Entreprise')).to include("Bouquet API Entreprise (#{compte})")
+    end
+
+    it 'compte au total les coches sur les lignes' do
+      lignes = fenetre('Bouquet API Entreprise').all('li', visible: :all).map { it.text(:all) }
+
+      expect(lignes.size).to eq(5)
+      expect(lignes.count { it.include?(': intégrée') }).to eq(3)
+    end
+
+    it 'coche chaque donnée utile intégrée, avec son détail data.gouv, sans la donnée qui attend sa publication' do
+      fenetre = fenetre('Bouquet API Entreprise')
+
+      expect(texte('Bouquet API Entreprise')).to include('API BODACC : intégrée')
+        .and include('API professionnels BIO : non intégrée')
+        .and include('API Quotient familial : intégrée')
+      expect(fenetre.find('li', text: 'API BODACC', visible: :all).text(:all)).to include('API ouverte').and include('DILA')
+      expect(fenetre).to have_link('Voir sur data.gouv.fr API BODACC - nouvelle fenêtre', href: 'https://www.data.gouv.fr/fr/dataservices/bodacc1', visible: :all)
+      expect(response.body).not_to include('API pas encore publiée')
+    end
+
+    it 'replie le détail d’une donnée derrière sa ligne, qui s’ouvre et se referme au clic' do
+      ligne = fenetre('Bouquet API Entreprise').find('li', text: 'API BODACC', visible: :all)
+      bascule = ligne.find('details > summary', visible: :all).text(:all).squish
+
+      expect(bascule).to eq('API BODACC : intégrée')
+      expect(ligne.text(:all)).to include('API ouverte').and include('Producteur : DILA').and include('Voir sur data.gouv.fr')
+    end
+
+    it 'montre sur la carte le compte de sa recommandation et le total, comme sa fenêtre' do
+      carte = oeil('Bouquet API Entreprise').ancestor('.solution-integratrice-card').text.squish
+
+      expect(carte).to include('1/2 API « Bouquet API Entreprise »')
+        .and include('3/5 API ou jeux de données au total pour ce cas d’usage')
+    end
+  end
+
+  describe 'bouquet recommandé qui n’expose aucune API' do
+    it 'n’a pas de compteur sur ses cartes et sort du total du cas d’usage' do
+      demarche = Demarche.create!(nom: 'Authentification d’un particulier', slug: 'authentification-particulier', visible: true)
+      etat = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      franceconnect = Solution.create!(nom: 'FranceConnect', categorie: 'brique_logicielle', organisations: [etat])
+      nc_connect = Solution.create!(nom: 'NC Connect', categorie: 'brique_logicielle', organisations: [etat])
+      api_franceconnect = Solution.create!(nom: 'API FranceConnect', categorie: 'api')
+      Integration.create!(integratrice: franceconnect, integree: api_franceconnect, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: franceconnect, niveau: :niveau_2, visible: true, ordre: 1)
+      Recommandation.create!(demarche:, solution: nc_connect, niveau: :niveau_2, visible: true, ordre: 2)
+      Recommandation.create!(demarche:, solution: api_franceconnect, niveau: :niveau_1, visible: true)
+      civil = Solution.create!(nom: 'CIVIL Enfance', slug: 'civil-enfance', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      [api_franceconnect, nc_connect].each do |integree|
+        Integration.create!(integratrice: civil, integree:, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      end
+
+      get demarche_path('authentification-particulier')
+
+      page = Capybara.string(response.body)
+      carte_nc_connect = page.find('.reco-card', text: /Via «\s+NC Connect\s+»/).find('.solution-integratrice-card')
+      expect(carte_nc_connect).to have_no_css('.solution-integratrice-card__couverture > .integration-indicator__count')
+      expect(carte_nc_connect.text.squish).to include('1/1 API ou jeux de données au total pour ce cas d’usage')
+      fenetres = page.all('dialog.fr-modal', visible: :all).map { it.text(:all).squish }.join
+      expect(fenetres).to include('API FranceConnect : intégrée')
+      expect(fenetres).not_to include('NC Connect : non intégrée')
     end
   end
 

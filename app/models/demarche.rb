@@ -49,7 +49,28 @@ class Demarche < ApplicationRecord
     transaction { (super && publier_les_recommandations) || raise(ActiveRecord::Rollback) } || false
   end
 
-  def recommandations_publiees = recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id)
+  def recommandations_publiees
+    @recommandations_publiees ||= recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
+  end
+
+  def groupes_donnees_utiles
+    @groupes_donnees_utiles ||= begin
+      seules, bouquets = recommandations_publiees.select { it.donnees_attendues.any? }.partition { !it.solution.fiche? }
+      autres = seules.flat_map(&:donnees_attendues)
+      bouquets.map { [it.solution.nom, it.donnees_attendues, [it]] } + (autres.any? ? [[nil, autres, seules]] : [])
+    end
+  end
+
+  def donnees_utiles = groupes_donnees_utiles.flat_map(&:second)
+
+  def couverture_du_groupe(recommandations, solution) = recommandations.map { it.couverture(solution.id) }.transpose.map(&:sum)
+
+  def integrees_par(solution) = recommandations_publiees.flat_map { it.integrees.fetch(solution.id, []) }.to_set
+
+  def couverture(solution)
+    integrees = integrees_par(solution)
+    [donnees_utiles.count { integrees.include?(it.id) }, donnees_utiles.size]
+  end
 
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
