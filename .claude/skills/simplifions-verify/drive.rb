@@ -34,8 +34,8 @@ def fiche(page)
   titre = page.first('h3 a').text
   page.click_link titre
   page.assert_selector 'h1', text: titre
-  page.assert_selector 'h2', text: 'Données disponibles'
-  section = page.find('section', text: 'Données disponibles', match: :first)
+  page.assert_selector '[role=tab][aria-selected=true]', text: 'Données disponibles et utiles'
+  section = page.find('#donnees-disponibles')
   section.first("button[aria-expanded='false']").click
   section.assert_selector "button[aria-expanded='true']"
   demarche = Demarche.visibles.find_by!(nom: Demarche.visibles.find { |d| d.titre == titre }.nom)
@@ -1744,7 +1744,7 @@ end
 def donnees_integrees(page)
   demarche = Demarche.visibles.order(:id).find { it.donnees_utiles.any? && it.recommandations_publiees.any? { |reco| reco.solutions_integratrices.exists? } }
   page.visit("/demarches/#{demarche.slug}")
-  section = page.find('section', text: 'Données disponibles', match: :first)
+  section = page.find('#donnees-disponibles')
   oeil = section.first('.solution-integratrice-card button', text: 'Voir les données intégrées par', visible: :all)
   section.find("button.fr-accordion__btn[aria-controls='#{oeil.ancestor('.fr-collapse', visible: :all)[:id]}']").click
   oeil.ancestor('.solution-integratrice-card').assert_selector('.solution-integratrice-card__total')
@@ -1824,6 +1824,90 @@ def donnees_integrees_fermer(page, oeil, modale)
   Verify.evidence('fiche-donnees-integrees', page, 'modale-fermee', "focus=#{focus}")
 end
 
+def onglet_solutions(page)
+  demarche = Demarche.visibles.order(:id).find { it.integratrices_par_categorie.any? }
+  par_categorie = demarche.integratrices_par_categorie
+  attendu = par_categorie.values.sum(&:size)
+  page.visit("/demarches/#{demarche.slug}")
+  onglet = page.find('[role=tab][aria-controls=solutions-integratrices]')
+  raise "onglet #{onglet.text.inspect}" unless onglet.text == "Solutions ayant intégré ces données (#{attendu})"
+
+  onglet.click
+  panneau = page.find('#solutions-integratrices.fr-tabs__panel--selected')
+  page.assert_selector('#donnees-disponibles', visible: :hidden)
+  noms = panneau.all('.solution-integratrice-card__title').map(&:text)
+  raise "cartes #{noms.size} != base #{attendu}" unless noms == par_categorie.values.flatten.map(&:nom)
+
+  page.scroll_to(panneau, align: :top)
+  Verify.evidence('onglet-solutions-integratrices', page, 'onglet-ouvert',
+    "slug=#{demarche.slug} onglet=#{onglet.text.inspect} cartes=#{noms.size} base=#{attendu} " \
+    "categories=#{panneau.all('h3 > .section-depliable__bouton').map(&:text).join(' | ')} premiere=#{noms.first.inspect} " \
+    "fond=#{page.evaluate_script("getComputedStyle(document.getElementById('solutions-integratrices')).backgroundColor")} " \
+    "largeur_panneau=#{panneau.rect.width.round} largeur_fenetre=#{page.evaluate_script('document.documentElement.clientWidth')}")
+  categorie = panneau.first('.section-depliable__bouton')
+  categorie.click
+  page.assert_selector("##{categorie['aria-controls']}", visible: :hidden)
+  fermee = categorie['aria-expanded']
+  Verify.evidence('onglet-solutions-integratrices', page, 'categorie-fermee', "titre=#{categorie.text.inspect} aria_expanded=#{fermee}")
+  categorie.send_keys(:enter)
+  focus = page.evaluate_script('document.activeElement.className')
+  page.assert_selector("##{categorie['aria-controls']} .solution-integratrice-card")
+  Verify.evidence('onglet-solutions-integratrices', page, 'categorie',
+    "titre=#{categorie.text.inspect} apres_clic=#{fermee} focus_apres_entree=#{focus.inspect} apres_entree=#{categorie['aria-expanded']}")
+  oeil = panneau.first('.solution-integratrice-card button.fr-icon-eye-line')
+  carte = oeil.ancestor('.solution-integratrice-card').find('.integration-indicator__count').text
+  oeil.click
+  modale = page.find("dialog##{oeil['aria-controls']}[open]")
+  total = modale.text.squish[%r{Sur l’ensemble du cas d’usage : (\d+/\d+)}, 1]
+  raise "carte #{carte} != modale #{total}" unless carte == total
+
+  Verify.evidence('onglet-solutions-integratrices', page, 'modale', "solution=#{modale.find('h2').text.inspect} carte=#{carte} modale=#{total}")
+  page.send_keys(:escape)
+  page.assert_no_selector("dialog##{oeil['aria-controls']}[open]")
+  ancre(page, demarche)
+  page.quit
+  sans_js(demarche)
+end
+
+def haut(page, selecteur) = page.evaluate_script("document.querySelector('#{selecteur}').getBoundingClientRect().top").round
+def hauts(page) = "haut_des_onglets=#{haut(page, '.fr-tabs')} haut_du_panneau=#{haut(page, '#solutions-integratrices')}"
+
+def arrivee_sur_l_onglet_solutions(page) = page.assert_selector('#solutions-integratrices.fr-tabs__panel--selected', wait: 20)
+
+def ancre(page, demarche)
+  page.visit("/demarches/#{demarche.slug}#solutions-integratrices")
+  arrivee_sur_l_onglet_solutions(page)
+  sleep 0.5
+  Verify.evidence('onglet-solutions-integratrices', page, 'lien-externe', "url=#{page.current_url} #{hauts(page)}")
+  page.visit('/demarches')
+  page.execute_script("Turbo.visit('/demarches/#{demarche.slug}#solutions-integratrices')")
+  arrivee_sur_l_onglet_solutions(page)
+  sleep 0.5
+  Verify.evidence('onglet-solutions-integratrices', page, 'lien-interne', "url=#{page.current_url} #{hauts(page)}")
+  page.visit("/demarches/#{demarche.slug}")
+  page.assert_selector('#donnees-disponibles.fr-tabs__panel--selected')
+  page.find('nav.fr-summary').click_link('Solutions ayant intégré ces données')
+  arrivee_sur_l_onglet_solutions(page)
+  sleep 0.5
+  page.assert_selector('#solutions-integratrices.fr-tabs__panel--selected')
+  Verify.evidence('onglet-solutions-integratrices', page, 'sommaire', "url=#{page.current_url} #{hauts(page)}")
+end
+
+def sans_js(demarche)
+  page = Verify.session(javascript: false)
+  page.visit("/demarches/#{demarche.slug}")
+  donnees = page.find('#donnees-disponibles').rect
+  solutions = page.find('#solutions-integratrices')
+  raise "solutions à #{solutions.rect.y}, données jusqu'à #{donnees.y + donnees.height}" unless solutions.rect.y >= donnees.y + donnees.height
+
+  page.scroll_to(solutions, align: :top)
+  Verify.evidence('onglet-solutions-integratrices', page, 'sans-js',
+    "donnees_bas=#{(donnees.y + donnees.height).round} solutions_haut=#{solutions.rect.y.round} " \
+    "cartes_visibles=#{solutions.all('.solution-integratrice-card').size}")
+ensure
+  page&.quit
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -1837,7 +1921,7 @@ end
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
   'contact' => :contact,
-  'donnees-integrees' => :donnees_integrees }.each do |nom, fn|
+  'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

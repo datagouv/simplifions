@@ -8,30 +8,37 @@ module Verify
   ADMIN = { email: 'verif@simplifions.local', password: 'verif-simplifions-2026' }.freeze
   CONTAINER_IP = Socket.ip_address_list.find(&:ipv4_private?).ip_address
 
-  Capybara.register_driver :verify_chrome do |app|
+  def self.chrome(app, javascript: true)
     options = Selenium::WebDriver::Chrome::Options.new
     %w[--headless=new --window-size=1280,1024 --lang=fr-FR].each { |flag| options.add_argument(flag) }
     options.add_argument("--unsafely-treat-insecure-origin-as-secure=http://#{CONTAINER_IP}:#{PORT}")
+    options.add_argument('--blink-settings=scriptEnabled=false') unless javascript
     Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://chrome:4444', options:)
   end
 
-  Capybara.register_driver :verify_firefox do |app|
+  def self.firefox(app, javascript: true)
     options = Selenium::WebDriver::Firefox::Options.new
     %w[-headless --width=1280 --height=1024].each { |flag| options.add_argument(flag) }
     options.add_preference('intl.accept_languages', 'fr-FR,fr')
     options.add_preference('dom.securecontext.allowlist', CONTAINER_IP)
+    options.add_preference('javascript.enabled', false) unless javascript
     Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://firefox:4444', options:)
   end
 
+  Capybara.register_driver(:verify_chrome) { chrome(it) }
+  Capybara.register_driver(:verify_firefox) { firefox(it) }
+  Capybara.register_driver(:verify_chrome_sans_js) { chrome(it, javascript: false) }
+  Capybara.register_driver(:verify_firefox_sans_js) { firefox(it, javascript: false) }
+
   def self.browser = ENV.fetch('VERIFY_BROWSER', 'chrome')
 
-  def self.session
+  def self.session(javascript: true)
     Capybara.server = :puma, { Silent: true }
     Capybara.server_host = '0.0.0.0'
     Capybara.server_port = PORT
     Capybara.app_host = "http://#{CONTAINER_IP}:#{PORT}"
     Capybara.default_max_wait_time = 5
-    Capybara::Session.new(:"verify_#{browser}", Rails.application)
+    Capybara::Session.new(:"verify_#{browser}#{'_sans_js' unless javascript}", Rails.application)
   end
 
   def self.ensure_admin

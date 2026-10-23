@@ -142,6 +142,12 @@ body:has(.bouton-proposer-modification) {
   align-items: baseline;
 }
 
+.solution-integratrice-card__oeil:first-child + .solution-integratrice-card__total {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  align-self: center;
+}
+
 .solution-integratrice-card__title {
   color: var(--text-action-high-blue-france);
   margin: 0 0 0.5rem;
@@ -176,6 +182,44 @@ body:has(.bouton-proposer-modification) {
     text-align: right;
     margin-top: 1rem;
   }
+}
+
+.onglets-pleine-largeur .fr-tabs__list {
+  padding-inline: 1rem;
+}
+
+@media (min-width: 48em) {
+  .onglets-pleine-largeur .fr-tabs__list {
+    padding-inline: max(1.5rem, calc((100% - 78rem) / 2 + 1.5rem));
+  }
+}
+
+.onglets-pleine-largeur .fr-tabs__panel {
+  padding-inline: 0;
+  scroll-margin-top: 3rem;
+}
+
+:root:not([data-fr-js]) .onglets-pleine-largeur .fr-tabs__panel {
+  visibility: visible;
+  left: 0;
+  margin-right: 0;
+}
+
+.section-depliable__bouton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.section-depliable__bouton[aria-expanded="false"] > .section-depliable__fleche {
+  transform: rotate(-90deg);
+}
+
+:root:not([data-fr-js]) .section-depliable__fleche {
+  display: none;
 }
 
 /* Page solution */
