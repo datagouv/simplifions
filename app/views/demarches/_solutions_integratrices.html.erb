@@ -1,18 +1,41 @@
-<% par_categorie.each do |categorie, solutions| %>
-  <section class="fr-mb-4w" data-controller="section-depliable">
-    <h3 class="fr-h5 fr-mb-1w">
-      <button type="button" class="section-depliable__bouton" aria-expanded="true"
-        aria-controls="solutions-integratrices-<%= categorie.to_s.dasherize %>"
-        data-section-depliable-target="bouton" data-action="section-depliable#basculer"><span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-fill fr-icon--md"></span><%= t("public.solutions_integratrices.#{categorie}") %></button>
-    </h3>
-    <div id="solutions-integratrices-<%= categorie.to_s.dasherize %>" data-section-depliable-target="contenu">
-      <ul class="fr-grid-row fr-grid-row--gutters fr-mt-1w list-none">
-        <% solutions.each do |solution| %>
-          <li class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3">
-            <%= render 'solution_integratrice', solution:, recommandation: nil, couverture: nil, demarche:, lien_modification: %>
-          </li>
+<div data-controller="tri-solutions">
+  <div class="fr-grid-row fr-grid-row--middle fr-mb-2w choix-affichage">
+    <fieldset class="fr-segmented fr-segmented--sm fr-mr-2w">
+      <legend class="fr-segmented__legend fr-sr-only">Affichage des solutions</legend>
+      <div class="fr-segmented__elements">
+        <% [%w[cartes Cartes fr-icon-layout-grid-line], ['tableau', 'Tableau comparatif', 'fr-icon-table-line']].each do |valeur, libelle, icone| %>
+          <div class="fr-segmented__element">
+            <input type="radio" id="affichage-solutions-<%= valeur %>" name="affichage-solutions" value="<%= valeur %>" autocomplete="off" <%= 'checked' if valeur == 'cartes' %>>
+            <label class="fr-label <%= icone %>" for="affichage-solutions-<%= valeur %>"><%= libelle %></label>
+          </div>
         <% end %>
-      </ul>
+      </div>
+    </fieldset>
+    <div class="fr-select-group fr-mb-0 tri-solutions">
+      <label class="fr-label" for="tri-solutions-integratrices">Trier par :</label>
+      <select class="fr-select" id="tri-solutions-integratrices" autocomplete="off" data-action="tri-solutions#trier">
+        <option value="integrees" selected>Le plus de données intégrées</option>
+        <option value="titre">Titre</option>
+      </select>
     </div>
-  </section>
-<% end %>
+  </div>
+  <% par_categorie.each do |categorie, solutions| %>
+    <section class="fr-mb-4w" data-controller="section-depliable">
+      <h3 class="fr-h5 fr-mb-1w">
+        <button type="button" class="section-depliable__bouton" aria-expanded="true"
+          aria-controls="solutions-integratrices-<%= categorie.to_s.dasherize %>"
+          data-section-depliable-target="bouton" data-action="section-depliable#basculer"><span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-fill fr-icon--md"></span><%= t("public.solutions_integratrices.#{categorie}") %></button>
+      </h3>
+      <div id="solutions-integratrices-<%= categorie.to_s.dasherize %>" data-section-depliable-target="contenu">
+        <ul class="fr-grid-row fr-grid-row--gutters fr-mt-1w list-none vue-cartes" data-tri-solutions-target="liste">
+          <% solutions.each_with_index do |solution, ordre| %>
+            <li class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3" data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
+              <%= render 'solution_integratrice', solution:, recommandation: nil, couverture: nil, demarche:, lien_modification: %>
+            </li>
+          <% end %>
+        </ul>
+        <%= render 'tableau_integratrices', solutions:, demarche:, categorie:, titre: t("public.solutions_integratrices.#{categorie}") %>
+      </div>
+    </section>
+  <% end %>
+</div>
