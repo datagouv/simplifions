@@ -224,8 +224,31 @@ body:has(.bouton-proposer-modification) {
 
 :root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=tableau]:checked) .vue-cartes,
 :root[data-fr-js] #solutions-integratrices:has(input[name=affichage-solutions][value=cartes]:checked) .vue-tableau,
-:root:not([data-fr-js]) .choix-affichage {
+:root:not([data-fr-js]) .choix-affichage,
+:root:not([data-fr-js]) .affichage-personnalise__bandeau {
   display: none;
+}
+
+.affichage-personnalise__fil {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 1rem;
+}
+
+@media (min-width: 48em) {
+  html:has(.affichage-personnalise__entete) {
+    scroll-padding-top: 4rem;
+  }
+
+  .affichage-personnalise__entete {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--background-default-grey);
+    box-shadow: 0 1px 0 var(--border-default-grey);
+  }
 }
 
 .tri-solutions {

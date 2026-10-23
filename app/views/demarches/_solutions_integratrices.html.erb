@@ -1,3 +1,4 @@
+<% filtres = { logiciel_metier_cle_en_main: 'logiciels', brique_logicielle: 'api', site_de_consultation: 'sites' } %>
 <div data-controller="tri-solutions">
   <div class="fr-grid-row fr-grid-row--middle fr-mb-2w choix-affichage">
     <fieldset class="fr-segmented fr-segmented--sm fr-mr-2w">
@@ -20,7 +21,8 @@
     </div>
   </div>
   <% par_categorie.each do |categorie, solutions| %>
-    <section class="fr-mb-4w" data-controller="section-depliable">
+    <section class="fr-mb-4w" data-filtre="<%= filtres.fetch(categorie) %>" data-controller="section-depliable"
+      data-action="affichage-personnalise:deplier->section-depliable#appliquer">
       <h3 class="fr-h5 fr-mb-1w">
         <button type="button" class="section-depliable__bouton" aria-expanded="true"
           aria-controls="solutions-integratrices-<%= categorie.to_s.dasherize %>"

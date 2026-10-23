@@ -569,6 +569,38 @@ RSpec.describe 'Demarches' do
           .to eq(['Acheteza', 'Bouquet API Entreprise', 'API professionnels BIO', 'Non intégrée'])
       end
 
+      it 'propose avec le fil d’Ariane les trois tags de l’affichage personnalisé, aucun choisi' do
+        entete = page.find('.affichage-personnalise__entete')
+        tags = entete.all('button.fr-tag[aria-pressed]')
+
+        expect(entete).to have_css('nav.fr-breadcrumb')
+        expect(entete).to have_text('Affichez le contenu de cette page selon les solutions que vous recherchez :')
+        expect(tags.map { [it.text.squish, it[:'aria-pressed']] }).to eq([
+          ['API et jeux de données', 'false'], ['Logiciels métiers « clé en main »', 'false'], ['Sites de consultation des données', 'false']
+        ])
+      end
+
+      it 'rouvre les tags sous le fil d’Ariane par le bouton « Affichage personnalisé », caché sans JavaScript' do
+        bouton = page.find('.affichage-personnalise__entete button', text: 'Affichage personnalisé', visible: :all)
+
+        expect(bouton[:class]).to include('fr-hidden')
+        expect(page.find("##{bouton[:'aria-controls']}.fr-collapse", visible: :all)).to have_css('button.fr-tag', count: 3, visible: :all)
+      end
+
+      it 'rattache chaque section des deux onglets à un tag, repliée dans le premier, dépliée dans le second' do
+        section = ->(bloc) { [bloc[:'data-filtre'], bloc.find('h3, h5', visible: :all).text(:all).squish] }
+        reco = page.find('#donnees-disponibles .reco-card', text: 'Bouquet API Entreprise')
+
+        expect(reco.all('[data-filtre]', visible: :all).map(&section)).to match([
+          ['api', "Par l'API directement"], ['api', start_with('Via une brique logicielle')],
+          ['logiciels', start_with('Via un logiciel métier')], ['sites', start_with('Via un site de consultation')]
+        ])
+        expect(onglet_solutions.all('[data-filtre]', visible: :all).map(&section))
+          .to eq([['logiciels', 'Logiciel métier « clé en main »'], ['api', 'Brique logicielle à intégrer']])
+        expect(page.all('#donnees-disponibles button.fr-accordion__btn', visible: :all).pluck(:'aria-expanded').uniq).to eq(['false'])
+        expect(onglet_solutions.all('h3 > button', visible: :all).pluck(:'aria-expanded').uniq).to eq(['true'])
+      end
+
       it 'propose de trier par données intégrées, choisi d’office, ou par titre, cartes et tableaux ensemble' do
         tri = onglet_solutions.find_field('Trier par :', visible: :all)
         ordre_servi = ->(liste) { liste.all('[data-nom]', visible: :all).map { [it['data-nom'], it['data-ordre']] } }

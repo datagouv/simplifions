@@ -2003,6 +2003,213 @@ ensure
   page&.quit
 end
 
+FILTRES = %w[api logiciels sites].freeze
+TAG_LOGICIELS = 'Logiciels métiers « clé en main »'
+TAG_SITES = 'Sites de consultation des données'
+TAG_API = 'API et jeux de données'
+
+VOLET = '.fr-collapse, [data-section-depliable-target=contenu]'
+VOLET_DEPLIE = '.fr-collapse.fr-collapse--expanded, [data-section-depliable-target=contenu]:not([hidden])'
+
+def compter_volets(page, panneau, filtre, volet) = page.evaluate_script("document.querySelectorAll('##{panneau} [data-filtre=#{filtre}] > :is(#{volet})').length")
+
+def sections_depliees(page, panneau) = FILTRES.index_with { compter_volets(page, panneau, it, VOLET_DEPLIE) }
+
+def sections(page, panneau) = FILTRES.index_with { compter_volets(page, panneau, it, VOLET) }
+
+def sections_masquees(page)
+  page.evaluate_script("[...document.querySelectorAll('[data-filtre]')].filter((bloc) => getComputedStyle(bloc).display === 'none').length")
+end
+
+def tag(page, libelle) = page.find('button.fr-tag', text: libelle)
+
+def basculer_au_clavier(page, libelle)
+  page.click_button('Affichage personnalisé') unless page.has_css?('button.fr-tag', text: libelle, wait: 1)
+  bouton = tag(page, libelle)
+  avant = bouton['aria-pressed']
+  bouton.send_keys(:space)
+  page.assert_selector("button.fr-tag[aria-pressed=#{avant == 'true' ? 'false' : 'true'}]", text: libelle)
+  page.assert_no_selector('.fr-collapsing')
+  raise "focus sur #{page.evaluate_script('document.activeElement.textContent')}" unless page.evaluate_script('document.activeElement.textContent') == libelle
+end
+
+def attendre_les_sections(page, panneau, attendu)
+  Timeout.timeout(5) { sleep 0.1 until sections_depliees(page, panneau) == attendu }
+rescue Timeout::Error
+  raise "#{panneau} : #{sections_depliees(page, panneau)} dépliées, attendu #{attendu}"
+end
+
+def ouvrir_onglet(page, id)
+  page.find("[role=tab][aria-controls=#{id}]").click
+  page.assert_selector("##{id}.fr-tabs__panel--selected")
+  page.assert_no_selector('.fr-collapsing')
+end
+
+def affichage_personnalise(page)
+  demarche = Demarche.visibles.order(:id).find { it.integratrices_par_categorie.size > 1 }
+  page.current_window.resize_to(1280, 1024)
+  page.visit("/demarches/#{demarche.slug}")
+  tags = page.all('button.fr-tag').map { "#{it.text}:#{it['aria-pressed']}:#{it.native.aria_role}" }
+  raise "tags #{tags}" unless tags.size == 3 && tags.all? { it.end_with?(':false:button') }
+  raise 'bouton visible en haut de page' if page.has_button?('Affichage personnalisé', wait: 0)
+
+  donnees = sections(page, 'donnees-disponibles')
+  solutions = sections(page, 'solutions-integratrices')
+  aucune = FILTRES.index_with(0)
+  seulement = ->(toutes, *choisis) { toutes.to_h { |filtre, nombre| [filtre, choisis.include?(filtre) ? nombre : 0] } }
+  attendre_les_sections(page, 'donnees-disponibles', aucune)
+  attendre_les_sections(page, 'solutions-integratrices', solutions)
+  Verify.evidence('affichage-personnalise', page, 'arrivee',
+    "slug=#{demarche.slug} tags=#{tags.join(' | ')} onglet1_depliees=#{aucune}/#{donnees} onglet2_depliees=#{solutions}/#{solutions}")
+
+  basculer_au_clavier(page, TAG_LOGICIELS)
+  attendre_les_sections(page, 'donnees-disponibles', seulement.call(donnees, 'logiciels'))
+  attendre_les_sections(page, 'solutions-integratrices', seulement.call(solutions, 'logiciels'))
+  raise "#{sections_masquees(page)} sections masquées" unless sections_masquees(page).zero?
+
+  Verify.evidence('affichage-personnalise', page, 'logiciels',
+    "aria-pressed=#{tag(page, TAG_LOGICIELS)['aria-pressed']} focus=garde masquees=0 " \
+    "onglet1=#{sections_depliees(page, 'donnees-disponibles')} onglet2=#{sections_depliees(page, 'solutions-integratrices')}")
+
+  basculer_au_clavier(page, TAG_SITES)
+  attendre_les_sections(page, 'donnees-disponibles', seulement.call(donnees, 'logiciels', 'sites'))
+  attendre_les_sections(page, 'solutions-integratrices', seulement.call(solutions, 'logiciels', 'sites'))
+  Verify.evidence('affichage-personnalise', page, 'deux-tags', "onglet1=#{sections_depliees(page, 'donnees-disponibles')} " \
+    "onglet2=#{sections_depliees(page, 'solutions-integratrices')}")
+
+  basculer_au_clavier(page, TAG_LOGICIELS)
+  attendre_les_sections(page, 'donnees-disponibles', seulement.call(donnees, 'sites'))
+  Verify.evidence('affichage-personnalise', page, 'second-clic', "logiciels=#{tag(page, TAG_LOGICIELS)['aria-pressed']} " \
+    "onglet1=#{sections_depliees(page, 'donnees-disponibles')}")
+
+  basculer_au_clavier(page, TAG_SITES)
+  attendre_les_sections(page, 'donnees-disponibles', aucune)
+  attendre_les_sections(page, 'solutions-integratrices', solutions)
+  Verify.evidence('affichage-personnalise', page, 'aucun-tag', "onglet1=#{sections_depliees(page, 'donnees-disponibles')} " \
+    "onglet2=#{sections_depliees(page, 'solutions-integratrices')}")
+
+  basculer_au_clavier(page, TAG_API)
+  attendre_les_sections(page, 'donnees-disponibles', seulement.call(donnees, 'api'))
+  ouvrir_onglet(page, 'solutions-integratrices')
+  attendre_les_sections(page, 'solutions-integratrices', seulement.call(solutions, 'api'))
+  ouvrir_onglet(page, 'donnees-disponibles')
+  attendre_les_sections(page, 'donnees-disponibles', seulement.call(donnees, 'api'))
+  Verify.evidence('affichage-personnalise', page, 'api-retour-onglet-1', "onglet1=#{sections_depliees(page, 'donnees-disponibles')} " \
+    "onglet2=#{sections_depliees(page, 'solutions-integratrices')}")
+  basculer_au_clavier(page, TAG_API)
+  ouvrir_onglet(page, 'solutions-integratrices')
+  attendre_les_sections(page, 'solutions-integratrices', solutions)
+  ouvrir_onglet(page, 'donnees-disponibles')
+
+  [[1280, 1024], [800, 1024]].each { |largeur, hauteur| affichage_apres_defilement(page, demarche, largeur, hauteur) }
+  affichage_defilement_lent(page, demarche)
+  affichage_par_turbo(page, demarche)
+  affichage_mobile(page, demarche)
+  page.quit
+  affichage_sans_js(demarche)
+end
+
+def entete(page) = page.evaluate_script("(() => { const r = document.querySelector('.affichage-personnalise__entete').getBoundingClientRect(); return [Math.round(r.top), Math.round(r.bottom)] })()")
+
+def attendre_la_fin_du_depliage(page)
+  Timeout.timeout(3) do
+    precedent = nil
+    until (actuel = entete(page)) == precedent
+      precedent = actuel
+      sleep 0.2
+    end
+  end
+end
+
+def affichage_apres_defilement(page, demarche, largeur, hauteur)
+  page.current_window.resize_to(largeur, hauteur)
+  page.visit("/demarches/#{demarche.slug}")
+  page.execute_script('window.scrollTo(0, 1500)')
+  bouton = page.find_button('Affichage personnalisé')
+  page.assert_no_selector('button.fr-tag')
+  haut, bas = entete(page)
+  raise "en-tête à #{haut}" unless haut.zero? && page.find('.affichage-personnalise__entete nav.fr-breadcrumb').visible?
+
+  Verify.evidence('affichage-personnalise', page, "defile-#{largeur}", "scrollY=#{page.evaluate_script('window.scrollY')} entete=#{haut}..#{bas} " \
+    "bouton=#{bouton.text} tags=replies")
+  bouton.click
+  page.assert_selector('button.fr-tag', count: 3)
+  attendre_la_fin_du_depliage(page)
+  haut_tag = page.evaluate_script("document.querySelector('button.fr-tag').getBoundingClientRect().top").round
+  bas_fil = page.evaluate_script("document.querySelector('.affichage-personnalise__entete nav').getBoundingClientRect().bottom").round
+  haut, bas = entete(page)
+  raise "tags à #{haut_tag}, fil jusqu'à #{bas_fil}, en-tête #{haut}..#{bas}" unless haut.zero? && haut_tag > bas_fil && haut_tag < bas
+
+  basculer_au_clavier(page, TAG_LOGICIELS)
+  basculer_au_clavier(page, TAG_SITES)
+  page.assert_selector(:button, text: /Affichage personnalisé[[:space:]]+\(2\)/)
+  Verify.evidence('affichage-personnalise', page, "bouton-rouvre-#{largeur}", "bouton=#{bouton.text} fil_bas=#{bas_fil} premier_tag=#{haut_tag} " \
+    "entete=#{haut}..#{bas}")
+  page.execute_script('window.scrollTo(0, 0)')
+  page.assert_selector('button.fr-tag[aria-pressed=true]', count: 2)
+end
+
+def affichage_defilement_lent(page, demarche)
+  [[1280, 1024], [375, 800]].each do |largeur, hauteur|
+    page.current_window.resize_to(largeur, hauteur)
+    page.visit("/demarches/#{demarche.slug}")
+    page.assert_selector('button.fr-tag', count: 3)
+    positions = 15.times.map do
+      page.execute_script('window.scrollBy(0, 40)')
+      sleep 0.4
+      page.evaluate_script('Math.round(window.scrollY)')
+    end
+    raise "défilement lent à #{largeur} px bloqué : #{positions.join(' ')}" if positions.last < 300
+
+    Verify.evidence('affichage-personnalise', page, "defilement-lent-#{largeur}", "scrollY=#{positions.join(' ')}")
+  end
+  page.current_window.resize_to(1280, 1024)
+end
+
+def affichage_par_turbo(page, demarche)
+  page.visit('/demarches')
+  page.execute_script("Turbo.visit('/demarches/#{demarche.slug}')")
+  page.assert_current_path("/demarches/#{demarche.slug}")
+  page.assert_selector('h1', text: demarche.titre)
+  basculer_au_clavier(page, TAG_SITES)
+  raise 'aucune section des sites dépliée' if sections_depliees(page, 'donnees-disponibles')['sites'].zero?
+
+  page.execute_script('window.scrollTo(0, 1500)')
+  page.assert_selector(:button, text: /Affichage personnalisé[[:space:]]+\(1\)/)
+  Verify.evidence('affichage-personnalise', page, 'turbo', "apres_visite_turbo onglet1=#{sections_depliees(page, 'donnees-disponibles')}")
+end
+
+def affichage_mobile(page, demarche)
+  page.current_window.resize_to(375, 800)
+  page.visit("/demarches/#{demarche.slug}")
+  page.execute_script('window.scrollTo(0, 2500)')
+  sleep 0.5
+  raise 'bouton visible sur téléphone' if page.has_button?('Affichage personnalisé', wait: 0)
+
+  largeurs = page.evaluate_script('[document.documentElement.scrollWidth, document.documentElement.clientWidth]')
+  raise "la page déborde : #{largeurs}" if largeurs[0] > largeurs[1]
+
+  haut, bas = entete(page)
+  raise "en-tête collé à #{haut} sur téléphone" unless haut.negative?
+
+  Verify.evidence('affichage-personnalise', page, 'mobile', "page=#{largeurs.join('/')} entete=#{haut}..#{bas} fenetre=#{page.evaluate_script('window.innerWidth')} bouton=absent")
+  page.current_window.resize_to(1280, 1024)
+end
+
+def affichage_sans_js(demarche)
+  page = Verify.session(javascript: false)
+  page.visit("/demarches/#{demarche.slug}")
+  raise 'tags affichés sans JS' if page.has_css?('button.fr-tag', wait: 0)
+  raise 'bouton affiché sans JS' if page.has_button?('Affichage personnalisé', wait: 0)
+
+  volets = page.evaluate_script("[...document.querySelectorAll('[data-filtre] > :is(#{VOLET})')].map((volet) => volet.checkVisibility())")
+  raise "sans JS, #{volets.count(false)} sections cachées" unless volets.any? && volets.all?
+
+  Verify.evidence('affichage-personnalise', page, 'sans-js', "tags=absents bouton=absent sections_lisibles=#{volets.size}/#{volets.size}")
+ensure
+  page&.quit
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
@@ -2017,7 +2224,7 @@ end
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
   'contact' => :contact,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
-  'tableau-solutions' => :tableau_solutions }.each do |nom, fn|
+  'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
