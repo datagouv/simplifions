@@ -214,7 +214,7 @@ fr:
       brique_logicielle: "API, jeu de données ou brique logicielle"
       site_de_consultation: "Sites de consultation"
     solutions_integratrices:
-      logiciel_metier_cle_en_main: "Logiciel métier « clé en main »"
+      logiciel_metier_cle_en_main: "Logiciel métier « clé en main »"
       brique_logicielle: "Brique logicielle à intégrer"
       site_de_consultation: "Site de consultation"
     moyens_acces:
@@ -225,7 +225,7 @@ fr:
           one: "%{count} brique"
           other: "%{count} briques"
       logiciel_metier_cle_en_main:
-        titre: "Via un logiciel métier « clé en main »"
+        titre: "Via un logiciel métier « clé en main »"
         nombre:
           zero: "Aucun logiciel"
           one: "%{count} logiciel"
