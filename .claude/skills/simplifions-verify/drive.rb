@@ -531,6 +531,14 @@ def liste_filtrable(page)
   demarche.integrations = integrations.first(2)
   cible = integrations.last
   Verify.login(page)
+  courte = Integration.order(:id).find { (1..10).cover?(it.demarches_proposees.count) }
+  page.visit("/admin/integrations/#{courte.id}/edit")
+  proposees = courte.demarches_proposees.count
+  visibles = page.find(:fieldset, 'Démarches').all('.fr-checkbox-group label', visible: true).size
+  raise "courte liste : #{visibles} cases visibles sur #{proposees}" unless visibles == proposees
+  raise 'courte liste : champ de filtre présent' if page.has_field?('Filtrer les démarches', wait: 0)
+
+  Verify.evidence(dossier, page, 'courte-liste-entiere', "intégration #{courte.id} : visibles=#{visibles} proposées=#{proposees} filtre=absent")
   page.visit("/admin/demarches/#{demarche.id}/edit")
   categories = page.all('fieldset fieldset > legend').map(&:text)
   raise "groupes de vocabulaires #{categories}" unless categories == ['Usager', 'Type de simplification', 'Catégorie de solution']
