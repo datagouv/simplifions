@@ -303,6 +303,55 @@ def lecture_seule(page)
   Verify.logout(page)
 end
 
+def nouvelle_api(page, nom, uid)
+  page.visit('/admin/solutions/new')
+  page.fill_in 'Nom', with: nom
+  page.select 'API', from: 'Catégorie de solution'
+  page.check 'API', allow_label_click: true
+  page.fill_in 'Identifiant data.gouv', with: uid
+  page.click_button 'Enregistrer'
+end
+
+def bloc_datagouv(page) = page.find('h2', text: 'Repris de data.gouv.fr').find(:xpath, '..')
+
+def identifiant_datagouv(page)
+  Verify.login(page)
+  nom = "Vérif verify-map #{Verify.browser}"
+  melodi = '6661e09c7230a8fc3b1ec229'
+  raise "#{melodi} déjà en base" if Solution.exists?(uid_datagouv: melodi)
+
+  nouvelle_api(page, nom, melodi)
+  page.assert_text "« #{nom} (API) » enregistré."
+  api = ActiveRecord::Base.uncached { Solution.find_by!(nom:) }
+  raise 'rien repris de data.gouv.fr' if api.datagouv_titre.blank?
+
+  bloc_datagouv(page).assert_text "Titre : #{api.datagouv_titre}"
+  page.assert_no_text 'Rien n’a été repris'
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence('admin-identifiant-datagouv', page, 'creation', "uid=#{api.uid_datagouv} titre=#{api.datagouv_titre} organisation=#{api.datagouv_organisation}")
+
+  page.fill_in 'Identifiant data.gouv', with: 'verif-identifiant-inconnu'
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} (API) » enregistré."
+  bloc_datagouv(page).assert_text 'Rien n’a été repris de data.gouv.fr pour cet identifiant'
+  api = ActiveRecord::Base.uncached { api.reload }
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence('admin-identifiant-datagouv', page, 'inconnu', "uid=#{api.uid_datagouv} titre=#{api.datagouv_titre.inspect}")
+
+  sirene = Solution.find_by!(uid_datagouv: '672cf6aece89cb14e31f0fba')
+  nouvelle_api(page, "#{nom} doublon", sirene.uid_datagouv)
+  page.assert_text "est déjà celui de « #{sirene.libelle_admin} »"
+  doublons = ActiveRecord::Base.uncached { Solution.where(uid_datagouv: sirene.uid_datagouv).count }
+  raise "#{doublons} fiches avec #{sirene.uid_datagouv}" unless doublons == 1
+
+  page.scroll_to(page.find_field('Identifiant data.gouv'), align: :center)
+  Verify.evidence('admin-identifiant-datagouv', page, 'doublon', "refusé, fiches avec #{sirene.uid_datagouv} : #{doublons} (#{sirene.libelle_admin})")
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_button 'Se déconnecter' }
+  page.assert_selector :link, 'Se connecter'
+ensure
+  ActiveRecord::Base.uncached { Solution.where('nom LIKE ?', "#{nom}%").destroy_all } if nom
+end
+
 def libelles_de(page)
   page.evaluate_script(<<~JS)
     Array.from(document.querySelectorAll('form[data-controller="formulaire-modifie"] :is(label, legend)'))
@@ -2639,6 +2688,7 @@ end
   'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
   'incoherences' => :incoherences, 'dates' => :dates, 'lecture-seule' => :lecture_seule,
+  'identifiant-datagouv' => :identifiant_datagouv,
   'formulaire-modifie' => :formulaire_modifie, 'libelles' => :libelles,
   'erreurs' => :erreurs, 'listes' => :listes, 'listes-lisibles' => :listes_lisibles, 'liste-filtrable' => :liste_filtrable,
   'homonymes' => :homonymes, 'pages-liees' => :pages_liees,

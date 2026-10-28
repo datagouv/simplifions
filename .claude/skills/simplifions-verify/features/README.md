@@ -37,6 +37,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [rafraichissement-admin.md](rafraichissement-admin.md) — click the admin button that refreshes the catalogue on a throwaway database; the button stays disabled during the run, the dashboard ends on `terminé`.
 - [admin-dates.md](admin-dates.md) — create then edit a démarche in the administration: `cree_le` and `modifie_le` set by themselves, no date field in the form.
 - [admin-lecture-seule.md](admin-lecture-seule.md) — the Grist identifier and a solution's data.gouv fields show as text in the administration, never as fields.
+- [admin-identifiant-datagouv.md](admin-identifiant-datagouv.md) — an API saved with a data.gouv identifier shows its data.gouv.fr information at once, says so when nothing came back, and an identifier already used is refused.
 - [admin-formulaire-modifie.md](admin-formulaire-modifie.md) — leaving a changed admin form (Annuler, link, back) asks first; saving does not; a 422 form counts as changed.
 - [admin-libelles.md](admin-libelles.md) — admin forms in the Grist words: French labels and list values, hints inside labels, fields in the Grist record-card order.
 - [onglet-solutions-integratrices.md](onglet-solutions-integratrices.md) — the second tab of a cas d'usage groups by category the solutions that integrated its data; same card and window, counter at the cas d'usage total; without JavaScript both tabs read one after the other.
