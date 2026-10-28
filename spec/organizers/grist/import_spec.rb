@@ -187,16 +187,26 @@ RSpec.describe Grist::Import do
     )
   end
 
-  it 'merges the utiles table into niveau 1 recommandations, blank ones born from fournis scoping' do
+  it 'merges the utiles table into niveau 1 recommandations, blank ones born from fournis scoping, all published' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')
     api_qf = Solution.find_by!(grist_id: 'APIs_et_datasets:1')
     reco = Recommandation.find_by!(demarche: cantine, solution: api_qf)
-    expect(reco).to have_attributes(niveau: 'niveau_1', ordre: 1)
+    expect(reco).to have_attributes(niveau: 'niveau_1', ordre: 1, visible: true)
     expect(reco.description).to start_with('Récupérer le quotient familial')
 
     eau = Demarche.find_by!(grist_id: 'Cas_d_usages:6')
     expect(eau.recommandations.niveau_1.where(description: [nil, ''])).to be_present
+    expect(Recommandation.niveau_1.where(visible: false)).to be_empty
+  end
+
+  it 'publishes at the next import the niveau 1 recommandations imported hidden before' do
+    result
+    Recommandation.niveau_1.find_each { it.update!(visible: false) }
+
+    described_class.call
+
+    expect(Recommandation.niveau_1.where(visible: false)).to be_empty
   end
 
   it 'quarantines orphan rows with a report instead of crashing' do
