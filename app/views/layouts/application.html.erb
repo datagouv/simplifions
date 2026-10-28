@@ -4,7 +4,7 @@
     <% titre = safe_join([content_for(:title) || @article&.title, "Simplifions.data.gouv.fr"].compact, " | ")
        description = (content_for(:description) || @article&.description)&.truncate(155, separator: " ", omission: "…") ||
          "Simplifiez les démarches et services des citoyens, entreprises et associations en récupérant pour eux leurs informations administratives grâce aux API et aux données de l'État."
-       canonical = url_for(only_path: false) %>
+       canonical = response.not_found? ? request.original_url : url_for(only_path: false) %>
     <title><%= titre %></title>
     <meta name="description" content="<%= description %>">
     <% if content_for?(:robots) %>
@@ -51,7 +51,8 @@
             var motCle = ((catalogue && catalogue.dataset.matomoRecherche) || '').trim();
             if (urlPrecedente) _paq.push(['setReferrerUrl', urlPrecedente]);
             _paq.push(['setCustomUrl', location.origin + location.pathname]);
-            _paq.push(['setDocumentTitle', document.title]);
+            var pageIntrouvable = document.querySelector('[data-matomo-erreur="404"]');
+            _paq.push(['setDocumentTitle', pageIntrouvable ? '404/URL = ' + encodeURIComponent(location.pathname) + '/From = ' + encodeURIComponent(urlPrecedente) : document.title]);
             if (rechercheSoumise && motCle.length >= 2 && motCle !== rechercheMesuree) {
               rechercheMesuree = motCle;
               _paq.push(['trackSiteSearch', motCle, catalogue.dataset.matomoCatalogue, Number(catalogue.dataset.matomoResultats)]);

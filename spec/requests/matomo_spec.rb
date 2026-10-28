@@ -56,4 +56,13 @@ RSpec.describe 'Matomo' do
     expect(formulaire['data-matomo-catalogue']).to eq('Solutions')
     expect(formulaire['data-matomo-resultats']).to eq('0')
   end
+
+  it 'nomme les pages 404 avec leur chemin et la page d’origine' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("'404/URL = ' + encodeURIComponent(location.pathname)")
+    expect(response.body).to include("'/From = ' + encodeURIComponent(urlPrecedente)")
+  end
 end
