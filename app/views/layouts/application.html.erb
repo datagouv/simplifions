@@ -41,8 +41,17 @@
     <% if ENV["MATOMO_SITE_ID"].present? %>
       <script>
         var _paq = window._paq = window._paq || [];
-        _paq.push(['trackPageView']);
-        _paq.push(['enableLinkTracking']);
+        (function() {
+          var urlPrecedente;
+          addEventListener('turbo:load', function() {
+            if (urlPrecedente) _paq.push(['setReferrerUrl', urlPrecedente]);
+            _paq.push(['setCustomUrl', location.href]);
+            _paq.push(['setDocumentTitle', document.title]);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            urlPrecedente = location.href;
+          });
+        })();
         (function() {
           var u = "https://stats.data.gouv.fr/";
           _paq.push(['setTrackerUrl', u + 'matomo.php']);
