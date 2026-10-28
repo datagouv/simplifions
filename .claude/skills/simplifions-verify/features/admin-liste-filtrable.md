@@ -1,9 +1,10 @@
 # Choisir les éléments liés dans une liste filtrable
 
-Every long list of linked rows in an admin form (intégrations, démarches, solutions, organisations, fournisseurs de services) shows only its checked boxes on load, with a `Filtrer les <liste>` field: a click in it or ArrowDown shows every box in a grey frame under the field, typing shows the matching ones, the `Effacer le filtre des <liste>` cross or leaving the list with an empty filter brings back the checked boxes only. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
+A list of 10 linked rows or fewer in an admin form shows every box on load, checked or not, with no filter field. Every longer list (intégrations, démarches, solutions, organisations, fournisseurs de services) shows only its checked boxes on load, with a `Filtrer les <liste>` field: a click in it or ArrowDown shows every box in a grey frame under the field, typing shows the matching ones, the `Effacer le filtre des <liste>` cross or leaving the list with an empty filter brings back the checked boxes only. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
 
 ## Sub-features
 
+- `courte-liste` 10 choices or fewer: every box shown, no `Filtrer les <liste>` field, no live line; decided at page load from the number of choices.
 - `liste-filtrable` field `Filtrer les <legend in lowercase>`, hint `Sans filtre, seuls les éléments cochés sont affichés ; cliquer dans le champ ou y appuyer sur flèche bas affiche tous les choix.`; Tab into the field opens nothing; once opened, every box stays shown until the cross or until focus leaves the fieldset with an empty filter (a click on blank page keeps it open); every word must match, accents and case ignored; a polite live line `2 cochés sur 474` (empty filter) or `1 résultat sur 474, 3 cochés`. The boxes stay native: Tab reaches the shown ones, Space checks.
 - The filter field has no `name`: typing in it does not count as a change (no `Quitter sans enregistrer ?`) and Enter in it does not submit the form.
 - `vocabulaires-groupes` nested fieldsets inside `Vocabulaires`, démarche and solution forms, a `?` beside every vocabulaire (see `admin-pages-liees.md`).
@@ -16,6 +17,7 @@ Every long list of linked rows in an admin form (intégrations, démarches, solu
 
 `drive.rb liste-filtrable`. Creates `Vérif verify-map <browser>` linked to the first two intégrations, removed at the end; no catalogue row is touched.
 
+- **Short list.** The first intégration with 1 to 10 proposed démarches: under `Démarches`, every box shown, no `Filtrer les démarches` field.
 - **Groups.** Legends inside `Vocabulaires` are the three categories in order; one `?` per vocabulaire.
 - **Checked only.** Under `Intégrations`, 2 boxes shown, both checked; live line `2 cochés sur <Integration.count>`.
 - **Tab passes through.** Open tab `Intégrations`, focus its panel, Tab: focus lands in `Filtrer les intégrations`, still 2 boxes; 6 more Tab (cross, 2 boxes, 2 `Voir la fiche`) leave the list.
