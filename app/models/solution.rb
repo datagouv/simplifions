@@ -17,6 +17,7 @@ class Solution < ApplicationRecord
     url if url.match?(%r{\Ahttps?://}i)
   }
   normalizes :uid_datagouv, with: ->(uid) { uid.strip }
+  validate :uid_datagouv_libre, on: :admin, if: -> { uid_datagouv.present? && uid_datagouv_changed? }
   validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
     :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
 
@@ -149,6 +150,11 @@ class Solution < ApplicationRecord
   end
 
   private
+
+  def uid_datagouv_libre
+    autre = Solution.where.not(id:).find_by(uid_datagouv:)
+    errors.add(:uid_datagouv, :deja_utilise, fiche: autre.libelle_admin) if autre
+  end
 
   def fiche_datagouv
     endpoint = categorie_base_de_donnees? ? '2/datasets' : '1/dataservices'
