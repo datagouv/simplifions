@@ -1,6 +1,6 @@
 # Chercher et lire les listes de l'admin
 
-Each admin list has a DSFR search bar, 50 rows per page with the site's pagination (organisations: every row on one page, so Ctrl+F finds one), and the row's name as the link to its edit page (no `Modifier` button); fournisseurs de services and vocabulaires link to their read page instead. Démarches, solutions and recommandations also show `Visible` (badge `Oui` / `Non`) and `Modifié le` (Paris date); solutions show `Intégrée par`, the integrating solutions linked to their own edit page.
+Each admin list has a DSFR search bar, 50 rows per page with the site's pagination (organisations: every row on one page, so Ctrl+F finds one), and the row's name as the link to its edit page (no `Modifier` button); fournisseurs de services and vocabulaires link to their read page instead. Démarches, solutions and recommandations also show `Visible` (badge `Oui` / `Non`) and `Modifié le` (Paris date); solutions show `Intégrée par`, the integrating solutions linked to their own edit page; a bouquet's also names every solution with an « Intégrée » intégration of one of its APIs, any statut, published or not, never its « Fournie » rows (`drive.rb integrations-de-ses-api`, [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md)).
 
 ## Sub-features
 
