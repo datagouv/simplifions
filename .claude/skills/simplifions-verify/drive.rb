@@ -1288,11 +1288,12 @@ def brouillon(page)
   Verify.evidence(dossier, page, 'abandonne', "base=#{base}")
   brouillon_image(page, dossier, nom, slug)
   brouillon_recommandations(page, dossier, nom, slug)
+  brouillon_donnees_utiles(page, dossier, nom, slug)
   page.visit('/admin')
   Verify.logout(page)
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c"])).destroy_all
 end
 
 def cartes_publiques(page, slug)
@@ -1333,6 +1334,58 @@ def brouillon_recommandations(page, dossier, nom, slug)
   raise "page publique après : #{cartes}" unless cartes.size == 2 && cartes.join.include?('Après')
 
   Verify.evidence(dossier, page, 'page-publique-apres', "cartes=#{cartes.size} brouillons=#{ActiveRecord::Base.uncached { demarche.recommandations_en_brouillon.count }}")
+end
+
+def endpoints_publics(page, slug)
+  page.visit("/demarches/#{slug}")
+  page.all('[data-endpoints-target=row]', visible: :all).map { it.text(:all).squish }.tap { page.visit('/admin') }
+end
+
+def etat_de_la_ligne(page, demarche, reco)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  onglet(page, 'Recommandations')
+  page.find("#recommandation_#{reco.id}").all('td')[3..].map { it.text.squish }.join(' ')
+end
+
+def brouillon_donnees_utiles(page, dossier, nom, slug)
+  demarche = Demarche.find_by!(slug:)
+  bouquet = Solution.create!(nom: "#{nom} bouquet", categorie: 'brique_logicielle', organisations: [Organisation.find_by!(public_ou_prive: 'Public')])
+  api = Solution.create!(nom: "#{nom} c", categorie: 'api')
+  Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+  Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+  utile = Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, description: 'Utile avant', visible: true)
+  etat = etat_de_la_ligne(page, demarche, utile)
+  raise "donnée utile : état #{etat}" unless etat.match?(/\Apubliée/i)
+
+  Verify.evidence(dossier, page, 'donnee-utile-publiee', "état=#{etat}")
+  page.click_link "Modifier la recommandation #{api.libelle_admin}"
+  page.find_field 'En quoi cette API ou ce jeu de données est utile'
+  actions = page.find('aside.admin-panneau').all('button').map(&:text)
+  raise "donnée utile : actions #{actions}" if actions.intersect?(%w[Publier Masquer])
+
+  Verify.evidence(dossier, page, 'donnee-utile-actions', "actions=#{actions}")
+  page.fill_in 'En quoi cette API ou ce jeu de données est utile', with: 'Utile après'
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{demarche.nom} → #{api.libelle_admin} » : brouillon enregistré, non publié."
+  base = ActiveRecord::Base.uncached { utile.reload.slice(:description, :visible) }
+  raise "donnée utile modifiée : base #{base}" unless base == { 'description' => 'Utile avant', 'visible' => true }
+
+  Verify.evidence(dossier, page, 'donnee-utile-modifiee', "base=#{base} brouillon=#{utile.brouillon&.slice('description')}")
+  lignes = endpoints_publics(page, slug)
+  raise "donnée utile, page publique avant : #{lignes}" unless lignes.join.include?('Utile avant') && !lignes.join.include?('Utile après')
+
+  Verify.evidence(dossier, page, 'donnee-utile-public-avant', "lignes=#{lignes}")
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.assert_selector 'aside.admin-panneau', text: '1 recommandation en brouillon'
+  page.click_button 'Publier'
+  page.assert_text "« #{demarche.nom} » enregistré."
+  lignes = endpoints_publics(page, slug)
+  raise "donnée utile, page publique après : #{lignes}" unless lignes.join.include?('Utile après')
+
+  etat = etat_de_la_ligne(page, demarche, utile)
+  raise "donnée utile publiée : état #{etat}" unless etat.match?(/\Apubliée/i) && !etat.match?(/brouillon/i)
+
+  Verify.evidence(dossier, page, 'donnee-utile-public-apres', "lignes=#{lignes} état=#{etat}")
 end
 
 def brouillon_image(page, dossier, nom, slug)
