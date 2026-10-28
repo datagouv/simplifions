@@ -1685,12 +1685,12 @@ RSpec.describe 'Administration' do
       expect(colonne.text).not_to include('Brouillon')
     end
 
-    it 'date le brouillon à part de la dernière modification, et ne versionne que la publication, au nom de l’admin' do
+    it 'date le brouillon à part de la dernière modification, et versionne le brouillon puis la publication, au nom de l’admin' do
       demarche.update!(modifie_le: Time.zone.local(2026, 10, 5))
       travel_to(Time.zone.local(2026, 10, 7, 9, 30)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } } }
       get "/admin/demarches/#{demarche.id}/edit"
       expect(colonne.text.squish).to include('Dernière modification 05/10/2026', 'Brouillon du 07/10/2026 à 09:30')
-      expect(demarche.versions.count).to eq(1)
+      expect(demarche.versions.pluck(:event)).to contain_exactly('create', 'brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(demarche.versions.last.whodunnit).to eq(admin.id.to_s)
@@ -1751,6 +1751,33 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
       expect(actions.map(&:first)).to eq(['Enregistrer', 'Publier', 'Masquer', 'Abandonner le brouillon', 'Supprimer'])
       expect(colonne.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to eq('Abandonner le brouillon de « Aides » ? Les modifications non publiées seront perdues.')
+    end
+  end
+
+  describe 'historique d’une fiche publiée modifiée en brouillon' do
+    let(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let(:fiches) do
+      { 'demarches' => [demarche, :nom, 'Nom', 'Aides', 'Aides sociales'],
+        'solutions' => [Solution.create!(nom: 'Bouquet', slug: 'bouquet', visible: true), :nom, 'Nom', 'Bouquet', 'Bouquet familial'],
+        'recommandations' => [Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_2, donnees_utiles: 'Quotient', visible: true),
+                              :donnees_utiles, 'Données utiles disponibles', 'Quotient', 'Revenu fiscal'] }
+    end
+
+    before { sign_in admin }
+
+    def versions(chemin, ligne)
+      get "/admin/historique/#{chemin}/#{ligne.id}"
+      response.parsed_body.css('main section').map { |version| [version.at_css('h2').text.squish, version.css('tbody tr').map { it.css('th, td').map { it.text.squish } }] }
+    end
+
+    it 'inscrit chaque Enregistrer en brouillon, avec son auteur et les champs changés' do
+      fiches.each do |chemin, (ligne, champ, libelle, avant, apres)|
+        patch "/admin/#{chemin}/#{ligne.id}", params: { ligne.model_name.param_key => { champ => apres } }
+
+        titre, lignes = versions(chemin, ligne).first
+        expect(titre).to start_with("Modification en brouillon par #{admin.email} le "), chemin
+        expect(lignes).to eq([[libelle, avant, apres]]), chemin
+      end
     end
   end
 
