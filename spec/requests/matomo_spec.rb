@@ -29,4 +29,23 @@ RSpec.describe 'Matomo' do
     script = response.parsed_body.css('head script').map(&:text).find { |texte| texte.include?('matomo.js') }
     expect(script).to include("addEventListener('turbo:load'")
   end
+
+  it 'donne au tag le mot-clé, le catalogue et le nombre de résultats de la recherche' do
+    Demarche.create!(nom: 'Tarification EAJE', slug: 'eaje', visible: true)
+
+    get demarches_path(q: 'eaje')
+
+    formulaire = response.parsed_body.at_css('form.catalogue')
+    expect(formulaire['data-matomo-recherche']).to eq('eaje')
+    expect(formulaire['data-matomo-catalogue']).to eq("Cas d'usages")
+    expect(formulaire['data-matomo-resultats']).to eq('1')
+  end
+
+  it 'donne zéro résultat dans le catalogue des solutions quand rien ne correspond' do
+    get solutions_path(q: 'zzzz')
+
+    formulaire = response.parsed_body.at_css('form.catalogue')
+    expect(formulaire['data-matomo-catalogue']).to eq('Solutions')
+    expect(formulaire['data-matomo-resultats']).to eq('0')
+  end
 end

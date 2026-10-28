@@ -42,14 +42,25 @@
       <script>
         var _paq = window._paq = window._paq || [];
         (function() {
-          var urlPrecedente;
+          var urlPrecedente, rechercheMesuree, rechercheSoumise = true;
+          addEventListener('submit', function(event) {
+            if (event.target.matches('[data-matomo-catalogue]')) rechercheSoumise = true;
+          }, true);
           addEventListener('turbo:load', function() {
+            var catalogue = document.querySelector('[data-matomo-catalogue]');
+            var motCle = ((catalogue && catalogue.dataset.matomoRecherche) || '').trim();
             if (urlPrecedente) _paq.push(['setReferrerUrl', urlPrecedente]);
             _paq.push(['setCustomUrl', location.href]);
             _paq.push(['setDocumentTitle', document.title]);
-            _paq.push(['trackPageView']);
+            if (rechercheSoumise && motCle.length >= 2 && motCle !== rechercheMesuree) {
+              rechercheMesuree = motCle;
+              _paq.push(['trackSiteSearch', motCle, catalogue.dataset.matomoCatalogue, Number(catalogue.dataset.matomoResultats)]);
+            } else {
+              _paq.push(['trackPageView']);
+            }
             _paq.push(['enableLinkTracking']);
             urlPrecedente = location.href;
+            rechercheSoumise = false;
           });
         })();
         (function() {
