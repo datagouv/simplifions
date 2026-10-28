@@ -46,6 +46,7 @@ class Solution < ApplicationRecord
   has_many :integrations_qu_elle_expose, -> { expose }, class_name: 'Integration', foreign_key: :integratrice_id,
     inverse_of: :integratrice
   has_many :exposees, through: :integrations_qu_elle_expose, source: :integree
+  has_many :integrations_de_ses_api, -> { consomme }, through: :exposees, source: :integrations_comme_integree
   has_many :consommees, -> { merge(Integration.consomme.en_production) },
     through: :integrations_comme_integratrice, source: :integree
 
@@ -90,6 +91,7 @@ class Solution < ApplicationRecord
   def privee? = fiche? && organisations.none?(&:publique?)
 
   def fournies = [self, *exposees]
+  def integree_par = (integratrices + integrations_de_ses_api.map(&:integratrice)).uniq
 
   def integratrices_visibles
     Solution.visibles.where(id: Integration.en_production.where(integree: fournies).select(:integratrice_id))

@@ -324,6 +324,17 @@ RSpec.describe 'Administration' do
       expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'API QF (API)' }['Intégrée par']).to eq('Bouquet, eTicket, Mes Aides')
       expect(response.parsed_body.css('tbody td:last-child a').pluck('href')).to include("/admin/solutions/#{bouquet.id}/edit")
     end
+
+    it 'nomme parmi les solutions qui intègrent un bouquet celles qui intègrent l’une de ses API' do
+      bouquet = Solution.create!(nom: 'Bouquet API Entreprise')
+      [['API Sirene', 'Mes Aides'], ['API Urssaf', 'eTicket']].each do |nom_api, nom_integratrice|
+        api = Solution.create!(nom: nom_api, categorie: 'api')
+        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+        Integration.create!(integratrice: Solution.create!(nom: nom_integratrice), integree: api, type_integration: 'consomme', statut: '💡 en prospection')
+      end
+
+      expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'Bouquet API Entreprise' }['Intégrée par']).to eq('eTicket, Mes Aides')
+    end
   end
 
   describe 'associations plusieurs-à-plusieurs' do
