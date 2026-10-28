@@ -50,6 +50,24 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#integree_par' do
+    it 'counts the integrations of the bouquet and of its APIs, never their « fournie » rows' do
+      bouquet = described_class.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle')
+      autre_bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle')
+      sirene = described_class.create!(nom: 'API Sirene', categorie: 'api')
+      urssaf = described_class.create!(nom: 'API Urssaf', categorie: 'api')
+      acheteza = described_class.create!(nom: 'Acheteza')
+      mes_aides = described_class.create!(nom: 'Mes Aides')
+      [[bouquet, sirene, 'expose'], [bouquet, urssaf, 'expose'], [autre_bouquet, sirene, 'expose'],
+       [acheteza, sirene, 'consomme'], [mes_aides, urssaf, 'consomme'], [acheteza, bouquet, 'consomme']].each do |integratrice, integree, type_integration|
+        Integration.create!(integratrice:, integree:, type_integration:, statut: '💡 en prospection')
+      end
+
+      expect(bouquet.integree_par).to contain_exactly(acheteza, mes_aides)
+      expect(sirene.integree_par).to contain_exactly(bouquet, autre_bouquet, acheteza)
+    end
+  end
+
   describe '#demarches_simplifiables' do
     it 'liste les démarches visibles recommandant la solution, ou qu’elle intègre en production via une reco visible' do
       bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
