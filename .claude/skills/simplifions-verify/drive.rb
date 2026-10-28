@@ -2392,6 +2392,67 @@ ensure
   page&.quit
 end
 
+def hits_matomo(page, attendus)
+  script = "performance.getEntriesByType('resource').map(e => e.name).filter(n => n.includes('matomo.php'))"
+  Timeout.timeout(10) { sleep 0.2 until page.evaluate_script(script).size >= attendus }
+  sleep 1
+  page.evaluate_script(script).map { |url| Rack::Utils.parse_query(URI(url).query).slice('url', 'action_name', 'search', 'search_cat', 'search_count', 'urlref') }
+end
+
+def mesure_matomo(page, etape, attendus)
+  hits = hits_matomo(page, attendus)
+  raise "#{etape} : #{hits.size} hits, attendu #{attendus}" unless hits.size == attendus
+
+  Verify.evidence('matomo', page, etape, hits.last.inspect)
+  hits.last
+end
+
+def recherche_matomo(page, mot_cle, etape, attendus)
+  page.fill_in 'Rechercher', with: mot_cle
+  page.click_button 'Rechercher'
+  page.assert_current_path(/q=#{CGI.escape(mot_cle)}&/, url: false)
+  mesure_matomo(page, etape, attendus)
+end
+
+def matomo(page)
+  site_id = ENV.fetch('MATOMO_SITE_ID', nil)
+  ENV['MATOMO_SITE_ID'] = '999999'
+  page.visit('/demarches')
+  premier = mesure_matomo(page, '1-chargement', 1)
+  raise "chargement : #{premier}" unless premier['action_name'].start_with?("Cas d'usages") && !premier.key?('search')
+
+  recherche = recherche_matomo(page, 'eaje', '2-recherche', 2)
+  attendu = { 'search' => 'eaje', 'search_cat' => "Cas d'usages", 'search_count' => Demarche.catalogue({ 'q' => 'eaje' }).count.to_s }
+  raise "recherche : #{recherche}" unless recherche.slice(*attendu.keys) == attendu
+
+  page.first('a[href^="/demarches/"]').click
+  page.assert_no_current_path(/q=eaje/, url: false)
+  fiche = mesure_matomo(page, '3-clic-resultat', 3)
+  raise "fiche : #{fiche}" unless fiche['url'] == page.current_url && fiche['action_name'] == page.title && !fiche.key?('search')
+  raise "référent de la fiche : #{fiche['urlref']}, attendu #{recherche['url']}" unless fiche['urlref'] == recherche['url']
+
+  page.go_back
+  page.assert_current_path(/q=eaje/, url: false)
+  retour = mesure_matomo(page, '4-retour', 4)
+  raise "retour : #{retour}" if retour.key?('search')
+
+  meme = recherche_matomo(page, 'eaje', '5-meme-recherche', 5)
+  raise "même recherche comptée deux fois : #{meme}" if meme.key?('search')
+
+  autre = recherche_matomo(page, 'api', '6-autre-recherche', 6)
+  raise "autre recherche : #{autre}" unless autre['search'] == 'api'
+
+  page.go_back
+  page.assert_current_path(/q=eaje&/, url: false)
+  ancienne = mesure_matomo(page, '7-retour-recherche-precedente', 7)
+  raise "retour sur une recherche déjà comptée : #{ancienne}" if ancienne.key?('search')
+
+  courte = recherche_matomo(page, 'e', '8-mot-cle-court', 8)
+  raise "mot-clé d'un caractère compté : #{courte}" if courte.key?('search')
+ensure
+  ENV['MATOMO_SITE_ID'] = site_id
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'article-cartes' => :article_cartes,
   'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
@@ -2408,7 +2469,7 @@ end
   'contact' => :contact,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
   'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
-  'lire-plus' => :lire_plus }.each do |nom, fn|
+  'lire-plus' => :lire_plus, 'matomo' => :matomo }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)

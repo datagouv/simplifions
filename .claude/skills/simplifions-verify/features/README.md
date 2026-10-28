@@ -64,3 +64,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-image-refusee.md](admin-image-refusee.md) — a solution image whose content is not png, jpg or webp is refused, on a hidden and on a published solution, with no file or draft kept.
 - [admin-onglets.md](admin-onglets.md) — démarche and solution edit pages in tabs inside one form; a save reopens its tab, an error opens the tab of the first error.
 - [contact.md](contact.md) — reach /contact/<besoin> from a cas d'usage page: the page is preselected and cited in the subject and the e-mail, another démarche chosen without reload, copy works, the answer-only steps give no address.
+- [matomo.md](matomo.md) — one Matomo hit per page shown, Turbo visits included; a new catalogue search is measured as a search (keyword, catalogue, result count) instead of a page view.
