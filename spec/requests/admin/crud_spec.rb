@@ -1287,6 +1287,78 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'reprise de data.gouv.fr à l’enregistrement' do
+    let(:melodi) { 'https://www.data.gouv.fr/api/1/dataservices/6661e09c7230a8fc3b1ec229/' }
+    let(:rien_repris) { 'Rien n’a été repris de data.gouv.fr pour cet identifiant' }
+
+    before do
+      sign_in admin
+      stub_request(:get, melodi).to_return(status: 200, headers: { 'Content-Type' => 'application/json' },
+        body: { title: 'API Melodi', organization: { name: 'Institut national de la statistique et des études économiques' } }.to_json)
+    end
+
+    def fiche_affichee
+      follow_redirect!
+      response.parsed_body.at_css('main').text.squish
+    end
+
+    it 'montre les informations reprises dès la création' do
+      post '/admin/solutions', params: { solution: { nom: 'API Melodi', categorie: 'api', uid_datagouv: '6661e09c7230a8fc3b1ec229' } }
+      fiche = fiche_affichee
+      expect(fiche).to include('Titre : API Melodi', 'Institut national de la statistique et des études économiques')
+      expect(fiche).not_to include(rien_repris)
+    end
+
+    it 'les reprend quand l’identifiant change, sans rappeler data.gouv.fr s’il ne change pas' do
+      api = Solution.create!(nom: 'API Melodi', categorie: 'api', uid_datagouv: 'ancien', datagouv_titre: 'Ancien titre')
+      patch "/admin/solutions/#{api.id}", params: { solution: { uid_datagouv: '6661e09c7230a8fc3b1ec229' } }
+      expect(fiche_affichee).to include('Titre : API Melodi')
+
+      patch "/admin/solutions/#{api.id}", params: { solution: { nom: 'API Melodi Insee' } }
+      expect(WebMock).to have_requested(:get, melodi).once
+    end
+
+    it 'les reprend à la publication du brouillon qui change l’identifiant d’une API en ligne' do
+      api = Solution.create!(nom: 'API Melodi', categorie: 'api', visible: true, uid_datagouv: 'ancien')
+      patch "/admin/solutions/#{api.id}", params: { solution: { uid_datagouv: '6661e09c7230a8fc3b1ec229' } }
+      expect(WebMock).not_to have_requested(:get, melodi)
+
+      patch "/admin/solutions/#{api.id}", params: { solution: { visible: '1' } }
+      expect(fiche_affichee).to include('Titre : API Melodi')
+    end
+
+    it 'enregistre l’API quand data.gouv.fr ne connaît pas l’identifiant ou ne répond pas, et le dit sur la fiche' do
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/inconnu/').to_return(status: 404)
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/sans-reponse/').to_timeout
+
+      %w[inconnu sans-reponse].each do |uid|
+        post '/admin/solutions', params: { solution: { nom: "API #{uid}", categorie: 'api', uid_datagouv: uid } }
+        expect(Solution.find_by(uid_datagouv: uid)).to be_present
+        expect(fiche_affichee).to include(rien_repris, 'Nouvel essai chaque nuit')
+      end
+    end
+
+    it 'refuse un identifiant déjà utilisé sans appeler data.gouv.fr, en nommant la fiche qui l’a' do
+      Solution.create!(nom: 'API Données du répertoire Sirene', categorie: 'api', uid_datagouv: '672cf6aece89cb14e31f0fba')
+      post '/admin/solutions', params: { solution: { nom: 'API Sirene', categorie: 'api', uid_datagouv: '672cf6aece89cb14e31f0fba' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('déjà celui de « API Données du répertoire Sirene (API) »')
+      expect(Solution.where(uid_datagouv: '672cf6aece89cb14e31f0fba').count).to eq(1)
+      expect(WebMock).not_to have_requested(:get, /data\.gouv\.fr/)
+    end
+
+    it 'refuse aussi un identifiant déjà utilisé dans le brouillon d’une API en ligne' do
+      Solution.create!(nom: 'API Données du répertoire Sirene', categorie: 'api', uid_datagouv: '672cf6aece89cb14e31f0fba')
+      api = Solution.create!(nom: 'API Melodi', categorie: 'api', visible: true, uid_datagouv: 'melodi')
+      patch "/admin/solutions/#{api.id}", params: { solution: { uid_datagouv: '672cf6aece89cb14e31f0fba' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include('déjà celui de « API Données du répertoire Sirene (API) »')
+      expect(api.reload.brouillon).to be_nil
+    end
+  end
+
   describe 'formulaire solution selon sa catégorie' do
     let(:champs_fiche) { %w[slug site_internet url_demande_acces image legende_image description_courte permet ne_permet_pas] }
 

@@ -117,6 +117,8 @@ class Solution < ApplicationRecord
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"
   end
 
+  def nouvel_identifiant_datagouv? = saved_change_to_uid_datagouv? && uid_datagouv.present?
+
   def self.rafraichir_datagouv = sur_datagouv.filter_map(&:rafraichir_datagouv!)
 
   def rafraichir_datagouv!

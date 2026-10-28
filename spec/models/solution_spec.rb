@@ -464,6 +464,22 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#nouvel_identifiant_datagouv?' do
+    it 'ne le dit qu’après un enregistrement qui pose ou change un identifiant non vide' do
+      api = described_class.create!(nom: 'API QF', categorie: 'api', uid_datagouv: 'a')
+      expect(api.nouvel_identifiant_datagouv?).to be(true)
+
+      api.update!(nom: 'API QF renommée')
+      expect(api.nouvel_identifiant_datagouv?).to be(false)
+
+      api.update!(uid_datagouv: 'b')
+      expect(api.nouvel_identifiant_datagouv?).to be(true)
+
+      api.update!(uid_datagouv: '')
+      expect(api.nouvel_identifiant_datagouv?).to be(false)
+    end
+  end
+
   describe 'identifiant data.gouv déjà utilisé, à l’enregistrement dans l’admin' do
     before { described_class.create!(nom: 'API Données du répertoire Sirene', categorie: 'api', uid_datagouv: '672cf6') }
 
