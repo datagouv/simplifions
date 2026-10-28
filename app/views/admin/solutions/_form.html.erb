@@ -53,6 +53,11 @@
     <% if solution.uid_datagouv_in_database.present? %>
       <div class="fr-mb-3w">
         <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
+        <% if solution.datagouv_titre.blank? %>
+          <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-1w">
+            <p>Rien n’a été repris de data.gouv.fr pour cet identifiant : data.gouv.fr ne le connaît pas ou n’a pas répondu. Nouvel essai chaque nuit.</p>
+          </div>
+        <% end %>
         <ul>
           <li>Titre : <%= solution.datagouv_titre %></li>
           <li>Organisation : <%= solution.datagouv_organisation %></li>

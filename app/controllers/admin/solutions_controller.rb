@@ -16,6 +16,7 @@ class Admin::SolutionsController < Admin::BaseController
   def create
     @solution = Solution.new(solution_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
     if @solution.save(context: :admin)
+      @solution.rafraichir_datagouv! if @solution.nouvel_identifiant_datagouv?
       redirige_vers_la_fiche(@solution)
     else
       render :new, status: :unprocessable_content
@@ -25,6 +26,7 @@ class Admin::SolutionsController < Admin::BaseController
   def update
     retrait = params.dig(:solution, :retirer_image) == '1' ? { image: nil } : {}
     if @solution.enregistrer(solution_params.merge(modifie_le: Time.current, **retrait), contexte: :admin)
+      @solution.rafraichir_datagouv! if @solution.nouvel_identifiant_datagouv?
       redirige_vers_la_fiche(@solution)
     else
       render :edit, status: :unprocessable_content
