@@ -3,6 +3,15 @@ module Brouillonnable
 
   included { after_destroy_commit { purger_les_fichiers(brouillon.to_h) } }
 
+  class_methods do
+    def changements_du_brouillon(version)
+      publiee = version.reify(dup: true)
+      champs = column_names - %w[id brouillon modifie_le created_at updated_at]
+      avant, apres = version.changeset['brouillon'].map { publiee.dup.appliquer_brouillon(it.to_h.slice(*champs)) }
+      champs.index_with { [avant.public_send(it), apres.public_send(it)] }.reject { |_, (ancien, nouveau)| ancien == nouveau }
+    end
+  end
+
   def brouillon? = brouillon.present?
 
   def date_du_brouillon = brouillon&.dig('modifie_le')&.to_time
@@ -53,9 +62,18 @@ module Brouillonnable
 
     remplaces = brouillon.to_h.slice(*attributs.keys)
     attributs = { 'commence_le' => Time.current }.merge(brouillon.to_h, attributs.transform_values { en_valeur_de_brouillon(it) })
-    update_column(:brouillon, (attributs if differe_du_publie?(attributs)))
+    ecrire_le_brouillon((attributs if differe_du_publie?(attributs)), 'brouillon')
     purger_les_fichiers(remplaces)
     true
+  end
+
+  def ecrire_le_brouillon(valeur, evenement)
+    return if valeur.nil? && brouillon.nil?
+
+    self.paper_trail_event = evenement
+    paper_trail.update_columns(brouillon: valeur)
+  ensure
+    self.paper_trail_event = nil
   end
 
   def fichiers_acceptes?(attributs)

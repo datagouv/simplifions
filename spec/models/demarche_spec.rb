@@ -164,14 +164,33 @@ RSpec.describe Demarche do
 
     def en_base = described_class.find(demarche.id)
 
-    it 'garde Enregistrer d’une démarche publiée à part, sans toucher ses colonnes, ses liaisons ni son historique' do
-      expect {
-        expect(demarche.enregistrer('nom' => '', 'vocabulaire_ids' => ['', entreprises.id.to_s])).to be(true)
-      }.not_to change(PaperTrail::Version, :count)
+    it 'garde Enregistrer d’une démarche publiée à part, sans toucher ses colonnes ni ses liaisons' do
+      expect(demarche.enregistrer('nom' => '', 'vocabulaire_ids' => ['', entreprises.id.to_s])).to be(true)
 
       expect(en_base.slice(:nom, :visible)).to eq('nom' => 'Cantine', 'visible' => true)
       expect(en_base.vocabulaires).to eq([particuliers])
       expect(en_base).to be_brouillon
+    end
+
+    it 'inscrit le brouillon enregistré dans l’historique, avec son auteur' do
+      PaperTrail.request(whodunnit: '7') { demarche.enregistrer('nom' => 'Cantine scolaire') }
+
+      version = en_base.versions.last
+      expect(version.slice(:event, :whodunnit)).to eq('event' => 'brouillon', 'whodunnit' => '7')
+      expect(version.changeset['brouillon'].last).to include('nom' => 'Cantine scolaire')
+    end
+
+    it 'dit quels champs chaque enregistrement du brouillon a changés, avant et après' do
+      demarche.enregistrer('nom' => 'Cantine scolaire', 'mots_clefs' => '', 'vocabulaire_ids' => [entreprises.id.to_s])
+      en_base.enregistrer('nom' => 'Cantine du midi', 'mots_clefs' => "repas\r\ngoûter")
+
+      premier, second = en_base.versions.where(event: 'brouillon').map { described_class.changements_du_brouillon(it) }
+      expect(premier).to eq('nom' => ['Cantine', 'Cantine scolaire'])
+      expect(second).to eq('nom' => ['Cantine scolaire', 'Cantine du midi'], 'mots_clefs' => [[], %w[repas goûter]])
+    end
+
+    it 'n’inscrit rien quand le brouillon reste identique à la version publiée' do
+      expect { demarche.enregistrer('nom' => 'Cantine') }.not_to change(PaperTrail::Version, :count)
     end
 
     it 'rouvre la démarche sur son brouillon, cases cochées comprises, sans écrire la table de liaison' do
