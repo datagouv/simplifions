@@ -468,9 +468,33 @@ RSpec.describe 'Administration' do
         .to end_with('La solution API Impôt particulier (Logiciel métier) deviendra privée.')
     end
 
+    it 'montre en entier une courte liste de cases, sans champ de filtre' do
+      api = Solution.create!(nom: 'API Sirene', categorie: 'api')
+      5.times { |rang| Recommandation.create!(demarche: Demarche.create!(nom: "Démarche #{rang}"), solution: api, niveau: :niveau_1) }
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Publik Associations'), integree: api, type_integration: 'consomme')
+
+      get "/admin/integrations/#{integration.id}/edit"
+      groupe = response.parsed_body.at_css('fieldset:has(> legend:contains("Démarches"))')
+      expect(groupe.css('input[type=checkbox]').size).to eq(5)
+      expect(groupe.text).not_to include('Filtrer les démarches')
+      expect(groupe.css('[data-controller], [data-action], [data-liste-filtrable-target], [aria-live]')).to be_empty
+    end
+
     it 'range chaque longue liste de cases dans un groupe filtrable qui montre tous les choix au clic, sans champ envoyé' do
+      11.times do |rang|
+        Organisation.create!(nom: "Organisation #{rang}", public_ou_prive: 'Public')
+        Solution.create!(nom: "Solution #{rang}")
+        Demarche.create!(nom: "Démarche #{rang}")
+      end
+      10.times { |rang| TypeActeur.create!(nom: "Fournisseur #{rang}") }
+
+      get '/admin/demarches/new'
+      courte = response.parsed_body.at_css('fieldset:has(> legend:contains("Fournisseurs de services"))')
+      expect(courte.css('input[type=checkbox]').size).to eq(10)
+      expect(courte.at_css('input[type=text]')).to be_nil
+
       {
-        'demarches' => ['Fournisseurs de services'], 'solutions' => ['Organisations', 'Fournisseurs de services'],
+        'demarches' => [], 'solutions' => ['Organisations'],
         'integrations' => [], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
         'vocabulaires' => %w[Démarches Solutions]
       }.each do |chemin, groupes|
