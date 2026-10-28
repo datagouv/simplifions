@@ -101,4 +101,3 @@ Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates; a drive that
 - One browser session per container, held for the whole `drive.rb` run: a second drive started meanwhile waits 5 minutes, then fails on `session not created`. Run drives one after another.
 - `bin/rails runner` keeps the query cache on: a read-back after a mutation made by the browser goes inside `ActiveRecord::Base.uncached { … }`.
 - On Linux the container writes `tmp/` and `log/` as root; before removing a worktree, `docker compose run --rm web chown -R "$(id -u):$(id -g)" tmp log`. Docker Desktop on a Mac keeps the user as owner.
-- `allow_browser versions: :modern` rejects old user agents; the browser containers are recent enough.
