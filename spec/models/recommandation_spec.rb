@@ -285,9 +285,16 @@ RSpec.describe Recommandation do
       publiee = described_class.new
       publiee.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_1', 'visible' => '1')
       masquee = described_class.new
-      masquee.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_1')
+      masquee.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_2')
 
       expect([en_base(publiee), en_base(masquee)].map { it.slice(:visible, :brouillon) }).to eq([{ 'visible' => true, 'brouillon' => nil }, { 'visible' => false, 'brouillon' => nil }])
+    end
+
+    it 'fait attendre la publication de sa démarche, même masquée, à une nouvelle donnée utile' do
+      utile = described_class.new
+      utile.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_1')
+
+      expect(en_base(utile)).to have_attributes(visible: false, brouillon: include('visible' => '1'))
     end
   end
 end

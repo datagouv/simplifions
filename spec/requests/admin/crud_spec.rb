@@ -168,7 +168,7 @@ RSpec.describe 'Administration' do
     let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
     let(:modification) { { ordre: 3 } }
     let(:invalide) { [{ demarche_id: '' }, 'Choisissez une démarche'] }
-    let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id) }
+    let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id, niveau: 'niveau_2') }
     let(:nom) { 'Aides → API QF (API)' }
     let(:nom_cree) { 'Autre démarche → API QF (API)' }
   end
@@ -1633,7 +1633,7 @@ RSpec.describe 'Administration' do
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
       lignes = {
         'solutions' => bouquet,
-        'recommandations' => Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api_qf, niveau: :niveau_1, modifie_le: Time.current),
+        'recommandations' => Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api_qf, niveau: :niveau_2, modifie_le: Time.current),
         'integrations' => Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme'),
         'organisations' => Organisation.create!(nom: 'DINUM'),
         'types_acteurs' => TypeActeur.create!(nom: 'Communes'),
@@ -1833,6 +1833,101 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('La recommandation « Mes Aides (API) » ne peut pas être publiée : Type de recommandation doit être rempli')
       expect([demarche.reload.nom, nouvelle.visible, publiee.reload.niveau]).to eq(['Aides', false, 'niveau_2'])
+    end
+  end
+
+  describe 'données utiles d’une démarche publiée' do
+    let!(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let!(:bouquet) { Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')]) }
+    let!(:utile) do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, description: 'Quotient du mois', visible: true)
+    end
+
+    before do
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      sign_in admin
+    end
+
+    def ajouter(nom)
+      api = Solution.create!(nom:, categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_1' } }
+      Recommandation.find_by!(solution: api)
+    end
+
+    def carte_publique = get('/demarches/aides').then { response.parsed_body.at_css('.reco-card').text.squish }
+    def etat_dans_la_demarche(ligne) = get("/admin/demarches/#{demarche.id}/edit").then { response.parsed_body.at_css("tr#recommandation_#{ligne.id}").css('td')[3..].map { it.text.squish } }
+
+    it 'garde hors du site la description modifiée jusqu’à la publication de la démarche, en comptant le brouillon' do
+      patch "/admin/recommandations/#{utile.id}", params: { recommandation: { description: 'Revenu du foyer' } }
+      follow_redirect!
+      expect(response.body).to include('« Aides → API QF (API) » : brouillon enregistré, non publié.')
+      expect(carte_publique).to include('Quotient du mois')
+      expect(carte_publique).not_to include('Revenu du foyer')
+      expect(etat_dans_la_demarche(utile).join(' ')).to include('Publiée', 'Brouillon')
+      expect(response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]').text.squish).to include('1 recommandation en brouillon')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('Revenu du foyer')
+      expect(etat_dans_la_demarche(utile).join(' ')).not_to include('Brouillon')
+    end
+
+    it 'garde hors du site la donnée utile ajoutée, publiée ensuite avec la démarche' do
+      ajoutee = ajouter('API Impôt')
+      expect(carte_publique).not_to include('API Impôt')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
+      expect(etat_dans_la_demarche(ajoutee).first).to start_with('Publiée')
+    end
+
+    it 'garde hors du site la recommandation masquée passée en donnée utile, jusqu’à la publication de la démarche ou l’abandon' do
+      api = Solution.create!(nom: 'API Impôt', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      masquee = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2)
+      patch "/admin/recommandations/#{masquee.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+      expect(carte_publique).not_to include('API Impôt')
+      patch "/admin/recommandations/#{masquee.id}/abandonner_brouillon"
+      expect(masquee.reload.slice(:niveau, :brouillon)).to eq('niveau' => 'niveau_2', 'brouillon' => nil)
+      expect(carte_publique).not_to include('API Impôt')
+      patch "/admin/recommandations/#{masquee.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
+      expect(etat_dans_la_demarche(masquee).first).to start_with('Publiée')
+    end
+
+    it 'garde en brouillon la recommandation masquée avec un brouillon, passée en donnée utile, jusqu’à la publication de la démarche' do
+      api = Solution.create!(nom: 'API Impôt', categorie: 'api')
+      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      masquee = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, visible: true)
+      patch "/admin/recommandations/#{masquee.id}", params: { recommandation: { description: 'Impôt du foyer' } }
+      patch "/admin/recommandations/#{masquee.id}", params: { recommandation: { visible: '0' } }
+
+      patch "/admin/recommandations/#{masquee.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+      expect(carte_publique).not_to include('API Impôt')
+      expect(etat_dans_la_demarche(masquee).join(' ')).to include('Masquée', 'Brouillon')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
+      expect(etat_dans_la_demarche(masquee).first).to start_with('Publiée')
+    end
+
+    it 'n’offre ni Publier ni Masquer sur l’écran d’une donnée utile' do
+      get "/admin/recommandations/#{utile.id}/edit"
+
+      expect(response.parsed_body.css('aside[aria-labelledby="etat-et-actions"] button').map { it.text.strip }).to eq(%w[Enregistrer Supprimer])
+    end
+
+    it 'publie avec la démarche masquée la donnée utile qui y a été ajoutée' do
+      demarche.update!(visible: false)
+      ajoutee = ajouter('API Impôt')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
+      expect(etat_dans_la_demarche(ajoutee).first).to start_with('Publiée')
     end
   end
 
