@@ -464,6 +464,45 @@ RSpec.describe Solution do
     end
   end
 
+  describe 'identifiant data.gouv déjà utilisé, à l’enregistrement dans l’admin' do
+    before { described_class.create!(nom: 'API Données du répertoire Sirene', categorie: 'api', uid_datagouv: '672cf6') }
+
+    it 'refuse une nouvelle fiche avec l’identifiant d’une autre, en nommant celle qui l’a' do
+      doublon = described_class.new(nom: 'API Sirene bis', categorie: 'api', uid_datagouv: ' 672cf6 ')
+      expect(doublon.valid?(:admin)).to be(false)
+      expect(doublon.errors.full_messages)
+        .to eq(['Identifiant data.gouv est déjà celui de « API Données du répertoire Sirene (API) »'])
+    end
+
+    it 'accepte plusieurs fiches sans identifiant' do
+      described_class.create!(nom: 'Sans fiche', categorie: 'api', uid_datagouv: '')
+      expect(described_class.new(nom: 'Autre sans fiche', categorie: 'api', uid_datagouv: '').valid?(:admin)).to be(true)
+      expect(described_class.new(nom: 'Sans identifiant', categorie: 'api').valid?(:admin)).to be(true)
+    end
+
+    it 'laisse modifiable un doublon déjà en base tant que son identifiant ne change pas' do
+      doublon = described_class.create!(nom: 'API Sirene bis', categorie: 'api', uid_datagouv: '672cf6')
+
+      expect(doublon.enregistrer({ nom: 'API Sirene ter' }, contexte: :admin)).to be(true)
+      expect(doublon.enregistrer({ uid_datagouv: 'autre' }, contexte: :admin)).to be(true)
+      expect(doublon.enregistrer({ uid_datagouv: '672cf6' }, contexte: :admin)).to be(false)
+    end
+
+    it 'refuse aussi l’identifiant d’une autre fiche dans le brouillon d’une API en ligne, sans rien enregistrer' do
+      api = described_class.create!(nom: 'API Melodi', categorie: 'api', visible: true, uid_datagouv: 'melodi')
+
+      expect(api.enregistrer({ uid_datagouv: '672cf6' }, contexte: :admin)).to be(false)
+      expect(api.errors.full_messages).to eq(['Identifiant data.gouv est déjà celui de « API Données du répertoire Sirene (API) »'])
+      expect(api.uid_datagouv).to eq('672cf6')
+      expect(api.reload.brouillon).to be_nil
+      expect(described_class.find(api.id).enregistrer({ nom: 'API Melodi Insee' }, contexte: :admin)).to be(true)
+    end
+
+    it 'laisse un enregistrement hors de l’admin, comme l’import Grist, reprendre un identifiant déjà utilisé' do
+      expect(described_class.new(nom: 'API Sirene bis', categorie: 'api', uid_datagouv: '672cf6').save).to be(true)
+    end
+  end
+
   describe 'types de solution' do
     it 'refuse un type hors de la liste fixe en le disant' do
       expect(described_class.new(nom: 'Acheteza', types_solution: Solution::TYPES_SOLUTION)).to be_valid

@@ -23,11 +23,11 @@ module Brouillonnable
     versions.where(whodunnit: Grist::Import::AUTEUR, created_at: debut..).last if debut
   end
 
-  def enregistrer(attributs)
+  def enregistrer(attributs, contexte: nil)
     attributs = attributs.to_h.stringify_keys
-    return ecrire(attributs) unless passe_par_un_brouillon? && !publication_demandee?(attributs)
+    return ecrire(attributs, contexte) unless passe_par_un_brouillon? && !publication_demandee?(attributs)
 
-    return false unless enregistrer_brouillon(attributs.except('visible'))
+    return false unless enregistrer_brouillon(attributs.except('visible'), contexte)
 
     attributs['visible'] == '0' ? update(attributs.slice('visible', 'modifie_le')) : true
   end
@@ -52,16 +52,23 @@ module Brouillonnable
 
   def sans_date_de_debut(attributs) = attributs.to_h.except('commence_le')
 
-  def ecrire(attributs)
+  def ecrire(attributs, contexte = nil)
     remplaces = brouillon.to_h.slice(*attributs.keys)
     ecrits = sans_date_de_debut(brouillon).merge(attributs, 'brouillon' => nil)
-    avec_evenement(('publication' if publie_le_brouillon?(ecrits))) { update(ecrits) }.tap { purger_les_fichiers(remplaces) if it }
+    ecrit = avec_evenement(('publication' if publie_le_brouillon?(ecrits))) do
+      with_transaction_returning_status do
+        assign_attributes(ecrits)
+        save(context: contexte)
+      end
+    end
+    purger_les_fichiers(remplaces) if ecrit
+    ecrit
   end
 
   def publie_le_brouillon?(ecrits) = brouillon? && self.class.type_for_attribute('visible').cast(ecrits.fetch('visible', visible))
 
-  def enregistrer_brouillon(attributs)
-    return garder_la_saisie_sans_fichier(attributs) unless fichiers_acceptes?(attributs)
+  def enregistrer_brouillon(attributs, contexte = nil)
+    return garder_la_saisie_sans_fichier(attributs) unless saisie_acceptee?(attributs, contexte)
 
     remplaces = brouillon.to_h.slice(*attributs.keys)
     attributs = { 'commence_le' => Time.current }.merge(brouillon.to_h, attributs.transform_values { en_valeur_de_brouillon(it) })
@@ -81,20 +88,25 @@ module Brouillonnable
     self.paper_trail_event = nil
   end
 
-  def fichiers_acceptes?(attributs)
-    fichiers = fichiers_de(attributs).compact_blank
-    return true if fichiers.empty?
-
-    erreurs_avec_le_brouillon(attributs).each { errors.import(it) if fichiers.key?(it.attribute.to_s) }
+  def saisie_acceptee?(attributs, contexte)
+    erreurs_bloquantes(attributs, contexte).each { errors.import(it) }
     errors.empty?
   end
+
+  def erreurs_bloquantes(attributs, contexte)
+    copie = copie_avec_le_brouillon(attributs)
+    erreurs = copie.tap(&:validate).errors.objects.dup
+    copie.validate(contexte) if contexte
+    erreurs_sur_les_fichiers(erreurs, attributs) + (copie.errors.objects - erreurs)
+  end
+
+  def copie_avec_le_brouillon(attributs) = self.class.find(id).appliquer_brouillon(brouillon.to_h.merge(attributs))
+  def erreurs_sur_les_fichiers(erreurs, attributs) = erreurs.select { fichiers_de(attributs).compact_blank.key?(it.attribute.to_s) }
 
   def garder_la_saisie_sans_fichier(attributs)
     appliquer_brouillon(brouillon.to_h.merge(attributs.except(*fichiers_de(attributs).keys)))
     false
   end
-
-  def erreurs_avec_le_brouillon(attributs) = self.class.find(id).appliquer_brouillon(brouillon.to_h.merge(attributs)).tap(&:validate).errors
 
   def differe_du_publie?(attributs)
     copie = self.class.find(id).appliquer_brouillon(attributs)
