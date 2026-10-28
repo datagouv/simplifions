@@ -1966,6 +1966,27 @@ RSpec.describe 'Administration' do
       expect(panneau('Recommandée dans').text.squish).to eq('Aucune démarche ne la recommande.')
     end
 
+    it 'liste sous « Solutions qui l’intègrent » d’un bouquet les intégrations de ses API, à modifier depuis la fiche de l’API' do
+      bouquet = Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle')
+      sirene = Solution.create!(nom: 'API Sirene', categorie: 'api')
+      urssaf = Solution.create!(nom: 'API Urssaf', categorie: 'api')
+      [sirene, urssaf].each { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      Integration.create!(integratrice: Solution.create!(nom: 'Portail'), integree: bouquet, type_integration: 'consomme')
+      [[urssaf, 'Acheteza'], [sirene, 'Mes Aides'], [sirene, 'Acheteza']].each do |api, nom|
+        Integration.create!(integratrice: Solution.find_or_create_by!(nom:), integree: api, type_integration: 'consomme', statut: '💡 en prospection')
+      end
+
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      expect(onglets.second.first).to eq('Intégrations (6)')
+      expect(lignes_par_titre('Intégrations')['Solutions qui l’intègrent']).to eq([['Portail', 'Intégrée', nil], [nil, nil, nil]])
+      expect(panneau('Intégrations').css('ul li').map { |ligne| [ligne.text.squish, ligne.at_css('a')['href']] }).to eq([
+        ['Acheteza — via API Urssaf (API) Voir la fiche', "/admin/solutions/#{urssaf.id}/edit"],
+        ['Acheteza — via API Sirene (API) Voir la fiche', "/admin/solutions/#{sirene.id}/edit"],
+        ['Mes Aides — via API Sirene (API) Voir la fiche', "/admin/solutions/#{sirene.id}/edit"]
+      ])
+    end
+
     it 'relie chaque ligne d’intégration à son formulaire hors de celui de la fiche, l’autre côté fixé sur la ligne vide' do
       bouquet = Solution.create!(nom: 'Bouquet')
       integration = Integration.create!(integratrice: bouquet, integree: Solution.create!(nom: 'API QF', categorie: 'api'), type_integration: 'consomme')
