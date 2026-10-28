@@ -23,10 +23,12 @@ class Recommandation < ApplicationRecord
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 
   def enregistrer(attributs)
-    return super unless new_record? && !publication_demandee?(attributs)
+    return super if publication_demandee?(attributs)
+    return enregistrer_brouillon(attributs.to_h.stringify_keys.merge('visible' => '1')) if devient_donnee_utile?(attributs)
+    return super unless new_record?
 
     assign_attributes(attributs)
-    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current } if demarche&.visible?
+    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current } if demarche&.visible? || niveau_1?
     save
   end
 
@@ -82,6 +84,10 @@ class Recommandation < ApplicationRecord
   end
 
   private
+
+  def devient_donnee_utile?(attributs)
+    persisted? && niveau_2? && !visible? && attributs.to_h.stringify_keys['niveau'] == 'niveau_1'
+  end
 
   def utiles = demarche.recommandations.niveau_1.parues.where(solution: solution.fournies)
 
