@@ -20,7 +20,8 @@
 
 <section class="fr-container fr-mb-4w">
   <h2 class="fr-mb-2w">Filtrer les <%= titre.downcase %></h2>
-  <%= form_with url: send(chemin), method: :get, class: "catalogue", data: { controller: "form" } do |f| %>
+  <%= form_with url: send(chemin), method: :get, class: "catalogue",
+        data: { controller: "form", matomo_recherche: @filtres[:q], matomo_catalogue: titre, matomo_resultats: total } do |f| %>
     <div class="fr-search-bar fr-search-bar--lg" role="search">
       <%= f.label :q, "Rechercher", class: "fr-label" %>
       <%= f.search_field :q, value: @filtres[:q], class: "fr-input", placeholder: "Rechercher" %>
