@@ -43,7 +43,9 @@ class Solution < ApplicationRecord
   has_many :integrations_comme_integree, class_name: 'Integration', foreign_key: :integree_id,
     inverse_of: :integree, dependent: :destroy
   has_many :integratrices, -> { distinct }, through: :integrations_comme_integree
-  has_many :exposees, -> { merge(Integration.expose) }, through: :integrations_comme_integratrice, source: :integree
+  has_many :integrations_qu_elle_expose, -> { expose }, class_name: 'Integration', foreign_key: :integratrice_id,
+    inverse_of: :integratrice
+  has_many :exposees, through: :integrations_qu_elle_expose, source: :integree
   has_many :consommees, -> { merge(Integration.consomme.en_production) },
     through: :integrations_comme_integratrice, source: :integree
 
