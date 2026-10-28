@@ -43,7 +43,7 @@ module Brouillonnable
 
   def abandonner_brouillon!
     purger_les_fichiers(brouillon.to_h)
-    update_column(:brouillon, nil)
+    ecrire_le_brouillon(nil, 'abandon')
   end
 
   private
@@ -54,8 +54,11 @@ module Brouillonnable
 
   def ecrire(attributs)
     remplaces = brouillon.to_h.slice(*attributs.keys)
-    update(sans_date_de_debut(brouillon).merge(attributs, 'brouillon' => nil)).tap { purger_les_fichiers(remplaces) if it }
+    ecrits = sans_date_de_debut(brouillon).merge(attributs, 'brouillon' => nil)
+    avec_evenement(('publication' if publie_le_brouillon?(ecrits))) { update(ecrits) }.tap { purger_les_fichiers(remplaces) if it }
   end
+
+  def publie_le_brouillon?(ecrits) = brouillon? && self.class.type_for_attribute('visible').cast(ecrits.fetch('visible', visible))
 
   def enregistrer_brouillon(attributs)
     return garder_la_saisie_sans_fichier(attributs) unless fichiers_acceptes?(attributs)
@@ -68,10 +71,12 @@ module Brouillonnable
   end
 
   def ecrire_le_brouillon(valeur, evenement)
-    return if valeur.nil? && brouillon.nil?
+    avec_evenement(evenement) { paper_trail.update_columns(brouillon: valeur) } unless valeur == brouillon
+  end
 
+  def avec_evenement(evenement)
     self.paper_trail_event = evenement
-    paper_trail.update_columns(brouillon: valeur)
+    yield
   ensure
     self.paper_trail_event = nil
   end
