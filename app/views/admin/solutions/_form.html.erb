@@ -3,6 +3,7 @@
        integree: [*en_base.integrations_comme_integratrice.par_libelle_admin_de(:integree).preload(:integree), Integration.new(integratrice_id: en_base.id)],
        integratrice: [*en_base.integrations_comme_integree.par_libelle_admin_de(:integratrice).preload(:integratrice), Integration.new(integree_id: en_base.id)]
      } %>
+  <% integrations_de_ses_api = Integration.where(id: en_base.integrations_de_ses_api.select(:id)).par_libelle_admin_de(:integratrice).preload(:integratrice, :integree).load %>
 <% end %>
 <%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>
   <%= render "admin/erreurs", f: f %>
@@ -83,11 +84,18 @@
           </table>
         </div></div></div></div>
       <% end %>
+      <% if integrations_de_ses_api.any? %>
+        <ul>
+          <% integrations_de_ses_api.each do |integration| %>
+            <li><%= integration.integratrice.libelle_admin %> — via <%= integration.integree.libelle_admin %> <%= lien_vers_la_fiche(integration.integree, integration.integree.libelle_admin) %></li>
+          <% end %>
+        </ul>
+      <% end %>
     <% end %>
     <% demarches = en_base.demarches_recommandantes.order(:nom).load %>
     <%= render "admin/onglets", objet: solution, onglets: {
           "fiche" => ["Fiche", fiche],
-          "integrations" => ["Intégrations (#{listes.values.flatten.count(&:persisted?)})", integrations],
+          "integrations" => ["Intégrations (#{listes.values.flatten.count(&:persisted?) + integrations_de_ses_api.size})", integrations],
           "recommandee-dans" => ["Recommandée dans (#{demarches.size})", render("admin/liens_vers_les_fiches", lignes: demarches, vide: "Aucune démarche ne la recommande.")],
           "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
         } %>
