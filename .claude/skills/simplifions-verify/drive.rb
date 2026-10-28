@@ -1137,11 +1137,44 @@ def historique(page)
   page.click_link 'Retour à la fiche'
   page.find_field('Nom', with: "#{nom} renommée")
   Verify.evidence(dossier, page, 'retour', "chemin=#{page.current_path}")
+  historique_du_brouillon(page, dossier, demarche, "#{nom} renommée")
 ensure
   page.current_window.resize_to(1280, 1024)
   ids = Demarche.where('nom LIKE ?', "#{nom}%").ids
   Demarche.where(id: ids).destroy_all
   PaperTrail::Version.where(item_type: 'Demarche', item_id: ids).delete_all
+end
+
+def historique_du_brouillon(page, dossier, demarche, nom)
+  demarche.update!(slug: "verif-verify-map-historique-#{Verify.browser}", visible: true)
+  page.refresh
+  page.fill_in 'Nom', with: "#{nom} brouillon"
+  page.click_button 'Enregistrer'
+  page.assert_text 'brouillon enregistré'
+  premiere_version_de_l_onglet(page, dossier, demarche, 'brouillon', 'Modification en brouillon', ['Nom', nom, "#{nom} brouillon"])
+
+  page.click_button 'Publier'
+  page.assert_text "« #{nom} brouillon » enregistré."
+  premiere_version_de_l_onglet(page, dossier, demarche, 'publication', 'Publication du brouillon', ['Nom', nom, "#{nom} brouillon"])
+
+  page.fill_in 'Nom', with: nom
+  page.click_button 'Enregistrer'
+  page.accept_confirm { page.click_button 'Abandonner le brouillon' }
+  page.assert_text 'abandonné'
+  premiere_version_de_l_onglet(page, dossier, demarche, 'abandon', 'Abandon du brouillon', ['Nom', nom, "#{nom} brouillon"])
+end
+
+def premiere_version_de_l_onglet(page, dossier, demarche, etape, titre, ligne_attendue)
+  onglet(page, 'Historique')
+  version = page.first('#onglet-historique-panneau section')
+  titre_lu = version.find('h2').text
+  ligne = version.first('tbody tr').all('th, td').map(&:text)
+  raise "#{etape} : titre #{titre_lu}" unless titre_lu.start_with?("#{titre} par #{Verify::ADMIN[:email]} le ")
+  raise "#{etape} : ligne #{ligne}" unless ligne == ligne_attendue
+
+  evenements = ActiveRecord::Base.uncached { demarche.versions.reload.map(&:event) }
+  Verify.evidence(dossier, page, etape, "titre=#{titre_lu} ligne=#{ligne} evenements=#{evenements}")
+  onglet(page, 'Fiche')
 end
 
 def barre(page, nom)
