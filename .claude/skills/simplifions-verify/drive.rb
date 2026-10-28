@@ -1815,6 +1815,41 @@ ensure
   end
 end
 
+def integrations_de_ses_api(page)
+  dossier = 'admin-integrations-en-ligne'
+  bouquet = Solution.all.max_by { it.integrations_de_ses_api.size }
+  attendus = bouquet.integree_par.map(&:libelle_admin).sort_by(&:downcase)
+  lignes = bouquet.integrations_de_ses_api.count
+  Verify.login(page)
+  rubrique(page, 'Solutions')
+  rechercher(page, bouquet.nom)
+  entetes = page.all('thead th').map(&:text)
+  ligne = page.find(:xpath, "//tbody/tr[td[1][normalize-space()='#{bouquet.id}']]")
+  cellule = ligne.all('td')[entetes.index('Intégrée par')].all('a').map(&:text)
+  raise "Intégrée par #{cellule.size} != #{attendus.size}" unless cellule == attendus
+
+  Verify.evidence(dossier, page, 'bouquet-integree-par', "bouquet=#{bouquet.id} integree_par=#{cellule.size} en_base=#{attendus.size} premieres=#{cellule.first(3)}")
+  page.visit("/admin/solutions/#{bouquet.id}/edit")
+  onglet(page, 'Intégrations')
+  titre = page.find('[role=tab][aria-selected=true]').text
+  total = bouquet.integrations_comme_integratrice.count + bouquet.integrations_comme_integree.count + lignes
+  raise "onglet #{titre} != #{total}" unless titre == "Intégrations (#{total})"
+
+  items = page.all('#onglet-integrations-panneau ul li', visible: :all)
+  raise "lignes via #{items.size} != #{lignes}" unless items.size == lignes && items.all? { it.text(:all).include?(' — via ') }
+
+  page.scroll_to(items.first, align: :center)
+  Verify.evidence(dossier, page, 'bouquet-lignes-via', "onglet=#{titre} lignes_via=#{items.size} premiere=#{items.first.text(:all)}")
+  premiere = items.first.text(:all)
+  items.first.click_link 'Voir la fiche'
+  page.assert_no_current_path("/admin/solutions/#{bouquet.id}/edit")
+  api = Solution.find(page.current_path[%r{/admin/solutions/(\d+)/edit}, 1])
+  raise "fiche ouverte #{api.libelle_admin} pas dans #{premiere}" unless bouquet.exposees.include?(api)
+
+  Verify.evidence(dossier, page, 'bouquet-fiche-via', "onglet=#{titre} lignes_via=#{items.size} en_base=#{lignes} api_ouverte=#{api.libelle_admin}")
+  Verify.logout(page)
+end
+
 def contact(page)
   demarche, autre = Demarche.visibles.order(:nom).first(2)
   page.visit("/demarches/#{demarche.slug}")
@@ -2613,6 +2648,7 @@ end
   'navigation' => :navigation, 'integrations-de-l-api' => :integrations_de_l_api, 'brouillon' => :brouillon,
   'previsualisation' => :previsualisation, 'image-refusee' => :image_refusee, 'onglets' => :onglets,
   'recommandations-en-ligne' => :recommandations_en_ligne, 'integrations-en-ligne' => :integrations_en_ligne,
+  'integrations-de-ses-api' => :integrations_de_ses_api,
   'contact' => :contact,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
   'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
