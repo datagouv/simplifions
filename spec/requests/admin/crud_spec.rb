@@ -1803,6 +1803,20 @@ RSpec.describe 'Administration' do
         expect(lignes).to eq([[libelle, avant, apres]]), chemin
       end
     end
+
+    it 'inscrit la publication et l’abandon du brouillon, chacun sur sa ligne' do
+      fiches.each do |chemin, (ligne, champ, libelle, avant, apres)|
+        cle = ligne.model_name.param_key
+        patch "/admin/#{chemin}/#{ligne.id}", params: { cle => { champ => apres } }
+        patch "/admin/#{chemin}/#{ligne.id}", params: { cle => { visible: '1' } }
+        patch "/admin/#{chemin}/#{ligne.id}", params: { cle => { champ => avant } }
+        patch "/admin/#{chemin}/#{ligne.id}/abandonner_brouillon"
+
+        lignes = versions(chemin, ligne).first(4)
+        expect(lignes.map { it.first[/\A.+ par #{admin.email}/] }).to eq(['Abandon du brouillon', 'Modification en brouillon', 'Publication du brouillon', 'Modification en brouillon'].map { "#{it} par #{admin.email}" }), chemin
+        expect(lignes.map(&:last)).to eq([[[libelle, avant, apres]], [[libelle, apres, avant]], [[libelle, avant, apres]], [[libelle, avant, apres]]]), chemin
+      end
+    end
   end
 
   describe 'recommandations d’une démarche publiée' do

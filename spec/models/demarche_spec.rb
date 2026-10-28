@@ -252,11 +252,38 @@ RSpec.describe Demarche do
       expect(en_base.slice(:nom, :description_courte, :visible, :brouillon)).to eq('nom' => 'Cantine scolaire', 'description_courte' => 'Repas du midi', 'visible' => false, 'brouillon' => nil)
     end
 
-    it 'abandonne le brouillon pour revenir à la version publiée' do
+    it 'abandonne le brouillon pour revenir à la version publiée, avec une ligne dans l’historique' do
       demarche.enregistrer('nom' => 'Cantine scolaire')
 
       en_base.abandonner_brouillon!
       expect(en_base.slice(:nom, :brouillon)).to eq('nom' => 'Cantine', 'brouillon' => nil)
+      expect(described_class.changements_du_brouillon(en_base.versions.last)).to eq('nom' => ['Cantine scolaire', 'Cantine'])
+      expect(en_base.versions.last.event).to eq('abandon')
+    end
+
+    it 'nomme publication la version qui publie le brouillon, modification celle d’une démarche masquée sans brouillon' do
+      demarche.enregistrer('nom' => 'Cantine scolaire')
+      en_base.enregistrer('visible' => '1')
+      expect(en_base.versions.last.slice(:event, :object_changes)).to match('event' => 'publication', 'object_changes' => include('nom' => ['Cantine', 'Cantine scolaire']))
+
+      en_base.update!(visible: false)
+      en_base.enregistrer('nom' => 'Cantine du midi')
+      expect(en_base.versions.last.event).to eq('update')
+    end
+
+    it 'n’écrit pas Publication pour une démarche masquée qui garde un brouillon, enregistrée sans être publiée' do
+      demarche.enregistrer('nom' => 'Cantine scolaire', 'visible' => '0')
+      en_base.enregistrer('description_courte' => 'Repas')
+
+      expect(en_base.versions.last.slice(:event, :object_changes)).to match('event' => 'update', 'object_changes' => include('nom' => ['Cantine', 'Cantine scolaire']))
+    end
+
+    it 'nomme publication la version de chaque recommandation publiée avec la démarche' do
+      recommandation = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_2, donnees_utiles: 'Quotient', visible: true)
+      recommandation.enregistrer('donnees_utiles' => 'Revenu fiscal')
+
+      expect { en_base.enregistrer('visible' => '1') }.to change(recommandation.versions, :count).by(1)
+      expect(recommandation.versions.last.event).to eq('publication')
     end
   end
 end

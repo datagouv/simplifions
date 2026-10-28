@@ -1,6 +1,7 @@
 module ApplicationHelper
   MARKDOWN_TAGS = (Rails::HTML5::SafeListSanitizer.allowed_tags + %w[details summary table thead tbody tr th td]).freeze
-  EVENEMENTS = { 'create' => 'Création', 'update' => 'Modification', 'destroy' => 'Suppression', 'brouillon' => 'Modification en brouillon' }.freeze
+  EVENEMENTS = { 'create' => 'Création', 'update' => 'Modification', 'destroy' => 'Suppression', 'brouillon' => 'Modification en brouillon',
+                 'publication' => 'Publication du brouillon', 'abandon' => 'Abandon du brouillon' }.freeze
 
   def liste_humaine(items)
     parts = []
@@ -81,7 +82,7 @@ module ApplicationHelper
   end
 
   def champs_changes(version, modele)
-    changements = version.event == 'brouillon' ? modele.changements_du_brouillon(version) : version.changeset
+    changements = version.changeset.key?('brouillon') ? modele.changements_du_brouillon(version) : version.changeset
     changements.except('id', 'created_at', 'updated_at').reject { |_, valeurs| valeurs.all?(&:blank?) }.to_h do |champ, valeurs|
       [modele.human_attribute_name(champ), valeurs.map { |valeur| valeur_lisible(modele, champ, valeur) }]
     end
