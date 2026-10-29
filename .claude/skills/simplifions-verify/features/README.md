@@ -66,3 +66,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-onglets.md](admin-onglets.md) — démarche and solution edit pages in tabs inside one form; a save reopens its tab, an error opens the tab of the first error.
 - [contact.md](contact.md) — reach /contact/<besoin> from a cas d'usage page: the page is preselected and cited in the subject and the e-mail, another démarche chosen without reload, copy works, the answer-only steps give no address.
 - [matomo.md](matomo.md) — one Matomo hit per page shown, Turbo visits included; a new catalogue search is measured as a search (keyword, catalogue, result count) instead of a page view; every click to another site or on a file link is measured, on every page.
+- [depot-direct-ferme.md](depot-direct-ferme.md) — nobody, visitor or admin, can create a file through Active Storage's direct upload address; admin images go through the solution form.

@@ -2712,6 +2712,32 @@ ensure
   ENV['MATOMO_SITE_ID'] = site_id
 end
 
+DEPOT_DIRECT = <<~JS.freeze
+  const done = arguments[arguments.length - 1];
+  fetch('/rails/active_storage/direct_uploads', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name=csrf-token]')?.content },
+    body: JSON.stringify({ blob: { filename: 'piege.png', byte_size: 3, checksum: 't5ir5uGxMY7jaw3LP7nk0w==', content_type: 'image/png' } })
+  }).then(r => done(r.status)).catch(e => done(String(e)));
+JS
+
+def depot_direct_refuse(page, etape)
+  avant = ActiveStorage::Blob.count
+  statut = page.evaluate_async_script(DEPOT_DIRECT)
+  crees = ActiveRecord::Base.uncached { ActiveStorage::Blob.count } - avant
+  raise "#{etape} : statut #{statut}, fichiers créés #{crees}" unless statut == 404 && crees.zero?
+
+  Verify.evidence('depot-direct-ferme', page, etape, "statut=#{statut} fichiers_crees=#{crees}")
+end
+
+def depot_direct(page)
+  page.visit('/')
+  depot_direct_refuse(page, 'visiteur')
+  Verify.login(page)
+  depot_direct_refuse(page, 'admin')
+  Verify.logout(page)
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'article-cartes' => :article_cartes,
   'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
@@ -2730,7 +2756,7 @@ end
   'contact' => :contact,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
   'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
-  'lire-plus' => :lire_plus, 'matomo' => :matomo }.each do |nom, fn|
+  'lire-plus' => :lire_plus, 'matomo' => :matomo, 'depot-direct' => :depot_direct }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
