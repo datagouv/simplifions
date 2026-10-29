@@ -558,6 +558,30 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'title SEO' do
+    before { sign_in admin }
+
+    it 'se saisit sous le nom d’une démarche ou d’une solution, avec son aide' do
+      %w[demarche solution].each do |modele|
+        get "/admin/#{modele}s/new"
+        libelle = response.parsed_body.at_css("label[for=#{modele}_titre_seo]")
+        expect(libelle.xpath('text()').text.strip).to eq('Title SEO')
+        expect(libelle.at_css('.fr-hint-text').text).to include('moteurs de recherche')
+      end
+    end
+
+    it 'est publié avec la fiche' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+      solution = Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { titre_seo: 'Tarif de cantine', visible: '1' } }
+      patch "/admin/solutions/#{solution.id}", params: { solution: { titre_seo: 'Logiciel de crèche', visible: '1' } }
+
+      expect(demarche.reload.titre_seo).to eq('Tarif de cantine')
+      expect(solution.reload.titre_seo).to eq('Logiciel de crèche')
+    end
+  end
+
   describe 'lien vers la page publique' do
     before { sign_in admin }
 
@@ -1360,7 +1384,7 @@ RSpec.describe 'Administration' do
   end
 
   describe 'formulaire solution selon sa catégorie' do
-    let(:champs_fiche) { %w[slug site_internet url_demande_acces image legende_image description_courte permet ne_permet_pas] }
+    let(:champs_fiche) { %w[slug titre_seo site_internet url_demande_acces image legende_image description_courte permet ne_permet_pas] }
 
     before { sign_in admin }
 

@@ -36,10 +36,12 @@ fr:
     attributes:
       demarche:
         icone: "Icône du titre"
+        titre_seo: "Title SEO"
         mots_clefs: "Mots-clés"
         visible: "Visible sur simplifions"
       solution:
         categorie: "Catégorie de solution"
+        titre_seo: "Title SEO"
         permet: "Cette solution permet"
         ne_permet_pas: "Cette solution ne permet pas"
         image: "Image principale"
@@ -90,11 +92,13 @@ fr:
         consomme: "Intégrée"
     hints:
       demarche:
+        titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Cas d’usage - <icône du titre> <nom> »."
         slug: "Obligatoire si la démarche est visible sur simplifions. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
         contexte: "Markdown accepté"
         cadre_juridique: "Markdown accepté"
         mots_clefs: "Une valeur par ligne, utilisés pour la recherche et le référencement"
       solution:
+        titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Solution - <nom> »."
         slug: "Obligatoire si la solution est visible sur simplifions, sauf pour une API ou un jeu de données. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
         image: "Formats acceptés : png, jpg, webp"
         types_solution: "Affichés sous le nom de la solution"
