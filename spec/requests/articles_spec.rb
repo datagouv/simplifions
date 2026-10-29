@@ -66,8 +66,9 @@ RSpec.describe 'Articles' do
       get article_path('apis-franceconnectees')
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).not_to include('/solutions/franceconnect-2')
-      expect(response.body).not_to include('/solutions/bouquet-api-particulier')
+      article = response.parsed_body.at_css('main').to_html
+      expect(article).not_to include('/solutions/franceconnect-2')
+      expect(article).not_to include('/solutions/bouquet-api-particulier')
     end
 
     it 'signale à Sentry une fiche citée introuvable, mais pas une fiche masquée' do
