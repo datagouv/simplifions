@@ -16,27 +16,27 @@
     <span class="fr-text--alt"><em>»</em></span>
   </h3>
 
-  <div class="fr-grid-row fr-grid-row--top fr-mx-2w">
+  <div class="fr-grid-row fr-grid-row--top fr-mx-md-2w">
     <div class="fr-mt-2w fr-mb-2w fr-col-12 fr-col-md-6">
       <h4 class="fr-text--lg"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Données disponibles :</h4>
       <% if recommandation.donnees_utiles.present? %>
-        <div class="fr-ml-3w"><%= markdown(recommandation.donnees_utiles) %></div>
+        <div class="fr-ml-md-3w"><%= markdown(recommandation.donnees_utiles) %></div>
       <% else %>
-        <p class="fr-ml-3w fr-text--sm fr-text-mention--grey"><i>Information non renseignée.</i></p>
+        <p class="fr-ml-md-3w fr-text--sm fr-text-mention--grey"><i>Information non renseignée.</i></p>
       <% end %>
     </div>
 
-    <div class="fr-px-2w fr-mt-2w fr-mb-2w fr-col-12 fr-col-md-6">
+    <div class="fr-px-md-2w fr-mt-2w fr-mb-2w fr-col-12 fr-col-md-6">
       <h4 class="fr-text--lg"><span aria-hidden="true">✍️</span> Informations à saisir pour récupérer la donnée :</h4>
       <% if recommandation.parametres_a_saisir.present? %>
-        <div class="fr-ml-3w"><%= markdown(recommandation.parametres_a_saisir) %></div>
+        <div class="fr-ml-md-3w"><%= markdown(recommandation.parametres_a_saisir) %></div>
       <% else %>
-        <p class="fr-ml-3w fr-text--sm fr-text-mention--grey"><i>Information non renseignée.</i></p>
+        <p class="fr-ml-md-3w fr-text--sm fr-text-mention--grey"><i>Information non renseignée.</i></p>
       <% end %>
     </div>
   </div>
 
-  <div class="fr-mt-2w fr-mx-2w">
+  <div class="fr-mt-2w fr-mx-md-2w">
     <h4 class="fr-text--lg fr-mb-2w"><span aria-hidden="true" class="fr-icon-arrow-right-circle-fill"></span> Moyens d'accès à ces données :</h4>
 
     <div class="fr-accordions-group" data-fr-group="false">
