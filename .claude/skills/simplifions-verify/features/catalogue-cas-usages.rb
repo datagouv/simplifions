@@ -16,6 +16,7 @@ Verify.drive(__FILE__) do |page|
 
   facette = Verify.check('Facet') do
     page.select 'Entreprises', from: 'Démarches à destination des :'
+    page.click_button 'Appliquer les filtres'
     page.assert_current_path(/target-users=entreprises/, url: false)
     page.find('[role=status]').text[/\d+/].to_i
   end

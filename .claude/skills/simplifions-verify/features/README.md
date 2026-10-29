@@ -13,7 +13,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 
 - Capybara through `harness.rb`: `Verify.drive` opens the session, one `Verify.check` per labelled bullet; run twice (`VERIFY_BROWSER=chrome`, then `firefox`).
 - Accessible names and route paths only; `[role=status]` for the result count, `aria-expanded` for accordions.
-- Selects auto-submit; wait on the URL (`assert_current_path(/q=…/, url: false)`) before reading a count.
+- Catalogue selects wait for `Appliquer les filtres`; wait on the URL (`assert_current_path(/q=…/, url: false)`) before reading a count.
 
 ## Proof rules
 
@@ -71,3 +71,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [title-seo.md](title-seo.md) — a démarche or solution's « Title SEO » typed in the admin becomes its whole tab title and og:title, without the site name; the H1 stays; empty gives the usual title; no field on an API.
 - [plan-du-site.md](plan-du-site.md) — the footer's Plan du site lists every visible cas d'usage, solution and article under its entry, alphabetical; a truncated fiche description keeps its apostrophes in meta and og tags.
 - [pied-de-page.md](pied-de-page.md) — on every page and in the admin, the footer's five blocks of links open the filtered catalogue, the guides and the comparisons; the presentation links to the home section on what the site brings.
+- [clavier-lecteur-ecran.md](clavier-lecteur-ecran.md) — first Tab on « Contenu », catalogue filters applied by a button, changing numbers announced in status regions (solution counter, endpoints, Sirene demo).
