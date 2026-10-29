@@ -20,8 +20,9 @@ class PagesController < ApplicationController
   end
 
   def sitemap
-    @demarches = Demarche.visibles
-    @solutions = Solution.visibles.fiches
+    @demarches = Demarche.visibles.order(:nom)
+    @solutions = Solution.visibles.fiches.order(:nom)
+    @articles = Article.all.sort_by(&:h1)
   end
 
   private
