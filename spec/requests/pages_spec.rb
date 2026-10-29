@@ -23,7 +23,12 @@ RSpec.describe 'Pages' do
       get root_path
 
       expect(response.body).to include('fr-footer__top')
-      expect(response.parsed_body.css('.fr-footer__top-cat').map(&:text)).to eq(['Simplifions.data.gouv.fr', 'Aide', 'Contribution'])
+      expect(response.parsed_body.css('.fr-footer__top-cat').map(&:text)).to eq(
+        ['Démarches référencées à destination des :', 'Démarches référencées gérées par les :',
+         '3 guides pour débuter :', 'Découvrir les solutions raccordées aux données :',
+         'Comparer le nombre de données raccordées par solution :',
+         'Simplifions.data.gouv.fr', 'Aide', 'Contribution']
+      )
       expect(response.body).to include('href="/contact/probleme-site">Signaler un problème sur le site</a>')
       expect(response.body).to include('href="/contact/contenu">Proposer une modification de contenu</a>')
       expect(response.body).to include('href="/contact/nouveau-cas-usage">Demander le référencement d&#39;une démarche</a>')
@@ -31,6 +36,31 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('href="/contact">Nous contacter</a>')
       expect(response.body).to include('href="/about">À propos</a>')
       expect(response.body).to include('href="/#redaction-contenu">Comment est rédigé le contenu ?</a>')
+    end
+
+    it 'ouvre depuis le pied de page le catalogue filtré, les guides et les comparatifs' do
+      get root_path
+
+      liens = response.parsed_body.css('.fr-footer__top-link').to_h { |lien| [lien.text, lien['href']] }
+      expect(liens).to include(
+        'Particuliers' => '/demarches?target-users=particuliers',
+        'Entreprises' => '/demarches?target-users=entreprises',
+        'Associations' => '/demarches?target-users=associations',
+        'Communes et groupements de communes' => '/demarches?fournisseurs-de-service=communes',
+        'Départements' => '/demarches?fournisseurs-de-service=departements',
+        'Régions' => '/demarches?fournisseurs-de-service=regions',
+        'État' => '/demarches?fournisseurs-de-service=etat',
+        'Acteurs du transport' => '/demarches?fournisseurs-de-service=acteurs-transport',
+        "Acteurs de l'éducation et de l'enseignement" => '/demarches?fournisseurs-de-service=acteurs-education-enseignement',
+        'Guide de base pour les collectivités' => '/articles/guide-base-petites-collectivites',
+        "Qu'est-ce qu'une API ?" => '/articles/qu-est-ce-qu-une-api',
+        "Prérequis et étapes d'intégration d'une API" => '/articles/prerequis-et-etapes-integration-api',
+        'Sites de consultation en ligne' => '/solutions?categorie-de-solution=portail-consultation',
+        "Logiciel métier «\u00a0clé en main\u00a0»" => '/solutions?categorie-de-solution=logiciel-metier',
+        'API, jeu de données ou brique logicielle' => '/solutions?categorie-de-solution=brique-technique',
+        "Solutions ayant intégré l'API Entreprise" => '/solutions/bouquet-api-entreprise#solutions-integratices',
+        "Solutions ayant intégré l'API Particulier" => '/solutions/bouquet-api-particulier#solutions-integratices'
+      )
     end
 
     it 'présente la page de contact, et non des espaces de discussion disparus, comme moyen de contribuer' do

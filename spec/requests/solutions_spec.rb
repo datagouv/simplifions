@@ -233,7 +233,7 @@ RSpec.describe 'Solutions' do
       get solution_path('bouquet-api-particulier')
 
       expect(response.body).not_to include('Solutions intégrant')
-      expect(response.body).not_to include('#solutions-integratices')
+      expect(response.parsed_body.at_css('main').to_html).not_to include('#solutions-integratices')
     end
 
     it 'renvoie 404 pour une solution non visible' do

@@ -2,7 +2,35 @@
   <div class="fr-footer__top">
     <div class="fr-container">
       <div class="fr-grid-row fr-grid-row--start fr-grid-row--gutters">
-        <div class="fr-col-12 fr-col-sm-6 fr-col-md-4">
+        <% [["Démarches référencées à destination des :",
+             [["Particuliers", demarches_path("target-users" => "particuliers")],
+              ["Entreprises", demarches_path("target-users" => "entreprises")],
+              ["Associations", demarches_path("target-users" => "associations")]]],
+            ["Démarches référencées gérées par les :",
+             TypeActeur::FILTRES.slice("Communes et groupements de communes", "Départements", "Régions", "État",
+                                       "Acteurs du transport", "Acteurs de l'éducation et de l'enseignement")
+                                .map { |libelle, slug| [libelle, demarches_path("fournisseurs-de-service" => slug)] }],
+            ["3 guides pour débuter :",
+             [["Guide de base pour les collectivités", article_path("guide-base-petites-collectivites")],
+              ["Qu'est-ce qu'une API ?", article_path("qu-est-ce-qu-une-api")],
+              ["Prérequis et étapes d'intégration d'une API", article_path("prerequis-et-etapes-integration-api")]]],
+            ["Découvrir les solutions raccordées aux données :",
+             [["Sites de consultation en ligne", solutions_path("categorie-de-solution" => "portail-consultation")],
+              ["Logiciel métier « clé en main »", solutions_path("categorie-de-solution" => "logiciel-metier")],
+              ["API, jeu de données ou brique logicielle", solutions_path("categorie-de-solution" => "brique-technique")]]],
+            ["Comparer le nombre de données raccordées par solution :",
+             [["Solutions ayant intégré l'API Entreprise", solution_path("bouquet-api-entreprise", anchor: "solutions-integratices")],
+              ["Solutions ayant intégré l'API Particulier", solution_path("bouquet-api-particulier", anchor: "solutions-integratices")]]]].each do |categorie, liens| %>
+          <div class="fr-col-12 fr-col-sm-6 fr-col-md-3">
+            <h3 class="fr-footer__top-cat"><%= categorie %></h3>
+            <ul class="fr-footer__top-list">
+              <% liens.each do |libelle, chemin| %>
+                <li><%= link_to libelle, chemin, class: "fr-footer__top-link" %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+        <div class="fr-col-12 fr-col-sm-6 fr-col-md-3">
           <h3 class="fr-footer__top-cat">Simplifions.data.gouv.fr</h3>
           <ul class="fr-footer__top-list">
             <li><%= link_to "À propos", about_path, class: "fr-footer__top-link" %></li>
@@ -14,7 +42,7 @@
             <li><%= link_to "Nous contacter", contact_path, class: "fr-footer__top-link" %></li>
           </ul>
         </div>
-        <div class="fr-col-12 fr-col-sm-6 fr-col-md-4">
+        <div class="fr-col-12 fr-col-sm-6 fr-col-md-3">
           <h3 class="fr-footer__top-cat">Contribution</h3>
           <ul class="fr-footer__top-list">
             <li><%= link_to "Proposer une modification de contenu", contact_path("contenu"), class: "fr-footer__top-link" %></li>
