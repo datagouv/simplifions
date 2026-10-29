@@ -2,7 +2,7 @@
 <html lang="fr">
   <head>
     <% titre = content_for(:titre_seo).presence || safe_join([content_for(:title) || @article&.title, "Simplifions.data.gouv.fr"].compact, " | ")
-       description = (content_for(:description) || @article&.description)&.truncate(155, separator: " ", omission: "…") ||
+       description = (CGI.unescapeHTML(content_for(:description).to_s).presence || @article&.description)&.truncate(155, separator: " ", omission: "…") ||
          "Simplifiez les démarches et services des citoyens, entreprises et associations en récupérant pour eux leurs informations administratives grâce aux API et aux données de l'État."
        canonical = response.not_found? ? request.original_url : url_for(only_path: false) %>
     <title><%= titre %></title>

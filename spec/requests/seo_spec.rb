@@ -87,6 +87,16 @@ RSpec.describe 'SEO' do
       expect(response.body).to match(/<meta name="description" content="(mot ){37}mot…">/)
     end
 
+    it 'garde lisibles les apostrophes d’un chapo tronqué, dans la description et l’aperçu de partage' do
+      Demarche.create!(nom: 'Tarif', slug: 'tarif', visible: true, description_courte: "l'abonnement #{"d'un " * 30}fin")
+
+      get demarche_path('tarif')
+
+      expect(response.body).to match(/<meta name="description" content="l&#39;abonnement (d&#39;un )+d&#39;un…">/)
+      expect(response.body).to match(/<meta property="og:description" content="l&#39;abonnement (d&#39;un )+d&#39;un…">/)
+      expect(response.body).not_to include('&amp;#39;')
+    end
+
     it 'retombe sur la description du site quand le chapo est vide' do
       Solution.create!(nom: 'Actradis', slug: 'actradis', visible: true, categorie: 'brique_logicielle', description_courte: '')
 
