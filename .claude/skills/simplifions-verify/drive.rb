@@ -2792,6 +2792,47 @@ ensure
   Solution.where(slug:).or(Solution.where(nom: "#{nom} api")).destroy_all
 end
 
+def feuilles_du_plan(page, entree)
+  page.find('main li', text: entree, match: :first).all(':scope > ul a').map(&:text)
+end
+
+def plan_du_site(page)
+  page.visit('/')
+  page.within('footer') { page.click_link 'Plan du site' }
+  page.assert_current_path('/sitemap')
+  attendus = { "Cas d'usages" => Demarche.visibles.order(:nom).map { |demarche| demarche.nom.squish },
+               'Solutions' => Solution.visibles.fiches.order(:nom).map { |solution| solution.nom.squish },
+               'Articles' => Article.all.map(&:h1).sort }
+  attendus.each do |entree, noms|
+    lus = feuilles_du_plan(page, entree)
+    raise "#{entree} : #{lus.zip(noms).reject { |lu, nom| lu == nom }.first(3)}" unless lus == noms
+  end
+  apropos = feuilles_du_plan(page, 'À propos')
+  comptes = attendus.map { |entree, noms| "#{entree}=#{noms.size}" }.join(' ')
+  Verify.evidence('plan-du-site', page, 'bureau', "#{comptes} À propos=#{apropos}")
+  page.current_window.resize_to(375, 1024)
+  largeur = page.evaluate_script('[document.documentElement.scrollWidth, window.innerWidth]')
+  Verify.evidence('plan-du-site', page, 'mobile', "scrollWidth/innerWidth=#{largeur}")
+  raise "défilement horizontal #{largeur}" if largeur.first > largeur.last
+
+  page.current_window.resize_to(1280, 1024)
+  description_partagee(page)
+end
+
+def description_partagee(page)
+  demarche = Demarche.visibles.find do |candidate|
+    ERB::Util.html_escape(candidate.chapo).size > 155 && candidate.chapo.truncate(155, separator: ' ').include?("'")
+  end
+  page.visit("/demarches/#{demarche.slug}")
+  description, partage = %w[meta[name=description] meta[property="og:description"]].map do |balise|
+    page.evaluate_script("document.querySelector('#{balise}').content")
+  end
+  raise "description #{description.inspect}" if description.include?('&#39;') || description.exclude?("'")
+  raise "og:description #{partage.inspect} != description" unless partage == description
+
+  Verify.evidence('plan-du-site', page, 'description-fiche', "slug=#{demarche.slug} description=#{description.inspect}")
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'article-cartes' => :article_cartes,
   'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
@@ -2811,7 +2852,7 @@ end
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
   'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
   'lire-plus' => :lire_plus, 'matomo' => :matomo, 'depot-direct' => :depot_direct,
-  'title-seo' => :title_seo }.each do |nom, fn|
+  'title-seo' => :title_seo, 'plan-du-site' => :plan_du_site }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
