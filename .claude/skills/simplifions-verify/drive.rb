@@ -2738,6 +2738,60 @@ def depot_direct(page)
   Verify.logout(page)
 end
 
+def onglet_public(page, chemin)
+  page.visit(chemin)
+  [page.title, page.find('h1').text, page.find('meta[property="og:title"]', visible: false)[:content]]
+end
+
+def title_seo_publie(page, dossier, etape, chemin, saisie)
+  page.fill_in 'Title SEO', with: saisie
+  Verify.evidence(dossier, page, "#{etape}-saisie")
+  page.click_button 'Publier'
+  page.assert_text 'enregistré.'
+  onglet, h1, partage = onglet_public(page, chemin)
+  Verify.evidence(dossier, page, etape, "onglet=#{onglet} h1=#{h1} og:title=#{partage}")
+  page.visit('/admin')
+  [onglet, h1, partage]
+end
+
+def title_seo(page)
+  dossier = 'title-seo'
+  nom = "Vérif verify-map #{Verify.browser}"
+  slug = "verif-verify-map-#{Verify.browser}"
+  saisie = "Vérif title SEO #{Verify.browser}"
+  Verify.login(page)
+  demarche = Demarche.create!(nom:, slug:, visible: true)
+  solution = Solution.create!(nom:, slug:, visible: true, categorie: 'brique_logicielle')
+  api = Solution.create!(nom: "#{nom} api", categorie: 'api')
+
+  avant = onglet_public(page, "/demarches/#{slug}")
+  raise "avant : #{avant}" unless avant.first == "Cas d'usage - #{nom} | Simplifions.data.gouv.fr"
+
+  Verify.evidence(dossier, page, 'demarche-avant', "onglet=#{avant.first}")
+  page.visit('/admin')
+
+  ouvrir_fiche(page, nom)
+  attendu = [saisie, nom, saisie]
+  publie = title_seo_publie(page, dossier, 'demarche-publiee', "/demarches/#{slug}", saisie)
+  raise "démarche : #{publie}, base #{demarche.reload.titre_seo.inspect}" unless publie == attendu
+
+  ouvrir_fiche(page, nom)
+  vide = title_seo_publie(page, dossier, 'demarche-videe', "/demarches/#{slug}", '')
+  raise "vidé : #{vide}" unless vide.first == avant.first
+
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  publie = title_seo_publie(page, dossier, 'solution-publiee', "/solutions/#{slug}", saisie)
+  raise "solution : #{publie}" unless publie == attendu
+
+  page.visit("/admin/solutions/#{api.id}/edit")
+  page.assert_no_selector :field, 'Title SEO'
+  Verify.evidence(dossier, page, 'api-sans-champ', "base=#{ActiveRecord::Base.uncached { [demarche.reload.titre_seo, solution.reload.titre_seo] }}")
+  Verify.logout(page)
+ensure
+  Demarche.where(slug:).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: "#{nom} api")).destroy_all
+end
+
 { 'catalogue' => :catalogue, 'fiche' => :fiche, 'fiche-solution' => :fiche_solution, 'article-cartes' => :article_cartes,
   'connexion' => :connexion, 'vocabulaires' => :vocabulaires,
   'cascade' => :cascade, 'saisies' => :saisies, 'contenu-html' => :contenu_html,
@@ -2756,7 +2810,8 @@ end
   'contact' => :contact,
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
   'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
-  'lire-plus' => :lire_plus, 'matomo' => :matomo, 'depot-direct' => :depot_direct }.each do |nom, fn|
+  'lire-plus' => :lire_plus, 'matomo' => :matomo, 'depot-direct' => :depot_direct,
+  'title-seo' => :title_seo }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
