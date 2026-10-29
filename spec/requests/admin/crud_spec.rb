@@ -2135,6 +2135,14 @@ RSpec.describe 'Administration' do
       expect(demarche.reload.nom).to eq('Aides')
     end
 
+    it 'garde Prévisualisation devant le title SEO du brouillon' do
+      sign_in admin
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { titre_seo: 'Aides selon le quotient' } }
+
+      get "/admin/demarches/#{demarche.id}/previsualisation"
+      expect(response.parsed_body.at_css('title').text).to eq('Prévisualisation - Aides selon le quotient')
+    end
+
     it 'montre l’image du brouillon d’une solution' do
       sign_in admin
       image = Rack::Test::UploadedFile.new(StringIO.new('img'), 'image/png', original_filename: 'nouvelle.png')

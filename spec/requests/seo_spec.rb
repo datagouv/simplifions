@@ -25,6 +25,22 @@ RSpec.describe 'SEO' do
       expect(response.body).to include('<meta name="description" content="Crèches, calculez le tarif.">')
       expect(response.body).to match(%r{<meta property="og:image" content="http://www\.example\.com/rails/active_storage/[^"]+/babily\.png">})
     end
+
+    it 'titre une fiche par son seul title SEO, sans toucher au h1 ni à la description' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true, description_courte: 'Communes, simplifiez.',
+        titre_seo: 'Tarif de cantine selon le quotient familial')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle', titre_seo: 'Logiciel de crèche Babily')
+
+      get demarche_path('cantine')
+      expect(response.body).to include('<title>Tarif de cantine selon le quotient familial</title>')
+      expect(response.body).to include('<meta property="og:title" content="Tarif de cantine selon le quotient familial">')
+      expect(response.body).to include('<meta name="description" content="Communes, simplifiez.">')
+      expect(response.parsed_body.at_css('h1').text).to eq('Cantine')
+
+      get solution_path('babily')
+      expect(response.body).to include('<title>Logiciel de crèche Babily</title>')
+      expect(response.parsed_body.at_css('h1').text.strip).to eq('Babily')
+    end
   end
 
   describe 'listes et pages statiques' do

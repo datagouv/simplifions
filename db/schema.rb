@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_07_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_29_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -74,6 +74,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_200000) do
     t.string "slug"
     t.datetime "updated_at", null: false
     t.boolean "visible", default: false, null: false
+    t.string "titre_seo"
     t.index ["grist_id"], name: "index_demarches_on_grist_id", unique: true
     t.index ["slug"], name: "index_demarches_on_slug", unique: true
   end
@@ -298,6 +299,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_07_200000) do
     t.datetime "updated_at", null: false
     t.string "url_demande_acces"
     t.boolean "visible", default: false, null: false
+    t.string "titre_seo"
     t.index ["grist_id"], name: "index_solutions_on_grist_id", unique: true
     t.index ["slug"], name: "index_solutions_on_slug", unique: true
   end
