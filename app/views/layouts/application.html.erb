@@ -46,6 +46,20 @@
           addEventListener('submit', function(event) {
             if (event.target.matches('[data-matomo-catalogue]')) rechercheSoumise = true;
           }, true);
+          function mesurerClic(event) {
+            var lien = event.target.closest && event.target.closest('a[href]');
+            if (!lien || !/^https?:$/.test(lien.protocol)) return;
+            if (/\.(pdf|csv|xlsx?|docx?|odt|ods|zip)$/i.test(lien.pathname)) {
+              _paq.push(['trackLink', lien.href, 'download']);
+            } else if (lien.host !== location.host) {
+              _paq.push(['trackLink', lien.href, 'link']);
+            }
+          }
+          addEventListener('click', mesurerClic, true);
+          addEventListener('contextmenu', mesurerClic, true);
+          addEventListener('auxclick', function(event) {
+            if (event.button === 1) mesurerClic(event);
+          }, true);
           addEventListener('turbo:load', function() {
             var catalogue = document.querySelector('[data-matomo-catalogue]');
             var motCle = ((catalogue && catalogue.dataset.matomoRecherche) || '').trim();
@@ -59,7 +73,6 @@
             } else {
               _paq.push(['trackPageView']);
             }
-            _paq.push(['enableLinkTracking']);
             urlPrecedente = location.href;
             rechercheSoumise = false;
           });
