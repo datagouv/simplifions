@@ -63,6 +63,23 @@ RSpec.describe 'Pages' do
       )
     end
 
+    it 'présente le site dans le pied de page et renvoie vers ce qu’il apporte, sur l’accueil' do
+      get root_path
+
+      presentation = response.parsed_body.at_css('.fr-footer__content-desc')
+      expect(presentation.at_css('strong').text).to eq(
+        'Ce site est un catalogue des données accessibles aux acteurs publics organisé par démarche usagers.'
+      )
+      expect(presentation.at_css('em').text).to eq('—aides et subventions, marchés publics, petite enfance, cantine, transport, etc.—')
+      expect(presentation.text.squish).to include(
+        'le catalogue recense les API et bases de données utiles, les solutions publiques et privées raccordées ' \
+        'à ces données, et les sites de consultation de ces données disponibles en ligne.'
+      )
+      expect(presentation.at_css('a').text).to eq('En quoi simplifions.data.gouv.fr peut-il vous aider ?')
+      expect(presentation.at_css('a')['href']).to eq('/#comment-vous-aider')
+      expect(response.parsed_body.at_css('#comment-vous-aider').text).to include('Comment simplifions.data peut-il vous aider')
+    end
+
     it 'présente la page de contact, et non des espaces de discussion disparus, comme moyen de contribuer' do
       get root_path
       expect(response.body).to include('Une page de contact guidée permet aux usagers')
