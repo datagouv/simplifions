@@ -356,6 +356,11 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('Filtrer les endpoints')
     end
+
+    it 'réserve au filtre des endpoints une annonce vide au chargement, pour le lecteur d’écran' do
+      annonce = response.parsed_body.at_css('[data-controller=endpoints] [role=status]')
+      expect(annonce.text).to be_empty
+    end
   end
 
   describe 'carte d’une intégratrice d’une seule donnée utile' do

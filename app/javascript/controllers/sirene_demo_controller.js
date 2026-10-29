@@ -3,13 +3,14 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["input", "button", "error", "loading", "result",
     "name", "siret", "adresse", "adresseWrapper", "naf", "nafWrapper",
-    "forme", "formeWrapper", "etat"]
+    "forme", "formeWrapper", "etat", "annonce"]
 
   reset() {
     this.errorTarget.textContent = ""
     this.errorTarget.hidden = true
     this.inputTarget.closest(".fr-input-group").classList.remove("fr-input-group--error")
     this.resultTarget.hidden = true
+    this.annonceTarget.textContent = ""
   }
 
   async search(event) {
@@ -49,6 +50,7 @@ export default class extends Controller {
     this.errorTarget.textContent = message
     this.errorTarget.hidden = false
     this.inputTarget.closest(".fr-input-group").classList.add("fr-input-group--error")
+    this.annonceTarget.textContent = message
   }
 
   display(entreprise, siret) {
@@ -66,6 +68,7 @@ export default class extends Controller {
     this.etatTarget.classList.toggle("fr-badge--error", !actif)
 
     this.resultTarget.hidden = false
+    this.annonceTarget.textContent = `Résultat : ${this.nameTarget.textContent}`
   }
 
   fill(wrapper, target, value) {

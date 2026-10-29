@@ -179,8 +179,11 @@ RSpec.describe 'Solutions' do
       expect(response.body).to match(%r{1/1</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeux de données intégrés</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">1</span> API et jeux de données « Bouquet API Particulier » sur les 1 utiles pour ce cas d&#39;usage ont été intégrés par cette solution\.</span>})
       expect(response.body).not_to include('Portail en cours')
       expect(response.body).not_to include('Hub sans catégorie')
-      expect(response.body).to include('2 solutions disponibles')
       expect(response.body).to include('Trier par')
+    end
+
+    it 'annonce au lecteur d’écran le nombre de solutions intégratrices affichées' do
+      expect(response.parsed_body.css('[role=status]').map(&:text)).to include('2 solutions disponibles')
     end
 
     it 'propose une modification du contenu' do

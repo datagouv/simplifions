@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["input", "row", "empty", "footer", "count", "pagination"]
+  static targets = ["input", "row", "empty", "footer", "count", "pagination", "annonce"]
   static values = { perPage: { type: Number, default: 4 }, solution: String }
 
   connect() {
@@ -16,6 +16,7 @@ export default class extends Controller {
   filter() {
     this.page = 0
     this.render()
+    this.annonceTarget.textContent = this.countTarget.textContent
     clearTimeout(this.pause)
     this.pause = setTimeout(() => this.mesurer(), 1000)
   }
