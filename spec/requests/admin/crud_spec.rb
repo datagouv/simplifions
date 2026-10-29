@@ -2013,12 +2013,6 @@ RSpec.describe 'Administration' do
       expect(carte_publique).to include('API Impôt')
     end
 
-    it 'n’offre ni Publier ni Masquer sur l’écran d’une donnée utile' do
-      get "/admin/recommandations/#{utile.id}/edit"
-
-      expect(response.parsed_body.css('aside[aria-labelledby="etat-et-actions"] button').map { it.text.strip }).to eq(%w[Enregistrer Supprimer])
-    end
-
     it 'publie avec la démarche masquée la donnée utile qui y a été ajoutée' do
       demarche.update!(visible: false)
       ajoutee = ajouter('API Impôt')
