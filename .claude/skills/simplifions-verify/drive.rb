@@ -1865,6 +1865,7 @@ def onglet_solutions(page)
     "categories=#{panneau.all('h3 > .section-depliable__bouton').map(&:text).join(' | ')} premiere=#{noms.first.inspect} " \
     "fond=#{page.evaluate_script("getComputedStyle(document.getElementById('solutions-integratrices')).backgroundColor")} " \
     "largeur_panneau=#{panneau.rect.width.round} largeur_fenetre=#{page.evaluate_script('document.documentElement.clientWidth')}")
+  titres_de_categorie(page, panneau, par_categorie)
   categorie = panneau.first('.section-depliable__bouton')
   categorie.click
   page.assert_selector("##{categorie['aria-controls']}", visible: :hidden)
@@ -1888,6 +1889,33 @@ def onglet_solutions(page)
   ancre(page, demarche)
   page.quit
   sans_js(demarche)
+end
+
+def titre_de_categorie_attendu(categorie, solutions)
+  badges = [I18n.t("public.moyens_acces.#{categorie}.nombre", count: solutions.size)]
+  badges << 'Sans développement' unless categorie == :brique_logicielle
+  [I18n.t("public.solutions_integratrices.#{categorie}.titre").squish, badges, I18n.t("public.solutions_integratrices.#{categorie}.description")]
+end
+
+def titres_de_categorie(page, panneau, par_categorie)
+  lus = panneau.all('h3 > .section-depliable__bouton').map do |bouton|
+    [bouton.find('.section-depliable__titre').text.squish, bouton.all('.fr-badge').map { it.text(:all).squish },
+     panneau.find("##{bouton['aria-controls']} > p:first-child").text(:all).squish]
+  end
+  attendus = par_categorie.map { |categorie, solutions| titre_de_categorie_attendu(categorie, solutions) }
+  raise "titres #{lus.inspect} != #{attendus.inspect}" unless lus == attendus
+
+  [1280, 375].each do |largeur|
+    page.current_window.resize_to(largeur, 1024)
+    page.scroll_to(panneau, align: :top)
+    debord = page.evaluate_script(
+      "[...document.querySelectorAll('#solutions-integratrices h3 > button')].some(b => b.getBoundingClientRect().right > document.documentElement.clientWidth)"
+    )
+    raise "titre qui déborde à #{largeur} px" if debord
+
+    Verify.evidence('onglet-solutions-integratrices', page, "titres-#{largeur}", "largeur=#{largeur} deborde=false titres=#{lus.inspect}")
+  end
+  page.current_window.resize_to(1280, 1024)
 end
 
 def haut(page, selecteur) = page.evaluate_script("document.querySelector('#{selecteur}').getBoundingClientRect().top").round
