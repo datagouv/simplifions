@@ -43,14 +43,24 @@
           <% end %>
         </ul>
 
-        <p class="fr-text--sm fr-text--bold fr-mb-2w">Filtres</p>
-        <% facettes.each do |nom, label, tous, options| %>
-          <div class="fr-select-group">
-            <%= f.label nom, label, class: "fr-label" %>
-            <%= f.select nom, options, { include_blank: tous, selected: @filtres[nom] }, class: "fr-select" %>
+        <% choisis = facettes.count { |nom, *, options| options.any? { it.last == @filtres[nom] } } %>
+        <div class="fr-sidemenu filtres-catalogue">
+          <div class="fr-sidemenu__inner">
+            <button type="button" class="fr-sidemenu__btn" aria-expanded="false" aria-controls="filtres-catalogue">
+              Filtres<%= " (#{choisis})" if choisis.positive? %>
+            </button>
+            <div class="fr-collapse" id="filtres-catalogue">
+              <p class="filtres-catalogue__titre fr-text--sm fr-text--bold fr-mb-2w">Filtres</p>
+              <% facettes.each do |nom, label, tous, options| %>
+                <div class="fr-select-group">
+                  <%= f.label nom, label, class: "fr-label" %>
+                  <%= f.select nom, options, { include_blank: tous, selected: @filtres[nom] }, class: "fr-select" %>
+                </div>
+              <% end %>
+              <%= f.submit "Appliquer les filtres", name: nil, class: "fr-btn fr-btn--secondary" %>
+            </div>
           </div>
-        <% end %>
-        <%= f.submit "Appliquer les filtres", name: nil, class: "fr-btn fr-btn--secondary" %>
+        </div>
       </div>
 
       <section id="list" class="fr-col-12 fr-col-md-8 fr-col-lg-9">
