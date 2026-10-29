@@ -86,7 +86,7 @@ class Demarche < ApplicationRecord
   private
 
   def publier_les_recommandations
-    refusee = recommandations_en_brouillon.find { !it.enregistrer('visible' => '1') }
+    refusee = recommandations_en_brouillon.find { !it.publier_avec_la_demarche }
     return true unless refusee
 
     errors.add(:base, :recommandation_refusee, libelle: refusee.solution&.libelle_admin, erreurs: refusee.errors.full_messages.to_sentence)
