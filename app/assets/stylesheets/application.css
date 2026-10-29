@@ -197,3 +197,7 @@ form :target {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+
+body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="formulaire-fiche"][name="recommandation[visible]"] {
+  display: none;
+}

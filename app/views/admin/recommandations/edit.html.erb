@@ -2,7 +2,7 @@
 
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
-  <%= render layout: "admin/fiche", locals: { publication: !@recommandation.niveau_1? } do %>
+  <%= render layout: "admin/fiche" do %>
     <%= render "form", recommandation: @recommandation %>
   <% end %>
 </div>
