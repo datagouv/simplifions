@@ -3,11 +3,24 @@
 <div class="fr-container fr-mb-4w">
   <h1>Plan du site</h1>
   <ul class="fr-mt-5w fr-p-0 list-none" role="list">
-    <% [["Accueil", root_path], ["Cas d'usages", demarches_path], ["Articles", articles_path],
-        ["Solutions", solutions_path], ["À propos", about_path],
+    <% [["Accueil", root_path], ["Cas d'usages", demarches_path, @demarches.map { |demarche| [demarche.nom, demarche_path(demarche.slug)] }],
+        ["Articles", articles_path, @articles.map { |article| [article.h1, article_path(article.slug)] }],
+        ["Solutions", solutions_path, @solutions.map { |solution| [solution.nom, solution_path(solution.slug)] }],
+        ["À propos", about_path, [["Doctrine de référencement des cas d'usages", doctrine_referencement_cas_usages_path],
+                                  ["Doctrine de référencement des solutions", doctrine_referencement_solutions_path],
+                                  ["Guide pour la simplification", niveaux_simplification_path]]],
         ["Nous contacter", contact_path],
-        ["Conditions générales d'utilisation", terms_path], ["Accessibilité", accessibility_path]].each do |nom, chemin| %>
-      <li class="fr-mt-5v"><h2><a href="<%= chemin %>"><%= nom %></a></h2></li>
+        ["Conditions générales d'utilisation", terms_path], ["Accessibilité", accessibility_path]].each do |nom, chemin, feuilles| %>
+      <li class="fr-mt-5v">
+        <h2><a href="<%= chemin %>"><%= nom %></a></h2>
+        <% if feuilles&.any? %>
+          <ul>
+            <% feuilles.each do |nom_feuille, chemin_feuille| %>
+              <li><a href="<%= chemin_feuille %>"><%= nom_feuille %></a></li>
+            <% end %>
+          </ul>
+        <% end %>
+      </li>
     <% end %>
   </ul>
 </div>

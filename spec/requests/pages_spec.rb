@@ -132,6 +132,11 @@ RSpec.describe 'Pages' do
   end
 
   describe 'GET /sitemap' do
+    def sous_liens(entree)
+      response.parsed_body.css('main li').find { |li| li.at_css('> h2')&.text&.strip == entree }
+        .css('ul a').map { |lien| [lien['href'], lien.text.strip] }
+    end
+
     it 'liste les huit entrées du site actuel, sans « Jeux de données »' do
       get '/sitemap'
 
@@ -144,6 +149,25 @@ RSpec.describe 'Pages' do
                              ['/solutions', 'Solutions'], ['/about', 'À propos'], ['/contact', 'Nous contacter'],
                              ['/terms', "Conditions générales d'utilisation"], ['/accessibility', 'Accessibilité']])
       expect(response.body).not_to include('Jeux de données')
+    end
+
+    it 'liste sous leur entrée les cas d’usages, solutions et articles visibles, par ordre alphabétique' do
+      Demarche.create!(nom: 'Transport scolaire', slug: 'transport', visible: true)
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+      Demarche.create!(nom: 'Brouillon', slug: 'brouillon')
+      Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+      Solution.create!(nom: 'API Quotient familial', categorie: 'api', visible: true, uid_datagouv: 'qf')
+
+      get '/sitemap'
+
+      expect(sous_liens("Cas d'usages")).to eq([['/demarches/cantine', 'Cantine'], ['/demarches/transport', 'Transport scolaire']])
+      expect(sous_liens('Solutions')).to eq([['/solutions/babily', 'Babily']])
+      expect(sous_liens('Articles')).to eq(Article.all.sort_by(&:h1).map { |article| ["/articles/#{article.slug}", article.h1] })
+      expect(sous_liens('À propos')).to eq([['/doctrine-referencement-cas-usages', "Doctrine de référencement des cas d'usages"],
+                                            ['/doctrine-referencement-solutions', 'Doctrine de référencement des solutions'],
+                                            ['/niveaux-simplification', 'Guide pour la simplification']])
+      expect(response.body).not_to include('brouillon')
+      expect(response.body).not_to include('Quotient')
     end
   end
 
