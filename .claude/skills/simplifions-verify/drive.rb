@@ -1330,11 +1330,12 @@ def brouillon(page)
   brouillon_image(page, dossier, nom, slug)
   brouillon_recommandations(page, dossier, nom, slug)
   brouillon_donnees_utiles(page, dossier, nom, slug)
+  brouillon_type_choisi(page, dossier, nom, slug)
   page.visit('/admin')
   Verify.logout(page)
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d"])).destroy_all
 end
 
 def cartes_publiques(page, slug)
@@ -1427,6 +1428,29 @@ def brouillon_donnees_utiles(page, dossier, nom, slug)
   raise "donnée utile publiée : état #{etat}" unless etat.match?(/\Apubliée/i) && !etat.match?(/brouillon/i)
 
   Verify.evidence(dossier, page, 'donnee-utile-public-apres', "lignes=#{lignes} état=#{etat}")
+end
+
+def actions_selon_le_type(page, type)
+  page.select type, from: 'Type de recommandation'
+  publication = type == 'Solution recommandée'
+  page.within('aside.admin-panneau') do
+    publication ? page.assert_selector(:button, 'Publier') : page.assert_no_selector(:button, 'Publier')
+    page.all('button').map(&:text)
+  end
+end
+
+def brouillon_type_choisi(page, dossier, nom, slug)
+  demarche = Demarche.find_by!(slug:)
+  masquee = Recommandation.create!(demarche:, solution: Solution.create!(nom: "#{nom} d", categorie: 'api'), niveau: :niveau_2)
+  { 'nouvelle' => "/admin/recommandations/new?demarche_id=#{demarche.id}", 'masquee' => "/admin/recommandations/#{masquee.id}/edit" }.each do |ecran, chemin|
+    page.visit(chemin)
+    utile = actions_selon_le_type(page, 'Donnée utile (API ou jeu de données)')
+    raise "#{ecran}, type donnée utile : actions #{utile}" if utile.intersect?(%w[Publier Masquer])
+
+    Verify.evidence(dossier, page, "type-choisi-#{ecran}-donnee-utile", "actions=#{utile}")
+    recommandee = actions_selon_le_type(page, 'Solution recommandée')
+    Verify.evidence(dossier, page, "type-choisi-#{ecran}-solution-recommandee", "actions=#{recommandee}")
+  end
 end
 
 def brouillon_image(page, dossier, nom, slug)
