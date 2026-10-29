@@ -562,6 +562,17 @@ RSpec.describe 'Demarches' do
           .to eq([['2 logiciels', 'Sans développement'], ['1 brique']])
       end
 
+      it 'présente chaque catégorie d’une phrase, repliée avec elle' do
+        phrases = %w[logiciel-metier-cle-en-main brique-logicielle].map do |categorie|
+          onglet_solutions.find("#solutions-integratrices-#{categorie} > p:first-child", visible: :all).text(:all).squish
+        end
+
+        expect(phrases).to eq([
+          "Logiciels métier, sur étagère, conçus pour ce cas d'usage.",
+          "Briques techniques logicielles destinées à être intégrées dans un système informatique existant et conçues pour ce cas d'usage."
+        ])
+      end
+
       it 'compte sur chaque carte le total du cas d’usage, et son œil ouvre la fenêtre de la solution' do
         carte = onglet_solutions.find('.solution-integratrice-card', text: 'Acheteza', visible: :all)
         fenetre = page.find("dialog.fr-modal##{carte.find('button', text: 'Voir les données intégrées par Acheteza', visible: :all)['aria-controls']}", visible: :all)

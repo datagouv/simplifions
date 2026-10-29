@@ -44,6 +44,7 @@
         </button>
       </h3>
       <div id="solutions-integratrices-<%= categorie.to_s.dasherize %>" data-section-depliable-target="contenu">
+        <p class="fr-text--sm"><%= t("public.solutions_integratrices.#{categorie}.description") %></p>
         <ul class="fr-grid-row fr-grid-row--gutters fr-mt-1w list-none vue-cartes" data-tri-solutions-target="liste">
           <% solutions.each_with_index do |solution, ordre| %>
             <li class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3" data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
