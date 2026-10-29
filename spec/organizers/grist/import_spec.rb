@@ -49,6 +49,17 @@ RSpec.describe Grist::Import do
     expect(Demarche.find_by!(grist_id: 'Cas_d_usages:8').slug).to eq('tarification-cantine-scolaire-a-1eur')
   end
 
+  it 'garde le title SEO saisi dans l’admin, que le Grist ne porte pas' do
+    result
+    Demarche.find_by!(grist_id: 'Cas_d_usages:8').update!(titre_seo: 'Cantine à 1 € selon le quotient familial')
+    Solution.find_by!(grist_id: 'Solutions:8').update!(titre_seo: 'FranceConnect pour les collectivités')
+
+    described_class.call
+
+    expect(Demarche.find_by!(grist_id: 'Cas_d_usages:8').titre_seo).to eq('Cantine à 1 € selon le quotient familial')
+    expect(Solution.find_by!(grist_id: 'Solutions:8').titre_seo).to eq('FranceConnect pour les collectivités')
+  end
+
   it 'garde une ligne dont une valeur Grist sort de la liste, champ vidé et noté, sans la purger' do
     result
     integration = Integration.find_by!(grist_id: 'API_et_datasets_integres:2')

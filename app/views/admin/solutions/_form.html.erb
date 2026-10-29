@@ -9,6 +9,7 @@
   <%= render "admin/erreurs", f: f %>
   <% fiche = capture do %>
     <%= f.dsfr_text_field :nom %>
+    <%= f.dsfr_text_field :titre_seo, **champ_de_fiche(f, :titre_seo) %>
     <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>
     <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
     <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
