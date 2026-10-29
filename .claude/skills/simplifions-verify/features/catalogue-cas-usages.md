@@ -34,3 +34,4 @@ Preconditions:
 
 - Read the count only after `assert_current_path(/q=march/, url: false)`: Chrome returns the old page otherwise.
 - Facet values are slugs (`entreprises`), labels are capitalised (`Entreprises`).
+- Below 48em the four facets are folded under a `Filtres` button: this drive runs at 1280 px, the phone layout is [mobile.md](mobile.md).
