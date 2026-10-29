@@ -540,8 +540,8 @@ RSpec.describe 'Demarches' do
       end
 
       it 'range les solutions par catégorie, les plus intégrées d’abord' do
-        expect(onglet_solutions.all('h3 > button', visible: :all).map { it.text(:all).squish })
-          .to eq(['Logiciel métier « clé en main »', 'Brique logicielle à intégrer'])
+        expect(onglet_solutions.all('h3 > button .section-depliable__titre', visible: :all).map { it.text(:all).squish })
+          .to eq(['Logiciels métier « clé en main »', 'Briques logicielles à intégrer'])
         expect(onglet_solutions.all('.solution-integratrice-card__title', visible: :all).map { it.text(:all).squish })
           .to eq(['Zeta', 'Acheteza', 'Brique marchés'])
       end
@@ -555,6 +555,11 @@ RSpec.describe 'Demarches' do
         expect(onglet_solutions).to have_css("##{bouton[:'aria-controls']}:not([hidden]) .solution-integratrice-card", visible: :all)
         expect(onglet_solutions).to have_no_css('.fr-accordion, .fr-collapse', visible: :all)
         expect(onglet_solutions[:class]).to include('fr-background-alt--blue-france')
+      end
+
+      it 'badge le titre de chaque catégorie de son nombre de solutions, « Sans développement » hors briques' do
+        expect(onglet_solutions.all('h3 > button', visible: :all).map { it.all('.fr-badge', visible: :all).map { it.text(:all).squish } })
+          .to eq([['2 logiciels', 'Sans développement'], ['1 brique']])
       end
 
       it 'compte sur chaque carte le total du cas d’usage, et son œil ouvre la fenêtre de la solution' do
@@ -581,8 +586,8 @@ RSpec.describe 'Demarches' do
         end
 
         expect(tableaux.map { it.find('caption', visible: :all).text(:all).squish }).to eq([
-          'API et jeux de données utiles intégrés par chaque solution : Logiciel métier « clé en main »',
-          'API et jeux de données utiles intégrés par chaque solution : Brique logicielle à intégrer'
+          'API et jeux de données utiles intégrés par chaque solution : Logiciels métier « clé en main »',
+          'API et jeux de données utiles intégrés par chaque solution : Briques logicielles à intégrer'
         ])
         expect(tableaux.first.all('thead th[scope=colgroup]', visible: :all).map { it.text(:all).squish })
           .to eq(['Bouquet API Entreprise', 'Autres API et jeux de données'])
@@ -622,7 +627,7 @@ RSpec.describe 'Demarches' do
       end
 
       it 'rattache chaque section des deux onglets à un tag, repliée dans le premier, dépliée dans le second' do
-        section = ->(bloc) { [bloc[:'data-filtre'], bloc.find('h3, h5', visible: :all).text(:all).squish] }
+        section = ->(bloc) { [bloc[:'data-filtre'], bloc.find('.section-depliable__titre, h5', visible: :all).text(:all).squish] }
         reco = page.find('#donnees-disponibles .reco-card', text: 'Bouquet API Entreprise')
 
         expect(reco.all('[data-filtre]', visible: :all).map(&section)).to match([
@@ -630,7 +635,7 @@ RSpec.describe 'Demarches' do
           ['logiciels', start_with('Via un logiciel métier')], ['sites', start_with('Via un site de consultation')]
         ])
         expect(onglet_solutions.all('[data-filtre]', visible: :all).map(&section))
-          .to eq([['logiciels', 'Logiciel métier « clé en main »'], ['api', 'Brique logicielle à intégrer']])
+          .to eq([['logiciels', 'Logiciels métier « clé en main »'], ['api', 'Briques logicielles à intégrer']])
         expect(page.all('#donnees-disponibles button.fr-accordion__btn', visible: :all).pluck(:'aria-expanded').uniq).to eq(['false'])
         expect(onglet_solutions.all('h3 > button', visible: :all).pluck(:'aria-expanded').uniq).to eq(['true'])
       end

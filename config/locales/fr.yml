@@ -214,9 +214,15 @@ fr:
       brique_logicielle: "API, jeu de données ou brique logicielle"
       site_de_consultation: "Sites de consultation"
     solutions_integratrices:
-      logiciel_metier_cle_en_main: "Logiciel métier « clé en main »"
-      brique_logicielle: "Brique logicielle à intégrer"
-      site_de_consultation: "Site de consultation"
+      logiciel_metier_cle_en_main:
+        titre: "Logiciels métier « clé en main »"
+        description: "Logiciels métier, sur étagère, conçus pour ce cas d'usage."
+      brique_logicielle:
+        titre: "Briques logicielles à intégrer"
+        description: "Briques techniques logicielles destinées à être intégrées dans un système informatique existant et conçues pour ce cas d'usage."
+      site_de_consultation:
+        titre: "Sites de consultation"
+        description: "Ces sites vous permettent de consulter certaines des données utiles pour ce cas d'usage."
     moyens_acces:
       brique_logicielle:
         titre: "Via une brique logicielle à intégrer"
