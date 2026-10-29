@@ -9,6 +9,14 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('fr-footer')
     end
 
+    it 'mène au contenu par le premier lien de la page' do
+      get root_path
+
+      premier_lien = response.parsed_body.at_css('body a')
+      expect(premier_lien.text).to eq('Contenu')
+      expect(premier_lien['href']).to eq('#content')
+    end
+
     it 'affiche les logos datagouv et numerique.gouv dans le bloc marque du pied de page' do
       get root_path
 
