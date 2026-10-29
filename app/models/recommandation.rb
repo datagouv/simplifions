@@ -23,14 +23,17 @@ class Recommandation < ApplicationRecord
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 
   def enregistrer(attributs)
+    attributs = sans_publication_de_donnee_utile(attributs)
     return super if publication_demandee?(attributs)
-    return enregistrer_brouillon(attributs.to_h.stringify_keys.merge('visible' => '1')) if devient_donnee_utile?(attributs)
+    return enregistrer_brouillon(attributs.merge('visible' => '1')) if devient_donnee_utile?(attributs)
     return super unless new_record?
 
     assign_attributes(attributs)
     self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current } if demarche&.visible? || niveau_1?
     save
   end
+
+  def publier_avec_la_demarche = ecrire('visible' => '1')
 
   validate :ne_recommande_pas_de_solution_privee
 
@@ -85,8 +88,15 @@ class Recommandation < ApplicationRecord
 
   private
 
+  def sans_publication_de_donnee_utile(attributs)
+    attributs = attributs.to_h.stringify_keys
+    return attributs unless publication_demandee?(attributs) && attributs.fetch('niveau', niveau) == 'niveau_1'
+
+    attributs.except('visible')
+  end
+
   def devient_donnee_utile?(attributs)
-    persisted? && niveau_2? && !visible? && attributs.to_h.stringify_keys['niveau'] == 'niveau_1'
+    persisted? && niveau_2? && !visible? && attributs['niveau'] == 'niveau_1'
   end
 
   def utiles = demarche.recommandations.niveau_1.parues.where(solution: solution.fournies)

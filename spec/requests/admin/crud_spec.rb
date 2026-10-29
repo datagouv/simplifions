@@ -1915,9 +1915,12 @@ RSpec.describe 'Administration' do
       sign_in admin
     end
 
+    def api_exposee(nom)
+      Solution.create!(nom:, categorie: 'api').tap { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+    end
+
     def ajouter(nom)
-      api = Solution.create!(nom:, categorie: 'api')
-      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      api = api_exposee(nom)
       post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_1' } }
       Recommandation.find_by!(solution: api)
     end
@@ -1978,6 +1981,36 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('API Impôt')
       expect(etat_dans_la_demarche(masquee).first).to start_with('Publiée')
+    end
+
+    it 'garde hors du site la donnée utile publiée depuis sa fiche de création, jusqu’à la publication de la démarche' do
+      api = api_exposee('API Impôt')
+      post '/admin/recommandations', params: { recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_1', visible: '1' } }
+      expect(carte_publique).not_to include('API Impôt')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
+    end
+
+    it 'garde hors du site la recommandation masquée publiée en donnée utile, jusqu’à la publication de la démarche' do
+      api = api_exposee('API Impôt')
+      masquee = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2)
+      patch "/admin/recommandations/#{masquee.id}", params: { recommandation: { niveau: 'niveau_1', visible: '1' } }
+      expect(carte_publique).not_to include('API Impôt')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
+    end
+
+    it 'garde publiée comme recommandation celle publiée en donnée utile, jusqu’à la publication de la démarche' do
+      api = api_exposee('API Impôt')
+      publiee = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, visible: true)
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { niveau: 'niveau_1', visible: '1' } }
+      expect(carte_publique).not_to include('API Impôt')
+      expect(etat_dans_la_demarche(publiee).join(' ')).to include('Publiée', 'Brouillon')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(carte_publique).to include('API Impôt')
     end
 
     it 'n’offre ni Publier ni Masquer sur l’écran d’une donnée utile' do

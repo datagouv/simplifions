@@ -257,7 +257,7 @@ RSpec.describe Recommandation do
 
     it 'garde en brouillon les modifications d’une recommandation à publier, et la publie seule sur son Publier' do
       reco = described_class.new
-      reco.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_1')
+      reco.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_2')
 
       en_base(reco).enregistrer('description' => 'Complétée')
       expect(en_base(reco).slice(:description, :visible)).to eq('description' => nil, 'visible' => false)
@@ -283,7 +283,7 @@ RSpec.describe Recommandation do
 
     it 'publie aussitôt une nouvelle recommandation créée avec Publier, et écrit celle d’une démarche masquée' do
       publiee = described_class.new
-      publiee.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_1', 'visible' => '1')
+      publiee.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_2', 'visible' => '1')
       masquee = described_class.new
       masquee.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_2')
 
