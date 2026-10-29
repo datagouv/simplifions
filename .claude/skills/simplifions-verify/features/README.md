@@ -68,3 +68,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [matomo.md](matomo.md) — one Matomo hit per page shown, Turbo visits included; a new catalogue search is measured as a search (keyword, catalogue, result count) instead of a page view; every click to another site or on a file link is measured, on every page.
 - [depot-direct-ferme.md](depot-direct-ferme.md) — nobody, visitor or admin, can create a file through Active Storage's direct upload address; admin images go through the solution form.
 - [title-seo.md](title-seo.md) — a démarche or solution's « Title SEO » typed in the admin becomes its whole tab title and og:title, without the site name; the H1 stays; empty gives the usual title; no field on an API.
+- [plan-du-site.md](plan-du-site.md) — the footer's Plan du site lists every visible cas d'usage, solution and article under its entry, alphabetical; a truncated fiche description keeps its apostrophes in meta and og tags.
