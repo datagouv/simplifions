@@ -2396,7 +2396,7 @@ def hits_matomo(page, attendus)
   script = "performance.getEntriesByType('resource').map(e => e.name).filter(n => n.includes('matomo.php'))"
   Timeout.timeout(10) { sleep 0.2 until page.evaluate_script(script).size >= attendus }
   sleep 1
-  page.evaluate_script(script).map { |url| Rack::Utils.parse_query(URI(url).query).slice('url', 'action_name', 'search', 'search_cat', 'search_count', 'urlref') }
+  page.evaluate_script(script).map { |url| Rack::Utils.parse_query(URI(url).query).slice('url', 'action_name', 'search', 'search_cat', 'search_count', 'urlref', 'link', 'download') }
 end
 
 def mesure_matomo(page, etape, attendus)
@@ -2411,6 +2411,12 @@ def recherche_matomo(page, mot_cle, etape, attendus)
   page.fill_in 'Rechercher', with: mot_cle
   page.click_button 'Rechercher'
   page.assert_current_path(/q=#{CGI.escape(mot_cle)}&/, url: false)
+  mesure_matomo(page, etape, attendus)
+end
+
+def clic_matomo(page, lien, etape, attendus)
+  page.execute_script("addEventListener('click', e => e.preventDefault(), { once: true })")
+  lien.click
   mesure_matomo(page, etape, attendus)
 end
 
@@ -2449,6 +2455,29 @@ def matomo(page)
 
   courte = recherche_matomo(page, 'e', '8-mot-cle-court', 8)
   raise "mot-clé d'un caractère compté : #{courte}" if courte.key?('search')
+
+  sortant = clic_matomo(page, page.find('footer a[href="https://data.gouv.fr"]'), '9-lien-sortant-apres-navigation', 9)
+  raise "lien sortant après navigation : #{sortant}" unless sortant['link'] == 'https://data.gouv.fr/'
+
+  page.execute_script("document.querySelector('main').insertAdjacentHTML('beforeend', '<a href=\"/guide.pdf\">Guide de vérif</a>')")
+  telechargement = clic_matomo(page, page.find_link('Guide de vérif'), '10-telechargement-apres-navigation', 10)
+  raise "téléchargement : #{telechargement}" unless telechargement['download'].to_s.end_with?('/guide.pdf') && !telechargement.key?('link')
+
+  page.visit('/demarches')
+  mesure_matomo(page, '11-premiere-page', 1)
+  premiere = clic_matomo(page, page.find('footer a[href="https://data.gouv.fr"]'), '11-lien-sortant-premiere-page', 2)
+  raise "lien sortant sur la première page : #{premiere}" unless premiere['link'] == 'https://data.gouv.fr/'
+
+  page.execute_script("addEventListener('auxclick', e => e.preventDefault(), { once: true })")
+  lien = page.find('footer a[href="https://data.gouv.fr"]')
+  page.driver.browser.action.move_to(lien.native).pointer_down(:middle).pointer_up(:middle).perform
+  molette = mesure_matomo(page, '12-clic-molette', 3)
+  raise "clic molette : #{molette}" unless molette['link'] == 'https://data.gouv.fr/'
+
+  page.execute_script("addEventListener('contextmenu', e => e.preventDefault(), { once: true })")
+  lien.right_click
+  droit = mesure_matomo(page, '13-clic-droit', 4)
+  raise "clic droit : #{droit}" unless droit['link'] == 'https://data.gouv.fr/'
 ensure
   ENV['MATOMO_SITE_ID'] = site_id
 end
