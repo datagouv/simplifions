@@ -370,6 +370,16 @@ RSpec.describe Grist::Import do
     )
   end
 
+  it 'garde l’ordre d’une API fournie saisi dans l’admin au rafraîchissement suivant' do
+    result
+    fournie = Integration.expose.find_by!(integratrice: Solution.find_by!(grist_id: 'Solutions:1'))
+    fournie.update!(ordre: 3)
+
+    described_class.call
+
+    expect(fournie.reload.ordre).to eq(3)
+  end
+
   it 'converges when replayed against a locally modified database, without touching slugs' do
     result
     cantine = Demarche.find_by!(grist_id: 'Cas_d_usages:8')

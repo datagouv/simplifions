@@ -114,6 +114,7 @@ fr:
         parametres_a_saisir: "Markdown accepté"
         description: "Markdown accepté"
       integration:
+        ordre: "Plus le nombre est petit, plus l’API ou le jeu de données apparaît haut dans « Données et API fournies » sur la page de la solution."
         type_integration: "Fournie : la solution met l’API ou le jeu de données à disposition. Intégrée : la solution l’utilise."
       type_acteur:
         description: "Mémo interne, non affiché sur le site"
