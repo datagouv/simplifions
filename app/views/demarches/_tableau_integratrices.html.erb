@@ -30,7 +30,8 @@
                     <% end %>
                     <% if donnee.uid_datagouv.present? %>
                       <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm fr-mt-1w', target: '_blank', rel: 'noopener external',
-                            title: "#{nom} sur data.gouv.fr - nouvelle fenêtre" do %>data.gouv.fr<span class="fr-sr-only"> : <%= nom %> - nouvelle fenêtre</span><% end %>
+                            title: "#{nom} sur data.gouv.fr - nouvelle fenêtre",
+                            data: matomo_sortie_datagouv(donnee.nom, donnee, 'démarche', 'tableau') do %>data.gouv.fr<span class="fr-sr-only"> : <%= nom %> - nouvelle fenêtre</span><% end %>
                     <% end %>
                   </th>
                 <% end %>

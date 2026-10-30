@@ -44,7 +44,8 @@
         <section class="fr-accordion" data-filtre="api">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
-              aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
+              aria-controls="<%= dom_id(recommandation, :api_directe) %>"
+              <%= tag.attributes(data: matomo_evenement('Ouverture accès direct API-jdd', cible.nom, cible)) %>><%= acces_direct %></button>
           </h5>
           <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
             <% if lien_fiche || lien_demande_acces %>
@@ -59,7 +60,7 @@
               </div>
             <% end %>
             <% if cible.uid_datagouv.present? %>
-              <%= render DataserviceCardComponent.new(cible, heading: "h6") %>
+              <%= render DataserviceCardComponent.new(cible, heading: "h6", origine: 'démarche') %>
             <% end %>
             <% if utiles.any? %>
               <p class="fr-mt-4w">
@@ -98,8 +99,9 @@
                                 <b><%= utile.solution.nom %></b>
                                 <% if utile.solution.uid_datagouv.present? %>
                                   <br>
-                                  <a href="<%= utile.solution.lien_datagouv %>" class="fr-link fr-link--xs"
-                                    rel="noopener external" target="_blank">Documentation</a>
+                                  <%= link_to 'Documentation', utile.solution.lien_datagouv, class: 'fr-link fr-link--xs',
+                                        rel: 'noopener external', target: '_blank',
+                                        data: matomo_sortie_datagouv(utile.solution.nom, utile.solution, 'démarche', 'documentation') %>
                                 <% end %>
                               </td>
                               <% if utile.description.present? %>

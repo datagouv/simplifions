@@ -57,6 +57,15 @@ RSpec.describe 'Matomo' do
     expect(formulaire['data-matomo-resultats']).to eq('0')
   end
 
+  it 'envoie les événements « API et données » portés par les liens et par les boutons que l’usager active' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("_paq.push(['trackEvent', 'API et données', element.dataset.matomoAction, element.dataset.matomoNom])")
+    expect(response.body).to include("bouton.getAttribute('aria-expanded') !== 'true' && bouton.getAttribute('aria-pressed') !== 'true'")
+  end
+
   it 'nomme les pages 404 avec leur chemin et la page d’origine' do
     allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
 

@@ -211,6 +211,24 @@ RSpec.describe 'Demarches' do
       get demarche_path('tarification-cantine-scolaire-a-1eur')
     end
 
+    it 'prépare pour Matomo l’ouverture de l’accès direct, l’étiquette API et les sorties vers data.gouv' do
+      page = Capybara.string(response.body)
+
+      acces_direct = page.find_button("Par l'API directement")
+      expect(acces_direct['data-matomo-action']).to eq('Ouverture accès direct API-jdd')
+      expect(acces_direct['data-matomo-nom']).to eq('Bouquet API Particulier [API, restreint public]')
+      etiquette = page.find_button('API et jeux de données')
+      expect(etiquette['data-matomo-action']).to eq('Affichage personnalisé API-jdd')
+      expect(etiquette['data-matomo-nom']).to eq(Demarche.find_by(slug: 'tarification-cantine-scolaire-a-1eur').titre)
+      expect(page.find_button('Sites de consultation des données')['data-matomo-action']).to be_nil
+      expect(page.find_link('Bouquet API Particulier (data.gouv)')['data-matomo-nom'])
+        .to eq('Bouquet API Particulier (data.gouv) [API, restreint public, démarche, carte]')
+      sorties = page.all('a[data-matomo-nom^="API Quotient familial [API, démarche"]').pluck('data-matomo-nom')
+      expect(sorties).to include('API Quotient familial [API, démarche, documentation]',
+        'API Quotient familial [API, démarche, tableau]')
+      expect(page.find_link('Documentation', match: :first)['data-matomo-action']).to eq('Sortie fiche data.gouv accès restreint')
+    end
+
     it 'rend l’en-tête et la sidebar' do
       expect(response.body).to include('🥣')
       expect(response.body).to include('Communes, simplifiez la mise en œuvre du dispositif.')
@@ -451,6 +469,13 @@ RSpec.describe 'Demarches' do
       expect(fenetre.find('li', text: 'API BODACC', visible: :all).text(:all)).to include('API ouverte').and include('DILA')
       expect(fenetre).to have_link('Voir sur data.gouv.fr API BODACC - nouvelle fenêtre', href: 'https://www.data.gouv.fr/fr/dataservices/bodacc1', visible: :all)
       expect(response.body).not_to include('API pas encore publiée')
+    end
+
+    it 'prépare pour Matomo la sortie vers data.gouv depuis la fenêtre, avec son accès et son origine' do
+      lien = fenetre('Bouquet API Entreprise').find_link('Voir sur data.gouv.fr API BODACC - nouvelle fenêtre', visible: :all)
+
+      expect(lien['data-matomo-action']).to eq('Sortie fiche data.gouv accès ouvert')
+      expect(lien['data-matomo-nom']).to eq('API BODACC [API, ouvert, démarche, modale liste api par solution]')
     end
 
     it 'replie le détail d’une donnée derrière sa ligne, qui s’ouvre et se referme au clic' do

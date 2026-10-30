@@ -23,7 +23,8 @@
           <p class="fr-text--bold fr-text-title--blue-france fr-mb-1w" id="affichage-personnalise-consigne">Affichez le contenu de cette page selon les solutions que vous recherchez :</p>
           <ul class="fr-tags-group fr-mb-0" aria-labelledby="affichage-personnalise-consigne" data-action="click->affichage-personnalise#afficher">
             <% [['api', 'API et jeux de données'], ['logiciels', 'Logiciels métiers « clé en main »'], ['sites', 'Sites de consultation des données']].each do |filtre, libelle| %>
-              <li><button type="button" class="fr-tag" aria-pressed="false" data-affichage-personnalise-target="tag" data-filtre="<%= filtre %>"><%= libelle %></button></li>
+              <li><button type="button" class="fr-tag" aria-pressed="false" data-affichage-personnalise-target="tag" data-filtre="<%= filtre %>"
+                <%= tag.attributes(data: { matomo_action: 'Affichage personnalisé API-jdd', matomo_nom: @demarche.titre }) if filtre == 'api' %>><%= libelle %></button></li>
             <% end %>
           </ul>
         </div>

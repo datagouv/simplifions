@@ -59,7 +59,8 @@
                               </p>
                             <% end %>
                             <% if donnee.uid_datagouv.present? %>
-                              <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm', target: '_blank', rel: 'noopener external' do %>
+                              <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm', target: '_blank', rel: 'noopener external',
+                                    data: matomo_sortie_datagouv(donnee.nom, donnee, 'démarche', 'modale liste api par solution') do %>
                                 Voir sur data.gouv.fr<span class="fr-sr-only"> <%= donnee.nom %> - nouvelle fenêtre</span>
                               <% end %>
                             <% end %>

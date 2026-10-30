@@ -16,7 +16,7 @@
     <div class="fr-col">
       <%= content_tag @heading, class: "fr-text--md fr-mb-0" do %>
         <%= link_to titre, lien_datagouv, target: "_blank", rel: "noopener noreferrer",
-              title: "#{titre} - ouvre une nouvelle fenêtre" %>
+              title: "#{titre} - ouvre une nouvelle fenêtre", data: mesure %>
       <% end %>
       <% if producteur.present? %>
         <p class="fr-text--sm fr-mb-0 dataservice-card__org">
