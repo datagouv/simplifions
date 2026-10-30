@@ -24,7 +24,9 @@ RSpec.describe 'Demarches' do
     it 'propose une nouvelle démarche, avec la doctrine de référencement' do
       get demarches_path
 
-      expect(response.parsed_body.text).to include('Proposer une nouvelle démarche')
+      titre = response.parsed_body.at_css('#titre-proposer-demarche')
+      expect(titre.at_css('[aria-hidden=true]').text).to eq('✒️')
+      expect(lu_a_voix_haute(titre)).to eq('Proposer une nouvelle démarche')
       expect(response.parsed_body.text).to include('Doctrine de référencement des démarches')
       expect(response.body).to include('href="/contact/nouveau-cas-usage"')
       expect(response.parsed_body.css('main a[href="/#redaction-contenu"]')).to be_empty
@@ -256,14 +258,14 @@ RSpec.describe 'Demarches' do
       end
     end
 
-    it 'garde à l’écran l’icône du titre partout dans la page, sans la lire à voix haute' do
+    it 'garde à l’écran les icônes ✍️ 💡 ✒️ et celle du titre, sans les lire à voix haute' do
       site = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true, slug: 'portail-agents')
       Integration.create!(integratrice: site, integree: Solution.find_by!(nom: 'API Quotient familial'), type_integration: 'consomme',
         statut: '✅ en production', demarches: [Demarche.find_by!(slug: 'tarification-cantine-scolaire-a-1eur')])
 
       get demarche_path('tarification-cantine-scolaire-a-1eur')
 
-      icones = %w[🥣]
+      icones = %w[🥣 ✍️ 💡 ✒️]
       vu = response.parsed_body.text
       lu = lu_a_voix_haute(response.parsed_body.at_css('body'))
       expect(icones.select { vu.include?(it) }).to eq(icones)
