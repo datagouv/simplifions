@@ -71,6 +71,26 @@ RSpec.describe 'Demarches' do
       expect(response.parsed_body.at_css('form.catalogue input[type=submit]')['value']).to eq('Appliquer les filtres')
     end
 
+    it 'replie les quatre filtres sous un bouton « Filtres » qui compte les filtres choisis' do
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+
+      get demarches_path('target-users' => 'particuliers', 'q' => 'Démarche', 'sort' => '-created')
+
+      bouton = response.parsed_body.at_css('form.catalogue button[aria-expanded=false][aria-controls]')
+      expect(bouton.text.squish).to eq('Filtres (1)')
+      bloc = response.parsed_body.at_css("##{bouton['aria-controls']}")
+      expect(bloc.css('select').pluck('name'))
+        .to eq(%w[fournisseurs-de-service target-users categorie-de-solution types-de-simplification])
+      expect(bloc.at_css('input[type=submit]')['value']).to eq('Appliquer les filtres')
+      expect(bloc.css('input[name=q], select[name=sort], .catalogue-types')).to be_empty
+    end
+
+    it 'nomme le bouton « Filtres » sans nombre quand aucun filtre connu n’est choisi' do
+      get demarches_path(q: 'Démarche', 'target-users' => 'inconnu')
+
+      expect(response.parsed_body.at_css('form.catalogue button[aria-controls]').text.squish).to eq('Filtres')
+    end
+
     it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do
       get demarches_path(page: 2, q: 'Démarche 20')
 

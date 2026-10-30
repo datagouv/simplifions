@@ -68,6 +68,13 @@ body:has(.bouton-proposer-modification) {
   padding-left: 2rem;
 }
 
+@media (max-width: 47.98em) {
+  .fiche-page blockquote {
+    margin-inline: 1rem 0;
+    padding-left: 1rem;
+  }
+}
+
 .reco-card {
   background-color: var(--background-alt-beige-gris-galet);
   border-left: 4px solid var(--border-action-high-grey);
@@ -479,4 +486,28 @@ body:has(.bouton-proposer-modification) {
 
 .lire-plus--replie.lire-plus--coupe {
   mask-image: linear-gradient(to bottom, black 60%, transparent);
+}
+
+@media (min-width: 48em) {
+  .filtres-catalogue,
+  .filtres-catalogue .fr-sidemenu__inner {
+    padding-right: 0;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 47.98em) {
+  :root[data-fr-js] .filtres-catalogue__titre {
+    display: none;
+  }
+}
+
+:root:not([data-fr-js]) .filtres-catalogue .fr-sidemenu__btn,
+:root:not([data-fr-js]) .filtres-catalogue .fr-collapse::before {
+  display: none;
+}
+
+:root:not([data-fr-js]) .filtres-catalogue .fr-collapse {
+  visibility: visible;
+  max-height: none;
 }

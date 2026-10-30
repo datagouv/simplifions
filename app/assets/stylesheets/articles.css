@@ -402,6 +402,19 @@
   padding: 0.5rem 0 0;
 }
 
+@media (max-width: 47.98em) {
+  .demarche-card .header-topic,
+  .demarche-card .description-topic {
+    padding: 12px;
+    min-height: 0;
+  }
+
+  .demarche-card .title-topic {
+    font-size: 1.125rem !important;
+    line-height: 1.75rem !important;
+  }
+}
+
 /* Bloc "Sont mentionnés dans cet article" */
 
 .topics-carousel {
