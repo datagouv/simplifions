@@ -2735,6 +2735,77 @@ def depot_direct(page)
   depot_direct_refuse(page, 'visiteur')
   Verify.login(page)
   depot_direct_refuse(page, 'admin')
+end
+
+PIED_DE_PAGE_CATEGORIES = ['Démarches référencées à destination des :', 'Démarches référencées gérées par les :',
+                           '3 guides pour débuter :', 'Découvrir les solutions raccordées aux données :',
+                           'Comparer le nombre de données raccordées par solution :',
+                           'Simplifions.data.gouv.fr', 'Aide', 'Contribution'].freeze
+
+def pied_de_page_categories(page, etape)
+  pied = page.find('footer')
+  pied.assert_selector 'h3', text: PIED_DE_PAGE_CATEGORIES.last
+  categories = pied.all('h3').map(&:text)
+  raise "#{etape} : catégories #{categories}" unless categories == PIED_DE_PAGE_CATEGORIES
+
+  page.scroll_to(pied)
+  Verify.evidence('pied-de-page', page, etape, "url=#{page.current_path} categories=#{categories.size}")
+end
+
+def pied_de_page_liens(page)
+  page.find('footer').all('h3').first(5).flat_map do |categorie|
+    categorie.all(:xpath, 'following-sibling::ul[1]//a').map do |lien|
+      adresse = URI(lien[:href])
+      [lien.text, [adresse.request_uri, adresse.fragment].compact.join('#')]
+    end
+  end
+end
+
+def pied_de_page_destination(page, libelle, chemin)
+  page.find('footer').find_link(href: chemin).click
+  adresse = URI(chemin)
+  page.assert_current_path(adresse.path + (adresse.query ? "?#{adresse.query}" : ''))
+  params = Rack::Utils.parse_query(adresse.query)
+  case adresse.path
+  when '/demarches' then compte_pied_de_page(page, Demarche.catalogue(params).count, libelle)
+  when '/solutions' then compte_pied_de_page(page, Solution.catalogue(params).count, libelle)
+  when %r{\A/solutions/} then page.assert_selector('#solutions-integratices .solution-integratrice-card', minimum: 1)
+  else page.assert_selector('h1')
+  end
+end
+
+def compte_pied_de_page(page, attendu, libelle)
+  affiche = page.find('[role=status]').text[/\d+/].to_i
+  raise "#{libelle} : #{affiche} affichés, base #{attendu}" unless affiche == attendu && attendu.positive?
+end
+
+def pied_de_page_en_quoi_aider(page)
+  page.visit('/demarches')
+  page.find('footer').click_link('En quoi simplifions.data.gouv.fr peut-il vous aider ?')
+  page.assert_current_path('/')
+  haut = "Math.round(document.getElementById('comment-vous-aider').getBoundingClientRect().top)"
+  page.document.synchronize do
+    arrivee = [page.evaluate_script('location.hash'), page.evaluate_script(haut)]
+    raise Capybara::ExpectationNotMet, "section aider : #{arrivee}" unless arrivee == ['#comment-vous-aider', 0]
+  end
+  Verify.evidence('pied-de-page', page, 'en-quoi-aider', "depuis=/demarches hash=#comment-vous-aider haut_section=0")
+end
+
+def pied_de_page(page)
+  liens = []
+  [[1280, 'accueil-1280'], [375, 'accueil-375']].each do |largeur, etape|
+    page.current_window.resize_to(largeur, 1024)
+    page.visit('/')
+    pied_de_page_categories(page, etape)
+    liens = pied_de_page_liens(page) if largeur == 1280
+  end
+  page.current_window.resize_to(1280, 1024)
+  pied_de_page_en_quoi_aider(page)
+  liens.each { |libelle, chemin| pied_de_page_destination(page, libelle, chemin) }
+  Verify.evidence('pied-de-page', page, 'liens-suivis', "#{liens.size} liens : #{liens.map(&:last).join(' ')}")
+  Verify.login(page)
+  page.visit('/admin')
+  pied_de_page_categories(page, 'admin')
   Verify.logout(page)
 end
 
@@ -2852,7 +2923,7 @@ end
   'donnees-integrees' => :donnees_integrees, 'onglet-solutions' => :onglet_solutions,
   'tableau-solutions' => :tableau_solutions, 'affichage-personnalise' => :affichage_personnalise,
   'lire-plus' => :lire_plus, 'matomo' => :matomo, 'depot-direct' => :depot_direct,
-  'title-seo' => :title_seo, 'plan-du-site' => :plan_du_site }.each do |nom, fn|
+  'title-seo' => :title_seo, 'plan-du-site' => :plan_du_site, 'pied-de-page' => :pied_de_page }.each do |nom, fn|
   next if only && only != nom
 
   method(fn).call(page)
