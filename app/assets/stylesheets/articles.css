@@ -319,6 +319,7 @@
 
 .topic-card .fr-card__title {
   color: var(--text-action-high-blue-france);
+  text-wrap: balance;
 }
 
 .topic-card .fr-card__desc {
@@ -387,9 +388,10 @@
 .title-topic {
   color: #465f9d;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 27px;
   text-align: left;
+  text-wrap: balance;
   margin-bottom: 10px;
 }
 
