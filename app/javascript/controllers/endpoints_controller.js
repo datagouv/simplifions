@@ -2,16 +2,36 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["input", "row", "empty", "footer", "count", "pagination"]
-  static values = { perPage: { type: Number, default: 4 } }
+  static values = { perPage: { type: Number, default: 4 }, solution: String }
 
   connect() {
     this.page = 0
     this.render()
   }
 
+  disconnect() {
+    clearTimeout(this.pause)
+  }
+
   filter() {
     this.page = 0
     this.render()
+    clearTimeout(this.pause)
+    this.pause = setTimeout(() => this.mesurer(), 1000)
+  }
+
+  valider() {
+    this.filter()
+    clearTimeout(this.pause)
+    this.mesurer()
+  }
+
+  mesurer() {
+    const motCle = this.inputTarget.value.trim()
+    if (motCle.length < 2 || motCle === this.motCleMesure) return
+    this.motCleMesure = motCle
+    const nom = `${this.solutionValue} : ${motCle} (${this.matchingCount} endpoints)`
+    window._paq?.push(["trackEvent", "API et données", "Recherche endpoint", nom])
   }
 
   goTo(event) {
@@ -25,6 +45,7 @@ export default class extends Controller {
   render() {
     const query = this.inputTarget.value.trim().toLowerCase()
     const matching = this.rowTargets.filter((row) => !query || row.textContent.toLowerCase().includes(query))
+    this.matchingCount = matching.length
     const pageCount = Math.ceil(matching.length / this.perPageValue)
     const start = this.page * this.perPageValue
     const shown = new Set(matching.slice(start, start + this.perPageValue))

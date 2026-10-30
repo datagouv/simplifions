@@ -238,6 +238,12 @@ RSpec.describe 'Demarches' do
       expect(page.find_link('Voir la fiche Acheteza', match: :first)['data-matomo-action']).to be_nil
     end
 
+    it 'donne à la recherche d’endpoints le nom de la solution pour Matomo' do
+      tableau = Capybara.string(response.body).find('[data-controller="endpoints"]')
+
+      expect(tableau['data-endpoints-solution-value']).to eq('Bouquet API Particulier')
+    end
+
     it 'rend l’en-tête et la sidebar' do
       expect(response.body).to include('🥣')
       expect(response.body).to include('Communes, simplifiez la mise en œuvre du dispositif.')

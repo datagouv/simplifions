@@ -70,14 +70,15 @@
                   de l'API utiles pour ce cas d'usage :
                 </b>
               </p>
-              <div class="fr-table fr-table--multiline fr-table--no-caption fr-table--sm" data-controller="endpoints">
+              <div class="fr-table fr-table--multiline fr-table--no-caption fr-table--sm" data-controller="endpoints"
+                data-endpoints-solution-value="<%= cible.nom %>">
                 <div class="fr-table__header">
                   <div class="fr-search-bar" role="search">
                     <label class="fr-label" for="<%= dom_id(recommandation, :filtre_endpoints) %>">Filtrer les endpoints</label>
                     <input id="<%= dom_id(recommandation, :filtre_endpoints) %>" class="fr-input" type="search"
                       placeholder="Rechercher les endpoints utiles par mots-clés..."
-                      data-endpoints-target="input" data-action="input->endpoints#filter">
-                    <button type="button" class="fr-btn" data-action="endpoints#filter">Filtrer</button>
+                      data-endpoints-target="input" data-action="input->endpoints#filter keydown.enter->endpoints#valider">
+                    <button type="button" class="fr-btn" data-action="endpoints#valider">Filtrer</button>
                   </div>
                 </div>
                 <div class="fr-table__wrapper">
