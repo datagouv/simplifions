@@ -103,7 +103,7 @@ body:has(.bouton-proposer-modification) {
 }
 
 .reco-card .fr-accordion__btn--empty {
-  color: var(--text-disabled-grey);
+  color: var(--text-mention-grey);
   cursor: text;
 }
 
