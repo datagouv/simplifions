@@ -19,6 +19,10 @@
   font-weight: 700;
 }
 
+html:has(.bouton-proposer-modification) {
+  scroll-padding-bottom: 5rem;
+}
+
 body:has(.bouton-proposer-modification) {
   padding-bottom: 5rem;
 }
@@ -28,6 +32,7 @@ body:has(.bouton-proposer-modification) {
   right: 1.5rem;
   bottom: 1.5rem;
   z-index: 700;
+  min-height: 2.5rem;
   border-radius: 2rem;
   background-color: var(--background-default-grey);
   box-shadow: inset 0 0 0 1px var(--border-action-high-blue-france), 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -57,7 +62,6 @@ body:has(.bouton-proposer-modification) {
 @media (min-width: 62em) {
   .bouton-proposer-modification {
     font-size: 1rem;
-    min-height: 2.5rem;
     padding: 0.5rem 1rem;
   }
 }
