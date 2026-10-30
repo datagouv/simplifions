@@ -72,3 +72,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [plan-du-site.md](plan-du-site.md) — the footer's Plan du site lists every visible cas d'usage, solution and article under its entry, alphabetical; a truncated fiche description keeps its apostrophes in meta and og tags.
 - [pied-de-page.md](pied-de-page.md) — on every page and in the admin, the footer's five blocks of links open the filtered catalogue, the guides and the comparisons; the presentation links to the home section on what the site brings.
 - [clavier-lecteur-ecran.md](clavier-lecteur-ecran.md) — first Tab on « Contenu », catalogue filters applied by a button, changing numbers announced in status regions (solution counter, endpoints, Sirene demo).
+- [titres-equilibres.md](titres-equilibres.md) — a catalogue card title or a page H1 on two lines breaks into lines of close length; captures at 390 and 1280 px.
