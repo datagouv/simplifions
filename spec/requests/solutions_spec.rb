@@ -147,7 +147,9 @@ RSpec.describe 'Solutions' do
     end
 
     it 'liste les cas d’usages simplifiables en tuiles' do
-      expect(response.body).to include('🥣 Tarification cantine scolaire à 1€')
+      lien = response.parsed_body.at_css('.fr-tile__title a')
+      expect(lien.at_css('[aria-hidden=true]').text).to eq('🥣')
+      expect(lu_a_voix_haute(lien)).to eq('Tarification cantine scolaire à 1€')
       expect(response.body).to include('href="/demarches/tarification-cantine-scolaire-a-1eur"')
       expect(response.body).to include('Communes, simplifiez le dispositif.')
     end
@@ -177,6 +179,9 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Dites-le-nous une fois')
       expect(response.body).to match(%r{Type de solution :</p>\s*<p[^>]*>Profil acheteur ou Portail agent</p>})
       expect(response.body).to match(%r{1/1</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeux de données intégrés</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">1</span> API et jeux de données « Bouquet API Particulier » sur les 1 utiles pour ce cas d&#39;usage ont été intégrés par cette solution\.</span>})
+      cas_usage = response.parsed_body.at_css('.cas-usage-card > span')
+      expect(cas_usage.at_css('[aria-hidden=true]').text).to eq('🥣')
+      expect(lu_a_voix_haute(cas_usage)).to eq('Tarification cantine scolaire à 1€')
       expect(response.body).not_to include('Portail en cours')
       expect(response.body).not_to include('Hub sans catégorie')
       expect(response.body).to include('Trier par')

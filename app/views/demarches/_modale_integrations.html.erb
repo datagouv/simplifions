@@ -17,9 +17,9 @@
               <%= render('compteur', couverture:) if couverture %>
               <div class="fr-text--sm">
                 <% if couverture == [1, 1] %>
-                  <p class="fr-text--sm fr-mb-2w"><b>« <%= cible.nom %> » est <%= jeu_de_donnees ? 'intégré' : 'intégrée' %> par cette solution</b>, utile pour la démarche « <%= demarche.titre %> »</p>
+                  <p class="fr-text--sm fr-mb-2w"><b>« <%= cible.nom %> » est <%= jeu_de_donnees ? 'intégré' : 'intégrée' %> par cette solution</b>, utile pour la démarche « <%= titre_demarche(demarche) %> »</p>
                 <% elsif couverture %>
-                  <p class="fr-text--sm fr-mb-2w"><b><%= jeu_de_donnees ? 'jeux de données' : 'API' %> « <%= cible.nom %> » <%= jeu_de_donnees ? 'intégrés' : 'intégrées' %> par cette solution</b>, utiles pour la démarche « <%= demarche.titre %> »</p>
+                  <p class="fr-text--sm fr-mb-2w"><b><%= jeu_de_donnees ? 'jeux de données' : 'API' %> « <%= cible.nom %> » <%= jeu_de_donnees ? 'intégrés' : 'intégrées' %> par cette solution</b>, utiles pour la démarche « <%= titre_demarche(demarche) %> »</p>
                 <% end %>
                 <p class="fr-text--sm fr-mb-0">
                   Sur l’ensemble du cas d’usage :
@@ -76,7 +76,7 @@
               </details>
             <% end %>
             <p class="fr-text--sm fr-mt-3w fr-mb-0">
-              ✒️ Une information manque ou est erronée ? Vous pouvez
+              <span aria-hidden="true">✒️</span> Une information manque ou est erronée ? Vous pouvez
               <%= link_to lien_modification, target: '_blank', rel: 'noopener', title: 'proposer une modification du contenu - nouvelle fenêtre' do %>proposer une modification du contenu<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %>.
             </p>
           </div>

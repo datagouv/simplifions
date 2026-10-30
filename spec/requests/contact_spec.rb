@@ -283,7 +283,7 @@ RSpec.describe 'Contact' do
 
       formulaire = response.parsed_body.at('form[method="get"][action="/contact/modifier-cas-usage"]')
       options = formulaire.css('select[name="demarche"] option').map { |option| [option['value'], option.text] }
-      expect(options).to eq([['', 'Sélectionner une démarche'], %w[bourse Bourse], ['cantine', '🍽️ Cantine à 1€']])
+      expect(options).to eq([['', 'Sélectionner une démarche'], %w[bourse Bourse], ['cantine', 'Cantine à 1€']])
       expect(formulaire.at('label[for="demarche"]').text).to include('Démarche concernée',
         'Le modèle de mail ci-dessous se met à jour selon votre choix.')
       expect(formulaire.at('noscript button[type="submit"]').text.strip).to eq('Préremplir le message')
