@@ -10,7 +10,8 @@
             <button type="button" class="fr-btn--close fr-btn" aria-controls="<%= modale_id %>" title="Fermer">Fermer</button>
           </div>
           <div class="fr-modal__content">
-            <h2 id="<%= modale_id %>_titre" class="fr-modal__title fr-mb-1w"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug) %></h2>
+            <h2 id="<%= modale_id %>_titre" class="fr-modal__title fr-mb-1w"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug),
+                  data: matomo_fiche_solution(solution, 'démarche') %></h2>
             <%= render 'badge_operateur', solution: %>
             <div class="integration-indicator fr-p-1w fr-mt-2w">
               <%= render('compteur', couverture:) if couverture %>

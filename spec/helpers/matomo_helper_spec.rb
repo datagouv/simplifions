@@ -48,4 +48,20 @@ RSpec.describe MatomoHelper do
         .to eq('Sortie fiche data.gouv accès restreint')
     end
   end
+
+  describe '#matomo_fiche_solution' do
+    it 'mesure une fiche dont le type de solution est une API' do
+      bouquet = Solution.new(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', types_solution: ['API'])
+
+      expect(helper.matomo_fiche_solution(bouquet, 'démarche'))
+        .to eq(matomo_action: 'Ouverture fiche solution API-jdd',
+          matomo_nom: 'Bouquet API Particulier [API, démarche]')
+    end
+
+    it 'ne mesure pas les autres fiches' do
+      logiciel = Solution.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', types_solution: ['Portail agent'])
+
+      expect(helper.matomo_fiche_solution(logiciel, 'démarche')).to eq({})
+    end
+  end
 end

@@ -19,6 +19,12 @@ module MatomoHelper
     matomo_evenement(action, nom, solution, "#{page}, #{lien}")
   end
 
+  def matomo_fiche_solution(solution, origine)
+    return {} unless solution.types_solution.include?('API')
+
+    matomo_evenement('Ouverture fiche solution API-jdd', solution.nom, solution, origine)
+  end
+
   private
 
   def matomo_type(solution) = solution.categorie_base_de_donnees? ? 'Jeu de données' : 'API'

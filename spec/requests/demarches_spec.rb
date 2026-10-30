@@ -182,7 +182,7 @@ RSpec.describe 'Demarches' do
 
       bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
         slug: 'bouquet-api-particulier', uid_datagouv: 'bouquet1', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')],
-        url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier',
+        url_demande_acces: 'https://datapass.api.gouv.fr/api-particulier', types_solution: ['API'],
         datagouv_titre: 'Bouquet API Particulier (data.gouv)', datagouv_acces: 'restricted',
         datagouv_acces_acteurs_publics: 'yes', datagouv_logo: 'https://avatars.test/dinum-100.png')
       api_qf = Solution.create!(nom: 'API Quotient familial', categorie: 'api', uid_datagouv: '672cf982fcc8065be6e66f54')
@@ -227,6 +227,15 @@ RSpec.describe 'Demarches' do
       expect(sorties).to include('API Quotient familial [API, démarche, documentation]',
         'API Quotient familial [API, démarche, tableau]')
       expect(page.find_link('Documentation', match: :first)['data-matomo-action']).to eq('Sortie fiche data.gouv accès restreint')
+    end
+
+    it 'prépare pour Matomo l’ouverture des fiches solution de type API seulement' do
+      page = Capybara.string(response.body)
+
+      fiche = page.find_link('Plus d\'informations sur Bouquet API Particulier')
+      expect(fiche['data-matomo-action']).to eq('Ouverture fiche solution API-jdd')
+      expect(fiche['data-matomo-nom']).to eq('Bouquet API Particulier [API, restreint public, démarche]')
+      expect(page.find_link('Voir la fiche Acheteza', match: :first)['data-matomo-action']).to be_nil
     end
 
     it 'rend l’en-tête et la sidebar' do
@@ -311,8 +320,8 @@ RSpec.describe 'Demarches' do
     end
 
     it 'propose « Plus d’informations » vers la fiche de la solution recommandée, avant la demande d’accès' do
-      bouton = %r{<a class="fr-btn fr-btn--secondary" href="/solutions/bouquet-api-particulier">Plus d&#39;informations sur Bouquet API Particulier</a>}
-      expect(response.body).to match(bouton)
+      expect(Capybara.string(response.body)).to have_css('a.fr-btn.fr-btn--secondary[href="/solutions/bouquet-api-particulier"]',
+        text: "Plus d'informations sur Bouquet API Particulier")
       expect(response.body.index('Plus d&#39;informations sur')).to be < response.body.index('Demander un accès pour ce cas')
     end
 

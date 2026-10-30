@@ -45,7 +45,8 @@
                  ligne = "#{prefixe}-solution-#{solution.id}" %>
               <tr data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
                 <th scope="row" id="<%= ligne %>" class="fr-cell--fixed tableau-integratrices__solution">
-                  <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug) %>
+                  <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug),
+                        data: matomo_fiche_solution(solution, 'démarche') %>
                   <%= render 'badge_operateur', solution: %>
                   <% if solution.types_solution.any? %>
                     <span class="fr-text--xs fr-mb-0 tableau-integratrices__types"><%= solution.types_solution.join(' • ') %></span>
