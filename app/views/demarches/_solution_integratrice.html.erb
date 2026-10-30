@@ -1,7 +1,8 @@
 <% cible = recommandation&.solution %>
 <div class="solution-integratrice-card">
   <div class="solution-integratrice-card__header">
-    <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug) %></p>
+    <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug),
+          data: matomo_fiche_solution(solution, 'démarche') %></p>
     <%= render "badge_operateur", solution: solution %>
   </div>
   <% if solution.types_solution.any? %>
@@ -33,7 +34,8 @@
   <% end %>
   <% if solution.page_publique? %>
     <p class="solution-integratrice-card__fiche fr-mb-0">
-      <%= link_to solution_path(solution.slug), class: 'fr-link fr-icon-arrow-right-line fr-link--icon-right' do %>
+      <%= link_to solution_path(solution.slug), class: 'fr-link fr-icon-arrow-right-line fr-link--icon-right',
+            data: matomo_fiche_solution(solution, 'démarche') do %>
         Voir la fiche<span class="fr-sr-only"> <%= solution.nom %></span>
       <% end %>
     </p>

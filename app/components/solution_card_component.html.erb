@@ -6,7 +6,7 @@
         <div class="fr-grid-row"><%= badge %></div>
       <% end %>
       <h3 class="fr-card__title fr-text--lead fr-mb-0">
-        <%= link_to @card[:title], @card[:href] %>
+        <%= link_to @card[:title], @card[:href], data: helpers.matomo_fiche_solution(@card[:solution], @card[:origine]) %>
       </h3>
       <% if @card[:description].present? %>
         <p class="fr-card__desc"><%= @card[:description] %></p>

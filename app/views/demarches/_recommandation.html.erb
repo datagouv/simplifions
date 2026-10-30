@@ -44,13 +44,15 @@
         <section class="fr-accordion" data-filtre="api">
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
-              aria-controls="<%= dom_id(recommandation, :api_directe) %>"><%= acces_direct %></button>
+              aria-controls="<%= dom_id(recommandation, :api_directe) %>"
+              <%= tag.attributes(data: matomo_evenement('Ouverture accès direct API-jdd', cible.nom, cible)) %>><%= acces_direct %></button>
           </h5>
           <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
             <% if lien_fiche || lien_demande_acces %>
               <div class="fr-btns-group fr-btns-group--inline fr-btns-group--right fr-my-2w">
                 <% if lien_fiche %>
-                  <%= link_to "Plus d'informations sur #{cible.nom}", lien_fiche, class: 'fr-btn fr-btn--secondary' %>
+                  <%= link_to "Plus d'informations sur #{cible.nom}", lien_fiche, class: 'fr-btn fr-btn--secondary',
+                        data: matomo_fiche_solution(cible, 'démarche') %>
                 <% end %>
                 <% if lien_demande_acces %>
                   <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
@@ -59,7 +61,7 @@
               </div>
             <% end %>
             <% if cible.uid_datagouv.present? %>
-              <%= render DataserviceCardComponent.new(cible, heading: "h6") %>
+              <%= render DataserviceCardComponent.new(cible, heading: "h6", origine: 'démarche') %>
             <% end %>
             <% if utiles.any? %>
               <p class="fr-mt-4w">
@@ -68,14 +70,15 @@
                   de l'API utiles pour ce cas d'usage :
                 </b>
               </p>
-              <div class="fr-table fr-table--multiline fr-table--no-caption fr-table--sm" data-controller="endpoints">
+              <div class="fr-table fr-table--multiline fr-table--no-caption fr-table--sm" data-controller="endpoints"
+                data-endpoints-solution-value="<%= cible.nom %>">
                 <div class="fr-table__header">
                   <div class="fr-search-bar" role="search">
                     <label class="fr-label" for="<%= dom_id(recommandation, :filtre_endpoints) %>">Filtrer les endpoints</label>
                     <input id="<%= dom_id(recommandation, :filtre_endpoints) %>" class="fr-input" type="search"
                       placeholder="Rechercher les endpoints utiles par mots-clés..."
-                      data-endpoints-target="input" data-action="input->endpoints#filter">
-                    <button type="button" class="fr-btn" data-action="endpoints#filter">Filtrer</button>
+                      data-endpoints-target="input" data-action="input->endpoints#filter keydown.enter->endpoints#valider">
+                    <button type="button" class="fr-btn" data-action="endpoints#valider">Filtrer</button>
                   </div>
                 </div>
                 <div class="fr-table__wrapper">
@@ -98,8 +101,9 @@
                                 <b><%= utile.solution.nom %></b>
                                 <% if utile.solution.uid_datagouv.present? %>
                                   <br>
-                                  <a href="<%= utile.solution.lien_datagouv %>" class="fr-link fr-link--xs"
-                                    rel="noopener external" target="_blank">Documentation</a>
+                                  <%= link_to 'Documentation', utile.solution.lien_datagouv, class: 'fr-link fr-link--xs',
+                                        rel: 'noopener external', target: '_blank',
+                                        data: matomo_sortie_datagouv(utile.solution.nom, utile.solution, 'démarche', 'documentation') %>
                                 <% end %>
                               </td>
                               <% if utile.description.present? %>

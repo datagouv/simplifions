@@ -46,9 +46,21 @@
           addEventListener('submit', function(event) {
             if (event.target.matches('[data-matomo-catalogue]')) rechercheSoumise = true;
           }, true);
+          function envoyerEvenement(element) {
+            if (element.dataset.matomoAction) {
+              _paq.push(['trackEvent', 'API et données', element.dataset.matomoAction, element.dataset.matomoNom]);
+            }
+          }
+          addEventListener('click', function(event) {
+            var bouton = event.target.closest && event.target.closest('button[data-matomo-action]');
+            if (bouton && bouton.getAttribute('aria-expanded') !== 'true' && bouton.getAttribute('aria-pressed') !== 'true') {
+              envoyerEvenement(bouton);
+            }
+          }, true);
           function mesurerClic(event) {
             var lien = event.target.closest && event.target.closest('a[href]');
             if (!lien || !/^https?:$/.test(lien.protocol)) return;
+            envoyerEvenement(lien);
             if (/\.(pdf|csv|xlsx?|docx?|odt|ods|zip)$/i.test(lien.pathname)) {
               _paq.push(['trackLink', lien.href, 'download']);
             } else if (lien.host !== location.host) {
