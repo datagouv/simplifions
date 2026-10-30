@@ -262,6 +262,34 @@ RSpec.describe 'Solutions' do
     end
   end
 
+  describe 'ordre des données et API fournies' do
+    it 'range par ordre choisi, puis celles sans ordre, chaque fois par nom' do
+      bouquet = Solution.create!(nom: 'Bouquet', slug: 'bouquet', categorie: 'brique_logicielle', visible: true)
+      [['API Beta', nil], ['API Zeta', 2], ['API Yota', 1], ['API Alpha', nil], ['API Xi', 1]].each do |nom, ordre|
+        api = Solution.create!(nom:, categorie: 'api', visible: true, uid_datagouv: nom.parameterize)
+        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose', ordre:)
+      end
+
+      get solution_path('bouquet')
+
+      titres = response.parsed_body.css('section:has(#donnees-api-fournies) .dataservice-card .fr-text--md a').map { it.text.squish }
+      expect(titres).to eq(['API Xi', 'API Yota', 'API Zeta', 'API Alpha', 'API Beta'])
+    end
+
+    it 'range celles sans ordre par le titre affiché sur la carte' do
+      bouquet = Solution.create!(nom: 'Bouquet', slug: 'bouquet', categorie: 'brique_logicielle', visible: true)
+      [['API Alpha', 'Zoologie'], ['API Bravo', nil]].each do |nom, datagouv_titre|
+        api = Solution.create!(nom:, datagouv_titre:, categorie: 'api', visible: true, uid_datagouv: nom.parameterize)
+        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+      end
+
+      get solution_path('bouquet')
+
+      titres = response.parsed_body.css('section:has(#donnees-api-fournies) .dataservice-card .fr-text--md a').map { it.text.squish }
+      expect(titres).to eq(['API Bravo', 'Zoologie'])
+    end
+  end
+
   describe 'onglets des solutions intégratrices' do
     it 'nomme l’onglet des briques logicielles' do
       bouquet = Solution.create!(nom: 'Bouquet', slug: 'bouquet', categorie: 'brique_logicielle', visible: true)

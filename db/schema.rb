@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_29_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -108,6 +108,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_29_220000) do
     t.string "statut"
     t.string "type_integration", null: false
     t.datetime "updated_at", null: false
+    t.integer "ordre"
     t.index ["grist_id"], name: "index_integrations_on_grist_id", unique: true
     t.index ["integratrice_id"], name: "index_integrations_on_integratrice_id"
     t.index ["integree_id"], name: "index_integrations_on_integree_id"

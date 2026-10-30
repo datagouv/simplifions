@@ -94,6 +94,10 @@ class Solution < ApplicationRecord
   def fournies = [self, *exposees]
   def integree_par = (integratrices + integrations_de_ses_api.map(&:integratrice)).uniq
 
+  def api_fournies_dans_l_ordre
+    exposees.order(Integration.arel_table[:ordre].asc.nulls_last, Arel.sql("COALESCE(NULLIF(BTRIM(solutions.datagouv_titre), ''), solutions.nom)"))
+  end
+
   def integratrices_visibles
     Solution.visibles.where(id: Integration.en_production.where(integree: fournies).select(:integratrice_id))
   end
