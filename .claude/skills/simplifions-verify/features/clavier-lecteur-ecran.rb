@@ -103,11 +103,57 @@ def clavier_sirene(page)
   Verify.evidence(DOSSIER, page, '7-sirene', "erreur=#{erreur} resultat=#{annonce.text(:all)}")
 end
 
+LU_ET_VU = <<~JS.freeze
+  (noeud => {
+    const copie = noeud.cloneNode(true)
+    copie.querySelectorAll('[aria-hidden=true]').forEach(cache => cache.remove())
+    return [copie.textContent.replace(/\\s+/g, ' ').trim(), noeud.querySelector('[aria-hidden=true]')?.textContent]
+  })(arguments[0])
+JS
+
+def lu_et_vu(page, selecteur, **) = page.evaluate_script(LU_ET_VU, page.find(selecteur, visible: :all, match: :first, **))
+
+def muette?((lu, vu), icone) = vu == icone && lu.exclude?(icone)
+
+def icone_du_titre(page, demarche)
+  page.visit("/demarches/#{demarche.slug}")
+  raise "<title> : #{page.title}" if page.title.include?(demarche.icone)
+
+  titres = [lu_et_vu(page, 'h1'), lu_et_vu(page, '.fr-breadcrumb [aria-current=page]')]
+  raise "titre et fil : #{titres}" unless titres.all? { it == [demarche.nom, demarche.icone] }
+
+  "title=#{page.title} titre_lu=#{titres.first.first}"
+end
+
+def stylo_et_ampoule(page)
+  stylo = lu_et_vu(page, '#titre-proposer-modification')
+  ampoule = lu_et_vu(page, '.fr-highlight p', text: '💡')
+  raise "✒️ #{stylo} 💡 #{ampoule}" unless muette?(stylo, '✒️') && muette?(ampoule, '💡')
+
+  "stylo_lu=#{stylo.first}"
+end
+
+def icone_de_la_carte(page, demarche)
+  page.visit("/demarches?q=#{CGI.escape(demarche.nom)}")
+  carte = lu_et_vu(page, '.demarche-card h3 a', text: demarche.nom)
+  raise "carte : #{carte}" unless carte == [demarche.nom, demarche.icone]
+
+  "carte_lue=#{carte.first}"
+end
+
+def emoji_muets(page)
+  demarche = Demarche.visibles.where.not(icone: [nil, '']).find { it.integratrices_par_categorie.key?(:site_de_consultation) }
+  fiche = "#{icone_du_titre(page, demarche)} #{stylo_et_ampoule(page)}"
+  carte = icone_de_la_carte(page, demarche)
+  Verify.evidence(DOSSIER, page, '8-emoji-muets', "slug=#{demarche.slug} #{fiche} #{carte}")
+end
+
 Verify.drive(__FILE__) do |page|
   Verify.check('Contenu') { entree_contenu(page, premier_tab(page)) }
   Verify.check('Flèches') { appliquer(page, fleches(page)) }
   Verify.check('Compteur') { clavier_compteur(page) }
   Verify.check('Endpoints') { clavier_endpoints(page) }
   Verify.check('Sirene') { clavier_sirene(page) }
-  Verify.check('Proof') { Verify.captures_presentes(DOSSIER, %w[1-premier-tab 2-entree-contenu 3-fleches-sans-rechargement 4-appliquer 5-compteur 6-endpoints 7-sirene]) }
+  Verify.check('Emoji muets') { emoji_muets(page) }
+  Verify.check('Proof') { Verify.captures_presentes(DOSSIER, %w[1-premier-tab 2-entree-contenu 3-fleches-sans-rechargement 4-appliquer 5-compteur 6-endpoints 7-sirene 8-emoji-muets]) }
 end
