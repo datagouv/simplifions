@@ -368,8 +368,14 @@
   position: relative;
 }
 
-.demarche-card:hover {
-  background-color: var(--background-alt-grey);
+@media (hover: hover) and (pointer: fine) {
+  .demarche-card:hover {
+    background-color: var(--background-alt-grey);
+  }
+
+  .demarche-card:hover .header-topic {
+    background-color: rgba(188, 199, 219, 0.5);
+  }
 }
 
 .header-topic {
@@ -378,10 +384,6 @@
   padding: 16px;
   gap: 10px;
   min-height: 60px;
-}
-
-.demarche-card:hover .header-topic {
-  background-color: rgba(188, 199, 219, 0.5);
 }
 
 .title-topic {
