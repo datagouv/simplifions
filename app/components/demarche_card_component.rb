@@ -1,7 +1,7 @@
 class DemarcheCardComponent < ApplicationComponent
   def self.pour(demarche, arrow: false, **retouches)
     new(arrow:, card: {
-      title: demarche.titre, href: "/demarches/#{demarche.slug}",
+      icone: demarche.icone, title: demarche.nom, href: "/demarches/#{demarche.slug}",
       description: demarche.chapo,
       usagers: demarche.usagers, acteurs: demarche.acteurs
     }.merge(retouches))

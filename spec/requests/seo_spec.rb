@@ -10,7 +10,7 @@ RSpec.describe 'SEO' do
 
       get demarche_path('cantine')
 
-      expect(response.body).to include('<title>Cas d&#39;usage - 🥣 Cantine à 1€ | Simplifions.data.gouv.fr</title>')
+      expect(response.body).to include('<title>Cas d&#39;usage - Cantine à 1€ | Simplifions.data.gouv.fr</title>')
       expect(response.body).to include('<meta name="description" content="Communes, simplifiez.">')
     end
 

@@ -17,9 +17,9 @@
               <%= render('compteur', couverture:) if couverture %>
               <div class="fr-text--sm">
                 <% if couverture == [1, 1] %>
-                  <p class="fr-text--sm fr-mb-2w"><b>« <%= cible.nom %> » est <%= jeu_de_donnees ? 'intégré' : 'intégrée' %> par cette solution</b>, utile pour la démarche « <%= demarche.titre %> »</p>
+                  <p class="fr-text--sm fr-mb-2w"><b>« <%= cible.nom %> » est <%= jeu_de_donnees ? 'intégré' : 'intégrée' %> par cette solution</b>, utile pour la démarche « <%= titre_demarche(demarche) %> »</p>
                 <% elsif couverture %>
-                  <p class="fr-text--sm fr-mb-2w"><b><%= jeu_de_donnees ? 'jeux de données' : 'API' %> « <%= cible.nom %> » <%= jeu_de_donnees ? 'intégrés' : 'intégrées' %> par cette solution</b>, utiles pour la démarche « <%= demarche.titre %> »</p>
+                  <p class="fr-text--sm fr-mb-2w"><b><%= jeu_de_donnees ? 'jeux de données' : 'API' %> « <%= cible.nom %> » <%= jeu_de_donnees ? 'intégrés' : 'intégrées' %> par cette solution</b>, utiles pour la démarche « <%= titre_demarche(demarche) %> »</p>
                 <% end %>
                 <p class="fr-text--sm fr-mb-0">
                   Sur l’ensemble du cas d’usage :

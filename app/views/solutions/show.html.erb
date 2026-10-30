@@ -90,7 +90,7 @@
             <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
               <div class="fr-tile__body">
                 <div class="fr-tile__content">
-                  <h3 class="fr-tile__title"><%= link_to demarche.titre, demarche_path(demarche.slug) %></h3>
+                  <h3 class="fr-tile__title"><%= link_to titre_demarche(demarche), demarche_path(demarche.slug) %></h3>
                   <p class="fr-tile__detail"><%= demarche.description_courte %></p>
                 </div>
               </div>

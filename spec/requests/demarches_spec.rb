@@ -40,7 +40,9 @@ RSpec.describe 'Demarches' do
 
       get demarches_path(q: 'cantine')
 
-      expect(response.body).to include('🥣 Cantine à 1€')
+      lien = response.parsed_body.at_css('.demarche-card h3 a')
+      expect(lien.at_css('[aria-hidden=true]').text).to eq('🥣')
+      expect(lu_a_voix_haute(lien)).to eq('Cantine à 1€')
       expect(response.body).to include('Communes, simplifiez.')
       expect(response.body).not_to include('Deuxième ligne')
       expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
@@ -242,6 +244,30 @@ RSpec.describe 'Demarches' do
       tableau = Capybara.string(response.body).find('[data-controller="endpoints"]')
 
       expect(tableau['data-endpoints-solution-value']).to eq('Bouquet API Particulier')
+    end
+
+    it 'montre l’icône du titre sans la faire lire : titre de la page, h1 et fil d’Ariane' do
+      titre = 'Cas d\'usage - Tarification cantine scolaire à 1€ | Simplifions.data.gouv.fr'
+      expect(response.parsed_body.at_css('title').text).to eq(titre)
+      expect(response.parsed_body.at_css('meta[property="og:title"]')['content']).to eq(titre)
+      [response.parsed_body.at_css('h1'), response.parsed_body.at_css('.fr-breadcrumb [aria-current=page]')].each do |noeud|
+        expect(noeud.at_css('[aria-hidden=true]').text).to eq('🥣')
+        expect(lu_a_voix_haute(noeud)).to eq('Tarification cantine scolaire à 1€')
+      end
+    end
+
+    it 'garde à l’écran l’icône du titre partout dans la page, sans la lire à voix haute' do
+      site = Solution.create!(nom: 'Portail agents', categorie: 'site_de_consultation', visible: true, slug: 'portail-agents')
+      Integration.create!(integratrice: site, integree: Solution.find_by!(nom: 'API Quotient familial'), type_integration: 'consomme',
+        statut: '✅ en production', demarches: [Demarche.find_by!(slug: 'tarification-cantine-scolaire-a-1eur')])
+
+      get demarche_path('tarification-cantine-scolaire-a-1eur')
+
+      icones = %w[🥣]
+      vu = response.parsed_body.text
+      lu = lu_a_voix_haute(response.parsed_body.at_css('body'))
+      expect(icones.select { vu.include?(it) }).to eq(icones)
+      expect(icones.select { lu.include?(it) }).to be_empty
     end
 
     it 'rend l’en-tête et la sidebar' do
