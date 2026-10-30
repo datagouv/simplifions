@@ -26,6 +26,11 @@ module Simplifions
 
     config.x.contact_email = "contact-simplifions@data.gouv.fr"
 
+    config.exceptions_app = lambda do |env|
+      page = env['PATH_INFO'] == '/404' ? ErreursController.action(:introuvable) : ActionDispatch::PublicExceptions.new(Rails.public_path)
+      page.call(env)
+    end
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

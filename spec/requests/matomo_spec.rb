@@ -21,6 +21,14 @@ RSpec.describe 'Matomo' do
     expect(response.body).to include("_paq.push(['setSiteId', '311'])")
   end
 
+  it "n'envoie que le chemin de la page, sans ses paramètres" do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("_paq.push(['setCustomUrl', location.origin + location.pathname])")
+  end
+
   it 'mesure chaque page affichée par Turbo, pas seulement le premier chargement' do
     allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
 
@@ -47,5 +55,14 @@ RSpec.describe 'Matomo' do
     formulaire = response.parsed_body.at_css('form.catalogue')
     expect(formulaire['data-matomo-catalogue']).to eq('Solutions')
     expect(formulaire['data-matomo-resultats']).to eq('0')
+  end
+
+  it 'nomme les pages 404 avec leur chemin et la page d’origine' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("'404/URL = ' + encodeURIComponent(location.pathname)")
+    expect(response.body).to include("'/From = ' + encodeURIComponent(urlPrecedente)")
   end
 end
