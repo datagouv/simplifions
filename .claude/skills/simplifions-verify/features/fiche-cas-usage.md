@@ -32,3 +32,4 @@ Preconditions:
 
 - The panel's H2 is `fr-sr-only`: assert the tab (`[role=tab]`), not the heading.
 - Titles carry an emoji prefix (`💼 Marchés publics | …`); match the whole text.
+- The first fiche is heavy (about 3.4 MB) and takes up to ~6 s to show its title: the drive waits up to 15 s for the H1.
