@@ -75,3 +75,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [clavier-lecteur-ecran.md](clavier-lecteur-ecran.md) — first Tab on « Contenu », catalogue filters applied by a button, changing numbers announced in status regions (solution counter, endpoints, Sirene demo).
 - [demo-sirene.md](demo-sirene.md) — the Sirene demo of the article « Qu'est-ce qu'une API ? »: the waiting icon turns, and stays still when the device asks to reduce animations.
 - [survol-souris.md](survol-souris.md) — the cas d'usage card, the catalogue « Type » choice and the floating « Proposer une modification » button change colour under a mouse only; on a touch screen they keep their colour.
+- [bouton-proposer-modification.md](bouton-proposer-modification.md) — the floating « Proposer une modification » button never hides the element reached with Tab, and is 40 px tall on a phone too.
