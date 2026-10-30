@@ -17,7 +17,9 @@ The `Plan du site` page lists the site's eight entries, each a level-2 heading l
 
 ## Driving it with Capybara
 
-Preconditions: baseline catalogue; one visible démarche whose escaped chapo is longer than 155 characters and keeps an apostrophe once cut. `drive.rb plan-du-site`.
+Drive: `features/plan-du-site.rb` (SKILL.md § Drive).
+
+Preconditions: baseline catalogue; one visible démarche whose escaped chapo is longer than 155 characters and keeps an apostrophe once cut.
 
 - **Open.** Home, footer `Plan du site` → `/sitemap`.
 - **Feuilles.** The links of the list right under `Cas d'usages`, `Solutions`, `Articles` equal `Demarche.visibles.order(:nom)`, `Solution.visibles.fiches.order(:nom)` (names squished: the browser collapses spaces), the article titles sorted.

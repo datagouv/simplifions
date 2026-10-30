@@ -11,16 +11,18 @@ Recommandations follow their démarche: `Enregistrer` on a published one keeps a
 
 ## Driving it with Capybara
 
-`drive.rb brouillon`. The drive creates its own published démarche and solution `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`) and deletes them; it saves nothing on imported rows.
+Drive: `features/admin-brouillon.rb` (SKILL.md § Drive).
+
+The drive creates its own published démarche and solution `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`) and deletes them; it saves nothing on imported rows.
 
 - **Draft.** Type `<nom> brouillon` in `Nom`, `Enregistrer`: the notice, both badges, the draft date; base `nom` unchanged, `visible` true.
 - **Public page unchanged.** `/demarches/<slug>` H1 still the published name.
 - **Reopen and publish.** Row from the list (still under the published name): `Nom` holds the draft; `Publier`: `« … brouillon » enregistré.`, no draft badge, public H1 the new name, base `brouillon` nil.
 - **Abandon.** New draft, `Abandonner le brouillon`, accept the confirm: `Brouillon de « … » abandonné.`, `Nom` back to the published value, base `brouillon` nil.
+- **Image.** Own published solution `Vérif verify-map <browser>`: attach `app/assets/images/articles/api-franceconnectees-donnees-personnelles.png`, `Enregistrer`: draft badge, the form shows the new image, base image not attached; `Publier`: base image `api-franceconnectees-donnees-personnelles.png`, draft nil.
 - **Recommandations.** Two own API solutions `<nom> a` / `<nom> b` (no slug), a published `niveau_2` recommandation on `a` with `Données utiles` `Avant`. Change it to `Après`, `Enregistrer`: draft badge, base unchanged. `/admin/recommandations/new?demarche_id=…`, pick `b`, `Solution recommandée`, `Enregistrer`: notice, `Masquée` + draft badge, base `visible` false, draft `visible: "1"`. Public page: one `.reco-card`, with `Avant`. Démarche fiche: `2 recommandations en brouillon`; `Publier`: two cards, `Après` shown, no draft left in base.
 - **Données utiles.** Own bouquet `<nom> bouquet` (a public organisation from the base) exposing an API `<nom> c`, recommended on the démarche, and a published donnée utile on `c` described `Utile avant`. Its row in the `Recommandations` tab: `Publiée`. `Modifier la recommandation <nom> c (API)`: no `Publier` nor `Masquer` in the column; `En quoi cette API ou ce jeu de données est utile` = `Utile après`, `Enregistrer`: notice, base description unchanged; public `Endpoints utiles` row still `Utile avant`. Démarche fiche: `1 recommandation en brouillon`; `Publier`: public row `Utile après`, the line `Publiée` without `Brouillon`.
 - **Type chosen.** Own API `<nom> d`, a hidden `niveau_2` recommandation on it. On `/admin/recommandations/new?demarche_id=…` then on its `Modifier` page: select `Donnée utile (API ou jeu de données)` → no `Publier` nor `Masquer` in the column; select `Solution recommandée` → `Publier` is back. Nothing is saved.
-- **Image.** Own published solution `Vérif verify-map <browser>`: attach `app/assets/images/articles/api-franceconnectees-donnees-personnelles.png`, `Enregistrer`: draft badge, the form shows the new image, base image not attached; `Publier`: base image `api-franceconnectees-donnees-personnelles.png`, draft nil.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-brouillon/`.
 
 ## Gotchas

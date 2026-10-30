@@ -1,6 +1,6 @@
 # Chercher et lire les listes de l'admin
 
-Each admin list has a DSFR search bar, 50 rows per page with the site's pagination (organisations: every row on one page, so Ctrl+F finds one), and the row's name as the link to its edit page (no `Modifier` button); fournisseurs de services and vocabulaires link to their read page instead. Démarches, solutions and recommandations also show `Visible` (badge `Oui` / `Non`) and `Modifié le` (Paris date); solutions show `Intégrée par`, the integrating solutions linked to their own edit page; a bouquet's also names every solution with an « Intégrée » intégration of one of its APIs, any statut, published or not, never its « Fournie » rows (`drive.rb integrations-de-ses-api`, [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md)).
+Each admin list has a DSFR search bar, 50 rows per page with the site's pagination (organisations: every row on one page, so Ctrl+F finds one), and the row's name as the link to its edit page (no `Modifier` button); fournisseurs de services and vocabulaires link to their read page instead. Démarches, solutions and recommandations also show `Visible` (badge `Oui` / `Non`) and `Modifié le` (Paris date); solutions show `Intégrée par`, the integrating solutions linked to their own edit page; a bouquet's also names every solution with an « Intégrée » intégration of one of its APIs, any statut, published or not, never its « Fournie » rows ([admin-integrations-en-ligne.md](admin-integrations-en-ligne.md), its bouquet checks).
 
 ## Sub-features
 
@@ -15,23 +15,22 @@ Each admin list has a DSFR search bar, 50 rows per page with the site's paginati
 
 ## Driving it with Capybara
 
-`drive.rb listes`, read-only. Preconditions: logged in, catalogue imported (230 solutions on 2026-10-05).
+Drive: `features/admin-listes.rb` (SKILL.md § Drive).
+
+Read-only. Preconditions: logged in, catalogue imported (230 solutions on 2026-10-05).
 
 - **Columns and page 1.** `click_link "Solutions"`: headers as above, 50 rows.
 - **Page 2.** `click_link "Page 2"`: first row is the 51st solution by id.
-- **Search.** `rechercher(page, <nom of an integrated solution>)`: rows equal `Solution.recherche(q)` names.
+- **Search.** `Verify.rechercher(page, <nom of an integrated solution>)`: rows equal `Solution.recherche(q)` names.
 - **Integrator link.** In that row, click an `Intégrée par` name: lands on `/admin/solutions/<integratrice id>/edit`.
 - **Joined search.** Recommandations, search `<first word of the démarche> <last word of the solution>`: the recommandation's link is listed.
-- **Proof.** `tmp/verify/admin-listes/`.
-
-`drive.rb listes-lisibles`, read-only, same preconditions.
-
 - **Dashboard.** `/admin`: links under `Référentiels` are `Fournisseurs de services`, `Vocabulaires`.
 - **Organisations.** `click_link "Organisations"`: no `.fr-pagination`, rows = `Organisation.count`; the first organisation with a `nom_long` shows both names in its row.
 - **Intégrations.** `click_link "Intégrations"`: headers `Id`, `Solution`, `API ou jeu de données`, `Type d’intégration`, `Statut de l’intégration`; first row equals the first integration by id read from the database.
 - **Démarches.** Search the first démarche with an `icone`: its name cell reads `<icone> <nom>`, the icon in an `aria-hidden` span.
+- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-listes/`.
 
 ## Gotchas
 
-- After `click_button "Rechercher"`, wait for `q=` in the URL before reading or clicking rows (`rechercher` in drive.rb): the old list is still on screen while Turbo fetches the new one, and a click on it is overridden by the search response.
-- Drives open a row with `ouvrir_depuis_la_liste` (search then click the name), since a row created by a drive may sit past page 1.
+- After `click_button "Rechercher"`, wait for `q=` in the URL before reading or clicking rows (`Verify.rechercher` in harness.rb): the old list is still on screen while Turbo fetches the new one, and a click on it is overridden by the search response.
+- Drives open a row with `Verify.ouvrir_depuis_la_liste` (search then click the name), since a row created by a drive may sit past page 1.

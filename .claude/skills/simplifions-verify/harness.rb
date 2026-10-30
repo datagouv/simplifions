@@ -30,6 +30,8 @@ module Verify
   Capybara.register_driver(:verify_chrome_sans_js) { chrome(it, javascript: false) }
   Capybara.register_driver(:verify_firefox_sans_js) { firefox(it, javascript: false) }
 
+  class Halt < StandardError; end
+
   def self.browser = ENV.fetch('VERIFY_BROWSER', 'chrome')
 
   def self.session(javascript: true)
@@ -38,7 +40,37 @@ module Verify
     Capybara.server_port = PORT
     Capybara.app_host = "http://#{CONTAINER_IP}:#{PORT}"
     Capybara.default_max_wait_time = 5
-    Capybara::Session.new(:"verify_#{browser}#{'_sans_js' unless javascript}", Rails.application)
+    Capybara::Session.new(:"verify_#{browser}#{'_sans_js' unless javascript}", Rails.application).tap { (@sessions ||= []) << it }
+  end
+
+  def self.drive(file)
+    @feature = File.basename(file, '.rb')
+    @sessions = []
+    ensure_admin
+    yield @page = session
+  rescue Halt
+    nil
+  rescue StandardError => e
+    report_failure('outside a check', e)
+  ensure
+    @sessions.each(&:quit)
+    puts "evidence tmp/verify/#{@feature}/"
+  end
+
+  def self.check(label)
+    yield.tap { puts "PASS #{label}" }
+  rescue Halt
+    raise
+  rescue StandardError => e
+    report_failure(label, e)
+    raise Halt
+  end
+
+  def self.report_failure(label, error)
+    puts "FAIL #{label}: #{error.class} #{error.message.squish.truncate(400)}"
+    evidence(@feature, @page, 'echec') if @page
+  rescue StandardError
+    nil
   end
 
   def self.ensure_admin
@@ -70,4 +102,58 @@ module Verify
 
     dir.join('read-back.txt').open('a') { |f| f.puts "#{Time.now.utc.iso8601} #{browser} #{name}: #{read_back}" }
   end
+
+  module Etapes
+    def rubrique(page, nom)
+      lien = page.find("nav[aria-label='Menu de l’administration']").find_link(nom)
+      chemin = URI(lien[:href]).path
+      lien.click
+      page.assert_current_path(chemin)
+    end
+
+    def rechercher(page, texte)
+      page.fill_in 'Rechercher', with: texte
+      page.click_button 'Rechercher'
+      page.assert_current_path(/[?&]q=/, url: true)
+    end
+
+    def ouvrir_depuis_la_liste(page, nom)
+      rechercher(page, nom)
+      page.within('tbody') { page.click_link nom, exact_text: true }
+    end
+
+    def ouvrir_fiche(page, nom)
+      rubrique(page, 'Démarches')
+      ouvrir_depuis_la_liste(page, nom)
+      page.find_field('Nom', with: nom)
+    end
+
+    def onglet(page, libelle)
+      page.find('[role=tab]', text: /\A#{libelle}/).click
+      page.assert_selector '[role=tab][aria-selected=true]', text: /\A#{libelle}/
+    end
+
+    def demande_avant_de_partir(page, question, &)
+      message = page.dismiss_confirm(&)
+      raise "confirmation #{message.inspect}" unless message == question
+    end
+
+    def titre_public(page, slug)
+      page.visit("/demarches/#{slug}")
+      page.find('h1').text.tap { page.visit('/admin') }
+    end
+
+    def captures_presentes(dossier, etapes)
+      manquantes = etapes.reject { Verify::ROOT.join(dossier, "#{Verify.browser}-#{it}.png").exist? }
+      raise "captures manquantes #{manquantes}" if manquantes.any?
+    end
+
+    def cases_affichees(groupe) = groupe.all('[data-liste-filtrable-target=element]:not(.fr-hidden) input', visible: :all)
+    def liens_d_aide(zone) = zone.all('a:has(.fr-icon-question-line)').map { |lien| lien.text(:all).strip }
+    def lien_nomme(zone, nom) = zone.all('a').find { |lien| (lien['aria-label'] || lien.text(:all).strip) == nom } || raise("aucun lien nommé #{nom}")
+    def enregistrer_desactive?(page) = page.find('button[data-enregistrer]', visible: :all).disabled?
+    def focus_sur(page) = page.evaluate_script('document.activeElement.id')
+  end
+
+  extend Etapes
 end

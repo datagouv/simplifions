@@ -15,7 +15,9 @@ When an admin saves an API or a jeu de données with a new data.gouv identifier 
 
 ## Driving it with Capybara
 
-`drive.rb identifiant-datagouv`. Preconditions: logged in, catalogue imported (an API with identifier `672cf6aece89cb14e31f0fba`, none with `6661e09c7230a8fc3b1ec229`), network to www.data.gouv.fr (public API, live call).
+Drive: `features/admin-identifiant-datagouv.rb` (SKILL.md § Drive).
+
+Preconditions: logged in, catalogue imported (an API with identifier `672cf6aece89cb14e31f0fba`, none with `6661e09c7230a8fc3b1ec229`), network to www.data.gouv.fr (public API, live call).
 
 - **Creation.** New API `Vérif verify-map <browser>` with `6661e09c7230a8fc3b1ec229` (API Melodi) → `« … (API) » enregistré.`, block `Titre : <datagouv_titre>` equal to the database, no `Rien n’a été repris`.
 - **Inconnu.** Same fiche, identifier `verif-identifiant-inconnu` → `Enregistrer` → block shows `Rien n’a été repris de data.gouv.fr pour cet identifiant`; database `datagouv_titre` nil.

@@ -9,6 +9,8 @@ On a cas d'usage page, Contexte and Cadre juridique taller than 8 lines are fold
 
 ## Driving it with Capybara
 
+Drive: `features/lire-plus.rb` (SKILL.md § Drive).
+
 Preconditions: the visible démarche with the longest `contexte` (folded), the one with the shortest non-blank `cadre_juridique` (whole).
 
 - **Folded.** `#contexte-texte` has `lire-plus--replie`, `scrollHeight > clientHeight` (192 px = 8 × 24), computed `mask-image` not `none` (the fade), button `Lire plus : Contexte` (the section name is `fr-sr-only`), `fr-link` with `fr-icon-arrow-down-s-line`, `aria-expanded=false`, `aria-controls=contexte-texte`.

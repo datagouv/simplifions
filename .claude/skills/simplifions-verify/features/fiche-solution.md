@@ -8,6 +8,8 @@ A solution page shows the operator badge (« Solution publique / privée | opér
 
 ## Driving it with Capybara
 
+Drive: `features/fiche-solution.rb` (SKILL.md § Drive).
+
 Preconditions: a visible solution with integratrices in two categories or more (`bouquet-api-entreprise` in the Grist import).
 
 - **Open.** Visit the solution with the most tabs (`Solution#integratrices_par_categorie`); the operator badge reads `Solution publique |` or `Solution privée |`.

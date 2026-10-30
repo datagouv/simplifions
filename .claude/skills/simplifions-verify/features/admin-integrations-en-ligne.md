@@ -8,7 +8,11 @@ A solution's `Intégrations (<n>)` tab holds two editable tables, `Ce qu’elle 
 
 ## Driving it with Capybara
 
-`drive.rb integrations-en-ligne`, mutating then undone. Solution: the visible non-API one with the most integrations it makes; row: its first one in `Ce qu’elle intègre`; added: the first API it does not integrate yet, and the first non-API solution that does not integrate it yet.
+Drive: `features/admin-integrations-en-ligne.rb` (SKILL.md § Drive).
+
+Preconditions: logged in; the row part mutates then undoes, the bouquet part is read-only.
+
+Rows. Solution: the visible non-API one with the most integrations it makes; row: its first one in `Ce qu’elle intègre`; added: the first API it does not integrate yet, and the first non-API solution that does not integrate it yet.
 
 - **Row.** Change `Statut de l’intégration <libellé>`, fiche `Enregistrer` stays greyed; `Enregistrer l’intégration <libellé>` → `enregistré`, statut in base, still on the solution.
 - **Error.** Blank `Ce qu’elle intègre` row with the solution itself → `elle-même` on the row, button described by it, nothing created.
@@ -17,12 +21,12 @@ A solution's `Intégrations (<n>)` tab holds two editable tables, `Ce qu’elle 
 - **Undo.** Each added row's trash: dismiss (row and base kept), accept (row gone, `supprimé`, focus on `#message-integrations`); statut put back through the row.
 - **Proof.** `tmp/verify/admin-integrations-en-ligne/`, including `etroit-375`.
 
-`drive.rb integrations-de-ses-api`, read-only. Bouquet: the solution with the most intégrations of its APIs (Bouquet API Entreprise, 202 on 2026-10-28).
+Bouquet, read-only: the solution with the most intégrations of its APIs (Bouquet API Entreprise, 202 on 2026-10-28).
 
-- **Liste.** `Solutions`, search its name: the `Intégrée par` cell of its row lists `integree_par` (26 on 2026-10-28).
-- **Onglet.** Its fiche, `Intégrations`: tab `Intégrations (<own rows + lines via its APIs>)`, as many `— via` lines as `integrations_de_ses_api`.
-- **Lien.** The first line's `Voir la fiche`: opens the edit page of one of its APIs.
-- **Proof.** `tmp/verify/admin-integrations-en-ligne/`, steps `bouquet-integree-par`, `bouquet-lignes-via` and `bouquet-fiche-via`.
+- **Bouquet list.** `Solutions`, search its name: the `Intégrée par` cell of its row lists `integree_par` (26 on 2026-10-28).
+- **Bouquet tab.** Its fiche, `Intégrations`: tab `Intégrations (<own rows + lines via its APIs>)`, as many `— via` lines as `integrations_de_ses_api`.
+- **Bouquet link.** The first line's `Voir la fiche`: opens the edit page of one of its APIs.
+- **Bouquet proof.** `tmp/verify/admin-integrations-en-ligne/`, steps `bouquet-integree-par`, `bouquet-lignes-via` and `bouquet-fiche-via`.
 
 ## Gotchas
 

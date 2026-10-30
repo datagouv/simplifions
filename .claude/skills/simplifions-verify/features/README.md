@@ -1,6 +1,6 @@
 # Features
 
-Index for `simplifions-verify`. One file per user-facing feature; each holds the entry points, the exact drive and what proves it.
+Index for `simplifions-verify`. One file per user-facing feature; each holds the entry points and what proves it, and its drive `<feature>.rb` sits beside it (the three throwaway-database features are driven by the commands their file spells out).
 
 ## Baseline preconditions
 
@@ -11,12 +11,13 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 
 ## Driving conventions
 
-- Capybara through `harness.rb`, `Verify.session`, one session per browser, run twice (`VERIFY_BROWSER=chrome`, then `firefox`).
+- Capybara through `harness.rb`: `Verify.drive` opens the session, one `Verify.check` per labelled bullet; run twice (`VERIFY_BROWSER=chrome`, then `firefox`).
 - Accessible names and route paths only; `[role=status]` for the result count, `aria-expanded` for accordions.
 - Selects auto-submit; wait on the URL (`assert_current_path(/q=…/, url: false)`) before reading a count.
 
 ## Proof rules
 
+- A drive's result lines are the proof: `PASS <check>` or `FAIL <check>: <what it saw>`, then the evidence path.
 - Evidence = screenshot + `read-back.txt` line with the page state and the database state, in `tmp/verify/<feature>/`.
 - A count on the page is compared with the same query in Active Record.
 - A mutation is read back after creation and after deletion.

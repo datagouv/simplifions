@@ -17,6 +17,8 @@ An admin signs in from the header, lands on the administration dashboard, and si
 
 ## Driving it with Capybara
 
+Drive: `features/connexion-admin.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Launch done and doctor green (SKILL.md § Launch, § Doctor).

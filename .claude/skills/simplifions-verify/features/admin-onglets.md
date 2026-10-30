@@ -8,9 +8,11 @@ The edit page of a démarche reads in four DSFR tabs, `Fiche` · `Intégrations 
 
 ## Driving it with Capybara
 
-`drive.rb onglets`, mutation on a throwaway démarche only (`Vérif verify-map <browser>`, deleted at the end).
+Drive: `features/admin-onglets.rb` (SKILL.md § Drive).
 
-- **Démarche 1.** Four tabs; page height read per tab; arrow right from `Fiche` selects `Intégrations` and the hidden `onglet` field follows.
+Mutation on a throwaway démarche only (`Vérif verify-map <browser>`, deleted at the end).
+
+- **Démarche 1.** Four tabs `Fiche`, `Intégrations`, `Recommandations`, `Historique`; page height read per tab; arrow right from `Fiche` selects `Intégrations` and the hidden `onglet` field follows.
 - **Save from Intégrations.** Throwaway démarche recommending the most integrated API: rename it in `Fiche`, check one intégration in `Intégrations`, `Enregistrer` → URL `?onglet=integrations`, `Intégrations (1)` selected, database has the new name and the intégration.
 - **Error opens Fiche.** Empty `Nom` in `Fiche`, switch to `Historique`, `Enregistrer` → error summary, `Fiche` selected, `Nom` visible.
 - **375 px.** `?onglet=recommandations` opens that tab, no horizontal scroll.

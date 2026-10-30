@@ -8,10 +8,12 @@ The démarches of an intégration are those that recommend its API or jeu de don
 
 ## Driving it with Capybara
 
-`drive.rb integrations-de-l-api`, no lasting mutation (the forged save is refused).
+Drive: `features/admin-integrations-de-l-api.rb` (SKILL.md § Drive).
+
+Preconditions: logged in, catalogue imported. The drive makes its own out-of-rule link: a throwaway démarche `Vérif verify-map <browser>` recommends the API of the first intégration, is linked to it, then loses the recommandation; the démarche and its link are deleted at the end. The forged save is refused, so nothing else changes.
 
 - **Démarche 1.** Checkboxes in `Intégrations` = `integrations_proposees.count`, fewer than all intégrations (474 before); `(hors règle)` labels = checked links outside the rule.
-- **Intégration.** First intégration with an out-of-rule démarche: checkboxes = `demarches_proposees.count`, at least one `(hors règle)`.
+- **Intégration.** The first intégration, now linked to the throwaway démarche out of the rule: checkboxes = `demarches_proposees.count`, at least one `(hors règle)`.
 - **Refus serveur.** A hidden `integration[demarche_ids][]` for a démarche outside the list is injected, `Enregistrer`: error alert naming it, join table unchanged.
 - **Nouvelle intégration.** `/admin/integrations/new`: no démarche checkbox, the hint `Démarches : à cocher une fois l’API ou le jeu de données enregistré…`.
 - **Proof.** `tmp/verify/admin-integrations-de-l-api/`.

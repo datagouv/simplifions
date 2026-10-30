@@ -9,7 +9,9 @@ Every create, update and delete on the seven admin tables is kept by paper_trail
 
 ## Driving it with Capybara
 
-`drive.rb historique`. The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it from the form, reads the column and the history page, publishes it to read the draft lines in the `Historique` tab, then deletes the démarche and its versions.
+Drive: `features/admin-historique.rb` (SKILL.md § Drive).
+
+The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it from the form, reads the column and the history page, publishes it to read the draft lines in the `Historique` tab, then deletes the démarche and its versions.
 
 - **Created.** Column: `Créée par Import Grist le …`.
 - **Updated.** Rename, `Enregistrer`: column `Modifiée par verif@simplifions.local le …`; base versions `['Import Grist', <admin id>]`.
@@ -18,7 +20,7 @@ Every create, update and delete on the seven admin tables is kept by paper_trail
 - **Back.** `Retour à la fiche` → the edit page.
 - **Draft.** The drive publishes the démarche, renames it, `Enregistrer`: tab `Historique`, first `h2` `Modification en brouillon par verif@simplifions.local le …`, first row `Nom | <published> | <draft>`.
 - **Publication.** `Publier`: first `h2` `Publication du brouillon par …`, same row.
-- **Abandon.** Rename back, `Enregistrer`, `Abandonner le brouillon` (confirm): first `h2` `Abandon du brouillon par …`, row `Nom | <draft> | <published>`; base events end with `brouillon, publication, brouillon, abandon`.
+- **Abandon.** Rename back, `Enregistrer`, `Abandonner le brouillon` (confirm): first `h2` `Abandon du brouillon par …`, same row; base events end with `brouillon, publication, brouillon, abandon`.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-historique/`.
 
 ## Gotchas

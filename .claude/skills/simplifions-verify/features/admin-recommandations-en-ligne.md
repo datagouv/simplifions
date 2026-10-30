@@ -8,7 +8,9 @@ In a démarche's `Recommandations (<n>)` tab, each recommandation is a table row
 
 ## Driving it with Capybara
 
-`drive.rb recommandations-en-ligne`, mutating then undone. Démarche: the visible one with a slug and the most recommandations; row: its first visible recommandation; solution: the first public API it does not recommend yet.
+Drive: `features/admin-recommandations-en-ligne.rb` (SKILL.md § Drive).
+
+Preconditions: logged in; the drive mutates then undoes. Démarche: the visible one with a slug and the most recommandations; row: its first visible recommandation; solution: the first public API it does not recommend yet.
 
 - **Row.** `Ordre de la recommandation <solution>` = 77 → fiche `Enregistrer` stays greyed; `Enregistrer la recommandation <solution>` → `brouillon enregistré`, badge `Brouillon`, focus stays on the button, ordre unchanged in base, 77 in the draft.
 - **Fiche kept.** Change `Description courte`, save a row → no confirmation, fiche `Enregistrer` still active.

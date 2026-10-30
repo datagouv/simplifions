@@ -10,6 +10,8 @@ Deleting a démarche from the administration removes its recommandations with it
 
 ## Driving it with Capybara
 
+Drive: `features/admin-supprimer-demarche.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Logged in (`Verify.login`).

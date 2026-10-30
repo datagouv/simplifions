@@ -9,6 +9,8 @@ An admin form that was changed and not saved asks `Quitter sans enregistrer les 
 
 ## Driving it with Capybara
 
+Drive: `features/admin-formulaire-modifie.rb` (SKILL.md § Drive).
+
 Preconditions: logged in (`Verify.login`); the drive creates its own démarche `Vérif verify-map <browser>` and deletes it.
 
 - **Unchanged.** Reach the fiche through Turbo links (Administration → Démarches → search → row name), `click_link "Annuler"`: no dialog, H1 `Démarches`.

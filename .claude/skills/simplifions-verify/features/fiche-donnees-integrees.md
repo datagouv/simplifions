@@ -9,6 +9,8 @@ On a cas d'usage page, each integrating solution card in « Données disponibles
 
 ## Driving it with Capybara
 
+Drive: `features/fiche-donnees-integrees.rb` (SKILL.md § Drive).
+
 Preconditions: a visible démarche with useful data (`Demarche#donnees_utiles` not empty) and an integrating solution under one of its recommendations.
 
 - **Open.** In `#donnees-disponibles`, unfold the accordion holding the first eye button (`aria-controls` of the `.fr-collapse` around it), click the eye. `dialog#<aria-controls>[open]` appears.

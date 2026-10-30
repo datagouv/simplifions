@@ -9,7 +9,9 @@ A refused admin form shows a titled summary (`2 erreurs à corriger`) at its top
 
 ## Driving it with Capybara
 
-`drive.rb erreurs`. Saves nothing (every submit is refused). Preconditions: logged in.
+Drive: `features/admin-erreurs-formulaire.rb` (SKILL.md § Drive).
+
+Saves nothing (every submit is refused). Preconditions: logged in.
 
 - **Required.** `find_field 'Nom (obligatoire)'` has `required`.
 - **Summary.** After `Publier`: `.fr-alert--error` titled `2 erreurs à corriger` is `document.activeElement`; links `#demarche_nom`, `#demarche_slug`.

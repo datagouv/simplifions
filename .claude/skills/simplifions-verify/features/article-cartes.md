@@ -9,6 +9,8 @@ An article cites solutions and cas d'usages as cards, in its spotlights and in t
 
 ## Driving it with Capybara
 
+Drive: `features/article-cartes.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - App answers on `http://localhost:3101/up`.
@@ -21,4 +23,4 @@ Preconditions:
 ## Gotchas
 
 - A spotlight whose every card is skipped disappears with its comment.
-- `drive.rb article-cartes` restores visibility even on failure; a crash before `ensure` leaves `data-subvention` hidden: `Solution.find_by(slug: 'data-subvention').update_columns(visible: true)`.
+- The drive restores visibility even on failure; a crash before `ensure` leaves `data-subvention` hidden: `Solution.find_by(slug: 'data-subvention').update_columns(visible: true)`.

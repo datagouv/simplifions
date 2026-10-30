@@ -9,6 +9,8 @@ A cas d'usage page has two tabs: « Données disponibles et utiles (N) » and «
 
 ## Driving it with Capybara
 
+Drive: `features/onglet-solutions-integratrices.rb` (SKILL.md § Drive).
+
 Preconditions: a visible démarche with `Demarche#integratrices_par_categorie` not empty.
 
 - **Open.** Click `[role=tab][aria-controls=solutions-integratrices]`; `#solutions-integratrices.fr-tabs__panel--selected` appears, `#donnees-disponibles` goes hidden.

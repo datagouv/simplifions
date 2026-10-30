@@ -18,7 +18,9 @@ On a cas d'usage page, a blue banner under the breadcrumb offers three tags: « 
 
 ## Driving it with Capybara
 
-Preconditions: a visible démarche with at least two categories in `Demarche#integratrices_par_categorie` (the first by id). `drive.rb affichage-personnalise`.
+Drive: `features/affichage-personnalise.rb` (SKILL.md § Drive).
+
+Preconditions: a visible démarche with at least two categories in `Demarche#integratrices_par_categorie` (the first by id).
 
 - **Arrival.** Three `button.fr-tag`, role `button`, `aria-pressed=false`; no `Affichage personnalisé` button; tab 1 no `[data-filtre] > .fr-collapse--expanded`, tab 2 every category content (`[data-section-depliable-target=contenu]`, the custom disclosure, not a DSFR collapse) not `hidden`.
 - **Keyboard.** Each tag is pressed with `send_keys(:space)` on the button; `aria-pressed` flips, focus stays on it.

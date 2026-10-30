@@ -15,11 +15,13 @@ A list of 10 linked rows or fewer in an admin form shows every box on load, chec
 
 ## Driving it with Capybara
 
-`drive.rb liste-filtrable`. Creates `Vérif verify-map <browser>` linked to the first two intégrations, removed at the end; no catalogue row is touched.
+Drive: `features/admin-liste-filtrable.rb` (SKILL.md § Drive).
+
+Preconditions: logged in. The drive creates `Vérif verify-map <browser>`, recommending the API with the most intégrations and linked to the first two of them, removed at the end; no catalogue row is touched.
 
 - **Short list.** The first intégration with 1 to 10 proposed démarches: under `Démarches`, every box shown, no `Filtrer les démarches` field.
 - **Groups.** Legends inside `Vocabulaires` are the three categories in order; one `?` per vocabulaire.
-- **Checked only.** Under `Intégrations`, 2 boxes shown, both checked; live line `2 cochés sur <Integration.count>`.
+- **Checked only.** Under `Intégrations`, 2 boxes shown, both checked; live line `2 cochés sur <that API's intégrations>`.
 - **Tab passes through.** Open tab `Intégrations`, focus its panel, Tab: focus lands in `Filtrer les intégrations`, still 2 boxes; 6 more Tab (cross, 2 boxes, 2 `Voir la fiche`) leave the list.
 - **Click shows all, framed.** Click the field: every box shown, live line unchanged, `resultats` background no longer transparent.
 - **Cross.** Type, click `Effacer le filtre des intégrations`: field empty, 2 boxes, no frame, focus back in the field.
