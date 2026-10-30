@@ -69,3 +69,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [depot-direct-ferme.md](depot-direct-ferme.md) — nobody, visitor or admin, can create a file through Active Storage's direct upload address; admin images go through the solution form.
 - [title-seo.md](title-seo.md) — a démarche or solution's « Title SEO » typed in the admin becomes its whole tab title and og:title, without the site name; the H1 stays; empty gives the usual title; no field on an API.
 - [plan-du-site.md](plan-du-site.md) — the footer's Plan du site lists every visible cas d'usage, solution and article under its entry, alphabetical; a truncated fiche description keeps its apostrophes in meta and og tags.
+- [pied-de-page.md](pied-de-page.md) — on every page and in the admin, the footer's five blocks of links open the filtered catalogue, the guides and the comparisons; the presentation links to the home section on what the site brings.
