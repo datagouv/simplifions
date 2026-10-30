@@ -74,3 +74,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [pied-de-page.md](pied-de-page.md) — on every page and in the admin, the footer's five blocks of links open the filtered catalogue, the guides and the comparisons; the presentation links to the home section on what the site brings.
 - [clavier-lecteur-ecran.md](clavier-lecteur-ecran.md) — first Tab on « Contenu », catalogue filters applied by a button, changing numbers announced in status regions (solution counter, endpoints, Sirene demo).
 - [demo-sirene.md](demo-sirene.md) — the Sirene demo of the article « Qu'est-ce qu'une API ? »: the waiting icon turns, and stays still when the device asks to reduce animations.
+- [survol-souris.md](survol-souris.md) — the cas d'usage card, the catalogue « Type » choice and the floating « Proposer une modification » button change colour under a mouse only; on a touch screen they keep their colour.
