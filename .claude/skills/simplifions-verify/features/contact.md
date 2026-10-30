@@ -10,18 +10,20 @@
 
 ## Driving it with Capybara
 
+Drive: `features/contact.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Launch done and doctor green (SKILL.md § Launch, § Doctor).
 - At least two visible démarches.
 
-- **From a fiche.** Visit the first visible démarche by `nom`; the link `proposer une modification du contenu de ce cas d'usage` has `target=_blank`: visit its `href`. Path `/contact/modifier-cas-usage?demarche=<slug>`.
+- **From a fiche.** Visit the first visible démarche by `nom`; the link `proposer vos modifications de cette démarche` (block `✒️ Proposer une modification du contenu` above the footer) has `target=_blank`: visit its `href`. Path `/contact/modifier-cas-usage?demarche=<slug>`.
 - **Fiche cited.** The select `Démarche concernée` shows the démarche's `titre` (emoji prefix included); the text of `#objet-message` ends with ` : <titre>`; the decoded `href` of the link `Ouvrir un e-mail déjà pré-rempli` holds `Fiche concernée : <titre>`.
 - **Copy.** Buttons `Copier l'e-mail`, `Copier l'objet`, `Copier le modèle`. Chrome needs `page.driver.browser.add_permission('clipboard-write', 'granted')`. Click `Copier l'objet`; the sr-only `[data-copier-target=statut]` reads `Objet du mail copié` (`visible: :all`).
 - **Another démarche, no reload.** Set a `window` marker, `select <titre>, from: "Démarche concernée"`: the form submits on change into a Turbo frame, the URL becomes `?demarche=<slug>`, the subject follows, the marker is still there.
 - **Chosen without a fiche.** `Retour` → `/contact/contenu` (group heading h3 `Démarches`), click `Proposer une modification d'une démarche existante`: subject without ` : `; select a démarche → URL and subject follow. `Retour` → `/contact/contenu`.
 - **No-contact answer.** `Retour` → `/contact`, click `J'ai une question sur ma propre démarche administrative`: the answer shows, no `mailto:` link in it.
-- **Proof.** `drive.rb contact`, screenshots `fiche-citee`, `demarche-changee`, `demarche-choisie` and `reponse-sans-adresse`.
+- **Proof.** Screenshots `fiche-citee`, `demarche-changee`, `demarche-choisie` and `reponse-sans-adresse`.
 
 ## Gotchas
 

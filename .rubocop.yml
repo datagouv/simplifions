@@ -69,6 +69,10 @@ Metrics/ClassLength:
 Metrics/MethodLength:
   Max: 15
 
+Naming/FileName:
+  Exclude:
+    - ".claude/skills/simplifions-verify/features/*.rb"
+
 Naming/MethodParameterName:
   AllowedNames:
     - "_"
@@ -175,3 +179,4 @@ Rails/HasAndBelongsToMany:
 Rails/SkipsModelValidations:
   Exclude:
     - "app/models/concerns/brouillonnable.rb"
+    - ".claude/skills/simplifions-verify/features/article-cartes.rb"

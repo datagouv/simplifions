@@ -11,12 +11,14 @@ Les blocs markdown du Grist portent parfois du HTML (encadrés DSFR, `<details>`
 
 ## Driving it with Capybara
 
+Drive: `features/contenu-html-grist.rb` (SKILL.md § Drive).
+
 Preconditions: launch done (SKILL.md § Launch); catalogue Grist importé dans `simplifions_development`. Lecture seule.
 
 - **Encadré.** Visit `/demarches/actes-detat-civil`, `find(".fr-callout", text: "Utilisez Comedec")`.
 - **Séparateur.** Visit `/solutions/passe-marche`, `find("hr:not([class])")` (les `hr` du gabarit portent `fr-hr`).
 - **Aucun HTML jeté.** Chaque page démarche/solution dont `contexte`, `cadre_juridique`, `donnees_utiles`, `parametres_a_saisir`, `description` (API utiles), `permet` ou `ne_permet_pas` contient `<` : `page.html` sans `raw HTML omitted`.
-- **Proof.** `drive.rb contenu-html` : captures + read-back du nombre de pages contrôlées et omises.
+- **Proof.** Captures + read-back du nombre de pages contrôlées et omises.
 
 ## Gotchas
 

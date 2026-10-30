@@ -9,6 +9,8 @@ In the cas d'usage tab « Solutions ayant intégré ces données », a « Cartes
 
 ## Driving it with Capybara
 
+Drive: `features/tableau-solutions-integratrices.rb` (SKILL.md § Drive).
+
 Preconditions: a visible démarche with `Demarche#integratrices_par_categorie` not empty.
 
 - **Arrival.** `Cartes` checked, `Trier par :` on `integrees`, no table visible, no « Les solutions sont classées » sentence.

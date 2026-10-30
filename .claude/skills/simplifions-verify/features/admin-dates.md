@@ -9,7 +9,9 @@ The administration dates a démarche, a solution or a recommandation by itself: 
 
 ## Driving it with Capybara
 
-`drive.rb dates`. Preconditions: logged in. The drive creates its own démarche `Vérif verify-map <browser>` (not visible) and deletes it.
+Drive: `features/admin-dates.rb` (SKILL.md § Drive).
+
+Preconditions: logged in. The drive creates its own démarche `Vérif verify-map <browser>` (not visible) and deletes it.
 
 - **Create.** `/admin/demarches/new`: no input named `demarche[cree_le]` or `demarche[modifie_le]`. Fill `Nom`, save: `« <nom> » enregistré.` and the page stays on the démarche's edit form, read back `cree_le` within the last minute and `modifie_le` set.
 - **Edit.** Rename to `<nom> modifiée`, save: `modifie_le` later than the creation, `cree_le` unchanged.

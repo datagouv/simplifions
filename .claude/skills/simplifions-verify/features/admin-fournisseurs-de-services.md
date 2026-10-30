@@ -11,13 +11,15 @@ The admin table `types_acteurs` is named « Fournisseurs de services » (Grist's
 
 ## Driving it with Capybara
 
-`drive.rb fournisseurs`, logged in, no row named `Vérif verify-map <browser>`:
+Drive: `features/admin-fournisseurs-de-services.rb` (SKILL.md § Drive).
+
+Preconditions: logged in, no row named `Vérif verify-map <browser>`.
 
 - **Read a real row.** First fournisseur with slugs, opened from the list: read page URL, `Regroupements` = `regroupements` in base.
 - **Edit form.** `Modifier`: checked boxes = its slugs; both memo hints.
 - **Create.** `/admin/types_acteurs/new`, name, tick `Régions` and `Tous les acteurs publics`, save: lands on the read page, slugs read back.
 - **Untick.** `Modifier`, untick `Régions`, save: base slugs `tout-acteurs-publics`, list column says `Tous les acteurs publics`.
-- **Delete** from the edit page, `reste_en_base=0`.
+- **Delete.** From the edit page: `« <nom> » supprimé.`, `reste_en_base=0`.
 
 ## Gotchas
 

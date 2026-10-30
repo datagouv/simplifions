@@ -4,11 +4,13 @@ Wherever the admin offers or lists a solution (checkbox lists, select menus, int
 
 ## How to get to it (user POV)
 
-- `/admin/recommandations/new` (Solution), `/admin/integrations/new` (both selects), fournisseurs de services, organisations and vocabulaires forms (`Solutions` list), `/admin/integrations` and `/admin/recommandations` (row names), `/admin/solutions` (`Nom`, `Intégrée par`; `drive.rb listes` reads them). Admin only.
+- `/admin/recommandations/new` (Solution), `/admin/integrations/new` (both selects), fournisseurs de services, organisations and vocabulaires forms (`Solutions` list), `/admin/integrations` and `/admin/recommandations` (row names), `/admin/solutions` (`Nom`, `Intégrée par`; `features/admin-listes.rb` reads them). Admin only.
 
 ## Driving it with Capybara
 
-`drive.rb homonymes`, read-only. Precondition: catalogue imported, two `API Impôt particulier` rows (ids 92 brique_logicielle, 187 api on 2026-10-05).
+Drive: `features/admin-homonymes.rb` (SKILL.md § Drive).
+
+Read-only. Precondition: catalogue imported, two `API Impôt particulier` rows (ids 92 brique_logicielle, 187 api on 2026-10-05).
 
 - **Selects.** Recommandation `Solution` and intégration `API ou jeu de données`: two distinct options for the name.
 - **Checkbox list.** New type d'acteur, `Filtrer les solutions` with `impot particulier`: the same two labels.

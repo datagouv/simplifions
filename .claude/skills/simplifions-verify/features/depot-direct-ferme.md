@@ -13,12 +13,12 @@ Active Storage's direct upload address answers 404 to everyone, visitor or signe
 
 ## Driving it with Capybara
 
+Drive: `features/depot-direct-ferme.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Launch done and doctor green (SKILL.md § Launch, § Doctor).
 - The dev-only admin exists (`Verify.ensure_admin`, SKILL.md § Enter).
-
-`drive.rb depot-direct`.
 
 - **Visitor.** On `/`, `fetch` the POST from the page with its CSRF token → status 404, `ActiveStorage::Blob.count` unchanged.
 - **Admin.** `Verify.login(page)`, same `fetch` → 404, count unchanged; `Verify.logout(page)`.

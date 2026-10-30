@@ -4,10 +4,10 @@ Read before adding or fixing a file under `features/`, and at maintain step 3. O
 
 1. `Sub-features` — short ids, one line each.
 2. `How to get to it (user POV)` — every entry point: menu path, URL, keyboard shortcut, who can see it.
-3. `Driving it with Capybara` — starts with `Preconditions:`; then labelled bullets, each pairing a user action with the exact step and the observable result, ending on a `**Proof.**` bullet. When `drive.rb` drives the feature, the section names its short name (`drive.rb vocabulaires`).
+3. `Driving it with Capybara` — starts with the line ``Drive: `features/<feature>.rb` (SKILL.md § Drive).`` and `Preconditions:`; then labelled bullets, each pairing a user action with the exact step and the observable result, ending on a `**Proof.**` bullet. Each labelled bullet is one check of the drive, its label the check's name (`PASS Reach the table`).
 4. `Gotchas` — what wastes or invalidates a run.
 
-`features/README.md` is the index: baseline preconditions, driving conventions, proof rules, then one line per feature file. A new file gets its line there in the same change.
+`features/README.md` is the index: baseline preconditions, driving conventions, proof rules, then one line per feature file. A new file gets its line there, and its drive `features/<feature>.rb` beside it, in the same change.
 
 Model to copy: [`features/catalogue-cas-usages.md`](features/catalogue-cas-usages.md) for a public page, [`features/admin-vocabulaires.md`](features/admin-vocabulaires.md) for an admin table with a mutation and its undo.
 

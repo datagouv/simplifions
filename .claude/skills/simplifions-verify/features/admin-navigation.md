@@ -8,7 +8,9 @@ Under `/admin`, the header's navigation bar (`Menu de l’administration`) lists
 
 ## Driving it with Capybara
 
-`drive.rb navigation`, read-only.
+Drive: `features/admin-navigation.rb` (SKILL.md § Drive).
+
+Read-only.
 
 - **Tableau de bord.** `/admin`: the admin bar lists the seven rubriques in order, none current; no `Menu principal`.
 - **Rubrique.** Click `Solutions` in the bar: `/admin/solutions`, `Solutions` is `page`. Open a solution's edit page, then its history: `Solutions` is `true`.

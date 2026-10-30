@@ -16,6 +16,8 @@ A cas d'usage page describes a démarche, its public, its legal frame, and the d
 
 ## Driving it with Capybara
 
+Drive: `features/fiche-cas-usage.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Launch done and doctor green (SKILL.md § Launch, § Doctor).

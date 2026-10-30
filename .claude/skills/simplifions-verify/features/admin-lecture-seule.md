@@ -9,7 +9,9 @@ The administration shows a row's Grist identifier as text (`Identifiant Grist : 
 
 ## Driving it with Capybara
 
-`drive.rb lecture-seule`. Read-only: it opens existing catalogue rows and saves nothing. Preconditions: logged in, catalogue imported (a démarche with a `grist_id`, a solution with a `datagouv_titre`).
+Drive: `features/admin-lecture-seule.rb` (SKILL.md § Drive).
+
+Read-only: it opens existing catalogue rows and saves nothing. Preconditions: logged in, catalogue imported (a démarche with a `grist_id`, a solution with a `datagouv_titre`).
 
 - **Grist.** First démarche with a `grist_id`: text `Identifiant Grist : <grist_id>`, no input named `demarche[grist_id]`.
 - **data.gouv.** First solution with a `datagouv_titre`: block `Repris de data.gouv.fr` with `Titre : <datagouv_titre>`, no input named `solution[datagouv_*]`.

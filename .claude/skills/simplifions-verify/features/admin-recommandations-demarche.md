@@ -9,7 +9,9 @@ A démarche's admin form lists, in its `Recommandations (<n>)` tab, its recomman
 
 ## Driving it with Capybara
 
-`drive.rb recommandations-demarche`, mutating then undone. Démarche: the visible one with the most recommandations (41 on 2026-10-05); solution: the first public API it does not recommend yet.
+Drive: `features/admin-recommandations-demarche.rb` (SKILL.md § Drive).
+
+Preconditions: logged in; mutating then undone. Démarche: the visible one with the most recommandations (41 on 2026-10-05); solution: the first public API it does not recommend yet.
 
 - **Table.** Rows on the démarche page = `demarche.recommandations.count` + the blank row.
 - **Add.** `/admin/recommandations/new?demarche_id=<id>` → démarche selected, encart lists all its recommandations; save with `Ordre` 99 → stays on `/admin/recommandations/<id>/edit`, database count +1.

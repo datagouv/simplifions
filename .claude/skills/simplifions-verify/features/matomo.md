@@ -4,7 +4,7 @@ Every page a visitor sees sends one Matomo hit, on the first load and after each
 
 ## Sub-features
 
-- `matomo-page-vue` one hit per page shown, `url` and `action_name` of that page.
+- `matomo-page-vue` one hit per page shown, `url` (the path, without parameters) and `action_name` of that page.
 - `matomo-recherche` a new keyword in `Rechercher` sends `search`, `search_cat` (`Cas d'usages` or `Solutions`) and `search_count`, and no page view.
 - `matomo-meme-recherche` the keyword last measured (same search again, filter change), a keyword under 2 characters, or a search page reached by the back button is a page view.
 - `matomo-lien-sortant` a click on a link to another site sends one hit with `link`, a click on a file link (pdf, csv, xlsx, docx, odt, ods, zip) one hit with `download` and no `link`, on the first page and after Turbo visits alike; a middle click or a right click (context menu) counts once too, as matomo.js does.
@@ -17,16 +17,18 @@ Every page a visitor sees sends one Matomo hit, on the first load and after each
 
 ## Driving it with Capybara
 
+Drive: `features/matomo.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Launch done and doctor green (SKILL.md § Launch, § Doctor); the browser containers reach stats.data.gouv.fr.
 - One visible démarche matches « eaje ».
 
-`drive.rb matomo` sets `MATOMO_SITE_ID=999999` for its own server and counts the `matomo.php` requests the browser sent (`performance.getEntriesByType('resource')`).
+The drive sets `MATOMO_SITE_ID=999999` for its own server and counts the `matomo.php` requests the browser sent (`performance.getEntriesByType('resource')`).
 
 - **Load.** `visit "/demarches"`. 1 hit, `action_name` `Cas d'usages | …`, no `search`.
-- **Search.** `fill_in "Rechercher", with: "eaje"`, `click_button "Rechercher"`. 2 hits; the last has `search=eaje`, `search_cat=Cas d'usages`, `search_count` = `Demarche.catalogue({ "q" => "eaje" }).count`.
-- **Open a result.** Click the first démarche link. 3 hits; the last has the page's url and title, `urlref` = the search url, no `search`.
+- **Search.** `fill_in "Rechercher", with: "eaje"`, `click_button "Rechercher"`. 2 hits; the last has `search=eaje`, `search_cat=Cas d'usages`, `search_count` = `Demarche.catalogue({ "q" => "eaje" }).count`, and `url` the page's path without its parameters.
+- **Open a result.** Click the first démarche link. 3 hits; the last has the page's url and title, `urlref` = the full search url (parameters included), no `search`.
 - **Back.** `go_back`. 4 hits; the last is a page view of the search url, no `search`.
 - **Same search again.** `fill_in "Rechercher", with: "eaje"`, `click_button "Rechercher"`. 5 hits; the last has no `search`.
 - **Another search.** Same with « api ». 6 hits; the last has `search=api`.

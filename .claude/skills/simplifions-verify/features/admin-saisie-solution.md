@@ -8,7 +8,9 @@ A solution's admin form offers its `Type de solution` as checkboxes on the fixed
 
 ## Driving it with Capybara
 
-`drive.rb saisie-solution`, on a solution it creates (`Vérif verify-map <browser>`, Brique technique, image + légende, first public organisation so it can be recommended) linked to the first visible API that has integratrices (consomme) and recommended by the first visible démarche; deleted in `ensure` with its links.
+Drive: `features/admin-saisie-solution.rb` (SKILL.md § Drive).
+
+Preconditions: logged in; the drive works on a solution it creates (`Vérif verify-map <browser>`, Brique technique, image + légende, first public organisation so it can be recommended) linked to the first visible API that has integratrices (consomme) and recommended by the first visible démarche; deleted in `ensure` with its links.
 
 - **Fiche.** Légende is `input[type=text]`; the retirer hint is shown; the `Intégrations` and `Recommandée dans` tabs list the API and the démarche.
 - **Other side.** The API's edit page: its `Solutions qui l’intègrent` rows equal its integrations by intégratrice name and include the drive's solution.

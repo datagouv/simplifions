@@ -16,7 +16,9 @@ Every page, admin included, ends on the same footer: five blocks of links to the
 
 ## Driving it with Capybara
 
-Preconditions: baseline; `bouquet-api-entreprise` and `bouquet-api-particulier` visible with integrating solutions; the dev-only admin (`drive.rb` creates it). `drive.rb pied-de-page`.
+Drive: `features/pied-de-page.rb` (SKILL.md § Drive).
+
+Preconditions: baseline; `bouquet-api-entreprise` and `bouquet-api-particulier` visible with integrating solutions; the dev-only admin (the harness creates it).
 
 - **Categories.** `/` at 1280 then 375 wide: the footer's `h3` read, in order, the five new titles then `Simplifions.data.gouv.fr`, `Aide`, `Contribution`.
 - **Presentation link.** From `/demarches`, click `En quoi simplifions.data.gouv.fr peut-il vous aider ?`: path `/`, hash `#comment-vous-aider`, the section's top at 0.

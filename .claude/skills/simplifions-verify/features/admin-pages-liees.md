@@ -9,7 +9,9 @@ On an admin form, each text area is as tall as its content (rows computed server
 
 ## Driving it with Capybara
 
-`drive.rb pages-liees`, read-only. Precondition: catalogue imported (démarche 23 has a 2 947-character contexte on 2026-10-05).
+Drive: `features/admin-pages-liees.rb` (SKILL.md § Drive).
+
+Read-only. Precondition: catalogue imported (démarche 23 has a 2 947-character contexte on 2026-10-05).
 
 - **Text area.** The longest visible contexte: `scrollHeight <= clientHeight`, hint `Markdown accepté`.
 - **Public page.** `Voir la page publique` opens `/demarches/<slug>` in a new window.

@@ -8,7 +8,9 @@ A solution's admin form shows only the fields of its catégorie: for `API` or `J
 
 ## Driving it with Capybara
 
-`drive.rb formulaire-solution`, on a solution it creates (`Vérif verify-map <browser>`, Brique technique, image + légende, no organisation) and deletes.
+Drive: `features/admin-formulaire-solution.rb` (SKILL.md § Drive).
+
+Preconditions: logged in; the drive works on a solution it creates (`Vérif verify-map <browser>`, Brique technique, image + légende, no organisation) and deletes.
 
 - **Privée.** Badge under the H1; list searched by name shows `Oui` in `Privée`.
 - **Image.** Preview alt = légende, hint lists the formats.

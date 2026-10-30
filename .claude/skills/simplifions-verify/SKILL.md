@@ -10,10 +10,11 @@ Simplifions is a public catalogue (cas d'usages, solutions, articles) read by an
 ## Use the map
 
 1. Read this file and the `features/README.md` index; never improvise a launch or a login.
-2. Follow Launch and Doctor literally, then the feature file's driving bullets. Done when the evidence the feature file names exists under `tmp/verify/<feature>/`.
-3. A step the map describes that the app no longer does is either drift (fix the map in the same PR) or a regression (report it, do not paper over it).
-4. A change that adds or changes a user journey updates its feature file and its drive in the same PR; a new journey gets its file in the shape of [`feature-file.md`](feature-file.md).
-5. Keeping the whole map honest against the code: [`maintain.md`](maintain.md).
+2. Follow Launch and Doctor literally, then run the feature's drive, `features/<feature>.rb`. Done when it printed its result lines and its evidence path.
+3. **Read the result lines, not the evidence.** A `PASS` is proof as it stands: the screenshots are for the human reading the PR. Open a screenshot or `read-back.txt` only behind a `FAIL`, to say what went wrong.
+4. A step the map describes that the app no longer does is either drift (fix the map in the same PR) or a regression (report it, do not paper over it).
+5. A change that adds or changes a user journey updates its feature file and its drive in the same PR; a new journey gets its file in the shape of [`feature-file.md`](feature-file.md).
+6. Keeping the whole map honest against the code: [`maintain.md`](maintain.md).
 
 ## Launch
 
@@ -31,7 +32,7 @@ Everything runs in Docker: Docker Desktop on a Mac (Apple silicon or Intel), Doc
 4. A drive runs in a one-off `web` container: `bin/rails runner` loads the app, Capybara starts its own server inside that container on port 3101 (this checkout's code, the dev database), and the browser container opens it at the container's address. No server to start or stop, port 3000 and `make start` are left alone.
 
    ```sh
-   docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/drive.rb catalogue
+   docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb
    ```
 
 From a git worktree, add `-p <folder name of the main checkout>` (`-p simplifions`) right after `docker compose` in every command: the worktree's code is the one mounted, the database, gems and browsers are the main checkout's. Without it Compose builds a separate stack for the worktree, with an empty database.
@@ -43,7 +44,7 @@ No `.env` and no `config/master.key` are needed in development (the only credent
 - `make check` is silent: Docker is installed and running (otherwise it says what to do, in French).
 - `docker compose --profile verify ps chrome firefox` shows both `healthy`; otherwise Launch step 2.
 - `docker compose run --rm web bin/rails runner 'puts ActiveRecord::Base.connection.current_database, Demarche.visibles.count'` → `simplifions_development`, then a number above zero; zero → `make import` (needs network, a few minutes).
-- `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/drive.rb catalogue` prints `ok catalogue`: the harness and the browser work.
+- `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb` prints only `PASS` lines, then `evidence tmp/verify/catalogue-cas-usages/`: the harness and the browser work.
 
 ## Enter
 
@@ -58,15 +59,20 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
 ## Drive
 
-- Harness: `harness.rb` next to this file registers two Capybara drivers (`:verify_chrome`, `:verify_firefox`) on the browser containers (`http://chrome:4444`, `http://firefox:4444`), starts the app server inside the drive's container and provides `Verify.session` (`javascript: false` for a no-JS page: `--blink-settings=scriptEnabled=false` in Chrome, `javascript.enabled` pref in Firefox; one session per browser container, so quit the other first), `Verify.login`, `Verify.logout`, `Verify.ensure_admin`, `Verify.remove_admin`, `Verify.evidence`.
-- Ready-made drive: `drive.rb` runs every feature file in order, or one by its short name:
+- Harness: `harness.rb` next to this file registers two Capybara drivers (`:verify_chrome`, `:verify_firefox`) on the browser containers (`http://chrome:4444`, `http://firefox:4444`), starts the app server inside the drive's container and provides `Verify.session` (`javascript: false` for a no-JS page: `--blink-settings=scriptEnabled=false` in Chrome, `javascript.enabled` pref in Firefox; one session per browser container, so quit the other first), `Verify.drive`, `Verify.check`, `Verify.login`, `Verify.logout`, `Verify.ensure_admin`, `Verify.remove_admin`, `Verify.evidence`, and the steps several features share (`Verify::Etapes`: `rubrique`, `rechercher`, `ouvrir_fiche`, `onglet`…).
+- One drive per feature: `features/<feature>.rb` beside `features/<feature>.md`, same basename, wrapped in `Verify.drive(__FILE__) do |page| … ensure <cleanup> end`. Each labelled bullet of the feature file's driving section is one `Verify.check('<label>') { … }`: it prints `PASS <label>`, or `FAIL <label>: <what it saw>` and stops the drive (a screenshot `<browser>-echec.png` is taken, the drive's `ensure` cleans up). The drive ends on `evidence tmp/verify/<feature>/`. A helper used by one feature stays in its file; one used by several lives in `harness.rb`.
 
   ```sh
-  docker compose run --rm -e VERIFY_BROWSER=chrome  web bin/rails runner .claude/skills/simplifions-verify/drive.rb
-  docker compose run --rm -e VERIFY_BROWSER=firefox web bin/rails runner .claude/skills/simplifions-verify/drive.rb vocabulaires
+  docker compose run --rm -e VERIFY_BROWSER=chrome  web bin/rails runner .claude/skills/simplifions-verify/features/admin-vocabulaires.rb
+  docker compose run --rm -e VERIFY_BROWSER=firefox web bin/rails runner .claude/skills/simplifions-verify/features/admin-vocabulaires.rb
   ```
 
-  It prints `ok <feature>` or `ECHEC <feature>: <error>` and never aborts the other features.
+- The whole map, one feature after another in one container (`/verify maintain`), Chrome then Firefox, never both at once: drives in the two browsers pick the same catalogue rows and break each other's counts.
+
+  ```sh
+  docker compose run --rm -e VERIFY_BROWSER=chrome web sh -c 'for f in .claude/skills/simplifions-verify/features/*.rb; do bin/rails runner "$f"; done'
+  ```
+
 - A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join('.claude/skills/simplifions-verify/harness.rb')` and `page = Verify.session`, run with `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
 - A `bin/rails …` command in a feature file runs the same way, `docker compose run --rm web bin/rails …`. The features on a throwaway database spell out each command in full, guarded by `test "$DATABASE_URL" = …`; copy them as they are, never drop the `-e` or the guard.
 - Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The filter selects auto-submit on change (Stimulus); the search field needs the `Rechercher` button.
@@ -85,7 +91,7 @@ docker compose run --rm web bin/rails runner 'require "./.claude/skills/simplifi
 docker compose --profile verify stop chrome firefox
 ```
 
-Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates; a drive that failed midway can leave a `Vérif verify-map <browser>` row: remove it with `docker compose run --rm web bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'` (same for `Demarche` and `Solution`).
+Leave `tmp/verify/*/` in place. Each drive deletes what it creates, in its `ensure`; a drive killed midway can leave a `Vérif verify-map <browser>` row: remove it with `docker compose run --rm web bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'` (same for `Demarche` and `Solution`).
 
 ## Rules
 
@@ -98,6 +104,6 @@ Leave `tmp/verify/*/` in place. `drive.rb` deletes what it creates; a drive that
 
 - The dev database is shared with the site on port 3000 and with `make import`; never `db:reset`, never edit catalogue rows outside the rows a drive creates.
 - `Vérif` appears in the row name on purpose: it sorts last and is greppable.
-- One browser session per container, held for the whole `drive.rb` run: a second drive started meanwhile waits 5 minutes, then fails on `session not created`. Run drives one after another.
+- One browser session per container, held for the whole drive: a second drive started meanwhile waits 5 minutes, then fails on `session not created`. Run drives one after another.
 - `bin/rails runner` keeps the query cache on: a read-back after a mutation made by the browser goes inside `ActiveRecord::Base.uncached { … }`.
 - On Linux the container writes `tmp/` and `log/` as root; before removing a worktree, `docker compose run --rm web chown -R "$(id -u):$(id -g)" tmp log`. Docker Desktop on a Mac keeps the user as owner.

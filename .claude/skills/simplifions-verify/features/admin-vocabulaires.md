@@ -19,6 +19,8 @@ Admins add, edit and delete rows of every catalogue table from plain DSFR forms;
 
 ## Driving it with Capybara
 
+Drive: `features/admin-vocabulaires.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Logged in (`Verify.login`).

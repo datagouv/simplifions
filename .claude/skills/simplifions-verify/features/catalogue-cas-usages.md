@@ -18,6 +18,8 @@ Visitors browse the list of cas d'usages (démarches), narrow it by full-text se
 
 ## Driving it with Capybara
 
+Drive: `features/catalogue-cas-usages.rb` (SKILL.md § Drive).
+
 Preconditions:
 
 - Launch done and doctor green (SKILL.md § Launch, § Doctor).

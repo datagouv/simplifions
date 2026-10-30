@@ -9,9 +9,11 @@ Every admin `new` and `edit` page (seven tables) puts an `État et actions` colu
 
 ## Driving it with Capybara
 
-`drive.rb colonne`. Preconditions: logged in, catalogue imported (démarche 1 published). The drive creates its own démarche `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`, not visible) and deletes it; it saves nothing on démarche 1.
+Drive: `features/admin-colonne-actions.rb` (SKILL.md § Drive).
 
-- **Sticky.** Démarche 1, scroll to the bottom: `Enregistrer` inside the viewport and the topmost element at its centre.
+Preconditions: logged in, catalogue imported (démarche 1 published). The drive creates its own démarche `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`, not visible) and deletes it; it saves nothing on démarche 1.
+
+- **Sticky.** Démarche 1, scroll to the end of the form, just above the footer: `Enregistrer` inside the viewport and the topmost element at its centre.
 - **Greyed.** Own démarche opened: `Enregistrer` disabled, `Publier` enabled; type in `Nom`: `Enregistrer` enabled.
 - **Enter.** Own démarche, type in `Nom`, press Enter: `« … » enregistré.`, base `visible` still false, column `Masquée` (Enregistrer is the form's default button, before Publier in the DOM).
 - **Errors.** Back on the saved fiche `Enregistrer` is disabled again; empty `Nom`, `Enregistrer`: `Nom doit être rempli` and `Enregistrer` enabled without typing.

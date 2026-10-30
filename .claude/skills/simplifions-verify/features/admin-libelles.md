@@ -11,11 +11,13 @@ The seven admin forms name their fields with the Grist words (`Identifiant data.
 
 ## Driving it with Capybara
 
-`drive.rb libelles`. Read-only: it opens existing catalogue rows and saves nothing. Preconditions: logged in, catalogue imported (a `niveau_1` recommandation, a solution with a data.gouv UID and a category, a `consomme` intégration).
+Drive: `features/admin-libelles.rb` (SKILL.md § Drive).
+
+Read-only: it opens existing catalogue rows and saves nothing. Preconditions: logged in, catalogue imported (a `niveau_1` recommandation, a solution with a data.gouv UID and a category, a `consomme` intégration).
 
 - **Values.** The selects show the stored key's French label: `Type de recommandation` = `Donnée utile (API ou jeu de données)`, `Catégorie de solution` = `Solution.human_attribute_name("categorie.<key>")`, `Type d’intégration` = `Intégrée`.
 - **Order.** The read-back lists each form's labels and legends in page order (own text, hint left out).
-- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-libelles/`. Saving a French option stores the key: `drive.rb vocabulaires` selects `Usager` and reads back `categorie == "usager"`.
+- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-libelles/`. Saving a French option stores the key: `features/admin-vocabulaires.rb` selects `Usager` and reads back `categorie == "usager"`.
 
 ## Gotchas
 

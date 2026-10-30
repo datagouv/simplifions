@@ -8,7 +8,9 @@ On a démarche or solution that holds a draft, the column `État et actions` sho
 
 ## Driving it with Capybara
 
-`drive.rb previsualisation`. Creates its own published démarche and solution `Vérif verify-map <browser>` and deletes them.
+Drive: `features/admin-previsualisation.rb` (SKILL.md § Drive).
+
+Creates its own published démarche and solution `Vérif verify-map <browser>` and deletes them.
 
 - **Démarche.** No `Prévisualiser` before the draft; `Nom` `<nom> brouillon`, `Enregistrer`, `Prévisualiser` in a new window: H1 the draft name, the notice; at 640 px wide (200 % zoom) no horizontal scroll.
 - **Public page unchanged.** `/demarches/<slug>` H1 the published name, no notice; base `nom` unchanged.

@@ -15,7 +15,9 @@ A démarche or solution can carry a « Title SEO », typed in its admin form und
 
 ## Driving it with Capybara
 
-`drive.rb title-seo`. The drive creates its own published démarche and solution `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`) and an API `Vérif verify-map <browser> api`, and deletes them.
+Drive: `features/title-seo.rb` (SKILL.md § Drive).
+
+The drive creates its own published démarche and solution `Vérif verify-map <browser>` (slug `verif-verify-map-<browser>`) and an API `Vérif verify-map <browser> api`, and deletes them.
 
 Preconditions:
 
