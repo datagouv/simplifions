@@ -154,7 +154,7 @@
         <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
           <div class="fr-col-12 fr-col-md-6">
             <% affichees = onglets.values.sum(&:size) %>
-            <p class="fr-text--bold fr-mb-0 fr-ml-2w" data-integratrices-target="compteur"><%= affichees %> solution<%= 's' if affichees > 1 %> disponible<%= 's' if affichees > 1 %></p>
+            <p class="fr-text--bold fr-mb-0 fr-ml-2w" role="status" data-integratrices-target="compteur"><%= affichees %> solution<%= 's' if affichees > 1 %> disponible<%= 's' if affichees > 1 %></p>
           </div>
           <div class="fr-col-auto fr-grid-row fr-grid-row--middle fr-ml-auto">
             <div class="fr-select-group fr-grid-row fr-grid-row--middle">

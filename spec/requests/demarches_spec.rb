@@ -48,7 +48,7 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('À destination des <b>Communes</b> et <b>Départements</b>')
     end
 
-    it 'propose les facettes du site préremplies et le passage aux solutions avec la même requête' do
+    it 'propose les facettes préremplies, appliquées par un bouton, et le passage aux solutions' do
       communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       Vocabulaire.create!(nom: '💠💠 DLNUF', slug: 'dlnuf', categorie: 'type_simplification')
@@ -67,8 +67,8 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('role="status">1 résultat<')
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
-      expect(response.body).to include('data-controller="form"')
-      expect(response.body).to include('data-action="change-&gt;form#submit"')
+      expect(response.body).not_to include('form#submit')
+      expect(response.parsed_body.at_css('form.catalogue input[type=submit]')['value']).to eq('Appliquer les filtres')
     end
 
     it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do
@@ -355,6 +355,11 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('src="https://avatars.test/dinum-100.png"')
       expect(response.body).to include('https://www.data.gouv.fr/fr/dataservices/672cf982fcc8065be6e66f54')
       expect(response.body).to include('Filtrer les endpoints')
+    end
+
+    it 'réserve au filtre des endpoints une annonce vide au chargement, pour le lecteur d’écran' do
+      annonce = response.parsed_body.at_css('[data-controller=endpoints] [role=status]')
+      expect(annonce.text).to be_empty
     end
   end
 

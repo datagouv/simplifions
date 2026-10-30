@@ -101,6 +101,13 @@
   </head>
 
   <body>
+    <div class="fr-skiplinks">
+      <nav class="fr-container" role="navigation" aria-label="Accès rapide">
+        <ul class="fr-skiplinks__list">
+          <li><a class="fr-link" href="#content" data-turbo="false">Contenu</a></li>
+        </ul>
+      </nav>
+    </div>
     <%= render "layouts/header" %>
     <main role="main" id="content">
       <% flash.each do |type, message| %>

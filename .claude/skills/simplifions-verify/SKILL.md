@@ -75,7 +75,7 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
 - A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join('.claude/skills/simplifions-verify/harness.rb')` and `page = Verify.session`, run with `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
 - A `bin/rails …` command in a feature file runs the same way, `docker compose run --rm web bin/rails …`. The features on a throwaway database spell out each command in full, guarded by `test "$DATABASE_URL" = …`; copy them as they are, never drop the `-e` or the guard.
-- Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The filter selects auto-submit on change (Stimulus); the search field needs the `Rechercher` button.
+- Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The catalogue selects wait for the `Appliquer les filtres` button; the search field needs the `Rechercher` button.
 - Both browsers, every time: the users browse with Firefox, CI and Capybara defaults lean on Chrome.
 
 ## Evidence

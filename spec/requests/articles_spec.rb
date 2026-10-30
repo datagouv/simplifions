@@ -100,6 +100,12 @@ RSpec.describe 'Articles' do
       expect(carrousel.css('button').map(&:text).map(&:strip)).to eq(%w[Précédent Suivant])
     end
 
+    it 'réserve au démonstrateur Sirene une annonce vide au chargement, pour le lecteur d’écran' do
+      get article_path('qu-est-ce-qu-une-api')
+      annonce = response.parsed_body.at_css('[data-controller="sirene-demo"] [role=status]')
+      expect(annonce.text).to be_empty
+    end
+
     it 'rend les tuiles des encarts comme le site actuel : sans tag de catégorie, description ou audience selon l’article' do
       particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       communes = TypeActeur.create!(nom: 'Communes')
