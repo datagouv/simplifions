@@ -57,7 +57,7 @@
                 <% end %>
                 <% if lien_demande_acces %>
                   <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
-                        rel: 'noopener external', target: '_blank' %>
+                        rel: 'noopener external', target: '_blank', data: matomo_evenement('Demander un accès', cible.nom, cible) %>
                 <% end %>
               </div>
             <% end %>
@@ -165,7 +165,8 @@
           <section class="fr-accordion" data-filtre="<%= filtre %>">
             <h5 class="fr-accordion__title">
               <button type="button" class="fr-accordion__btn" aria-expanded="false"
-                aria-controls="<%= dom_id(recommandation, categorie) %>">
+                aria-controls="<%= dom_id(recommandation, categorie) %>"
+                <%= tag.attributes(data: matomo_evenement("Ouvrir « #{titre} »", cible.nom, cible)) %>>
                 <span class="fr-mr-auto">
                   <%= titre %>
                   <span class="fr-badge fr-badge--sm fr-badge--icon-left fr-background-contrast--info fr-text-default--info fr-ml-1w <%= icone %>">
@@ -204,7 +205,8 @@
                 <div class="fr-mt-2w">
                   <div class="fr-grid-row fr-grid-row--gutters fr-grid-row--middle">
                     <p class="fr-col fr-mb-0">Vous êtes déjà client d'un de ces éditeurs ? Demandez un accès à «&nbsp;<%= cible.nom %>&nbsp;» pour votre logiciel :</p>
-                    <%= link_to 'Demander un accès', lien_demande_acces, class: 'fr-btn', rel: 'noopener external', target: '_blank' %>
+                    <%= link_to 'Demander un accès', lien_demande_acces, class: 'fr-btn', rel: 'noopener external', target: '_blank',
+                          data: matomo_evenement('Demander un accès (déjà client)', cible.nom, cible) %>
                   </div>
                   <p class="fr-text--sm fr-mb-0 fr-mt-1w">Si vous n'êtes pas déjà client, contactez d'abord l'éditeur avant de demander un accès à «&nbsp;<%= cible.nom %>&nbsp;».</p>
                 </div>

@@ -3,7 +3,7 @@
                 site_de_consultation: %w[sites fr-icon-seo-fill] } %>
 <div data-controller="tri-solutions" <%= tag.attributes(data: matomo_zone("Cas d'usage › Solutions intégratrices")) %>>
   <div class="fr-grid-row fr-grid-row--middle fr-mb-2w choix-affichage">
-    <fieldset class="fr-segmented fr-segmented--sm fr-mr-2w">
+    <fieldset class="fr-segmented fr-segmented--sm fr-mr-2w" data-matomo-action="Changer de vue">
       <legend class="fr-segmented__legend fr-sr-only">Affichage des solutions</legend>
       <div class="fr-segmented__elements">
         <% [%w[cartes Cartes fr-icon-layout-grid-line], ['tableau', 'Tableau comparatif', 'fr-icon-table-line']].each do |valeur, libelle, icone| %>
@@ -16,7 +16,8 @@
     </fieldset>
     <div class="fr-select-group fr-mb-0 tri-solutions">
       <label class="fr-label" for="tri-solutions-integratrices">Trier par :</label>
-      <select class="fr-select" id="tri-solutions-integratrices" autocomplete="off" data-action="tri-solutions#trier">
+      <select class="fr-select" id="tri-solutions-integratrices" autocomplete="off" data-action="tri-solutions#trier"
+        data-matomo-action="Trier les solutions">
         <option value="integrees" selected>Le plus de données intégrées</option>
         <option value="titre">Titre</option>
       </select>
@@ -30,7 +31,8 @@
       <h3 class="fr-h5 fr-mb-1w">
         <button type="button" class="section-depliable__bouton" aria-expanded="true"
           aria-controls="solutions-integratrices-<%= categorie.to_s.dasherize %>"
-          data-section-depliable-target="bouton" data-action="section-depliable#basculer">
+          data-section-depliable-target="bouton" data-action="section-depliable#basculer"
+          data-matomo-action="Déplier une catégorie" data-matomo-fermeture="Replier une catégorie" data-matomo-nom="<%= titre %>">
           <span aria-hidden="true" class="section-depliable__fleche fr-icon-arrow-down-s-fill fr-icon--md"></span>
           <span class="section-depliable__libelle">
             <span class="section-depliable__titre"><%= titre %></span>

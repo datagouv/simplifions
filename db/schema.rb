@@ -16,31 +16,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   enable_extension "unaccent"
 
   create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.bigint "record_id", null: false
-    t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
-    t.bigint "byte_size", null: false
-    t.string "checksum"
-    t.string "content_type"
-    t.datetime "created_at", null: false
-    t.string "filename", null: false
     t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
     t.text "metadata"
     t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
   create_table "active_storage_db_files", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.binary "data", null: false
     t.string "ref", null: false
+    t.binary "data", null: false
+    t.datetime "created_at", null: false
     t.index ["ref"], name: "index_active_storage_db_files_on_ref", unique: true
   end
 
@@ -51,29 +51,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "admins", force: :cascade do |t|
-    t.datetime "created_at", null: false
     t.string "email", null: false
     t.string "encrypted_password", null: false
     t.datetime "remember_created_at"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admins_on_email", unique: true
   end
 
   create_table "demarches", force: :cascade do |t|
-    t.jsonb "brouillon"
-    t.text "cadre_juridique"
-    t.text "contexte"
-    t.datetime "created_at", null: false
-    t.datetime "cree_le"
-    t.text "description_courte"
-    t.string "grist_id"
-    t.string "icone"
-    t.datetime "modifie_le"
-    t.string "mots_clefs", default: [], null: false, array: true
     t.string "nom", null: false
+    t.string "icone"
+    t.text "description_courte"
+    t.text "contexte"
+    t.text "cadre_juridique"
+    t.string "mots_clefs", default: [], null: false, array: true
     t.string "slug"
-    t.datetime "updated_at", null: false
     t.boolean "visible", default: false, null: false
+    t.datetime "modifie_le"
+    t.string "grist_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "cree_le"
+    t.jsonb "brouillon"
     t.string "titre_seo"
     t.index ["grist_id"], name: "index_demarches_on_grist_id", unique: true
     t.index ["slug"], name: "index_demarches_on_slug", unique: true
@@ -101,12 +101,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "integrations", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "grist_id"
     t.bigint "integratrice_id", null: false
     t.bigint "integree_id", null: false
-    t.string "statut"
     t.string "type_integration", null: false
+    t.string "statut"
+    t.string "grist_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "ordre"
     t.index ["grist_id"], name: "index_integrations_on_grist_id", unique: true
@@ -115,13 +115,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "organisations", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "grist_id"
     t.string "nom", null: false
     t.string "nom_long"
     t.string "public_ou_prive"
-    t.string "site_internet"
     t.string "type_organisation_privee"
+    t.string "site_internet"
+    t.string "grist_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["grist_id"], name: "index_organisations_on_grist_id", unique: true
   end
@@ -134,20 +134,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "recommandations", force: :cascade do |t|
-    t.jsonb "brouillon"
-    t.datetime "created_at", null: false
     t.bigint "demarche_id", null: false
-    t.text "description"
-    t.text "donnees_utiles"
-    t.string "grist_id"
-    t.datetime "modifie_le"
-    t.integer "niveau", null: false
-    t.integer "ordre"
-    t.text "parametres_a_saisir"
     t.bigint "solution_id", null: false
-    t.datetime "updated_at", null: false
+    t.text "donnees_utiles"
+    t.text "parametres_a_saisir"
     t.string "url_demande_acces"
     t.boolean "visible", default: false, null: false
+    t.datetime "modifie_le"
+    t.string "grist_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "description"
+    t.integer "niveau", null: false
+    t.integer "ordre"
+    t.jsonb "brouillon"
     t.index ["demarche_id", "solution_id"], name: "index_recommandations_on_demarche_id_and_solution_id", unique: true
     t.index ["grist_id"], name: "index_recommandations_on_grist_id", unique: true
     t.index ["solution_id"], name: "index_recommandations_on_solution_id"
@@ -275,31 +275,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "solutions", force: :cascade do |t|
-    t.jsonb "brouillon"
+    t.string "nom", null: false
+    t.text "description_courte"
+    t.string "site_internet"
+    t.text "permet"
+    t.text "ne_permet_pas"
+    t.text "legende_image"
+    t.string "url_demande_acces"
+    t.string "uid_datagouv"
+    t.boolean "france_connectee", default: false, null: false
     t.string "categorie"
+    t.string "slug"
+    t.boolean "visible", default: false, null: false
+    t.datetime "modifie_le"
+    t.string "grist_id"
     t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.datetime "cree_le"
+    t.string "datagouv_titre"
+    t.string "datagouv_organisation"
+    t.string "datagouv_logo"
     t.string "datagouv_acces"
     t.string "datagouv_acces_acteurs_publics"
-    t.string "datagouv_logo"
-    t.string "datagouv_organisation"
     t.string "datagouv_organisation_badges", default: [], null: false, array: true
-    t.string "datagouv_titre"
-    t.text "description_courte"
-    t.boolean "france_connectee", default: false, null: false
-    t.string "grist_id"
-    t.text "legende_image"
-    t.datetime "modifie_le"
-    t.text "ne_permet_pas"
-    t.string "nom", null: false
-    t.text "permet"
-    t.string "site_internet"
-    t.string "slug"
     t.string "types_solution", default: [], null: false, array: true
-    t.string "uid_datagouv"
-    t.datetime "updated_at", null: false
-    t.string "url_demande_acces"
-    t.boolean "visible", default: false, null: false
+    t.jsonb "brouillon"
     t.string "titre_seo"
     t.index ["grist_id"], name: "index_solutions_on_grist_id", unique: true
     t.index ["slug"], name: "index_solutions_on_slug", unique: true
@@ -320,13 +320,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "types_acteurs", force: :cascade do |t|
-    t.text "codes_juridiques"
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.string "grist_id"
     t.string "nom", null: false
-    t.string "slugs", default: [], null: false, array: true
+    t.text "description"
+    t.text "codes_juridiques"
+    t.string "grist_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slugs", default: [], null: false, array: true
     t.index ["grist_id"], name: "index_types_acteurs_on_grist_id", unique: true
   end
 
@@ -342,11 +342,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_090000) do
   end
 
   create_table "vocabulaires", force: :cascade do |t|
-    t.string "categorie", null: false
-    t.datetime "created_at", null: false
-    t.string "grist_id"
     t.string "nom", null: false
+    t.string "categorie", null: false
     t.string "slug", null: false
+    t.string "grist_id"
+    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["grist_id"], name: "index_vocabulaires_on_grist_id", unique: true
   end

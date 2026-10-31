@@ -243,6 +243,33 @@ RSpec.describe 'Demarches' do
       expect(tableau.find_link('data.gouv.fr', match: :first)['data-matomo-action']).to eq('Ouvrir la fiche data.gouv')
     end
 
+    it 'prépare pour Matomo chaque geste de la page, rangé dans sa zone' do
+      page = Capybara.string(response.body)
+
+      expect(page.all('button.fr-tag').map { [it['data-matomo-action'], it['data-matomo-nom']] })
+        .to eq([['Choisir un affichage', 'API et jeux de données'],
+                ['Choisir un affichage', 'Logiciels métiers « clé en main »'],
+                ['Choisir un affichage', 'Sites de consultation des données']])
+      expect(page.find_button('Affichage personnalisé', visible: :all)['data-matomo-action'])
+        .to eq("Rouvrir l'affichage personnalisé")
+      onglet = page.find('button[role="tab"]', text: 'Données disponibles')
+      expect([zone_matomo(onglet), onglet['data-matomo-action'], onglet['data-matomo-nom']])
+        .to eq(["Cas d'usage › Onglets", 'Afficher un onglet', 'Données disponibles et utiles'])
+      lire_plus = page.find('button', text: 'Lire plus : Contexte', visible: :all)
+      expect([zone_matomo(lire_plus), lire_plus['data-matomo-action'], lire_plus['data-matomo-nom']])
+        .to eq(["Cas d'usage › Contexte", 'Lire plus', 'Contexte'])
+      demande = page.find_link("Demander un accès pour ce cas d'usage")
+      expect([demande['data-matomo-action'], demande['data-matomo-nom']])
+        .to eq(['Demander un accès', 'Bouquet API Particulier [API, restreint public, publique]'])
+      moyens = page.all('.fr-accordion__btn[data-matomo-action^="Ouvrir « "]')
+      expect(moyens.pluck('data-matomo-nom').uniq).to eq(['Bouquet API Particulier [API, restreint public, publique]'])
+      expect(page.find('select#tri-solutions-integratrices')['data-matomo-action']).to eq('Trier les solutions')
+      expect(page.find('fieldset.fr-segmented')['data-matomo-action']).to eq('Changer de vue')
+      categorie = page.first('.section-depliable__bouton')
+      expect([categorie['data-matomo-action'], categorie['data-matomo-fermeture']])
+        .to eq(['Déplier une catégorie', 'Replier une catégorie'])
+    end
+
     it 'prépare pour Matomo l’ouverture de toutes les fiches solution, avec leur type' do
       page = Capybara.string(response.body)
 
@@ -515,6 +542,16 @@ RSpec.describe 'Demarches' do
       expect(modale['data-matomo-contexte']).to eq('Marchés publics')
       expect(lien['data-matomo-action']).to eq('Ouvrir la fiche data.gouv')
       expect(lien['data-matomo-nom']).to eq('API BODACC [API, ouvert]')
+    end
+
+    it 'prépare pour Matomo l’œil, les dépliages et la proposition de modification de la fenêtre' do
+      expect(oeil('Bouquet API Entreprise')['data-matomo-action']).to eq('Voir les données intégrées')
+      modale = fenetre('Bouquet API Entreprise')
+      expect(modale.all('summary', visible: :all).filter_map { it['data-matomo-action'] }.uniq)
+        .to eq(['Déplier un groupe de données', 'Déplier une donnée'])
+      expect(modale.find('summary[data-matomo-nom^="API BODACC"]', visible: :all)['data-matomo-nom']).to eq('API BODACC [API, ouvert]')
+      expect(modale.find_link('proposer une modification du contenu - nouvelle fenêtre', visible: :all)['data-matomo-action'])
+        .to eq('Proposer une modification')
     end
 
     it 'replie le détail d’une donnée derrière sa ligne, qui s’ouvre et se referme au clic' do

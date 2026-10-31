@@ -50,16 +50,27 @@
             var porteur = element.closest('[data-matomo-' + attribut + ']');
             return porteur ? porteur.getAttribute('data-matomo-' + attribut) : '';
           }
-          function envoyerEvenement(element) {
-            if (!element.dataset.matomoAction) return;
-            var nom = [porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ');
-            _paq.push(['trackEvent', porte(element, 'zone') || 'Autre', element.dataset.matomoAction, nom]);
+          function envoyerEvenement(element, choix, action) {
+            action = action || element.dataset.matomoAction;
+            if (!action || element.getAttribute('aria-disabled') === 'true') return;
+            var nom = [choix || porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ');
+            _paq.push(['trackEvent', porte(element, 'zone') || 'Autre', action, nom]);
+          }
+          function dejaOuvert(element) {
+            return ['aria-expanded', 'aria-pressed', 'aria-selected'].some(function(etat) {
+              return element.getAttribute(etat) === 'true';
+            }) || (element.matches('summary') && element.parentElement.open);
           }
           addEventListener('click', function(event) {
-            var bouton = event.target.closest && event.target.closest('button[data-matomo-action]');
-            if (bouton && bouton.getAttribute('aria-expanded') !== 'true' && bouton.getAttribute('aria-pressed') !== 'true') {
-              envoyerEvenement(bouton);
-            }
+            var bouton = event.target.closest && event.target.closest('button[data-matomo-action], summary[data-matomo-action]');
+            if (!bouton) return;
+            if (!dejaOuvert(bouton)) envoyerEvenement(bouton);
+            else if (bouton.dataset.matomoFermeture) envoyerEvenement(bouton, null, bouton.dataset.matomoFermeture);
+          }, true);
+          addEventListener('change', function(event) {
+            var champ = event.target.closest('select[data-matomo-action], fieldset[data-matomo-action]');
+            var choix = event.target.matches('select') ? event.target.selectedOptions[0] : event.target.labels && event.target.labels[0];
+            if (champ && choix) envoyerEvenement(champ, choix.textContent.trim());
           }, true);
           function mesurerClic(event) {
             var lien = event.target.closest && event.target.closest('a[href]');

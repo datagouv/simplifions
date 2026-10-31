@@ -64,7 +64,28 @@ RSpec.describe 'Matomo' do
 
     expect(response.body).to include("[porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ')")
     expect(response.body).to include("_paq.push(['trackEvent', porte(element, 'zone') || 'Autre', element.dataset.matomoAction, nom])")
-    expect(response.body).to include("bouton.getAttribute('aria-expanded') !== 'true' && bouton.getAttribute('aria-pressed') !== 'true'")
+  end
+
+  it 'n’envoie un bouton, un onglet ou un détail qu’à son ouverture, sauf s’il nomme aussi sa fermeture' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("['aria-expanded', 'aria-pressed', 'aria-selected']")
+    expect(response.body).to include("(element.matches('summary') && element.parentElement.open)")
+    expect(response.body).to include("closest('button[data-matomo-action], summary[data-matomo-action]')")
+    expect(response.body).to include("element.getAttribute('aria-disabled') === 'true') return;")
+    expect(response.body).to include('envoyerEvenement(bouton, null, bouton.dataset.matomoFermeture)')
+  end
+
+  it 'envoie le libellé choisi dans une liste ou parmi des boutons radio' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("addEventListener('change'")
+    expect(response.body).to include("closest('select[data-matomo-action], fieldset[data-matomo-action]')")
+    expect(response.body).to include('envoyerEvenement(champ, choix.textContent.trim())')
   end
 
   it 'nomme les pages 404 avec leur chemin et la page d’origine' do

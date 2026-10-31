@@ -65,7 +65,8 @@ export default class extends Controller {
       const disabled = page < 0 || page >= pageCount
       const current = page === this.page && !title
       return `<li><a href="#" class="fr-pagination__link ${classes}${disabled ? " fr-pagination__link--disabled" : ""}"
-        data-page="${page}" data-action="endpoints#goTo"${disabled ? ' aria-disabled="true"' : ""}${current ? ' aria-current="page"' : ""}${title ? ` title="${title}"` : ""}>${label}</a></li>`
+        data-page="${page}" data-action="endpoints#goTo" data-matomo-action="Changer de page d'endpoints"
+        data-matomo-nom="${this.solutionValue.replaceAll('"', "&quot;")} : page ${page + 1}"${disabled ? ' aria-disabled="true"' : ""}${current ? ' aria-current="page"' : ""}${title ? ` title="${title}"` : ""}>${label}</a></li>`
     }
     const pages = Array.from({ length: pageCount }, (_, i) =>
       link(i, "fr-unhidden-lg", String(i + 1), i === this.page ? "" : `Page ${i + 1}`)).join("")
