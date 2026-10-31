@@ -1,6 +1,29 @@
 require 'rails_helper'
 
 RSpec.describe 'Solutions' do
+  describe 'GET /solutions/:slug, nombre de requêtes' do
+    def requetes_organisations
+      requetes = 0
+      compter = ->(*, details) { requetes += 1 if details[:sql].include?('organisations') && !details[:cached] && details[:name] != 'SCHEMA' }
+      ActiveSupport::Notifications.subscribed(compter, 'sql.active_record') { get solution_path('bouquet') }
+      requetes
+    end
+
+    def fournir_une_api(bouquet, numero)
+      api = Solution.create!(nom: "API #{numero}", categorie: 'api', visible: true, uid_datagouv: "uid-#{numero}")
+      Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+    end
+
+    it 'n’augmente pas avec le nombre de données affichées' do
+      bouquet = Solution.create!(nom: 'Bouquet', slug: 'bouquet', categorie: 'brique_logicielle', visible: true)
+      fournir_une_api(bouquet, 1)
+      avec_une_api = requetes_organisations
+      (2..4).each { fournir_une_api(bouquet, it) }
+
+      expect(requetes_organisations).to eq(avec_une_api)
+    end
+  end
+
   describe 'GET /solutions' do
     it 'liste les fiches visibles, API et jeux de données exclus' do
       Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true)
@@ -57,7 +80,7 @@ RSpec.describe 'Solutions' do
   describe 'contenu de la page' do
     before do
       dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
-      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true,
+      bouquet = Solution.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', visible: true, types_solution: ['API'],
         slug: 'bouquet-api-particulier', description_courte: 'API distribuant les données des particuliers.',
         site_internet: 'https://particulier.api.gouv.fr/', url_demande_acces: 'https://datapass.example/bouquet',
         permet: "d'accéder aux données **certifiées**", ne_permet_pas: 'le revenu fiscal de référence',

@@ -1,6 +1,27 @@
 require 'rails_helper'
 
 RSpec.describe 'Articles' do
+  describe 'liste des API FranceConnectées, nombre de requêtes' do
+    def requetes_organisations
+      requetes = 0
+      compter = ->(*, details) { requetes += 1 if details[:sql].include?('organisations') && !details[:cached] && details[:name] != 'SCHEMA' }
+      ActiveSupport::Notifications.subscribed(compter, 'sql.active_record') { get article_path('apis-franceconnectees') }
+      requetes
+    end
+
+    def creer_api_franceconnectee(numero)
+      Solution.create!(nom: "API #{numero}", categorie: 'api', visible: true, france_connectee: true, uid_datagouv: "uid-#{numero}")
+    end
+
+    it 'n’augmente pas avec le nombre d’API affichées' do
+      creer_api_franceconnectee(1)
+      avec_une_api = requetes_organisations
+      (2..4).each { creer_api_franceconnectee(it) }
+
+      expect(requetes_organisations).to eq(avec_une_api)
+    end
+  end
+
   describe 'GET /articles' do
     it 'liste les six articles' do
       get articles_path

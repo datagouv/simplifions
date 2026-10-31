@@ -38,7 +38,7 @@
 
     <%= javascript_importmap_tags %>
 
-    <% if ENV["MATOMO_SITE_ID"].present? %>
+    <% if ENV["MATOMO_SITE_ID"].present? && !admin_signed_in? %>
       <script>
         var _paq = window._paq = window._paq || [];
         (function() {
@@ -57,6 +57,9 @@
             var nom = [objet, porte(element, 'contexte')].filter(Boolean).join(' — ');
             _paq.push(['trackEvent', porte(element, 'zone') || 'Autre', action, nom]);
           }
+          addEventListener('matomo:evenement', function(event) {
+            envoyerEvenement(event.target, event.detail.choix, event.detail.action);
+          });
           function dejaOuvert(element) {
             return ['aria-expanded', 'aria-pressed', 'aria-selected'].some(function(etat) {
               return element.getAttribute(etat) === 'true';

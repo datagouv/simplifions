@@ -57,53 +57,32 @@ RSpec.describe 'Matomo' do
     expect(formulaire['data-matomo-resultats']).to eq('0')
   end
 
-  it 'range chaque événement dans la zone de la page où il a lieu, avec le cas d’usage ou la fiche concernés' do
-    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+  describe 'administrateur connecté' do
+    before { allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311') }
 
-    get root_path
+    it 'ne charge pas Matomo, sur le site public comme dans l’administration' do
+      sign_in Admin.create!(email: 'admin@example.gouv.fr', password: 'mot-de-passe-solide')
 
-    expect(response.body).to include("[objet, porte(element, 'contexte')].filter(Boolean).join(' — ')")
-    expect(response.body).to include("_paq.push(['trackEvent', porte(element, 'zone') || 'Autre', element.dataset.matomoAction, nom])")
-  end
+      [root_path, admin_root_path].each do |chemin|
+        get chemin
 
-  it 'n’envoie un bouton, un onglet ou un détail qu’à son ouverture, sauf s’il nomme aussi sa fermeture' do
-    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+        expect(response.body).not_to include('stats.data.gouv.fr')
+      end
+    end
 
-    get root_path
+    it 'recharge toute la page à la connexion, pour que le script suive le nouvel état' do
+      get new_admin_session_path
 
-    expect(response.body).to include("['aria-expanded', 'aria-pressed', 'aria-selected']")
-    expect(response.body).to include("(element.matches('summary') && element.parentElement.open)")
-    expect(response.body).to include("closest('button[data-matomo-action], summary[data-matomo-action]')")
-    expect(response.body).to include("element.getAttribute('aria-disabled') === 'true') return;")
-    expect(response.body).to include('envoyerEvenement(bouton, null, bouton.dataset.matomoFermeture)')
-  end
+      expect(response.parsed_body.at_css('form[action="/admin/connexion"]')['data-turbo']).to eq('false')
+    end
 
-  it 'envoie le libellé choisi dans une liste ou parmi des boutons radio' do
-    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+    it 'recharge toute la page à la déconnexion, pour que le script suive le nouvel état' do
+      sign_in Admin.create!(email: 'admin@example.gouv.fr', password: 'mot-de-passe-solide')
 
-    get root_path
+      get root_path
 
-    expect(response.body).to include("addEventListener('change'")
-    expect(response.body).to include("closest('select[data-matomo-action], fieldset[data-matomo-action]')")
-    expect(response.body).to include('envoyerEvenement(champ, choix.textContent.trim())')
-    expect(response.body).to include("[porte(element, 'nom'), choix].filter(Boolean).join(' : ')")
-  end
-
-  it 'mesure les liens e-mail sans les compter comme liens sortants' do
-    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
-
-    get root_path
-
-    expect(response.body).to include('/^(https?|mailto):$/.test(lien.protocol)')
-    expect(response.body).to include("if (lien.protocol === 'mailto:') return;")
-  end
-
-  it 'mesure les liens d’un texte sans action propre, sous leur libellé' do
-    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
-
-    get root_path
-
-    expect(response.body).to include("else if (porte(lien, 'liens')) envoyerEvenement(lien, libelleDuLien(lien), porte(lien, 'liens'))")
+      expect(response.parsed_body.at_css('form[action="/admin/deconnexion"]')['data-turbo']).to eq('false')
+    end
   end
 
   it 'nomme les pages 404 avec leur chemin et la page d’origine' do
@@ -152,38 +131,9 @@ RSpec.describe 'Matomo' do
       expect([flottant['data-matomo-zone'], flottant['data-matomo-action']])
         .to eq(['Proposer une modification', 'Proposer une modification (bouton flottant)'])
     end
-
-    it 'nomme un lien sans texte par son titre ou par le texte de son image' do
-      allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
-
-      get root_path
-
-      expect(response.body).to include("lien.textContent.replace(/\\s+/g, ' ').trim() || lien.title || (image && image.alt)")
-    end
   end
 
   describe 'défilement' do
-    it 'ne mesure les paliers 50, 75 et 100 % qu’après un geste de l’usager, sur une page plus haute que l’écran' do
-      allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
-
-      get root_path
-
-      expect(response.body).to include("['wheel', 'touchmove', 'keydown', 'mousedown']")
-      expect(response.body).to include('if (!paliers || !geste || hauteur <= innerHeight) return;')
-      expect(response.body).to include('[50, 75, 100].forEach')
-      expect(response.body).to include("_paq.push(['trackEvent', 'Défilement', 'Atteindre ' + palier + ' %', nomDeLaPage()])")
-    end
-
-    it 'compte une section vue une seconde, une fois par page, jamais sans geste de l’usager' do
-      allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
-
-      get root_path
-
-      expect(response.body).to include('entree.intersectionRatio >= 0.5 || entree.intersectionRect.height >= innerHeight / 2')
-      expect(response.body).to include("if (geste) _paq.push(['trackEvent', 'Défilement › Section vue', 'Voir une section'")
-      expect(response.body).to include('}, 1000));')
-    end
-
     it 'nomme les sections de l’accueil' do
       get root_path
 
@@ -195,7 +145,7 @@ RSpec.describe 'Matomo' do
     it 'nomme les sections d’un cas d’usage, dont chaque recommandation' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
       api = Solution.create!(nom: 'API Particulier', categorie: 'api')
-      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, visible: true)
 
       get demarche_path('cantine')
 

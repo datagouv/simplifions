@@ -48,10 +48,7 @@ export default class extends Controller {
   }
 
   mesurer(resultat) {
-    const zone = this.element.closest("[data-matomo-zone]")?.dataset.matomoZone
-    const article = this.element.closest("[data-matomo-contexte]")?.dataset.matomoContexte
-    const nom = [resultat, article].filter(Boolean).join(" — ")
-    window._paq?.push(["trackEvent", zone, "Interroger l'API Sirene", nom])
+    this.dispatch("evenement", { prefix: "matomo", detail: { action: "Interroger l'API Sirene", choix: resultat } })
   }
 
   fail(message) {

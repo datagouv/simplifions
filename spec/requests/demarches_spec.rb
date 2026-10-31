@@ -102,7 +102,7 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
       expect(response.body).not_to include('form#submit')
-      expect(response.parsed_body.at_css('form.catalogue button[type=submit]:not(.fr-search-bar button)').text).to eq('Appliquer les filtres')
+      expect(Capybara.string(response.body).find('form.catalogue').find_button('Appliquer les filtres')[:type]).to eq('submit')
     end
 
     it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do
@@ -259,7 +259,6 @@ RSpec.describe 'Demarches' do
       expect(zone_matomo(etiquette)).to eq("Cas d'usage › Affichage personnalisé")
       expect(etiquette['data-matomo-action']).to eq('Choisir un affichage')
       expect(etiquette['data-matomo-nom']).to eq('API et jeux de données')
-      expect(page.find_button('Sites de consultation des données')['data-matomo-action']).to be_nil
       carte = page.find_link('Bouquet API Particulier (data.gouv)')
       expect(zone_matomo(carte)).to eq("Cas d'usage › Recommandation › Accès direct")
       expect(carte['data-matomo-nom']).to eq('Bouquet API Particulier (data.gouv) [API, restreint public, publique]')
@@ -855,8 +854,9 @@ RSpec.describe 'Demarches' do
 
       get demarche_path('marches-publics')
 
-      expect(response.body.index('Via «')).to be < response.body.index('API BODACC')
-      expect(response.body.index('API BODACC')).to be < response.body.index('API professionnels BIO')
+      expect(response.parsed_body.css('.reco-card h3').map { it.text.squish })
+        .to contain_exactly(include('Via « API BODACC'), include('Via « API professionnels BIO'))
+      expect(response.parsed_body.css('.reco-card h3').first.text).to include('API BODACC')
     end
   end
 

@@ -109,7 +109,7 @@ RSpec.describe 'Pages' do
         .to eq(['Accueil › Par public', 'Voir les démarches par public', 'Particuliers'])
       expect(mesure.call(page.find_link('A propos de simplifions.data')))
         .to eq(['Accueil › Présentation', 'Aller à À propos', nil])
-      expect(page.find_link('Comment est rédigé le contenu ?', match: :first)['data-matomo-action'])
+      expect(page.find('main a[href="#redaction-contenu"]')['data-matomo-action'])
         .to eq('Lire comment est rédigé le contenu')
       expect(zone.call(page.find('a[data-matomo-action="Lire la doctrine des solutions"]'))).to eq('Accueil › Rédaction du contenu')
       expect(page.all('a[data-matomo-action="Proposer un contenu"]').size).to eq(1)
