@@ -77,7 +77,7 @@
       <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-success-fill icon-green"></span> Simplification par la donnée grâce à cette solution :</h3>
       <%= render 'contenu', texte: @solution.permet %>
 
-      <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill icon-gray"></span> Périmètre de simplification non couvert :</h3>
+      <h3 class="fr-text--lg fr-mt-2w"><span aria-hidden="true" class="fr-icon-stop-circle-fill fr-text-mention--grey"></span> Périmètre de simplification non couvert :</h3>
       <%= render 'contenu', texte: @solution.ne_permet_pas %>
     <% end %>
   </div>
@@ -121,7 +121,7 @@
   <% end %>
 
   <% if onglets.any? %>
-    <div id="solutions-integratices" class="solutions-integratices-container fr-p-3w fr-mt-8w" data-controller="integratrices">
+    <div id="solutions-integratices" class="solutions-integratices-container fr-background-contrast--grey fr-p-3w fr-mt-8w" data-controller="integratrices">
       <h2 class="fr-h2 article-section__title fr-mb-4w">Solutions intégrant "<%= @solution.nom %>"</h2>
 
       <% if @solution.integratrices_visibles.many? %>
