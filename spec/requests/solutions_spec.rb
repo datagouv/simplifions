@@ -22,6 +22,12 @@ RSpec.describe 'Solutions' do
       expect(response.parsed_body.css('main a[href="/#redaction-contenu"]')).to be_empty
     end
 
+    it 'garde le titre des filtres pour les lecteurs d’écran seulement' do
+      get solutions_path
+
+      expect(response.parsed_body.at_css('h2.fr-sr-only').text).to eq('Filtrer les solutions')
+    end
+
     it 'remplace la liste vide par l’invitation à réinitialiser les filtres' do
       get solutions_path(q: 'zzzz')
 

@@ -21,6 +21,12 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('Brouillon invisible')
     end
 
+    it 'garde le titre des filtres pour les lecteurs d’écran seulement' do
+      get demarches_path
+
+      expect(response.parsed_body.at_css('h2.fr-sr-only').text).to eq("Filtrer les cas d'usages")
+    end
+
     it 'propose une nouvelle démarche, avec la doctrine de référencement' do
       get demarches_path
 
