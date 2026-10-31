@@ -89,6 +89,15 @@ RSpec.describe 'Matomo' do
     expect(response.body).to include("[porte(element, 'nom'), choix].filter(Boolean).join(' : ')")
   end
 
+  it 'mesure les liens e-mail sans les compter comme liens sortants' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include('/^(https?|mailto):$/.test(lien.protocol)')
+    expect(response.body).to include("if (lien.protocol === 'mailto:') return;")
+  end
+
   it 'mesure les liens d’un texte sans action propre, sous leur libellé' do
     allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
 
