@@ -337,6 +337,25 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'ordre d’une API fournie' do
+    before { sign_in admin }
+
+    it 'se saisit sur la page de son intégration, et se vide' do
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'),
+        integree: Solution.create!(nom: 'API QF', categorie: 'api'), type_integration: 'expose', ordre: 2)
+
+      get "/admin/integrations/#{integration.id}/edit"
+      champ = response.parsed_body.at_css('input[type=number][name="integration[ordre]"]')
+      expect(champ['value']).to eq('2')
+      expect(response.body).to include('apparaît haut dans « Données et API fournies » sur la page de la solution')
+
+      patch "/admin/integrations/#{integration.id}", params: { integration: { ordre: '1' } }
+      expect(integration.reload.ordre).to eq(1)
+      patch "/admin/integrations/#{integration.id}", params: { integration: { ordre: '' } }
+      expect(integration.reload.ordre).to be_nil
+    end
+  end
+
   describe 'associations plusieurs-à-plusieurs' do
     before { sign_in admin }
 

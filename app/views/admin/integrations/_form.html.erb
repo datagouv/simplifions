@@ -8,6 +8,7 @@
   <% end %>
   <%= f.dsfr_select :type_integration, options_traduites(Integration, :type_integration) %>
   <%= f.dsfr_select :statut, Integration::STATUTS %>
+  <%= f.dsfr_number_field :ordre %>
   <% demarches = integration.demarches_proposees.order(:nom).load %>
   <% autorisees = integration.demarches_autorisees.ids %>
   <% if demarches.any? %>
