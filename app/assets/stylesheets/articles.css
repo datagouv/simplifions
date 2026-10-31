@@ -176,7 +176,7 @@
   display: block;
   border: 1px solid var(--border-default-grey);
   border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--raised-shadow);
 }
 
 .caption-grey {
@@ -373,19 +373,19 @@
 }
 
 .header-topic {
-  background-color: rgba(209, 221, 244, 0.5);
-  color: #465f9d;
+  background-color: var(--background-contrast-blue-cumulus);
+  color: var(--text-label-blue-cumulus);
   padding: 16px;
   gap: 10px;
   min-height: 60px;
 }
 
 .demarche-card:hover .header-topic {
-  background-color: rgba(188, 199, 219, 0.5);
+  background-color: var(--background-contrast-blue-cumulus-hover);
 }
 
 .title-topic {
-  color: #465f9d;
+  color: var(--text-label-blue-cumulus);
   font-size: 18px;
   font-weight: 800;
   line-height: 27px;
