@@ -18,6 +18,7 @@ export default class extends Controller {
     const siret = this.inputTarget.value.trim()
     if (!/^\d{14}$/.test(siret)) {
       this.fail("Le numéro SIRET doit contenir exactement 14 chiffres.")
+      this.mesurer("SIRET invalide")
       return
     }
 
@@ -32,15 +33,25 @@ export default class extends Controller {
       const data = await response.json()
       if (!data.results?.length) {
         this.fail("Aucune entreprise trouvée pour ce numéro SIRET.")
+        this.mesurer("Aucune entreprise trouvée")
         return
       }
       this.display(data.results[0], siret)
+      this.mesurer("Entreprise trouvée")
     } catch {
       this.fail("Une erreur est survenue lors de la requête. Vérifiez le numéro et réessayez.")
+      this.mesurer("Erreur de l'API")
     } finally {
       this.loadingTarget.hidden = true
       this.buttonTarget.disabled = false
     }
+  }
+
+  mesurer(resultat) {
+    const zone = this.element.closest("[data-matomo-zone]")?.dataset.matomoZone
+    const article = this.element.closest("[data-matomo-contexte]")?.dataset.matomoContexte
+    const nom = [resultat, article].filter(Boolean).join(" — ")
+    window._paq?.push(["trackEvent", zone, "Interroger l'API Sirene", nom])
   }
 
   fail(message) {

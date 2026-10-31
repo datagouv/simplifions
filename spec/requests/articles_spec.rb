@@ -15,6 +15,19 @@ RSpec.describe 'Articles' do
       expect(response.body).to match(%r{<button[^>]*class="fr-tag"[^>]*disabled[^>]*>Jeux de données \(0\)</button>})
     end
 
+    it 'prépare pour Matomo le choix et le retrait d’un mot-clef, et l’ouverture d’un article' do
+      get articles_path(keywords: 'Guide de base')
+      page = Capybara.string(response.body)
+
+      expect(page.find('.fr-container[data-matomo-zone]')['data-matomo-zone']).to eq('Articles › Liste')
+      retrait = page.find('a.fr-tag[aria-pressed="true"]')
+      expect([retrait['data-matomo-action'], retrait['data-matomo-nom']]).to eq(['Retirer un mot-clé', 'Guide de base'])
+      expect(page.first('a.fr-tag[aria-pressed="false"]')['data-matomo-action']).to eq('Filtrer par mot-clé')
+      carte = page.find_link('Guide de base pour les petites collectivités')
+      expect([carte['data-matomo-action'], carte['data-matomo-nom']])
+        .to eq(['Ouvrir un article', 'Guide de base pour les petites collectivités'])
+    end
+
     it 'filtre par mot-clef' do
       get articles_path(keywords: 'Guide de base')
       expect(response.body).to include('Guide de base pour les petites collectivités')
@@ -98,6 +111,27 @@ RSpec.describe 'Articles' do
       expect(carrousel.css('.carousel-track')).to be_present
       expect(carrousel.css('[data-carousel-target="nav"].fr-hidden')).to be_present
       expect(carrousel.css('button').map(&:text).map(&:strip)).to eq(%w[Précédent Suivant])
+    end
+
+    it 'prépare pour Matomo le sommaire, les liens du texte, « Lire aussi » et les mentions de l’article' do
+      Solution.create!(nom: 'Bouquet API Entreprise', slug: 'bouquet-api-entreprise', visible: true)
+
+      get article_path('qu-est-ce-qu-une-api')
+      page = Capybara.string(response.body)
+      article = page.find('.article-page')
+
+      expect([article['data-matomo-zone'], article['data-matomo-contexte']])
+        .to eq(['Article › Contenu', Article.find('qu-est-ce-qu-une-api').h1])
+      sommaire = page.find('nav.article-toc')
+      expect(sommaire['data-matomo-zone']).to eq('Article › Sommaire')
+      expect(sommaire.find('button')['data-matomo-action']).to eq('Ouvrir le sommaire')
+      expect(sommaire.all('a').pluck('data-matomo-action').uniq).to eq(['Aller à une section'])
+      expect(page.find('.article-content')['data-matomo-liens']).to eq("Ouvrir un lien de l'article")
+      expect(page.find('.fr-callout a', text: 'interlocuteurs', match: :first)['data-matomo-action']).to eq('Lire aussi')
+      mentions = page.find('[data-controller="carousel"]')
+      expect(mentions['data-matomo-zone']).to eq('Article › Mentions')
+      expect(mentions.all('button').pluck('data-matomo-action'))
+        .to eq(['Voir la mention précédente', 'Voir la mention suivante'])
     end
 
     it 'réserve au démonstrateur Sirene une annonce vide au chargement, pour le lecteur d’écran' do

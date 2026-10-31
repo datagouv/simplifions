@@ -89,6 +89,14 @@ RSpec.describe 'Matomo' do
     expect(response.body).to include("[porte(element, 'nom'), choix].filter(Boolean).join(' : ')")
   end
 
+  it 'mesure les liens d’un texte sans action propre, sous leur libellé' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    expect(response.body).to include("else if (porte(lien, 'liens')) envoyerEvenement(lien, lien.textContent.replace(/\\s+/g, ' ').trim(), porte(lien, 'liens'))")
+  end
+
   it 'nomme les pages 404 avec leur chemin et la page d’origine' do
     allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
 

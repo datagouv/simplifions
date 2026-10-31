@@ -76,7 +76,8 @@
           function mesurerClic(event) {
             var lien = event.target.closest && event.target.closest('a[href]');
             if (!lien || !/^https?:$/.test(lien.protocol)) return;
-            envoyerEvenement(lien);
+            if (lien.dataset.matomoAction) envoyerEvenement(lien);
+            else if (porte(lien, 'liens')) envoyerEvenement(lien, lien.textContent.replace(/\s+/g, ' ').trim(), porte(lien, 'liens'));
             if (/\.(pdf|csv|xlsx?|docx?|odt|ods|zip)$/i.test(lien.pathname)) {
               _paq.push(['trackLink', lien.href, 'download']);
             } else if (lien.host !== location.host) {
