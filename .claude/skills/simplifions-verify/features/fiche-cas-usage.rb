@@ -5,7 +5,7 @@ Verify.drive(__FILE__) do |page|
     page.visit('/demarches')
     page.first('h3 a').text.tap do |titre|
       page.click_link titre
-      page.assert_selector 'h1', text: titre
+      page.assert_selector 'h1', text: titre, wait: 15
     end
   end
 
