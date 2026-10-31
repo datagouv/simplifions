@@ -7,6 +7,14 @@ FLECHE = <<~JS.freeze
   })()
 JS
 
+IMAGE_EXEMPLE = <<~JS.freeze
+  (() => {
+    const cadre = getComputedStyle(document.querySelector('.example-image'))
+    const image = getComputedStyle(document.querySelector('.example-image img'))
+    return [image.borderTopLeftRadius, cadre.borderTopWidth, cadre.borderTopColor, cadre.boxShadow !== 'none']
+  })()
+JS
+
 def onglets_attendus(solution)
   solution.integratrices_par_categorie
     .map { |categorie, solutions| "#{I18n.t("public.onglets_integratrices.#{categorie}")} (#{solutions.size})" }
@@ -18,6 +26,17 @@ def fleche_de_carte(page)
   raise "flèche #{style}" unless style == ['absolute', 'rgb(0, 0, 145)']
 
   Verify.evidence('fiche-solution', page, 'fleche-carte', "position=#{style.first} couleur=#{style.last}")
+end
+
+def image_exemple(page)
+  solution = Solution.visibles.where.not(slug: nil).joins(:image_attachment).order(:slug).first
+  page.visit("/solutions/#{solution.slug}")
+  page.assert_selector '.example-image img'
+  style = page.evaluate_script(IMAGE_EXEMPLE)
+  raise "image #{style}" unless style == ['0px', '4px', 'rgb(0, 0, 0)', true]
+
+  page.scroll_to(page.find('figure.fr-content-media'), align: :center)
+  Verify.evidence('fiche-solution', page, 'image-exemple', "slug=#{solution.slug} coin, cadre, couleur, ombre=#{style}")
 end
 
 Verify.drive(__FILE__) do |page|
@@ -40,5 +59,6 @@ Verify.drive(__FILE__) do |page|
   end
 
   Verify.check('Card arrow') { fleche_de_carte(page) }
-  Verify.check('Proof') { Verify.captures_presentes('fiche-solution', %w[dernier-onglet fleche-carte]) }
+  Verify.check('Example image') { image_exemple(page) }
+  Verify.check('Proof') { Verify.captures_presentes('fiche-solution', %w[dernier-onglet fleche-carte image-exemple]) }
 end
