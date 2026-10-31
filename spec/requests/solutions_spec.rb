@@ -121,6 +121,28 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('#donnees-api-fournies')
     end
 
+    def zone_matomo(element) = element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']
+
+    it 'prépare pour Matomo chaque geste de la fiche, rangé dans sa zone' do
+      page = Capybara.string(response.body)
+
+      expect(page.find('.solution-page')['data-matomo-contexte']).to eq('Bouquet API Particulier')
+      site = page.find_link('Site de la solution')
+      expect([zone_matomo(site), site['data-matomo-action'], site['data-matomo-nom']])
+        .to eq(['Solution › En-tête', 'Ouvrir le site de la solution', 'Bouquet API Particulier [API, publique]'])
+      expect(page.find_link('Demande d’accès')['data-matomo-action']).to eq('Demander un accès')
+      cas_usage = page.find_link('🥣 Tarification cantine scolaire à 1€')
+      expect([zone_matomo(cas_usage), cas_usage['data-matomo-action'], cas_usage['data-matomo-nom']])
+        .to eq(["Solution › Cas d'usages simplifiables", "Ouvrir un cas d'usage", 'Tarification cantine scolaire à 1€'])
+      expect(page.all('#solutions-integratices select').pluck('data-matomo-action'))
+        .to eq(["Filtrer par cas d'usage", 'Filtrer par nombre de données intégrées', 'Trier les solutions'])
+      onglet = page.first('#solutions-integratices [role="tab"]')
+      expect([zone_matomo(onglet), onglet['data-matomo-action']]).to eq(['Solution › Intégratrices', 'Afficher un onglet'])
+      infobulle = page.find('.cas-usage-card', text: 'Tarification', match: :first).find('button')
+      expect([infobulle['data-matomo-action'], infobulle['data-matomo-nom']])
+        .to eq(["Afficher l'infobulle d'intégration", 'Acheteza : Tarification cantine scolaire à 1€ [Logiciel métier, privée]'])
+    end
+
     it 'garde un bouton « Proposer une modification » toujours visible, sans liens éparpillés' do
       bouton = response.parsed_body.at_css('a.bouton-proposer-modification')
       expect(bouton['target']).to eq('_blank')
@@ -182,7 +204,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Solution privée')
       expect(response.body).to include('Dites-le-nous une fois')
       expect(response.body).to match(%r{Type de solution :</p>\s*<p[^>]*>Profil acheteur ou Portail agent</p>})
-      expect(response.body).to match(%r{1/1</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)">API ou jeux de données intégrés</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">1</span> API et jeux de données « Bouquet API Particulier » sur les 1 utiles pour ce cas d&#39;usage ont été intégrés par cette solution\.</span>})
+      expect(response.body).to match(%r{1/1</span>\s*<button type="button" class="[^"]*integration-indicator__label" aria-describedby="(integration-indicator-\h+)"[^>]*>API ou jeux de données intégrés</button>\s*<span class="fr-tooltip fr-placement[^"]*" id="\1" role="tooltip" aria-hidden="true"><span class="[^"]*indicator--green">1</span> API et jeux de données « Bouquet API Particulier » sur les 1 utiles pour ce cas d&#39;usage ont été intégrés par cette solution\.</span>})
       expect(response.body).not_to include('Portail en cours')
       expect(response.body).not_to include('Hub sans catégorie')
       expect(response.body).to include('Trier par')

@@ -41,12 +41,14 @@
         </li>
       </ul>
 
-      <ul class="solution-links fr-btns-group fr-btns-group--inline fr-my-4w">
+      <ul class="solution-links fr-btns-group fr-btns-group--inline fr-my-4w" <%= tag.attributes(data: matomo_zone("Solution › En-tête")) %>>
         <% if @solution.site_internet %>
-          <li><%= link_to "Site de la solution", @solution.site_internet, class: "fr-btn fr-btn--secondary", rel: "noopener noreferrer", target: "_blank" %></li>
+          <li><%= link_to "Site de la solution", @solution.site_internet, class: "fr-btn fr-btn--secondary", rel: "noopener noreferrer", target: "_blank",
+                data: matomo_evenement("Ouvrir le site de la solution", @solution.nom, @solution) %></li>
         <% end %>
         <% if @solution.url_demande_acces %>
-          <li><%= link_to "Demande d’accès", @solution.url_demande_acces, class: "fr-btn", rel: "noopener noreferrer", target: "_blank" %></li>
+          <li><%= link_to "Demande d’accès", @solution.url_demande_acces, class: "fr-btn", rel: "noopener noreferrer", target: "_blank",
+                data: matomo_evenement("Demander un accès", @solution.nom, @solution) %></li>
         <% end %>
       </ul>
       <% unless @solution.site_internet %>
@@ -84,13 +86,14 @@
 
   <%= render ArticleSectionComponent.new(id: 'cas-usages-simplifiables', label: "Cas d'usages simplifiables") do %>
     <% if demarches.any? %>
-      <div class="fr-grid-row fr-grid-row--gutters">
+      <div class="fr-grid-row fr-grid-row--gutters" <%= tag.attributes(data: matomo_zone("Solution › Cas d'usages simplifiables")) %>>
         <% demarches.each do |demarche| %>
           <div class="fr-col-12 fr-col-md-6 fr-col-lg-4 fr-mb-3w">
             <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
               <div class="fr-tile__body">
                 <div class="fr-tile__content">
-                  <h3 class="fr-tile__title"><%= link_to demarche.titre, demarche_path(demarche.slug) %></h3>
+                  <h3 class="fr-tile__title"><%= link_to demarche.titre, demarche_path(demarche.slug),
+                        data: { matomo_action: "Ouvrir un cas d'usage", matomo_nom: demarche.nom } %></h3>
                   <p class="fr-tile__detail"><%= demarche.description_courte %></p>
                 </div>
               </div>
@@ -131,7 +134,8 @@
             <div class="fr-col-12 fr-col-md-6">
               <div class="fr-select-group">
                 <label for="filtre-cas-usage" class="fr-label">Cas d'usage :</label>
-                <select id="filtre-cas-usage" class="fr-select" data-integratrices-target="casUsage" data-action="integratrices#filter">
+                <select id="filtre-cas-usage" class="fr-select" data-integratrices-target="casUsage" data-action="integratrices#filter"
+                  data-matomo-action="Filtrer par cas d'usage">
                   <option value="">Tous les cas d'usages</option>
                   <% couvertures.values.flat_map(&:keys).uniq.sort_by(&:nom).each do |demarche| %>
                     <option value="<%= demarche.id %>"><%= demarche.nom %></option>
@@ -142,7 +146,8 @@
             <div class="fr-col-12 fr-col-md-6">
               <div class="fr-select-group">
                 <label for="filtre-nb-apis" class="fr-label">API ou jeux de données intégrés :</label>
-                <select id="filtre-nb-apis" class="fr-select" data-integratrices-target="nbApis" data-action="integratrices#filter">
+                <select id="filtre-nb-apis" class="fr-select" data-integratrices-target="nbApis" data-action="integratrices#filter"
+                  data-matomo-action="Filtrer par nombre de données intégrées">
                   <option value="0">Tous</option>
                   <% (1..onglets.values.flatten.filter_map { |sol| nb_apis[sol.id] }.max.to_i).each do |nombre| %>
                     <option value="<%= nombre %>">Au moins <%= nombre %></option>
@@ -160,7 +165,8 @@
           <div class="fr-col-auto fr-grid-row fr-grid-row--middle fr-ml-auto">
             <div class="fr-select-group fr-grid-row fr-grid-row--middle">
               <label for="tri-integratrices" class="fr-label fr-col-auto fr-m-0 fr-mr-1w">Trier par :</label>
-              <select id="tri-integratrices" class="fr-select fr-col" data-integratrices-target="tri" data-action="integratrices#filter">
+              <select id="tri-integratrices" class="fr-select fr-col" data-integratrices-target="tri" data-action="integratrices#filter"
+                data-matomo-action="Trier les solutions">
                 <option value="integration">Le plus de données intégrées</option>
                 <option value="titre">Titre</option>
               </select>
@@ -180,7 +186,8 @@
             <li role="presentation">
               <button type="button" id="tab-<%= categorie.dasherize %>" class="fr-tabs__tab" tabindex="<%= index.zero? ? 0 : -1 %>" role="tab"
                 aria-selected="<%= index.zero? %>" aria-controls="tab-content-<%= categorie.dasherize %>"
-                data-integratrices-target="onglet" data-libelle="<%= label %>"><%= label %> (<%= solutions.size %>)</button>
+                data-integratrices-target="onglet" data-libelle="<%= label %>"
+                data-matomo-action="Afficher un onglet" data-matomo-nom="<%= label %>"><%= label %> (<%= solutions.size %>)</button>
             </li>
           <% end %>
         </ul>
