@@ -161,4 +161,46 @@ RSpec.describe 'Matomo' do
       expect(response.body).to include("lien.textContent.replace(/\\s+/g, ' ').trim() || lien.title || (image && image.alt)")
     end
   end
+
+  describe 'défilement' do
+    it 'ne mesure les paliers 50, 75 et 100 % qu’après un geste de l’usager, sur une page plus haute que l’écran' do
+      allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+      get root_path
+
+      expect(response.body).to include("['wheel', 'touchmove', 'keydown', 'mousedown']")
+      expect(response.body).to include('if (!paliers || !geste || hauteur <= innerHeight) return;')
+      expect(response.body).to include('[50, 75, 100].forEach')
+      expect(response.body).to include("_paq.push(['trackEvent', 'Défilement', 'Atteindre ' + palier + ' %', nomDeLaPage()])")
+    end
+
+    it 'compte une section vue une seconde, une fois par page, jamais sans geste de l’usager' do
+      allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+      get root_path
+
+      expect(response.body).to include('entree.intersectionRatio >= 0.5 || entree.intersectionRect.height >= innerHeight / 2')
+      expect(response.body).to include("if (geste) _paq.push(['trackEvent', 'Défilement › Section vue', 'Voir une section'")
+      expect(response.body).to include('}, 1000));')
+    end
+
+    it 'nomme les sections de l’accueil' do
+      get root_path
+
+      expect(response.parsed_body.css('[data-matomo-section]').pluck('data-matomo-section'))
+        .to eq(['Explorer le catalogue', 'Par public', 'Comment simplifions.data peut vous aider',
+                'Comment est rédigé le contenu', 'Appel final'])
+    end
+
+    it 'nomme les sections d’un cas d’usage, dont chaque recommandation' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+      api = Solution.create!(nom: 'API Particulier', categorie: 'api')
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
+
+      get demarche_path('cantine')
+
+      expect(response.parsed_body.css('[data-matomo-section]').pluck('data-matomo-section'))
+        .to include('Contexte et cadre juridique', 'Recommandation « API Particulier »')
+    end
+  end
 end

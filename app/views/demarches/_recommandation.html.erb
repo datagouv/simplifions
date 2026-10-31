@@ -9,7 +9,8 @@
    accordeons = { 'brique_logicielle' => %w[fr-icon-code-box-fill api],
                   'logiciel_metier_cle_en_main' => %w[fr-icon-mac-fill logiciels],
                   'site_de_consultation' => %w[fr-icon-seo-fill sites] } %>
-<div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>" <%= tag.attributes(data: matomo_zone("Cas d'usage › Recommandation")) %>>
+<div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>"
+  <%= tag.attributes(data: matomo_zone("Cas d'usage › Recommandation").merge(matomo_section: "Recommandation « #{cible.nom} »")) %>>
   <h3 class="fr-h4 fr-mb-2w">
     <span class="fr-text--alt"><em>Via «</em></span>
     <%= cible.nom %>

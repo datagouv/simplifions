@@ -112,6 +112,56 @@
           });
         })();
         (function() {
+          var paliers, vues, minuteurs, observateur, geste, attente;
+          function nomDeLaPage() {
+            var page = document.querySelector('main[data-matomo-zone]');
+            return page ? page.dataset.matomoZone.replace('Page › ', '') : document.title;
+          }
+          ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(function(type) {
+            addEventListener(type, function() { geste = true; }, { capture: true, passive: true });
+          });
+          function mesurerPaliers() {
+            attente = false;
+            var hauteur = document.documentElement.scrollHeight;
+            if (!paliers || !geste || hauteur <= innerHeight) return;
+            var vu = (scrollY + innerHeight) / hauteur * 100;
+            [50, 75, 100].forEach(function(palier) {
+              if (vu >= palier - 1 && paliers.indexOf(palier) < 0) {
+                paliers.push(palier);
+                _paq.push(['trackEvent', 'Défilement', 'Atteindre ' + palier + ' %', nomDeLaPage()]);
+              }
+            });
+          }
+          addEventListener('scroll', function() {
+            if (attente) return;
+            attente = true;
+            requestAnimationFrame(mesurerPaliers);
+          }, { passive: true });
+          function suivreSection(entree) {
+            var section = entree.target;
+            var visible = entree.intersectionRatio >= 0.5 || entree.intersectionRect.height >= innerHeight / 2;
+            clearTimeout(minuteurs.get(section));
+            if (!visible || vues.has(section)) return;
+            minuteurs.set(section, setTimeout(function() {
+              vues.add(section);
+              if (geste) _paq.push(['trackEvent', 'Défilement › Section vue', 'Voir une section', nomDeLaPage() + ' : ' + section.dataset.matomoSection]);
+            }, 1000));
+          }
+          addEventListener('turbo:load', function() {
+            if (observateur) observateur.disconnect();
+            if (minuteurs) minuteurs.forEach(clearTimeout);
+            paliers = [];
+            vues = new Set();
+            minuteurs = new Map();
+            geste = false;
+            if (!('IntersectionObserver' in window)) return;
+            var seuils = [];
+            for (var i = 0; i <= 20; i++) seuils.push(i / 20);
+            observateur = new IntersectionObserver(function(entrees) { entrees.forEach(suivreSection); }, { threshold: seuils });
+            document.querySelectorAll('[data-matomo-section]').forEach(function(section) { observateur.observe(section); });
+          });
+        })();
+        (function() {
           var u = "https://stats.data.gouv.fr/";
           _paq.push(['setTrackerUrl', u + 'matomo.php']);
           _paq.push(['setSiteId', '<%= j ENV["MATOMO_SITE_ID"] %>']);

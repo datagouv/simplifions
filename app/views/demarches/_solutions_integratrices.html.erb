@@ -26,7 +26,7 @@
   <% par_categorie.each do |categorie, solutions| %>
     <% filtre, icone = filtres.fetch(categorie)
        titre = t("public.solutions_integratrices.#{categorie}.titre") %>
-    <section class="fr-mb-4w" data-filtre="<%= filtre %>" data-controller="section-depliable"
+    <section class="fr-mb-4w" data-filtre="<%= filtre %>" data-controller="section-depliable" data-matomo-section="<%= titre %>"
       data-action="affichage-personnalise:deplier->section-depliable#appliquer">
       <h3 class="fr-h5 fr-mb-1w">
         <button type="button" class="section-depliable__bouton" aria-expanded="true"
