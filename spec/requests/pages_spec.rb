@@ -95,6 +95,28 @@ RSpec.describe 'Pages' do
     end
   end
 
+  describe 'mesure Matomo de la page d’accueil' do
+    it 'range chaque geste de l’accueil dans sa zone' do
+      get root_path
+      page = Capybara.string(response.body)
+      zone = ->(element) { element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone'] }
+      mesure = ->(element) { [zone.call(element), element['data-matomo-action'], element['data-matomo-nom']] }
+
+      expect(mesure.call(page.find('select#select-target-users'))).to eq(['Accueil › Explorer le catalogue', 'Choisir un public', nil])
+      expect(page.find('select#select-fournisseurs')['data-matomo-action']).to eq("Choisir un type d'acteur")
+      expect(page.find('form.explorateur button')['data-matomo-action']).to eq('Explorer les démarches')
+      expect(mesure.call(page.find_link('👱 Particuliers')))
+        .to eq(['Accueil › Par public', 'Voir les démarches par public', 'Particuliers'])
+      expect(mesure.call(page.find_link('A propos de simplifions.data')))
+        .to eq(['Accueil › Présentation', 'Aller à À propos', nil])
+      expect(page.find_link('Comment est rédigé le contenu ?', match: :first)['data-matomo-action'])
+        .to eq('Lire comment est rédigé le contenu')
+      expect(zone.call(page.find('a[data-matomo-action="Lire la doctrine des solutions"]'))).to eq('Accueil › Rédaction du contenu')
+      expect(page.all('a[data-matomo-action="Proposer un contenu"]').size).to eq(1)
+      expect(zone.call(page.find('a[data-matomo-action="Explorer le catalogue"]'))).to eq('Accueil › Appel final')
+    end
+  end
+
   describe 'explorateur de la page d’accueil' do
     it 'envoie vers /demarches avec les facettes du site' do
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
@@ -102,12 +124,12 @@ RSpec.describe 'Pages' do
       get root_path
 
       expect(response.body).to include('<form class="explorateur" action="/demarches" accept-charset="UTF-8" method="get">')
-      expect(response.body).to include('<select class="fr-select" id="select-target-users" name="target-users">')
+      expect(response.parsed_body.at_css('select#select-target-users')['name']).to eq('target-users')
       expect(response.body).to include('<option value="">particuliers, entreprises, associations</option>')
       expect(response.body).to include('<option value="particuliers">Particuliers</option>')
-      expect(response.body).to include('<select class="fr-select" id="select-fournisseurs" name="fournisseurs-de-service">')
+      expect(response.parsed_body.at_css('select#select-fournisseurs')['name']).to eq('fournisseurs-de-service')
       expect(response.body).to include('<option value="communes">Communes et groupements de communes</option>')
-      expect(response.body).to include('<button type="submit" class="fr-btn fr-btn--icon-right fr-icon-search-line">')
+      expect(response.parsed_body.at_css('form.explorateur button[type=submit]').text.squish).to eq('Explorer les démarches référencées')
       expect(response.body).not_to include('href="#" class="fr-btn fr-btn--icon-right fr-icon-search-line"')
     end
   end

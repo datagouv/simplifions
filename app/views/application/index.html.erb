@@ -29,12 +29,13 @@
     </div>
 
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
-      <div class="fr-col-12 fr-col-md-4 fr-col-lg-3">
+      <div class="fr-col-12 fr-col-md-4 fr-col-lg-3" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Filtres")) %>>
         <p class="fr-text--sm fr-text--bold fr-mb-2w">Type</p>
-        <ul class="catalogue-types list-none fr-p-0 fr-mb-4w">
+        <ul class="catalogue-types list-none fr-p-0 fr-mb-4w" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Type")) %>>
           <% types.each do |klass, (nom, _, chemin_type)| %>
             <li class="<%= 'catalogue-types__actif' if klass == @catalogue.klass %>">
-              <%= link_to send(chemin_type, requete), class: "fr-grid-row fr-grid-row--middle fr-text--sm fr-p-1v" do %>
+              <%= link_to send(chemin_type, requete), class: "fr-grid-row fr-grid-row--middle fr-text--sm fr-p-1v",
+                    data: { matomo_action: "Changer de catalogue", matomo_nom: nom } do %>
                 <span class="fr-icon-book-2-line fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
                 <span class="fr-col"><%= nom %></span>
                 <span class="fr-badge fr-badge--sm fr-badge--no-icon"><%= klass == @catalogue.klass ? total : klass.catalogue(@filtres).count %></span>
@@ -47,10 +48,11 @@
         <% facettes.each do |nom, label, tous, options| %>
           <div class="fr-select-group">
             <%= f.label nom, label, class: "fr-label" %>
-            <%= f.select nom, options, { include_blank: tous, selected: @filtres[nom] }, class: "fr-select" %>
+            <%= f.select nom, options, { include_blank: tous, selected: @filtres[nom] }, class: "fr-select",
+                  data: { matomo_action: "Choisir un filtre", matomo_nom: label.delete_suffix(" :") } %>
           </div>
         <% end %>
-        <%= f.submit "Appliquer les filtres", name: nil, class: "fr-btn fr-btn--secondary" %>
+        <%= f.button "Appliquer les filtres", name: nil, class: "fr-btn fr-btn--secondary", data: { matomo_action: "Appliquer les filtres" } %>
       </div>
 
       <section id="list" class="fr-col-12 fr-col-md-8 fr-col-lg-9" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Résultats")) %>>
@@ -60,7 +62,8 @@
             <div class="fr-col">
               <p class="fr-text--bold fr-mb-1w">Vous n'avez pas trouvé ce que vous cherchez ?</p>
               <p class="fr-mb-2w">Essayez de réinitialiser les filtres pour élargir votre recherche.</p>
-              <%= link_to "Réinitialiser les filtres", send(chemin), class: "fr-btn fr-btn--secondary fr-btn--sm" %>
+              <%= link_to "Réinitialiser les filtres", send(chemin), class: "fr-btn fr-btn--secondary fr-btn--sm",
+                    data: { matomo_action: "Réinitialiser les filtres" } %>
             </div>
           </div>
         <% else %>
@@ -69,7 +72,7 @@
             <div class="fr-col-auto fr-grid-row fr-grid-row--middle">
               <%= f.label :sort, "Trier par :", class: "fr-col-auto fr-text--sm fr-m-0 fr-mr-1w" %>
               <%= f.select :sort, [["Pertinence", ""], ["Date de création", "-created"], ["Dernière mise à jour", "-last_modified"]],
-                    { selected: @filtres[:sort] }, class: "fr-select fr-col" %>
+                    { selected: @filtres[:sort] }, class: "fr-select fr-col", data: { matomo_action: "Trier les résultats" } %>
             </div>
           </div>
 
@@ -86,15 +89,17 @@
 </section>
 
 <% if @catalogue.klass == Demarche %>
-  <section class="fond-beige-gris-galet" aria-labelledby="titre-proposer-demarche">
+  <section class="fond-beige-gris-galet" aria-labelledby="titre-proposer-demarche"
+    <%= tag.attributes(data: matomo_zone("Catalogue cas d'usages › Proposer")) %>>
     <div class="fr-container fr-py-3w">
       <h2 id="titre-proposer-demarche" class="fr-h4">✒️ Proposer une nouvelle démarche</h2>
       <p>
         Une démarche manque ? Écrivez-nous pour
-        <%= lien_nouvel_onglet "proposer une nouvelle démarche", contact_path("nouveau-cas-usage") %>.
+        <%= lien_nouvel_onglet "proposer une nouvelle démarche", contact_path("nouveau-cas-usage"),
+            data: { matomo_action: "Proposer une nouvelle démarche" } %>.
       </p>
       <%= link_to "Doctrine de référencement des démarches", doctrine_referencement_cas_usages_path,
-            class: "fr-link fr-icon-arrow-right-line fr-link--icon-right" %>
+            class: "fr-link fr-icon-arrow-right-line fr-link--icon-right", data: { matomo_action: "Lire la doctrine" } %>
     </div>
   </section>
 <% end %>

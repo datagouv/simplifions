@@ -1,4 +1,4 @@
-<section class="banner">
+<section class="banner" <%= tag.attributes(data: matomo_zone("Accueil › Explorer le catalogue")) %>>
   <div class="fr-container fr-py-4w">
     <h1 class="title fr-mb-2w fr-text--regular">
       Le catalogue des données<br>accessibles aux acteurs publics<br>
@@ -28,19 +28,21 @@
                 <div class="fr-select-group">
                   <%= f.label "target-users", "Démarches à destination des :", class: "fr-label", for: "select-target-users" %>
                   <%= f.select "target-users", Vocabulaire.categorie_usager.choix,
-                        { include_blank: "particuliers, entreprises, associations" }, class: "fr-select", id: "select-target-users" %>
+                        { include_blank: "particuliers, entreprises, associations" }, class: "fr-select", id: "select-target-users",
+                        data: { matomo_action: "Choisir un public" } %>
                 </div>
               </div>
               <div class="fr-col-12 fr-col-md-6">
                 <div class="fr-select-group">
                   <%= f.label "fournisseurs-de-service", "Démarches gérées par :", class: "fr-label", for: "select-fournisseurs" %>
                   <%= f.select "fournisseurs-de-service", TypeActeur::FILTRES.to_a,
-                        { include_blank: "tous les types d'acteurs publics" }, class: "fr-select", id: "select-fournisseurs" %>
+                        { include_blank: "tous les types d'acteurs publics" }, class: "fr-select", id: "select-fournisseurs",
+                        data: { matomo_action: "Choisir un type d'acteur" } %>
                 </div>
               </div>
             </div>
             <div class="fr-grid-row fr-grid-row--center">
-              <button type="submit" class="fr-btn fr-btn--icon-right fr-icon-search-line">
+              <button type="submit" class="fr-btn fr-btn--icon-right fr-icon-search-line" data-matomo-action="Explorer les démarches">
                 Explorer les démarches référencées
               </button>
             </div>
@@ -51,7 +53,7 @@
   </div>
 </section>
 
-<section>
+<section data-matomo-zone="Accueil › Par public">
   <div class="fr-grid-row">
     <div class="fr-col-12 fr-col-md-6 double-section__col-left" style="background-color: var(--background-alt-beige-gris-galet)">
       <div class="fr-py-6w fr-px-10w">
@@ -69,7 +71,7 @@
               <div class="fr-tile__body">
                 <div class="fr-tile__content">
                   <h3 class="fr-tile__title">
-                    <a href="<%= demarches_path('target-users' => slug) %>"><%= emoji %> <%= title %></a>
+                    <a href="<%= demarches_path('target-users' => slug) %>" data-matomo-action="Voir les démarches par public" data-matomo-nom="<%= title %>"><%= emoji %> <%= title %></a>
                   </h3>
                   <p class="fr-tile__desc"><%= description %></p>
                 </div>
@@ -79,7 +81,8 @@
         <% end %>
       </div>
     </div>
-    <div class="fr-col-12 fr-col-md-6 double-section__col-right" style="background-color: var(--background-default-grey)">
+    <div class="fr-col-12 fr-col-md-6 double-section__col-right" style="background-color: var(--background-default-grey)"
+      data-matomo-zone="Accueil › Présentation">
       <div class="fr-py-6w fr-px-10w double-section__col-right--intro">
         <div>
           <h2 class="fr-h3 fr-mb-3w font-light">
@@ -100,12 +103,14 @@
         </div>
         <div class="fr-mb-12w">
           <div class="fr-mb-2w">
-            <a href="#redaction-contenu" class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-down-line fr-text--lg">
+            <a href="#redaction-contenu" class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-down-line fr-text--lg"
+              data-matomo-action="Lire comment est rédigé le contenu">
               Comment est rédigé le contenu&nbsp;?
             </a>
           </div>
           <div>
-            <a href="<%= about_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line fr-text--lg">
+            <a href="<%= about_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line fr-text--lg"
+              data-matomo-action="Aller à À propos">
               A propos de simplifions.data
             </a>
           </div>
@@ -182,7 +187,7 @@
   </div>
 </section>
 
-<section id="redaction-contenu">
+<section id="redaction-contenu" data-matomo-zone="Accueil › Rédaction du contenu">
   <div class="fr-grid-row">
     <div class="fr-col-12 fr-col-md-6 double-section__col-left" style="background-color: var(--background-alt-blue-france)">
       <div class="fr-py-6w fr-px-10w">
@@ -233,7 +238,7 @@
             Proposez l'ajout d'une démarche, d'une solution ou la correction
             d'un contenu : nous vous indiquons les informations à nous transmettre.
           </p>
-          <a href="<%= contact_path("contenu") %>"
+          <a href="<%= contact_path("contenu") %>" data-matomo-action="Proposer un contenu"
             class="fr-btn fr-btn--primary fr-btn--icon-right fr-icon-arrow-right-line">
             Proposer une modification
           </a>
@@ -246,12 +251,14 @@
             référencés dans <i>Simplifions.data</i> :
           </p>
           <div class="fr-mb-2w">
-            <a href="<%= doctrine_referencement_cas_usages_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+            <a href="<%= doctrine_referencement_cas_usages_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line"
+              data-matomo-action="Lire la doctrine des cas d'usages">
               Doctrine de référencement des démarches
             </a>
           </div>
           <div>
-            <a href="<%= doctrine_referencement_solutions_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line">
+            <a href="<%= doctrine_referencement_solutions_path %>" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line"
+              data-matomo-action="Lire la doctrine des solutions">
               Doctrine de référencement des solutions
             </a>
           </div>
@@ -261,7 +268,7 @@
   </div>
 </section>
 
-<section class="home-cta fr-py-8w">
+<section class="home-cta fr-py-8w" data-matomo-zone="Accueil › Appel final">
   <div class="fr-container">
     <div class="fr-grid-row fr-grid-row--center">
       <div class="fr-col-12 fr-col-md-8">
@@ -273,7 +280,7 @@
           <em>Rejoignez les administrations qui utilisent déjà Simplifions.data
           pour connaître les données et les solutions disponibles.</em>
         </p>
-        <a href="<%= demarches_path %>" class="fr-btn fr-btn--lg fr-btn--icon-right fr-icon-search-line">
+        <a href="<%= demarches_path %>" class="fr-btn fr-btn--lg fr-btn--icon-right fr-icon-search-line" data-matomo-action="Explorer le catalogue">
           Explorer le catalogue des démarches
         </a>
       </div>

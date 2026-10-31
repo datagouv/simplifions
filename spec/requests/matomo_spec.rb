@@ -62,7 +62,7 @@ RSpec.describe 'Matomo' do
 
     get root_path
 
-    expect(response.body).to include("[porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ')")
+    expect(response.body).to include("[objet, porte(element, 'contexte')].filter(Boolean).join(' — ')")
     expect(response.body).to include("_paq.push(['trackEvent', porte(element, 'zone') || 'Autre', element.dataset.matomoAction, nom])")
   end
 
@@ -86,6 +86,7 @@ RSpec.describe 'Matomo' do
     expect(response.body).to include("addEventListener('change'")
     expect(response.body).to include("closest('select[data-matomo-action], fieldset[data-matomo-action]')")
     expect(response.body).to include('envoyerEvenement(champ, choix.textContent.trim())')
+    expect(response.body).to include("[porte(element, 'nom'), choix].filter(Boolean).join(' : ')")
   end
 
   it 'nomme les pages 404 avec leur chemin et la page d’origine' do

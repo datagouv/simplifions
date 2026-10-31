@@ -27,6 +27,34 @@ RSpec.describe 'Demarches' do
       expect(response.parsed_body.at_css('h2.fr-sr-only').text).to eq("Filtrer les cas d'usages")
     end
 
+    it 'range pour Matomo chaque geste du catalogue dans sa zone' do
+      get demarches_path
+      page = Capybara.string(response.body)
+      zone = ->(element) { element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone'] }
+      mesure = ->(element) { [zone.call(element), element['data-matomo-action'], element['data-matomo-nom']] }
+
+      expect(mesure.call(page.find('.catalogue-types a', text: 'Solutions')))
+        .to eq(["Catalogue cas d'usages › Type", 'Changer de catalogue', 'Solutions'])
+      expect(mesure.call(page.find('select#target-users')))
+        .to eq(["Catalogue cas d'usages › Filtres", 'Choisir un filtre', 'Démarches à destination des'])
+      expect(page.find_button('Appliquer les filtres')['data-matomo-action']).to eq('Appliquer les filtres')
+      expect(mesure.call(page.find('select#sort'))).to eq(["Catalogue cas d'usages › Résultats", 'Trier les résultats', nil])
+      carte = page.first('.demarche-card a')
+      expect(mesure.call(carte)).to eq(["Catalogue cas d'usages › Résultats", "Ouvrir un cas d'usage", carte.text])
+      expect(mesure.call(page.find_link('2'))).to eq(["Catalogue cas d'usages › Résultats", 'Changer de page', '2'])
+      expect(page.find_link('Page suivante')['data-matomo-nom']).to eq('Page suivante')
+      expect(mesure.call(page.find_link('proposer une nouvelle démarche')))
+        .to eq(["Catalogue cas d'usages › Proposer", 'Proposer une nouvelle démarche', nil])
+      expect(page.find_link('Doctrine de référencement des démarches')['data-matomo-action']).to eq('Lire la doctrine')
+    end
+
+    it 'mesure la réinitialisation des filtres quand rien ne correspond' do
+      get demarches_path(q: 'zzzz')
+
+      expect(Capybara.string(response.body).find_link('Réinitialiser les filtres')['data-matomo-action'])
+        .to eq('Réinitialiser les filtres')
+    end
+
     it 'propose une nouvelle démarche, avec la doctrine de référencement' do
       get demarches_path
 
@@ -74,7 +102,7 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
       expect(response.body).not_to include('form#submit')
-      expect(response.parsed_body.at_css('form.catalogue input[type=submit]')['value']).to eq('Appliquer les filtres')
+      expect(response.parsed_body.at_css('form.catalogue button[type=submit]:not(.fr-search-bar button)').text).to eq('Appliquer les filtres')
     end
 
     it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do

@@ -53,7 +53,8 @@
           function envoyerEvenement(element, choix, action) {
             action = action || element.dataset.matomoAction;
             if (!action || element.getAttribute('aria-disabled') === 'true') return;
-            var nom = [choix || porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ');
+            var objet = [porte(element, 'nom'), choix].filter(Boolean).join(' : ');
+            var nom = [objet, porte(element, 'contexte')].filter(Boolean).join(' — ');
             _paq.push(['trackEvent', porte(element, 'zone') || 'Autre', action, nom]);
           }
           function dejaOuvert(element) {
