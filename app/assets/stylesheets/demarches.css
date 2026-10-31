@@ -448,6 +448,7 @@ body:has(.bouton-proposer-modification) {
 .catalogue-types a {
   background-image: none;
   border-radius: 0.25rem;
+  min-height: 2.5rem;
 }
 
 .catalogue-types a:hover {
