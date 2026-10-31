@@ -29,6 +29,7 @@ Preconditions:
 - **Search.** `fill_in "Rechercher", with: "marchés publics"` then `click_button "Rechercher"`. URL gains `q=`, the count drops.
 - **Facet.** `select "Entreprises", from: "Démarches à destination des :"`, then `click_button "Appliquer les filtres"`. URL gains `target-users=entreprises`; the count updates.
 - **Proof.** Screenshot, and the page count equals `Demarche.catalogue({ "q" => "marchés publics", "target-users" => "entreprises" }).count`.
+- **Type height.** Window 390 px wide, `/demarches`: each « Type » link (`Cas d'usages`, `Solutions`) is as tall as the `Trier par :` select. Screenshot `type-390`, read-back `trier_par=<px> types=[<px>, <px>]`.
 
 ## Gotchas
 

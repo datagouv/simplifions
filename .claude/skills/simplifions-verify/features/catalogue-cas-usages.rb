@@ -1,5 +1,17 @@
 require_relative '../harness'
 
+def hauteur_des_types(page)
+  page.current_window.resize_to(390, 844)
+  page.visit('/demarches')
+  hauteur = ->(element) { page.evaluate_script('arguments[0].getBoundingClientRect().height', element).round }
+  tri = hauteur.call(page.find_field('Trier par :'))
+  types = page.find(:xpath, "//p[normalize-space()='Type']/following-sibling::ul[1]").all('a').map(&hauteur)
+  Verify.evidence('catalogue-cas-usages', page, 'type-390', "trier_par=#{tri} types=#{types}")
+  raise "types #{types} != trier par #{tri}" unless types.size == 2 && types.all?(tri)
+ensure
+  page.current_window.resize_to(1280, 1024)
+end
+
 Verify.drive(__FILE__) do |page|
   total = Verify.check('Open the list') do
     page.visit('/demarches')
@@ -28,4 +40,6 @@ Verify.drive(__FILE__) do |page|
     Verify.evidence('catalogue-cas-usages', page, 'filtre',
       "total=#{total} recherche=#{recherche} recherche+entreprises=#{facette} base=#{attendu}")
   end
+
+  Verify.check('Type height') { hauteur_des_types(page) }
 end
