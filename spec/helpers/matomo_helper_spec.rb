@@ -14,54 +14,75 @@ RSpec.describe MatomoHelper do
       it "nomme l'accès #{[acces, acteurs_publics].compact.join(' + ')} « #{libelle} »" do
         api.assign_attributes(datagouv_acces: acces, datagouv_acces_acteurs_publics: acteurs_publics)
 
-        expect(helper.matomo_evenement('Recherche endpoint', 'API Particulier', api))
-          .to eq(matomo_action: 'Recherche endpoint', matomo_nom: "API Particulier [API, #{libelle}]")
+        expect(helper.matomo_evenement('Filtrer les endpoints', 'API Particulier', api))
+          .to eq(matomo_action: 'Filtrer les endpoints', matomo_nom: "API Particulier [API, #{libelle}]")
       end
     end
 
     it "omet l'accès quand data.gouv ne l'a pas encore donné" do
-      expect(helper.matomo_evenement('Recherche endpoint', 'API Particulier', api)[:matomo_nom])
+      expect(helper.matomo_evenement('Filtrer les endpoints', 'API Particulier', api)[:matomo_nom])
         .to eq('API Particulier [API]')
     end
 
-    it 'distingue un jeu de données et ajoute l’origine en dernier' do
+    it 'distingue un jeu de données' do
       jeu = Solution.new(nom: 'Base SIRENE', categorie: 'base_de_donnees', datagouv_acces: 'open')
 
-      expect(helper.matomo_evenement('Sortie', 'Base SIRENE', jeu, 'démarche')[:matomo_nom])
-        .to eq('Base SIRENE [Jeu de données, ouvert, démarche]')
+      expect(helper.matomo_evenement('Ouvrir la fiche data.gouv', 'Base SIRENE', jeu)[:matomo_nom])
+        .to eq('Base SIRENE [Jeu de données, ouvert]')
+    end
+
+    it 'dit si la solution est publique, comme son badge opérateur' do
+      api.organisations = [Organisation.new(nom: 'DINUM', public_ou_prive: 'Public')]
+
+      expect(helper.matomo_evenement('Ouvrir la fiche data.gouv', 'API Particulier', api)[:matomo_nom])
+        .to eq('API Particulier [API, publique]')
+    end
+
+    it 'dit si la solution est privée, avec sa catégorie' do
+      logiciel = Solution.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main',
+        organisations: [Organisation.new(nom: 'Éditeur', public_ou_prive: 'Privé')])
+
+      expect(helper.matomo_fiche_solution(logiciel))
+        .to eq(matomo_action: 'Ouvrir la fiche solution', matomo_nom: 'Acheteza [Logiciel métier, privée]')
+    end
+
+    it 'garde le seul nom quand rien ne le précise' do
+      expect(helper.matomo_fiche_solution(Solution.new(nom: 'Sans catégorie'))[:matomo_nom]).to eq('Sans catégorie')
+    end
+  end
+
+  describe '#matomo_zone' do
+    it 'donne la zone et le cas d’usage ou la fiche concernés' do
+      expect(helper.matomo_zone("Cas d'usage", 'Cantine à 1 €'))
+        .to eq(matomo_zone: "Cas d'usage", matomo_contexte: 'Cantine à 1 €')
+    end
+
+    it 'omet le contexte quand la zone suffit' do
+      expect(helper.matomo_zone('Solution › Intégratrices')).to eq(matomo_zone: 'Solution › Intégratrices')
     end
   end
 
   describe '#matomo_sortie_datagouv' do
-    it 'compte une fiche ouverte avec compte comme accès ouvert' do
+    it 'garde l’accès de la fiche data.gouv dans le nom' do
       api.datagouv_acces = 'open_with_account'
 
-      expect(helper.matomo_sortie_datagouv('API Particulier', api, 'démarche', 'tableau'))
-        .to eq(matomo_action: 'Sortie fiche data.gouv accès ouvert',
-          matomo_nom: 'API Particulier [API, ouvert avec compte, démarche, tableau]')
-    end
-
-    it 'sépare une fiche restreinte' do
-      api.datagouv_acces = 'restricted'
-
-      expect(helper.matomo_sortie_datagouv('API Particulier', api, 'démarche', 'documentation')[:matomo_action])
-        .to eq('Sortie fiche data.gouv accès restreint')
+      expect(helper.matomo_sortie_datagouv('API Particulier', api))
+        .to eq(matomo_action: 'Ouvrir la fiche data.gouv', matomo_nom: 'API Particulier [API, ouvert avec compte]')
     end
   end
 
   describe '#matomo_fiche_solution' do
-    it 'mesure une fiche dont le type de solution est une API' do
+    it 'range une brique dont le type de solution est une API parmi les API' do
       bouquet = Solution.new(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', types_solution: ['API'])
 
-      expect(helper.matomo_fiche_solution(bouquet, 'démarche'))
-        .to eq(matomo_action: 'Ouverture fiche solution API-jdd',
-          matomo_nom: 'Bouquet API Particulier [API, démarche]')
+      expect(helper.matomo_fiche_solution(bouquet))
+        .to eq(matomo_action: 'Ouvrir la fiche solution', matomo_nom: 'Bouquet API Particulier [API]')
     end
 
-    it 'ne mesure pas les autres fiches' do
-      logiciel = Solution.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', types_solution: ['Portail agent'])
+    it 'mesure aussi les autres fiches, avec leur catégorie' do
+      site = Solution.new(nom: 'Portail', categorie: 'site_de_consultation', types_solution: ['Portail agent'])
 
-      expect(helper.matomo_fiche_solution(logiciel, 'démarche')).to eq({})
+      expect(helper.matomo_fiche_solution(site)[:matomo_nom]).to eq('Portail [Portail de consultation]')
     end
   end
 end

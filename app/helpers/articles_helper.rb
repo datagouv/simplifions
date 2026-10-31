@@ -1,7 +1,7 @@
 module ArticlesHelper
   def solution_card(slug, **retouches)
     solution = fiche_citee(Solution, 'solution', slug)
-    SolutionCardComponent.pour(solution, description: nil, acteurs: nil, origine: 'article', **retouches) if solution
+    SolutionCardComponent.pour(solution, description: nil, acteurs: nil, **retouches) if solution
   end
 
   def demarche_card(slug, **retouches)

@@ -9,7 +9,7 @@
    accordeons = { 'brique_logicielle' => %w[fr-icon-code-box-fill api],
                   'logiciel_metier_cle_en_main' => %w[fr-icon-mac-fill logiciels],
                   'site_de_consultation' => %w[fr-icon-seo-fill sites] } %>
-<div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>">
+<div class="reco-card fr-p-2w fr-mb-4w" id="<%= dom_id(recommandation) %>" <%= tag.attributes(data: matomo_zone("Cas d'usage › Recommandation")) %>>
   <h3 class="fr-h4 fr-mb-2w">
     <span class="fr-text--alt"><em>Via «</em></span>
     <%= cible.nom %>
@@ -45,14 +45,15 @@
           <h5 class="fr-accordion__title">
             <button type="button" class="fr-accordion__btn" aria-expanded="false"
               aria-controls="<%= dom_id(recommandation, :api_directe) %>"
-              <%= tag.attributes(data: matomo_evenement('Ouverture accès direct API-jdd', cible.nom, cible)) %>><%= acces_direct %></button>
+              <%= tag.attributes(data: matomo_evenement("Ouvrir l'accès direct", cible.nom, cible)) %>><%= acces_direct %></button>
           </h5>
-          <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>">
+          <div class="fr-collapse" id="<%= dom_id(recommandation, :api_directe) %>"
+            <%= tag.attributes(data: matomo_zone("Cas d'usage › Recommandation › Accès direct")) %>>
             <% if lien_fiche || lien_demande_acces %>
               <div class="fr-btns-group fr-btns-group--inline fr-btns-group--right fr-my-2w">
                 <% if lien_fiche %>
                   <%= link_to "Plus d'informations sur #{cible.nom}", lien_fiche, class: 'fr-btn fr-btn--secondary',
-                        data: matomo_fiche_solution(cible, 'démarche') %>
+                        data: matomo_fiche_solution(cible) %>
                 <% end %>
                 <% if lien_demande_acces %>
                   <%= link_to "Demander un accès pour ce cas d'usage", lien_demande_acces, class: 'fr-btn',
@@ -61,7 +62,7 @@
               </div>
             <% end %>
             <% if cible.uid_datagouv.present? %>
-              <%= render DataserviceCardComponent.new(cible, heading: "h6", origine: 'démarche') %>
+              <%= render DataserviceCardComponent.new(cible, heading: "h6") %>
             <% end %>
             <% if utiles.any? %>
               <p class="fr-mt-4w">
@@ -104,7 +105,7 @@
                                   <br>
                                   <%= link_to 'Documentation', utile.solution.lien_datagouv, class: 'fr-link fr-link--xs',
                                         rel: 'noopener external', target: '_blank',
-                                        data: matomo_sortie_datagouv(utile.solution.nom, utile.solution, 'démarche', 'documentation') %>
+                                        data: matomo_sortie_datagouv(utile.solution.nom, utile.solution) %>
                                 <% end %>
                               </td>
                               <% if utile.description.present? %>
@@ -176,7 +177,8 @@
                 </span>
               </button>
             </h5>
-            <div class="fr-collapse" id="<%= dom_id(recommandation, categorie) %>">
+            <div class="fr-collapse" id="<%= dom_id(recommandation, categorie) %>"
+              <%= tag.attributes(data: matomo_zone("Cas d'usage › Recommandation › Solutions")) %>>
               <% case categorie %>
               <% when 'brique_logicielle' %>
                 <p><strong>Briques techniques logicielles</strong> destinées à être intégrées dans un système informatique existant et conçues pour le cas d'usage «<i>&nbsp;<%= nom_demarche %>&nbsp;</i>» :</p>

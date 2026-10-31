@@ -46,10 +46,14 @@
           addEventListener('submit', function(event) {
             if (event.target.matches('[data-matomo-catalogue]')) rechercheSoumise = true;
           }, true);
+          function porte(element, attribut) {
+            var porteur = element.closest('[data-matomo-' + attribut + ']');
+            return porteur ? porteur.getAttribute('data-matomo-' + attribut) : '';
+          }
           function envoyerEvenement(element) {
-            if (element.dataset.matomoAction) {
-              _paq.push(['trackEvent', 'API et données', element.dataset.matomoAction, element.dataset.matomoNom]);
-            }
+            if (!element.dataset.matomoAction) return;
+            var nom = [porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ');
+            _paq.push(['trackEvent', porte(element, 'zone') || 'Autre', element.dataset.matomoAction, nom]);
           }
           addEventListener('click', function(event) {
             var bouton = event.target.closest && event.target.closest('button[data-matomo-action]');

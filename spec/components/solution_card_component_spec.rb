@@ -29,19 +29,13 @@ RSpec.describe SolutionCardComponent, type: :component do
     expect(page).to have_no_css('.fr-grid-row')
   end
 
-  it 'prépare pour Matomo l’ouverture d’une fiche dont le type de solution est une API, avec son origine' do
+  it 'prépare pour Matomo l’ouverture de la fiche, avec son type et son statut public ou privé' do
     solution.update!(types_solution: ['API'])
-    render_inline(described_class.pour(solution, origine: 'article'))
+    render_inline(described_class.pour(solution))
 
     lien = page.find_link('Bouquet API Particulier')
-    expect(lien['data-matomo-action']).to eq('Ouverture fiche solution API-jdd')
-    expect(lien['data-matomo-nom']).to eq('Bouquet API Particulier [API, article]')
-  end
-
-  it 'ne mesure pas l’ouverture des autres fiches' do
-    render_inline(described_class.pour(Solution.create!(nom: 'Logiciel', types_solution: ['Portail agent'])))
-
-    expect(page.find_link('Logiciel')['data-matomo-action']).to be_nil
+    expect(lien['data-matomo-action']).to eq('Ouvrir la fiche solution')
+    expect(lien['data-matomo-nom']).to eq('Bouquet API Particulier [API, publique]')
   end
 
   it 'affiche la flèche sur demande' do

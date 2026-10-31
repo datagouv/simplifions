@@ -31,8 +31,10 @@ export default class extends Controller {
     const motCle = this.inputTarget.value.trim()
     if (motCle.length < 2 || motCle === this.motCleMesure) return
     this.motCleMesure = motCle
-    const nom = `${this.solutionValue} : ${motCle} (${this.matchingCount} endpoints)`
-    window._paq?.push(["trackEvent", "API et données", "Recherche endpoint", nom])
+    const zone = this.element.closest("[data-matomo-zone]")?.dataset.matomoZone
+    const demarche = this.element.closest("[data-matomo-contexte]")?.dataset.matomoContexte
+    const nom = [`${this.solutionValue} : ${motCle} (${this.matchingCount} endpoints)`, demarche].filter(Boolean).join(" — ")
+    window._paq?.push(["trackEvent", zone, "Filtrer les endpoints", nom])
   }
 
   goTo(event) {

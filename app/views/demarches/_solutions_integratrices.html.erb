@@ -1,7 +1,7 @@
 <% filtres = { logiciel_metier_cle_en_main: %w[logiciels fr-icon-mac-fill],
                 brique_logicielle: %w[api fr-icon-code-box-fill],
                 site_de_consultation: %w[sites fr-icon-seo-fill] } %>
-<div data-controller="tri-solutions">
+<div data-controller="tri-solutions" <%= tag.attributes(data: matomo_zone("Cas d'usage › Solutions intégratrices")) %>>
   <div class="fr-grid-row fr-grid-row--middle fr-mb-2w choix-affichage">
     <fieldset class="fr-segmented fr-segmented--sm fr-mr-2w">
       <legend class="fr-segmented__legend fr-sr-only">Affichage des solutions</legend>

@@ -9,7 +9,7 @@
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                *onglets.first(par_categorie.any? ? 2 : 1).map { it.first(2) }]
    lien_modification = contact_path("modifier-cas-usage", demarche: @demarche.slug) %>
-<div data-controller="affichage-personnalise">
+<div data-controller="affichage-personnalise" <%= tag.attributes(data: matomo_zone("Cas d'usage", @demarche.nom)) %>>
   <div data-affichage-personnalise-target="haut"></div>
   <div class="affichage-personnalise__entete" data-affichage-personnalise-target="entete">
     <div class="fr-container fr-pt-1v affichage-personnalise__fil">
@@ -22,10 +22,11 @@
       <div class="fr-background-alt--blue-france">
         <div class="fr-container fr-py-2w">
           <p class="fr-text--bold fr-text-title--blue-france fr-mb-1w" id="affichage-personnalise-consigne">Affichez le contenu de cette page selon les solutions que vous recherchez :</p>
-          <ul class="fr-tags-group fr-mb-0" aria-labelledby="affichage-personnalise-consigne" data-action="click->affichage-personnalise#afficher">
+          <ul class="fr-tags-group fr-mb-0" aria-labelledby="affichage-personnalise-consigne" data-action="click->affichage-personnalise#afficher"
+            <%= tag.attributes(data: matomo_zone("Cas d'usage › Affichage personnalisé")) %>>
             <% [['api', 'API et jeux de données'], ['logiciels', 'Logiciels métiers « clé en main »'], ['sites', 'Sites de consultation des données']].each do |filtre, libelle| %>
               <li><button type="button" class="fr-tag" aria-pressed="false" data-affichage-personnalise-target="tag" data-filtre="<%= filtre %>"
-                <%= tag.attributes(data: { matomo_action: 'Affichage personnalisé API-jdd', matomo_nom: @demarche.titre }) if filtre == 'api' %>><%= libelle %></button></li>
+                <%= tag.attributes(data: { matomo_action: 'Choisir un affichage', matomo_nom: libelle }) if filtre == 'api' %>><%= libelle %></button></li>
             <% end %>
           </ul>
         </div>

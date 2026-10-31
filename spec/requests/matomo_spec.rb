@@ -57,12 +57,13 @@ RSpec.describe 'Matomo' do
     expect(formulaire['data-matomo-resultats']).to eq('0')
   end
 
-  it 'envoie les événements « API et données » portés par les liens et par les boutons que l’usager active' do
+  it 'range chaque événement dans la zone de la page où il a lieu, avec le cas d’usage ou la fiche concernés' do
     allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
 
     get root_path
 
-    expect(response.body).to include("_paq.push(['trackEvent', 'API et données', element.dataset.matomoAction, element.dataset.matomoNom])")
+    expect(response.body).to include("[porte(element, 'nom'), porte(element, 'contexte')].filter(Boolean).join(' — ')")
+    expect(response.body).to include("_paq.push(['trackEvent', porte(element, 'zone') || 'Autre', element.dataset.matomoAction, nom])")
     expect(response.body).to include("bouton.getAttribute('aria-expanded') !== 'true' && bouton.getAttribute('aria-pressed') !== 'true'")
   end
 

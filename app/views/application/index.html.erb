@@ -53,7 +53,7 @@
         <%= f.submit "Appliquer les filtres", name: nil, class: "fr-btn fr-btn--secondary" %>
       </div>
 
-      <section id="list" class="fr-col-12 fr-col-md-8 fr-col-lg-9">
+      <section id="list" class="fr-col-12 fr-col-md-8 fr-col-lg-9" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Résultats")) %>>
         <% if total.zero? %>
           <div class="catalogue-vide fr-grid-row fr-grid-row--gutters fr-p-3w fr-mt-2w">
             <div class="fr-col-auto"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
