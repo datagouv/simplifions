@@ -2,7 +2,7 @@
   <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
     <div class="fr-tile__body">
       <div class="fr-tile__content">
-        <%= content_tag local_assigns.fetch(:niveau, :h3), link_to(titre, contact_path(besoin)), class: "fr-tile__title" %>
+        <%= content_tag local_assigns.fetch(:niveau, :h3), link_to(titre, contact_path(besoin), data: { matomo_action: "Choisir un besoin", matomo_nom: titre }), class: "fr-tile__title" %>
         <p class="fr-tile__detail"><%= description %></p>
       </div>
     </div>

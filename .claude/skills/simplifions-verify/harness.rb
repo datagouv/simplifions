@@ -22,6 +22,7 @@ module Verify
     options.add_preference('intl.accept_languages', 'fr-FR,fr')
     options.add_preference('dom.securecontext.allowlist', CONTAINER_IP)
     options.add_preference('javascript.enabled', false) unless javascript
+    options.add_preference('security.warn_submit_secure_to_insecure', false)
     Capybara::Selenium::Driver.new(app, browser: :remote, url: 'http://firefox:4444', options:)
   end
 

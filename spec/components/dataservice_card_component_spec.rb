@@ -11,7 +11,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
       datagouv_organisation: 'Direction interministérielle du numérique (data.gouv)',
       datagouv_logo: 'https://avatars.test/dinum-100.png', datagouv_organisation_badges: %w[certified public-service],
       datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes')
-    render_inline(described_class.new(api, origine: 'démarche'))
+    render_inline(described_class.new(api))
 
     expect(page).to have_css('.fr-badge.fr-badge--success', text: 'API restreinte · accessible aux acteurs publics')
     expect(page).to have_css('.fr-badge .fr-icon-lock-unlock-line[aria-hidden]')
@@ -27,7 +27,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
 
   it 'ne décore pas une organisation sans badge data.gouv' do
     api.assign_attributes(datagouv_organisation: 'Start-up X', datagouv_organisation_badges: [])
-    render_inline(described_class.new(api, origine: 'démarche'))
+    render_inline(described_class.new(api))
 
     expect(page).to have_css('.dataservice-card__org', text: 'Start-up X')
     expect(page).to have_no_css('.dataservice-card__org .fr-icon-bank-line')
@@ -35,7 +35,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
   end
 
   it 'se rabat sur le nom et l’opérateur Grist, sans badge ni logo, tant que data.gouv n’a pas été recopié' do
-    render_inline(described_class.new(api, origine: 'démarche'))
+    render_inline(described_class.new(api))
 
     expect(page).to have_css('h3 a', text: 'API Quotient familial')
     expect(page).to have_css('.dataservice-card__org', text: 'Direction interministérielle du numérique')
@@ -45,7 +45,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
 
   it 'adapte le libellé du lien et le niveau de titre pour un jeu de données sans organisation' do
     jeu = Solution.new(nom: 'Base SIRENE', categorie: 'base_de_donnees', uid_datagouv: 'sirene')
-    render_inline(described_class.new(jeu, origine: 'démarche', heading: 'h6'))
+    render_inline(described_class.new(jeu, heading: 'h6'))
 
     expect(page).to have_css('h6 a', text: 'Base SIRENE')
     expect(page).to have_link(href: 'https://www.data.gouv.fr/fr/datasets/sirene')
@@ -53,22 +53,13 @@ RSpec.describe DataserviceCardComponent, type: :component do
     expect(page).to have_no_css('.dataservice-card__org')
   end
 
-  it 'signale à Matomo une sortie vers une fiche en accès ouvert, avec son accès et son origine' do
-    api.datagouv_acces = 'open'
-    render_inline(described_class.new(api, origine: 'fiche solution'))
-
-    lien = page.find('h3 a')
-    expect(lien['data-matomo-action']).to eq('Sortie fiche data.gouv accès ouvert')
-    expect(lien['data-matomo-nom']).to eq('API Quotient familial [API, ouvert, fiche solution, carte]')
-  end
-
-  it 'range à part la sortie vers une fiche en accès restreint' do
+  it 'signale à Matomo l’ouverture de la fiche data.gouv, avec son accès et son statut public' do
     api.assign_attributes(datagouv_acces: 'restricted', datagouv_acces_acteurs_publics: 'yes')
-    render_inline(described_class.new(api, origine: 'démarche'))
+    render_inline(described_class.new(api))
 
     lien = page.find('h3 a')
-    expect(lien['data-matomo-action']).to eq('Sortie fiche data.gouv accès restreint')
-    expect(lien['data-matomo-nom']).to eq('API Quotient familial [API, restreint public, démarche, carte]')
+    expect(lien['data-matomo-action']).to eq('Ouvrir la fiche data.gouv')
+    expect(lien['data-matomo-nom']).to eq('API Quotient familial [API, restreint public, publique]')
   end
 
   # Mêmes libellés, couleurs et icônes que le site actuel (accessTypeBadge.ts).
@@ -86,7 +77,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
     it "affiche « #{label} » pour #{categorie} #{acces} #{acteurs_publics}" do
       solution = Solution.new(nom: 'X', categorie:, uid_datagouv: 'x', datagouv_acces: acces,
         datagouv_acces_acteurs_publics: acteurs_publics)
-      render_inline(described_class.new(solution, origine: 'démarche'))
+      render_inline(described_class.new(solution))
 
       expect(page).to have_css(".fr-badge.#{classe} .#{icone}")
       expect(page.find('.fr-badge').text(normalize_ws: true)).to eq(label)
@@ -95,7 +86,7 @@ RSpec.describe DataserviceCardComponent, type: :component do
 
   it 'n’affiche pas de badge pour un jeu de données « ouvert avec compte », statut inexistant côté datasets' do
     jeu = Solution.new(nom: 'X', categorie: 'base_de_donnees', uid_datagouv: 'x', datagouv_acces: 'open_with_account')
-    render_inline(described_class.new(jeu, origine: 'démarche'))
+    render_inline(described_class.new(jeu))
 
     expect(page).to have_no_css('.fr-badge')
   end

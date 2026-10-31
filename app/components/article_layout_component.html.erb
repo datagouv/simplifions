@@ -1,7 +1,9 @@
-<div class="article-page">
+<div class="article-page" <%= tag.attributes(data: helpers.matomo_zone("Article › Contenu", @article.h1)) %>>
   <div class="fr-container article-hero__breadcrumb fr-pt-3v fr-pt-md-0">
-    <nav role="navigation" class="fr-breadcrumb fr-mb-4v" aria-label="vous êtes ici :">
-      <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-article">Voir le fil d'Ariane</button>
+    <nav role="navigation" class="fr-breadcrumb fr-mb-4v" aria-label="vous êtes ici :"
+      data-matomo-zone="Navigation › Fil d'Ariane" data-matomo-liens="Remonter vers">
+      <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-article"
+        data-matomo-action="Déplier le fil d'Ariane">Voir le fil d'Ariane</button>
       <div class="fr-collapse" id="breadcrumb-article">
         <ol class="fr-breadcrumb__list">
           <li><%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %></li>
@@ -53,9 +55,10 @@
   <div class="fr-container article-shell fr-py-8v" data-controller="toc">
     <div class="fr-grid-row fr-grid-row--gutters article-grid">
       <aside class="fr-col-12 fr-col-lg-3 article-toc-col">
-        <nav class="fr-sidemenu article-toc" role="navigation" aria-labelledby="article-sidemenu-title">
+        <nav class="fr-sidemenu article-toc" role="navigation" aria-labelledby="article-sidemenu-title" data-matomo-zone="Article › Sommaire">
           <div class="fr-sidemenu__inner">
-            <button class="fr-sidemenu__btn" type="button" aria-expanded="false" aria-controls="article-sidemenu-collapse">
+            <button class="fr-sidemenu__btn" type="button" aria-expanded="false" aria-controls="article-sidemenu-collapse"
+              data-matomo-action="Ouvrir le sommaire">
               Dans cet article
             </button>
             <div id="article-sidemenu-collapse" class="fr-collapse">
@@ -63,7 +66,8 @@
               <ul class="fr-sidemenu__list">
                 <% @article.sections.each do |id, label| %>
                   <li class="fr-sidemenu__item">
-                    <a class="fr-sidemenu__link" href="#<%= id %>" data-toc-target="link" data-action="toc#select"><%= label %></a>
+                    <a class="fr-sidemenu__link" href="#<%= id %>" data-toc-target="link" data-action="toc#select"
+                      data-matomo-action="Aller à une section" data-matomo-nom="<%= label %>"><%= label %></a>
                   </li>
                 <% end %>
               </ul>
@@ -73,7 +77,7 @@
       </aside>
 
       <div class="fr-col-12 fr-col-lg-9 article-content-col">
-        <div class="article-content">
+        <div class="article-content" data-matomo-liens="Ouvrir un lien de l'article">
           <%= content %>
         </div>
       </div>
@@ -82,7 +86,7 @@
 
   <% if @mentions.any? %>
     <section class="topics-carousel fr-mt-6w fr-py-5w" style="background-image: <%= @article.hero_backdrop_gradient %>">
-      <div class="fr-container" data-controller="carousel">
+      <div class="fr-container" data-controller="carousel" data-matomo-zone="Article › Mentions">
         <h2 class="fr-h5 fr-mb-3w">Sont mentionnés dans cet article :</h2>
         <ul class="carousel-track fr-p-0 fr-m-0" role="list" data-carousel-target="track">
           <% @mentions.each do |mention| %>
@@ -92,8 +96,10 @@
           <% end %>
         </ul>
         <div class="fr-grid-row fr-grid-row--center fr-mt-2w fr-hidden" data-carousel-target="nav">
-          <button type="button" class="fr-link fr-link--sm fr-link--icon-left fr-icon-arrow-left-s-line fr-mr-2w" data-action="carousel#prev">Précédent</button>
-          <button type="button" class="fr-link fr-link--sm fr-link--icon-right fr-icon-arrow-right-s-line" data-action="carousel#next">Suivant</button>
+          <button type="button" class="fr-link fr-link--sm fr-link--icon-left fr-icon-arrow-left-s-line fr-mr-2w" data-action="carousel#prev"
+            data-matomo-action="Voir la mention précédente">Précédent</button>
+          <button type="button" class="fr-link fr-link--sm fr-link--icon-right fr-icon-arrow-right-s-line" data-action="carousel#next"
+            data-matomo-action="Voir la mention suivante">Suivant</button>
         </div>
       </div>
     </section>

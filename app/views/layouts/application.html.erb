@@ -38,7 +38,7 @@
 
     <%= javascript_importmap_tags %>
 
-    <% if ENV["MATOMO_SITE_ID"].present? %>
+    <% if ENV["MATOMO_SITE_ID"].present? && !admin_signed_in? %>
       <script>
         var _paq = window._paq = window._paq || [];
         (function() {
@@ -46,21 +46,46 @@
           addEventListener('submit', function(event) {
             if (event.target.matches('[data-matomo-catalogue]')) rechercheSoumise = true;
           }, true);
-          function envoyerEvenement(element) {
-            if (element.dataset.matomoAction) {
-              _paq.push(['trackEvent', 'API et données', element.dataset.matomoAction, element.dataset.matomoNom]);
-            }
+          function porte(element, attribut) {
+            var porteur = element.closest('[data-matomo-' + attribut + ']');
+            return porteur ? porteur.getAttribute('data-matomo-' + attribut) : '';
+          }
+          function envoyerEvenement(element, choix, action) {
+            action = action || element.dataset.matomoAction;
+            if (!action || element.getAttribute('aria-disabled') === 'true') return;
+            var objet = [porte(element, 'nom'), choix].filter(Boolean).join(' : ');
+            var nom = [objet, porte(element, 'contexte')].filter(Boolean).join(' — ');
+            _paq.push(['trackEvent', porte(element, 'zone') || 'Autre', action, nom]);
+          }
+          addEventListener('matomo:evenement', function(event) {
+            envoyerEvenement(event.target, event.detail.choix, event.detail.action);
+          });
+          function dejaOuvert(element) {
+            return ['aria-expanded', 'aria-pressed', 'aria-selected'].some(function(etat) {
+              return element.getAttribute(etat) === 'true';
+            }) || (element.matches('summary') && element.parentElement.open);
           }
           addEventListener('click', function(event) {
-            var bouton = event.target.closest && event.target.closest('button[data-matomo-action]');
-            if (bouton && bouton.getAttribute('aria-expanded') !== 'true' && bouton.getAttribute('aria-pressed') !== 'true') {
-              envoyerEvenement(bouton);
-            }
+            var bouton = event.target.closest && event.target.closest('button[data-matomo-action], summary[data-matomo-action]');
+            if (!bouton) return;
+            if (!dejaOuvert(bouton)) envoyerEvenement(bouton);
+            else if (bouton.dataset.matomoFermeture) envoyerEvenement(bouton, null, bouton.dataset.matomoFermeture);
           }, true);
+          addEventListener('change', function(event) {
+            var champ = event.target.closest('select[data-matomo-action], fieldset[data-matomo-action]');
+            var choix = event.target.matches('select') ? event.target.selectedOptions[0] : event.target.labels && event.target.labels[0];
+            if (champ && choix) envoyerEvenement(champ, choix.textContent.trim());
+          }, true);
+          function libelleDuLien(lien) {
+            var image = lien.querySelector('img[alt]');
+            return lien.textContent.replace(/\s+/g, ' ').trim() || lien.title || (image && image.alt);
+          }
           function mesurerClic(event) {
             var lien = event.target.closest && event.target.closest('a[href]');
-            if (!lien || !/^https?:$/.test(lien.protocol)) return;
-            envoyerEvenement(lien);
+            if (!lien || !/^(https?|mailto):$/.test(lien.protocol)) return;
+            if (lien.dataset.matomoAction) envoyerEvenement(lien);
+            else if (porte(lien, 'liens')) envoyerEvenement(lien, libelleDuLien(lien), porte(lien, 'liens'));
+            if (lien.protocol === 'mailto:') return;
             if (/\.(pdf|csv|xlsx?|docx?|odt|ods|zip)$/i.test(lien.pathname)) {
               _paq.push(['trackLink', lien.href, 'download']);
             } else if (lien.host !== location.host) {
@@ -90,6 +115,56 @@
           });
         })();
         (function() {
+          var paliers, vues, minuteurs, observateur, geste, attente;
+          function nomDeLaPage() {
+            var page = document.querySelector('main[data-matomo-zone]');
+            return page ? page.dataset.matomoZone.replace('Page › ', '') : document.title;
+          }
+          ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(function(type) {
+            addEventListener(type, function() { geste = true; }, { capture: true, passive: true });
+          });
+          function mesurerPaliers() {
+            attente = false;
+            var hauteur = document.documentElement.scrollHeight;
+            if (!paliers || !geste || hauteur <= innerHeight) return;
+            var vu = (scrollY + innerHeight) / hauteur * 100;
+            [50, 75, 100].forEach(function(palier) {
+              if (vu >= palier - 1 && paliers.indexOf(palier) < 0) {
+                paliers.push(palier);
+                _paq.push(['trackEvent', 'Défilement', 'Atteindre ' + palier + ' %', nomDeLaPage()]);
+              }
+            });
+          }
+          addEventListener('scroll', function() {
+            if (attente) return;
+            attente = true;
+            requestAnimationFrame(mesurerPaliers);
+          }, { passive: true });
+          function suivreSection(entree) {
+            var section = entree.target;
+            var visible = entree.intersectionRatio >= 0.5 || entree.intersectionRect.height >= innerHeight / 2;
+            clearTimeout(minuteurs.get(section));
+            if (!visible || vues.has(section)) return;
+            minuteurs.set(section, setTimeout(function() {
+              vues.add(section);
+              if (geste) _paq.push(['trackEvent', 'Défilement › Section vue', 'Voir une section', nomDeLaPage() + ' : ' + section.dataset.matomoSection]);
+            }, 1000));
+          }
+          addEventListener('turbo:load', function() {
+            if (observateur) observateur.disconnect();
+            if (minuteurs) minuteurs.forEach(clearTimeout);
+            paliers = [];
+            vues = new Set();
+            minuteurs = new Map();
+            geste = false;
+            if (!('IntersectionObserver' in window)) return;
+            var seuils = [];
+            for (var i = 0; i <= 20; i++) seuils.push(i / 20);
+            observateur = new IntersectionObserver(function(entrees) { entrees.forEach(suivreSection); }, { threshold: seuils });
+            document.querySelectorAll('[data-matomo-section]').forEach(function(section) { observateur.observe(section); });
+          });
+        })();
+        (function() {
           var u = "https://stats.data.gouv.fr/";
           _paq.push(['setTrackerUrl', u + 'matomo.php']);
           _paq.push(['setSiteId', '<%= j ENV["MATOMO_SITE_ID"] %>']);
@@ -109,7 +184,8 @@
       </nav>
     </div>
     <%= render "layouts/header" %>
-    <main role="main" id="content">
+    <main role="main" id="content" data-matomo-zone="Page › <%= content_for(:title).presence || @article&.title || "Accueil" %>"
+      data-matomo-liens="Suivre un lien">
       <% flash.each do |type, message| %>
         <div class="fr-container fr-mt-2w">
           <div class="fr-alert fr-alert--<%= type == "alert" ? "error" : "info" %> fr-alert--sm">

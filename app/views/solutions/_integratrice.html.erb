@@ -1,7 +1,7 @@
 <div class="solution-integratrice-card fr-enlarge-link">
   <div class="fr-mb-2w">
     <h3 class="fr-h5 fr-mb-1w solution-integratrice-card__title"><%= link_to_if integratrice.page_publique?, integratrice.nom, solution_path(integratrice.slug),
-          data: matomo_fiche_solution(integratrice, 'fiche solution') %></h3>
+          data: matomo_fiche_solution(integratrice) %></h3>
     <%= render "badge_operateur", solution: integratrice %>
   </div>
   <div class="fr-grid-row fr-grid-row--gutters">
@@ -27,7 +27,8 @@
             <div class="cas-usage-card fr-p-2v">
               <span class="fr-text--xs fr-text--bold fr-mb-1v"><%= demarche.titre %></span>
               <%= render 'integration_indicator', integrees:, utiles:, label: 'API ou jeux de données intégrés',
-                    description: "API et jeux de données « #{@solution.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrés par cette solution." %>
+                    description: "API et jeux de données « #{@solution.nom} » sur les #{utiles} utiles pour ce cas d'usage ont été intégrés par cette solution.",
+                    mesure: matomo_evenement("Afficher l'infobulle d'intégration", "#{integratrice.nom} : #{demarche.nom}", integratrice) %>
             </div>
           <% end %>
         </div>

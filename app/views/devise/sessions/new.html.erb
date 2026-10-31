@@ -4,7 +4,7 @@
   <div class="fr-grid-row fr-grid-row--center">
     <div class="fr-col-12 fr-col-md-6">
       <h1>Connexion à l’administration</h1>
-      <%= form_with model: resource, url: session_path(resource_name), class: "fr-mt-4w" do |f| %>
+      <%= form_with model: resource, url: session_path(resource_name), class: "fr-mt-4w", data: { turbo: false } do |f| %>
         <div class="fr-input-group">
           <%= f.label :email, "Adresse e-mail", class: "fr-label" %>
           <%= f.email_field :email, class: "fr-input", autocomplete: "email" %>

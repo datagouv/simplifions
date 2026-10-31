@@ -1,7 +1,7 @@
 <% content_for :title, "Articles" %>
 <% content_for :description, "Guides et explications pour comprendre et intégrer les API utiles à la simplification de vos démarches." %>
 
-<div class="fr-container fr-py-8v">
+<div class="fr-container fr-py-8v" data-matomo-zone="Articles › Liste">
   <h1>Articles</h1>
 
   <div class="fr-grid-row fr-grid-row--gutters">
@@ -21,7 +21,8 @@
                   <button type="button" class="fr-tag" disabled><%= keyword %> (0)</button>
                 <% else %>
                   <%= link_to articles_path(keywords: toggled.any? ? toggled.join(",") : nil),
-                        class: "fr-tag", "aria-pressed": selected.to_s do %><%= keyword %> (<%= count %>)<% end %>
+                        class: "fr-tag", "aria-pressed": selected.to_s,
+                        data: { matomo_action: selected ? "Retirer un mot-clé" : "Filtrer par mot-clé", matomo_nom: keyword } do %><%= keyword %> (<%= count %>)<% end %>
                 <% end %>
               </li>
             <% end %>

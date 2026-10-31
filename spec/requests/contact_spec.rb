@@ -326,6 +326,49 @@ RSpec.describe 'Contact' do
     end
   end
 
+  describe 'mesure Matomo' do
+    def zone_matomo(element) = element.find(:xpath, 'ancestor-or-self::*[@data-matomo-zone][1]')['data-matomo-zone']
+
+    it 'mesure le choix d’un besoin, avec son titre' do
+      get contact_path
+      tuile = Capybara.string(response.body).find_link('Autre sujet')
+
+      expect([zone_matomo(tuile), tuile['data-matomo-action'], tuile['data-matomo-nom']])
+        .to eq(['Contact', 'Choisir un besoin', 'Autre sujet'])
+    end
+
+    it 'range chaque geste de l’étape finale, avec l’étape et l’objet du mail' do
+      get contact_path('nouveau-cas-usage')
+      page = Capybara.string(response.body)
+
+      etape = page.find('section[data-matomo-zone="Contact"]')
+      expect([etape['data-matomo-contexte'], etape['data-matomo-liens']]).to eq(['Proposer une nouvelle démarche', 'Suivre un lien'])
+      expect(zone_matomo(page.find_link('Consultez la doctrine de référencement des démarches'))).to eq("Contact › Avant d'écrire")
+      expect(page.find_link('Retour')['data-matomo-action']).to eq("Revenir à l'étape précédente")
+      ecrire = page.find('[data-controller="copier"]')
+      expect([zone_matomo(ecrire), ecrire['data-matomo-nom']]).to eq(['Contact › Écrire', "Proposition d'une nouvelle démarche"])
+      expect(ecrire.find('a[href^="mailto:"]')['data-matomo-action']).to eq("Ouvrir l'e-mail pré-rempli")
+      expect(ecrire.all('button', visible: :all).pluck('data-matomo-action'))
+        .to eq(["Copier l'e-mail", "Copier l'objet", 'Copier le modèle'])
+    end
+
+    it 'mesure le choix de la fiche à modifier' do
+      Demarche.create!(nom: 'Bourse', slug: 'bourse', visible: true)
+
+      get contact_path('modifier-cas-usage')
+      liste = Capybara.string(response.body).find('select#demarche')
+
+      expect([zone_matomo(liste), liste['data-matomo-action']]).to eq(['Contact › Choix de la fiche', 'Choisir la démarche à modifier'])
+    end
+
+    it 'mesure l’ouverture d’un catalogue depuis le choix du contenu' do
+      get contact_path('contenu')
+      lien = Capybara.string(response.body).find_link('Voir les solutions')
+
+      expect([lien['data-matomo-action'], lien['data-matomo-nom']]).to eq(['Voir le catalogue', 'Solutions'])
+    end
+  end
+
   describe 'GET /contact/autre' do
     it 'rappelle les autres sujets, avec un lien, avant le modèle de mail' do
       get contact_path('autre')

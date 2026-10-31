@@ -1,7 +1,7 @@
 <div class="demarche-card fr-enlarge-link">
   <div class="header-topic">
     <h3 class="title-topic fr-text--lead">
-      <%= link_to @card[:title], @card[:href] %>
+      <%= link_to @card[:title], @card[:href], data: { matomo_action: "Ouvrir un cas d'usage", matomo_nom: @card[:nom] } %>
     </h3>
     <% if @card[:description].present? %>
       <p class="fr-mb-1w"><%= @card[:description] %></p>
