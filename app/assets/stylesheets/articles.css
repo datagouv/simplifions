@@ -475,6 +475,12 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .sirene-demo__spinner {
+    animation: none;
+  }
+}
+
 .sirene-demo__result {
   background: var(--background-default-grey);
   border-radius: 4px;
