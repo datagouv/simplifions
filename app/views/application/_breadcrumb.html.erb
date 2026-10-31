@@ -1,5 +1,7 @@
-<nav role="navigation" class="fr-breadcrumb fr-mb-1v" aria-label="vous êtes ici :">
-  <button type="button" class="fr-breadcrumb__button" aria-expanded="false" aria-controls="<%= id %>">Voir le fil d'Ariane</button>
+<nav role="navigation" class="fr-breadcrumb fr-mb-1v" aria-label="vous êtes ici :"
+  data-matomo-zone="Navigation › Fil d'Ariane" data-matomo-liens="Remonter vers">
+  <button type="button" class="fr-breadcrumb__button" aria-expanded="false" aria-controls="<%= id %>"
+    data-matomo-action="Déplier le fil d'Ariane">Voir le fil d'Ariane</button>
   <div class="fr-collapse" id="<%= id %>">
     <ol class="fr-breadcrumb__list">
       <% liens[0..-2].each do |label, href| %>

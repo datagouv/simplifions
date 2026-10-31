@@ -73,11 +73,15 @@
             var choix = event.target.matches('select') ? event.target.selectedOptions[0] : event.target.labels && event.target.labels[0];
             if (champ && choix) envoyerEvenement(champ, choix.textContent.trim());
           }, true);
+          function libelleDuLien(lien) {
+            var image = lien.querySelector('img[alt]');
+            return lien.textContent.replace(/\s+/g, ' ').trim() || lien.title || (image && image.alt);
+          }
           function mesurerClic(event) {
             var lien = event.target.closest && event.target.closest('a[href]');
             if (!lien || !/^(https?|mailto):$/.test(lien.protocol)) return;
             if (lien.dataset.matomoAction) envoyerEvenement(lien);
-            else if (porte(lien, 'liens')) envoyerEvenement(lien, lien.textContent.replace(/\s+/g, ' ').trim(), porte(lien, 'liens'));
+            else if (porte(lien, 'liens')) envoyerEvenement(lien, libelleDuLien(lien), porte(lien, 'liens'));
             if (lien.protocol === 'mailto:') return;
             if (/\.(pdf|csv|xlsx?|docx?|odt|ods|zip)$/i.test(lien.pathname)) {
               _paq.push(['trackLink', lien.href, 'download']);
@@ -127,7 +131,8 @@
       </nav>
     </div>
     <%= render "layouts/header" %>
-    <main role="main" id="content">
+    <main role="main" id="content" data-matomo-zone="Page › <%= content_for(:title).presence || @article&.title || "Accueil" %>"
+      data-matomo-liens="Suivre un lien">
       <% flash.each do |type, message| %>
         <div class="fr-container fr-mt-2w">
           <div class="fr-alert fr-alert--<%= type == "alert" ? "error" : "info" %> fr-alert--sm">

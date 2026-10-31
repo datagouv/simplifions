@@ -1,7 +1,9 @@
 <div class="article-page" <%= tag.attributes(data: helpers.matomo_zone("Article › Contenu", @article.h1)) %>>
   <div class="fr-container article-hero__breadcrumb fr-pt-3v fr-pt-md-0">
-    <nav role="navigation" class="fr-breadcrumb fr-mb-4v" aria-label="vous êtes ici :">
-      <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-article">Voir le fil d'Ariane</button>
+    <nav role="navigation" class="fr-breadcrumb fr-mb-4v" aria-label="vous êtes ici :"
+      data-matomo-zone="Navigation › Fil d'Ariane" data-matomo-liens="Remonter vers">
+      <button class="fr-breadcrumb__button" aria-expanded="false" aria-controls="breadcrumb-article"
+        data-matomo-action="Déplier le fil d'Ariane">Voir le fil d'Ariane</button>
       <div class="fr-collapse" id="breadcrumb-article">
         <ol class="fr-breadcrumb__list">
           <li><%= link_to "Accueil", root_path, class: "fr-breadcrumb__link" %></li>

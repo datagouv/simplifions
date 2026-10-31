@@ -1,4 +1,4 @@
-<header role="banner" class="fr-header">
+<header role="banner" class="fr-header" data-matomo-zone="Navigation › En-tête" data-matomo-liens="Aller vers une rubrique">
   <div class="fr-header__body">
     <div class="fr-container">
       <div class="fr-header__body-row">
@@ -11,7 +11,8 @@
               </p>
             </div>
             <div class="fr-header__navbar">
-              <button type="button" class="fr-btn--menu fr-btn" data-fr-opened="false" aria-controls="modal-menu" aria-haspopup="menu" id="button-menu" title="Menu">
+              <button type="button" class="fr-btn--menu fr-btn" data-fr-opened="false" aria-controls="modal-menu" aria-haspopup="menu" id="button-menu" title="Menu"
+                data-matomo-action="Ouvrir le menu">
                 Menu
               </button>
             </div>
@@ -30,7 +31,7 @@
                 <li><%= link_to "Administration", admin_root_path, class: "fr-btn fr-icon-settings-5-line" %></li>
                 <li><%= button_to "Se déconnecter", destroy_admin_session_path, method: :delete, class: "fr-btn fr-icon-logout-box-r-line" %></li>
               <% else %>
-                <li><%= link_to "Se connecter", new_admin_session_path, class: "fr-btn fr-icon-lock-line" %></li>
+                <li><%= link_to "Se connecter", new_admin_session_path, class: "fr-btn fr-icon-lock-line", data: { matomo_action: "Se connecter" } %></li>
               <% end %>
             </ul>
           </div>
