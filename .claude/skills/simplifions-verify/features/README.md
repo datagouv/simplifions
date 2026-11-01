@@ -76,3 +76,4 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [demo-sirene.md](demo-sirene.md) — the Sirene demo of the article « Qu'est-ce qu'une API ? »: the waiting icon turns, and stays still when the device asks to reduce animations.
 - [survol-souris.md](survol-souris.md) — the cas d'usage card, the catalogue « Type » choice and the floating « Proposer une modification » button change colour under a mouse only; on a touch screen they keep their colour.
 - [bouton-proposer-modification.md](bouton-proposer-modification.md) — the floating « Proposer une modification » button never hides the element reached with Tab, and is 40 px tall on a phone too.
+- [titres-equilibres.md](titres-equilibres.md) — a catalogue card title or a page H1 on two lines breaks into lines of close length; captures at 390 and 1280 px.
