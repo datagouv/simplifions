@@ -3,7 +3,7 @@ name: simplifions-ship
 description: "Implement one planned Simplifions issue: red-green-commit, proof through the feature map, PR, review loop. Run by a subagent that /simplifions-work spawns with `Run /simplifions-ship <ISSUE>`. Never merges."
 ---
 
-Ship command for issues in Linear ([`simplifions-work` § Linear](../simplifions-work/SKILL.md#linear)). Executes provide-plan + implement-plan + PR + review loop for each issue. The PR is the end: Thomas reviews and merges, no agent merges.
+Ship command for issues in Linear ([`simplifions-work` § Linear](../simplifions-work/SKILL.md#linear)). Executes provide-plan + implement-plan + PR + review loop for each issue. The PR is the end: Thomas reviews, and the merge follows [`simplifions-work` § Human gates](../simplifions-work/SKILL.md#human-gates).
 
 ## Usage
 - `/simplifions-ship <issue1> <issue2> ...` - Ship listed issues sequentially
