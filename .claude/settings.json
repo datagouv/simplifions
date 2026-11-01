@@ -65,8 +65,7 @@
       "Bash(* db:drop*)",
       "Bash(* db:reset*)",
       "Bash(rm -rf *)",
-      "Bash(rm -fr *)",
-      "Bash(gh pr merge *)"
+      "Bash(rm -fr *)"
     ]
   }
 }

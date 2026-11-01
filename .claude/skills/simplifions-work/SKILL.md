@@ -5,12 +5,12 @@ description: "Take a Linear issue of Simplifions from the ticket to a reviewed p
 
 # simplifions-work
 
-The session the user talks to. It reads the Linear issue, decides what needs doing, and does the judgment itself (challenge, plan); a subagent does the implementation (ship), which ends on a reviewed pull request. The user is asked product and UX questions only (`CLAUDE.md` § Qui décide quoi). Thomas reviews and merges; no agent ever merges.
+The session the user talks to. It reads the Linear issue, decides what needs doing, and does the judgment itself (challenge, plan); a subagent does the implementation (ship), which ends on a reviewed pull request. The user is asked product and UX questions only (`CLAUDE.md` § Qui décide quoi). Thomas reviews; the merge follows § Human gates.
 
 ## Flow
 
 ```
-Linear issue ──> challenge ──> plan ──> user approves ──> ship (subagent) ──> PR reviewed ──> Thomas merges
+Linear issue ──> challenge ──> plan ──> user approves ──> ship (subagent) ──> PR reviewed ──> merge
                    │             │                         │
                    │             │                         └─ review loop: fresh /simplifions-review, 3 rounds max
                    │             └─ technical go-ahead needed → comment on the issue for Thomas, stop
@@ -23,7 +23,7 @@ Linear issue ──> challenge ──> plan ──> user approves ──> ship (
 | --- | --- | --- |
 | an issue with no command | `/simplifions-challenge`, in session | `CHALLENGE: GO` → plan; `RESHAPE` or `DROP` → the user |
 | an issue with the ask settled | `/simplifions-plan`, in session | plan `ready` → the user approves → ship; questions → § Who decides |
-| an approved plan | `/simplifions-ship <ISSUE>`, **one subagent per issue**, in this checkout (no worktree isolation: `.notes/` lives here), prompt exactly `Run /simplifions-ship <ISSUE>` plus the decisions this session holds | PR opened and reviewed inside ship → Thomas merges |
+| an approved plan | `/simplifions-ship <ISSUE>`, **one subagent per issue**, in this checkout (no worktree isolation: `.notes/` lives here), prompt exactly `Run /simplifions-ship <ISSUE>` plus the decisions this session holds | PR opened and reviewed inside ship → merge per § Human gates |
 | a PR to look at | `/simplifions-review <url>`, fresh subagent | report relayed, in the PR's language |
 | an explicit command | as given | — |
 
@@ -37,7 +37,7 @@ The feature map (`.claude/skills/simplifions-verify/`) is how the agent proves t
 
 ## Human gates
 
-The session never crosses these on its own: plan approval before ship (shown to the user as the outcome and the acceptance lines in plain words, never the technical steps); merge (Thomas only); `RESHAPE` or `DROP`; anything irreversible (force-push outside the branch's own fix-ups, migration on data, deploy, a message to a partner).
+The session never crosses these on its own: plan approval before ship (shown to the user as the outcome and the acceptance lines in plain words, never the technical steps); merge, unless Thomas approved or asked for that PR and its full CI is green with no review comment open: then an agent merges it (`gh pr merge <n> --merge`); `RESHAPE` or `DROP`; anything irreversible (force-push outside the branch's own fix-ups, migration on data, deploy, a message to a partner).
 
 ## Following a subagent
 
