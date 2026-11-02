@@ -1145,6 +1145,26 @@ RSpec.describe 'Administration' do
         expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq("Supprimer la recommandation API QF (API) ? #{immediate}")
         expect(confirmation("/admin/recommandations/#{recommandation.id}/edit")).to eq("Supprimer « Aides → API QF (API) » ? #{immediate}")
       end
+
+      it 'le dit en supprimant une intégration dans l’onglet d’une solution publiée, pas d’une solution masquée' do
+        integration = Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
+        bouquet.update!(slug: 'bouquet', visible: true)
+        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq("Supprimer l’intégration Bouquet → API QF (API) (intégrée) ? #{immediate}")
+        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq('Supprimer l’intégration Bouquet → API QF (API) (intégrée) ?')
+
+        bouquet.update!(visible: false)
+        api_qf.update!(visible: true)
+        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq('Supprimer l’intégration Bouquet → API QF (API) (intégrée) ?')
+        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq("Supprimer l’intégration Bouquet → API QF (API) (intégrée) ? #{immediate}")
+      end
+
+      it 'le dit sur la fiche d’une intégration dont une des deux solutions est publiée' do
+        integration = Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
+        expect(confirmation("/admin/integrations/#{integration.id}/edit")).to eq('Supprimer « Bouquet → API QF (API) (intégrée) » ?')
+
+        api_qf.update!(visible: true)
+        expect(confirmation("/admin/integrations/#{integration.id}/edit")).to eq('Supprimer « Bouquet → API QF (API) (intégrée) » ? La suppression est immédiate.')
+      end
     end
 
     it 'nomme les solutions qu’une organisation rendrait privées' do

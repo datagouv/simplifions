@@ -199,6 +199,7 @@ fr:
     rafraichissement_lance: "Rafraîchissement lancé."
     suppression:
       immediate: "La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas."
+      sans_brouillon: "La suppression est immédiate."
       recommandations:
         zero: ""
         one: "1 recommandation sera supprimée."
