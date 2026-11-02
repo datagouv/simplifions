@@ -35,6 +35,10 @@ class Recommandation < ApplicationRecord
 
   def publier_avec_la_demarche = ecrire('visible' => '1')
 
+  def abandonner_avec_la_demarche!
+    created_at >= brouillon['commence_le'].to_time ? destroy! : abandonner_brouillon!
+  end
+
   validate :ne_recommande_pas_de_solution_privee
 
   def solutions_integratrices

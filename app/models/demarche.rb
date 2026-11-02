@@ -54,6 +54,13 @@ class Demarche < ApplicationRecord
     transaction { (super && publier_les_recommandations) || raise(ActiveRecord::Rollback) } || false
   end
 
+  def abandonner_brouillon!
+    transaction do
+      recommandations.a_publier_avec_la_demarche.each(&:abandonner_avec_la_demarche!)
+      super
+    end
+  end
+
   def recommandations_publiees
     @recommandations_publiees ||= recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
   end

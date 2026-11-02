@@ -2280,6 +2280,25 @@ RSpec.describe 'Administration' do
       expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser', 'Abandonner le brouillon')
     end
 
+    it 'supprime à l’abandon du brouillon de la démarche les recommandations ajoutées depuis sa publication, et elles seules' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      ajouter_bouquet
+      ajoutee = nouvelle
+      ancienne = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API Impôt', categorie: 'api'), niveau: :niveau_2, visible: true)
+      patch "/admin/recommandations/#{ancienne.id}", params: { recommandation: { visible: '0' } }
+      patch "/admin/recommandations/#{ancienne.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+
+      patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.parsed_body.css("tr#recommandation_#{ajoutee.id}")).to be_empty
+      expect(ancienne.reload.slice(:niveau, :visible, :brouillon)).to eq('niveau' => 'niveau_2', 'visible' => false, 'brouillon' => nil)
+      expect(publiee.reload.brouillon).to include('donnees_utiles' => 'Revenu fiscal')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(cartes_publiques.map { it[/Mes Aides|Bouquet|API Impôt/] }).to eq(['Mes Aides'])
+      expect(cartes_publiques.first).to include('Revenu fiscal')
+    end
+
     it 'ne publie rien et nomme la recommandation refusée' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { niveau: '' } }
       ajouter_bouquet
