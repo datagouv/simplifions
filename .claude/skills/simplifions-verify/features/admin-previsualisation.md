@@ -1,6 +1,6 @@
 # Prévisualiser une fiche avec son brouillon
 
-On a démarche or solution that holds a draft, the column `État et actions` shows `Prévisualiser` (new window). It opens `/admin/<demarches|solutions>/:id/previsualisation`: the public page built from the draft in memory (nothing written), under a DSFR notice `Prévisualisation, non publiée.` that says recommandations and intégrations show in their published version, tab title prefixed `Prévisualisation - `, header `X-Robots-Tag: noindex`. Admin only; no link without a draft.
+On a démarche or solution that holds a draft, the column `État et actions` shows `Prévisualiser` (new window). It opens `/admin/<demarches|solutions>/:id/previsualisation`: the public page built from the draft in memory (nothing written), under a DSFR notice `Prévisualisation, non publiée.` (for a démarche: its recommandations show as they will be published with it, intégrations in their published version; for a solution: both in their published version), tab title prefixed `Prévisualisation - `, header `X-Robots-Tag: noindex`. Admin only; no link without a draft (a démarche also offers it while one of its recommandations waits for its `Publier`, `admin-recommandations-avec-la-demarche.md`).
 
 ## Sub-features
 
