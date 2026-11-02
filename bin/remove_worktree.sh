@@ -67,13 +67,18 @@ if [ -d "$WORKTREE_PATH" ]; then
       echo "Lancer Docker puis relancer ; rien n'est supprimé." >&2
       exit 1
     fi
+    if [ -n "$(find "$WORKTREE_PATH" ! -user "$(id -u)" -print -quit 2>/dev/null)" ]; then
+      if ! docker run --rm -v "$WORKTREE_PATH:/w" alpine chown -R "$(id -u):$(id -g)" /w; then
+        echo "Erreur : des fichiers de $WORKTREE_PATH appartiennent à root et l'image alpine n'a pas pu les rendre ; rien n'est supprimé" >&2
+        exit 1
+      fi
+    fi
     PROJECT_LABEL="label=com.docker.compose.project=$PROJECT"
     CONTAINERS="$(docker ps -aq --filter "$PROJECT_LABEL")"
     VOLUMES="$(docker volume ls -q --filter "$PROJECT_LABEL")"
     if [ -n "$CONTAINERS$VOLUMES" ]; then
       (
         cd "$WORKTREE_PATH" &&
-          docker compose --project-name "$PROJECT" run --rm --no-deps -T web chown -R "$(id -u):$(id -g)" /rails &&
           docker compose --project-name "$PROJECT" down --volumes --rmi local
       )
     fi
