@@ -2,7 +2,7 @@ class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   before_action :set_paper_trail_whodunnit
-  helper_method :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
+  helper_method :filtre_brouillons?, :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
 
   def abandonner_brouillon
     en_base.abandonner_brouillon!
@@ -18,6 +18,8 @@ class Admin::BaseController < ApplicationController
   private
 
   def paginer(liste) = super(liste, 50)
+
+  def filtre_brouillons? = params[:brouillons] == '1'
 
   def user_for_paper_trail = current_admin.id
 

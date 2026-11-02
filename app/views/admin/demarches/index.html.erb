@@ -3,7 +3,7 @@
 <div class="fr-container fr-mb-6w">
   <h1>Démarches</h1>
   <%= link_to "Ajouter", new_admin_demarche_path, class: "fr-btn fr-mb-3w" %>
-  <%= render layout: "recherche", locals: { total: @demarches.total_count } do %>
+  <%= render layout: "recherche", locals: { total: @demarches.total_count, brouillons: @en_brouillon.size } do %>
     <div class="fr-table">
       <table>
         <thead>
@@ -26,5 +26,5 @@
       </table>
     </div>
   <% end %>
-  <%= pagination @demarches, %w[q] %>
+  <%= pagination @demarches, %w[q brouillons] %>
 </div>

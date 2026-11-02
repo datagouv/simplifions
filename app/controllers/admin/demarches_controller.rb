@@ -2,7 +2,7 @@ class Admin::DemarchesController < Admin::BaseController
   before_action :set_demarche, only: %i[edit update destroy]
 
   def index
-    @demarches = paginer(Demarche.ransack(recherche: params[:q].to_s).result.order(:id))
+    @demarches = paginer(Demarche.ransack(recherche: params[:q].to_s, en_brouillon: filtre_brouillons?).result.order(:id))
     @en_brouillon = Demarche.en_brouillon.ids.to_set
   end
 

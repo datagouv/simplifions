@@ -67,7 +67,7 @@ class Solution < ApplicationRecord
 
   scope :recherche, ->(q) { chaque_mot_dans("unaccent(concat_ws(' ', nom, description_courte)) ILIKE unaccent(:motif)", q) }
   def self.ransackable_attributes(_auth_object = nil) = %w[nom]
-  def self.ransackable_scopes(_auth_object = nil) = %w[recherche]
+  def self.ransackable_scopes(_auth_object = nil) = %w[recherche en_brouillon]
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 

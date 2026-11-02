@@ -2,7 +2,7 @@ class Admin::SolutionsController < Admin::BaseController
   before_action :set_solution, only: %i[edit update destroy]
 
   def index
-    @solutions = paginer(Solution.ransack(recherche: params[:q].to_s).result.preload(:integratrices, :organisations, integrations_de_ses_api: :integratrice).order(:id))
+    @solutions = paginer(Solution.ransack(recherche: params[:q].to_s, en_brouillon: filtre_brouillons?).result.preload(:integratrices, :organisations, integrations_de_ses_api: :integratrice).order(:id))
     @en_brouillon = Solution.en_brouillon.ids.to_set
   end
 
