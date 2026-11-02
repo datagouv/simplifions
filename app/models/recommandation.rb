@@ -29,7 +29,7 @@ class Recommandation < ApplicationRecord
     return super unless new_record?
 
     assign_attributes(attributs)
-    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current } if demarche&.visible? || niveau_1?
+    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current }
     save
   end
 

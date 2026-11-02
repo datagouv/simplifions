@@ -8,6 +8,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let!(:ligne) { modele.create!(attributs) }
   let(:nom) { attributs[:nom] }
   let(:nom_cree) { nom }
+  let(:message_cree) { "« #{nom_cree} » enregistré." }
   let(:nom_liste) { nom }
   let(:fiche) { ->(id) { "/admin/#{chemin}/#{id}/edit" } }
 
@@ -103,7 +104,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect { post "/admin/#{chemin}", params: { cle => nouveaux } }.to change(modele, :count).by(1)
     expect(response).to redirect_to(fiche.call(modele.last.id))
     follow_redirect!
-    expect(response.body).to include("« #{nom_cree} » enregistré.")
+    expect(response.body).to include(message_cree)
   end
 
   it 'refuse une ligne invalide et réaffiche le formulaire avec l’erreur' do
@@ -183,6 +184,7 @@ RSpec.describe 'Administration' do
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id, niveau: 'niveau_2') }
     let(:nom) { 'Aides → API QF (API)' }
     let(:nom_cree) { 'Autre démarche → API QF (API)' }
+    let(:message_cree) { "« #{nom_cree} » : brouillon enregistré, non publié." }
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
@@ -2248,6 +2250,16 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(publiee.reload.visible).to be(false)
       expect(cartes_publiques).to be_empty
+    end
+
+    it 'publie avec la démarche masquée la recommandation ajoutée depuis son onglet' do
+      demarche.update!(visible: false)
+      publiee.update!(visible: false)
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: Solution.create!(nom: 'Bouquet', categorie: 'api').id, niveau: 'niveau_2' } }
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(cartes_publiques.map { it[/Mes Aides|Bouquet/] }).to eq(['Bouquet'])
+      expect(nouvelle.reload.slice(:visible, :brouillon)).to eq('visible' => true, 'brouillon' => nil)
     end
 
     it 'ne publie rien et nomme la recommandation refusée' do
