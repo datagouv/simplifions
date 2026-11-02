@@ -3,27 +3,28 @@
 <div class="fr-container fr-mb-6w">
   <h1>Démarches</h1>
   <%= link_to "Ajouter", new_admin_demarche_path, class: "fr-btn fr-mb-3w" %>
-  <%= render "recherche", total: @demarches.total_count %>
-  <div class="fr-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Id</th>
-          <th>Nom</th>
-          <th>Visible</th>
-          <th>Modifié le</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @demarches.each do |ligne| %>
+  <%= render layout: "recherche", locals: { total: @demarches.total_count } do %>
+    <div class="fr-table">
+      <table>
+        <thead>
           <tr>
-            <td><%= ligne.id %></td>
-            <td><%= avec_icone(ligne.icone, link_to(ligne.nom, edit_admin_demarche_path(ligne))) %></td>
-            <%= render "visible_et_modifie_le", ligne: %>
+            <th>Id</th>
+            <th>Nom</th>
+            <th>Visible</th>
+            <th>Modifié le</th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          <% @demarches.each do |ligne| %>
+            <tr>
+              <td><%= ligne.id %></td>
+              <td><%= avec_icone(ligne.icone, link_to(ligne.nom, edit_admin_demarche_path(ligne))) %></td>
+              <%= render "visible_et_modifie_le", ligne: %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
   <%= pagination @demarches, %w[q] %>
 </div>

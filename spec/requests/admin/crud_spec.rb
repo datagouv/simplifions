@@ -37,6 +37,15 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect(response.body).not_to include("href=\"#{fiche.call(ligne.id)}\"")
   end
 
+  it 'dit qu’une recherche ne trouve rien et propose de l’effacer' do
+    sign_in admin
+    get "/admin/#{chemin}", params: { q: 'introuvable' }
+    page = response.parsed_body
+    expect(page.at_css('[role=status]').text.squish).to eq("#{aucun} ne contient « introuvable ».")
+    expect(page.at_css('table')).to be_nil
+    expect(page.css('a').find { |lien| lien.text == 'Effacer la recherche' }['href']).to eq("/admin/#{chemin}")
+  end
+
   it 'propose la suppression depuis la fiche, en nommant la ligne' do
     sign_in admin
     get "/admin/#{chemin}/#{ligne.id}/edit"
@@ -154,16 +163,19 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Demarche, 'demarches' do
+    let(:aucun) { 'Aucune démarche' }
     let(:collection) { 'Démarches' }
     let(:attributs) { { nom: 'Aides publiques' } }
   end
 
   it_behaves_like 'un CRUD brut', Solution, 'solutions' do
+    let(:aucun) { 'Aucune solution' }
     let(:collection) { 'Solutions' }
     let(:attributs) { { nom: 'Bouquet API Particulier' } }
   end
 
   it_behaves_like 'un CRUD brut', Recommandation, 'recommandations' do
+    let(:aucun) { 'Aucune recommandation' }
     let(:collection) { 'Recommandations' }
     let(:attributs) { { demarche_id: Demarche.create!(nom: 'Aides').id, solution_id: Solution.create!(nom: 'API QF', categorie: 'api').id, niveau: 'niveau_1' } }
     let(:modification) { { ordre: 3 } }
@@ -174,6 +186,7 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
+    let(:aucun) { 'Aucune intégration' }
     let(:collection) { 'Intégrations' }
     let(:attributs) do
       { integratrice_id: Solution.create!(nom: 'Bouquet').id, integree_id: Solution.create!(nom: 'API QF').id, type_integration: 'expose' }
@@ -185,17 +198,20 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Organisation, 'organisations' do
+    let(:aucun) { 'Aucune organisation' }
     let(:collection) { 'Organisations' }
     let(:attributs) { { nom: 'DINUM' } }
   end
 
   it_behaves_like 'un CRUD brut', TypeActeur, 'types_acteurs' do
+    let(:aucun) { 'Aucun fournisseur de services' }
     let(:collection) { 'Fournisseurs de services' }
     let(:attributs) { { nom: 'Communes' } }
     let(:fiche) { ->(id) { "/admin/types_acteurs/#{id}" } }
   end
 
   it_behaves_like 'un CRUD brut', Vocabulaire, 'vocabulaires' do
+    let(:aucun) { 'Aucun vocabulaire' }
     let(:collection) { 'Vocabulaires' }
     let(:attributs) { { nom: 'Particuliers', slug: 'particuliers', categorie: 'usager' } }
     let(:fiche) { ->(id) { "/admin/vocabulaires/#{id}" } }

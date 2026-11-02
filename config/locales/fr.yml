@@ -168,6 +168,14 @@ fr:
       last: "Dernière page"
       truncate: "…"
   admin:
+    aucun_resultat:
+      demarche: "Aucune démarche ne contient « %{q} »."
+      solution: "Aucune solution ne contient « %{q} »."
+      recommandation: "Aucune recommandation ne contient « %{q} »."
+      integration: "Aucune intégration ne contient « %{q} »."
+      organisation: "Aucune organisation ne contient « %{q} »."
+      type_acteur: "Aucun fournisseur de services ne contient « %{q} »."
+      vocabulaire: "Aucun vocabulaire ne contient « %{q} »."
     badge_brouillon:
       recommandation: "Brouillon — sera publiée avec la démarche"
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
