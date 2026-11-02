@@ -1,23 +1,33 @@
 require 'rails_helper'
 
 RSpec.describe 'config/recurring.yml' do
-  let(:taches) do
-    ActiveSupport::ConfigurationFile.parse(Rails.root.join('config/recurring.yml'))
-      .to_h { |cle, options| [cle, SolidQueue::RecurringTask.from_configuration(cle, **options.symbolize_keys)] }
+  def taches_en(env)
+    allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new(env))
+    scheduler = SolidQueue::Configuration.new.configured_processes.find { |processus| processus.kind == :scheduler }
+    scheduler.attributes[:recurring_tasks].index_by(&:key)
   end
 
-  it 'rafraîchit le catalogue chaque nuit à 3 h, heure de Paris' do
-    tache = taches.fetch('rafraichir_catalogue')
-    apres_midi = Time.find_zone('Europe/Paris').parse('2026-12-01 15:00')
+  it 'rafraîchit le catalogue en production chaque nuit à 0 h 30 UTC, l’hiver comme l’été' do
+    tache = taches_en('production').fetch('rafraichir_catalogue')
+    hiver = Time.utc(2026, 12, 1, 15)
+    ete = Time.utc(2027, 7, 1, 15)
 
     expect(tache).to be_valid
     expect(tache.class_name).to eq('RafraichirCatalogueJob')
-    expect(tache.next_time_after(apres_midi).in_time_zone('Europe/Paris').strftime('%F %R')).to eq('2026-12-02 03:00')
-    expect(tache.next_time_after(apres_midi + 6.months).in_time_zone('Europe/Paris').hour).to eq(3)
+    expect(tache.next_time_after(hiver).utc.strftime('%F %R')).to eq('2026-12-02 00:30')
+    expect(tache.next_time_after(ete).utc.strftime('%F %R')).to eq('2027-07-02 00:30')
   end
 
-  it 'fait le ménage des jobs terminés' do
-    expect(taches.fetch('clear_solid_queue_finished_jobs')).to be_valid
+  %w[staging sandbox development].each do |env|
+    it "ne rafraîchit pas le catalogue la nuit en #{env}" do
+      expect(taches_en(env)).not_to have_key('rafraichir_catalogue')
+    end
+  end
+
+  %w[production staging sandbox development test].each do |env|
+    it "fait le ménage des jobs terminés en #{env}" do
+      expect(taches_en(env).fetch('clear_solid_queue_finished_jobs')).to be_valid
+    end
   end
 
   describe 'seul l’hôte frontal planifie les tâches' do
