@@ -19,6 +19,15 @@ def contexte
     api: api_non_integree(solution), integratrice: integratrice_absente(solution) }
 end
 
+def solutions_masquees(ctx)
+  nom = "Vérif verify-map #{Verify.browser}"
+  ctx[:masquee] = Solution.create!(nom: "#{nom} A", categorie: 'logiciel_metier_cle_en_main')
+  ctx[:masquee_api] = Solution.create!(nom: "#{nom} B", categorie: 'api')
+  raise 'une solution de vérif est publiée' if ctx[:masquee].visible? || ctx[:masquee_api].visible?
+
+  ctx[:integration_masquee] = Integration.create!(integratrice: ctx[:masquee], integree: ctx[:masquee_api], type_integration: ctx[:integration].type_integration)
+end
+
 def compter(solution)
   ActiveRecord::Base.uncached { [solution.integrations_comme_integratrice.count, solution.integrations_comme_integree.count] }
 end
@@ -124,18 +133,19 @@ def largeurs(page, ctx)
   page.current_window.resize_to(1280, 1024)
 end
 
-def refuser_puis_supprimer(page, integration, poubelle)
-  page.dismiss_confirm("#{poubelle} ?") { page.click_button poubelle }
+def refuser_puis_supprimer(page, integration, poubelle, publiee)
+  attendue = Verify.question_de_suppression("#{poubelle} ?", publiee)
+  Verify.refuser_la_suppression(page, poubelle, attendue)
   page.assert_selector "tr#integration_#{integration.id}"
   raise 'refuser la confirmation a supprimé' unless ActiveRecord::Base.uncached { Integration.exists?(integration.id) }
 
-  page.accept_confirm("#{poubelle} ?") { page.click_button poubelle }
+  page.accept_confirm(attendue) { page.click_button poubelle }
   page.assert_selector '#message-integrations .fr-valid-text', text: 'supprimé'
   page.assert_no_selector "tr#integration_#{integration.id}"
 end
 
-def supprimer_depuis_la_ligne(page, integration)
-  refuser_puis_supprimer(page, integration, "Supprimer l’intégration #{integration.libelle}")
+def supprimer_depuis_la_ligne(page, integration, publiee)
+  refuser_puis_supprimer(page, integration, "Supprimer l’intégration #{integration.libelle}", publiee)
   focus = page.evaluate_script("document.activeElement.closest('#message-integrations')?.textContent?.trim()")
   raise "focus perdu après suppression (#{Verify.focus_sur(page).inspect})" unless focus&.include?('supprimé')
 
@@ -151,11 +161,46 @@ end
 
 def defaire(page, ctx)
   onglet_integrees(page, ctx[:solution])
-  ctx[:focus] = [supprimer_depuis_la_ligne(page, ctx[:integree_creee])]
+  publiee = ctx[:solution].visible?
+  ctx[:focus] = [supprimer_depuis_la_ligne(page, ctx[:integree_creee], publiee)]
   Verify.onglet(page, 'Solutions qui l’intègrent')
-  ctx[:focus] << supprimer_depuis_la_ligne(page, ctx[:integratrice_creee])
+  ctx[:focus] << supprimer_depuis_la_ligne(page, ctx[:integratrice_creee], publiee)
   remettre_le_statut(page, ctx)
   etat_revenu(ctx)
+end
+
+def avertissement_de_la_ligne(page, solution, integration, publiee, onglet = 'api-integrees')
+  page.visit("/admin/solutions/#{solution.id}/edit?onglet=#{onglet}")
+  poubelle = "Supprimer l’intégration #{integration.libelle}"
+  attendue = Verify.question_de_suppression("#{poubelle} ?", publiee)
+  Verify.refuser_la_suppression(page, poubelle, attendue)
+  attendue
+end
+
+def avertissement_de_la_fiche(page, integration, publiee)
+  page.visit("/admin/integrations/#{integration.id}/edit")
+  Verify.refuser_la_suppression_de_la_fiche(page, publiee, Verify::SUPPRESSION_SANS_BROUILLON)
+end
+
+def toujours_en_base(*integrations)
+  raise 'intégration supprimée par une confirmation refusée' unless ActiveRecord::Base.uncached { Integration.where(id: integrations).count == integrations.size }
+end
+
+def lire_les_avertissements(page, ctx)
+  {
+    ligne_publiee: avertissement_de_la_ligne(page, ctx[:solution], ctx[:integration], true),
+    fiche_publiee: avertissement_de_la_fiche(page, ctx[:integration], true),
+    ligne_masquee: avertissement_de_la_ligne(page, ctx[:masquee], ctx[:integration_masquee], false),
+    ligne_masquee_autre_cote: avertissement_de_la_ligne(page, ctx[:masquee_api], ctx[:integration_masquee], false, 'integratrices'),
+    fiche_masquee: avertissement_de_la_fiche(page, ctx[:integration_masquee], false)
+  }
+end
+
+def avertissements(page, ctx)
+  solutions_masquees(ctx)
+  lu = lire_les_avertissements(page, ctx)
+  toujours_en_base(ctx[:integration], ctx[:integration_masquee])
+  Verify.evidence(DOSSIER, page, 'avertissement', lu.map { |cle, texte| "#{cle}=#{texte.inspect}" }.join(' '))
 end
 
 def etat_revenu(ctx)
@@ -175,9 +220,14 @@ end
 
 def nettoyer(ctx)
   ActiveRecord::Base.uncached do
+    Solution.where(id: [ctx[:masquee]&.id, ctx[:masquee_api]&.id].compact).destroy_all
     Integration.where(id: [ctx[:integree_creee]&.id, ctx[:integratrice_creee]&.id].compact).destroy_all
-    ctx[:integration].reload.update!(statut: ctx[:statut]) if ctx[:integration].reload.statut != ctx[:statut]
   end
+  remettre_le_statut_en_base(ctx)
+end
+
+def remettre_le_statut_en_base(ctx)
+  ActiveRecord::Base.uncached { ctx[:integration].reload.update!(statut: ctx[:statut]) }
 end
 
 def cellule_integree_par(page, bouquet)
@@ -243,6 +293,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Add') { ajouter(page, ctx) }
   Verify.check('Width') { largeurs(page, ctx) }
   Verify.check('Undo') { defaire(page, ctx) }
+  Verify.check('Warning') { avertissements(page, ctx) }
   Verify.check('Proof') { preuve(page, ctx) }
   bouquet = Solution.all.max_by { it.integrations_de_ses_api.size }
   Verify.check('Bouquet list') { liste_du_bouquet(page, bouquet) }

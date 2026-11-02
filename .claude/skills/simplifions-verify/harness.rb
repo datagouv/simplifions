@@ -105,6 +105,9 @@ module Verify
   end
 
   module Etapes
+    SUPPRESSION_IMMEDIATE = 'La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas.'.freeze
+    SUPPRESSION_SANS_BROUILLON = 'La suppression est immédiate.'.freeze
+
     def rubrique(page, nom)
       lien = page.find("nav[aria-label='Menu de l’administration']").find_link(nom)
       chemin = URI(lien[:href]).path
@@ -137,6 +140,23 @@ module Verify
     def demande_avant_de_partir(page, question, &)
       message = page.dismiss_confirm(&)
       raise "confirmation #{message.inspect}" unless message == question
+    end
+
+    def question_de_suppression(question, publiee) = publiee ? "#{question} #{SUPPRESSION_IMMEDIATE}" : question
+
+    def refuser_la_suppression(page, bouton, attendue)
+      message = page.dismiss_confirm { page.click_button bouton }
+      raise "confirmation #{message.inspect} au lieu de #{attendue.inspect}" unless message == attendue
+
+      message
+    end
+
+    def refuser_la_suppression_de_la_fiche(page, publiee, avertissement = SUPPRESSION_IMMEDIATE)
+      message = page.dismiss_confirm { page.click_button 'Supprimer' }
+      forme = message.match?(/\ASupprimer « .+ » \?( #{Regexp.escape(avertissement)})?\z/) && message.end_with?(" #{avertissement}") == publiee
+      raise "confirmation de la fiche #{message.inspect}, avertissement attendu : #{publiee}" unless forme
+
+      message
     end
 
     def titre_public(page, slug)
