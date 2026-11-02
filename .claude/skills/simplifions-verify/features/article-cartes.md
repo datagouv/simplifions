@@ -2,6 +2,11 @@
 
 An article cites solutions and cas d'usages as cards, in its spotlights and in the « Sont mentionnés dans cet article » carousel. Each card shows the catalogue record in the database: its name, its operator badge, its link.
 
+## Sub-features
+
+- `article-cartes-base` each cited solution or cas d'usage card shows the record's name, operator badge and link from the database.
+- `article-cartes-masquee` a hidden record's card is left out; the article prose keeps its own link.
+
 ## How to get to it (user POV)
 
 - From `/articles`, click an article; URL `/articles/<slug>`.

@@ -2,6 +2,13 @@
 
 A solution page shows the operator badge (« Solution publique / privée | opérateur ») and, under « Solutions intégrant … », one tab per category of integrating solution with its count. Its example image, when it has one, sits in a black frame with a shadow, its corners square like the frame.
 
+## Sub-features
+
+- `fiche-solution-badge` the operator badge reads « Solution publique | … » or « Solution privée | … ».
+- `fiche-solution-onglets` one tab per category of integrating solution with its count, in the model's order; a click switches tab.
+- `fiche-solution-carte` integrating solution cards keep the cas d'usage card's blue arrow.
+- `fiche-solution-image` the example image sits in a black shadowed frame, its corners square.
+
 ## How to get to it (user POV)
 
 - From `/solutions`, click a card title; URL `/solutions/<slug>`, visible solutions only, anyone.

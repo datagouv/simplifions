@@ -2,6 +2,14 @@
 
 Under `/admin`, the header's navigation bar (`Menu de l’administration`) lists the seven rubriques — Démarches, Solutions, Recommandations, Intégrations, Organisations, Fournisseurs de services, Vocabulaires — instead of the public one (`Menu principal`: Accueil, Cas d'usages, Articles, À propos). The rubrique of the page is marked: `aria-current="page"` on its list, `aria-current="true"` on its sub-pages (new, edit, read page, a fiche's history), as the DSFR asks for a parent section. Public pages and the login page keep the public bar, even for a logged-in admin.
 
+## Sub-features
+
+- `admin-nav-barre` under `/admin`, the bar `Menu de l’administration` lists the seven rubriques, no `Menu principal`.
+- `admin-nav-courante` the rubrique is `aria-current="page"` on its list, `"true"` on its edit and history pages.
+- `admin-nav-mobile` at 375 px, header button `Menu` opens the seven rubriques.
+- `admin-nav-public` public pages keep `Menu principal`, even for a logged-in admin.
+- `admin-nav-connexion` the login page keeps `Menu principal` (spec only).
+
 ## How to get to it (user POV)
 
 - Any `/admin/*` page once logged in; on a narrow screen, header button `Menu`.

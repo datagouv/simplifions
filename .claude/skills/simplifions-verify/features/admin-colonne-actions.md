@@ -2,6 +2,15 @@
 
 Every admin `new` and `edit` page (seven tables) puts an `État et actions` column (`aside`) right of the fields, sticky while scrolling from 768 px up, under the H1 and before the fields below. It holds the state (`Publiée` / `Masquée`, démarches, solutions, recommandations), `Création` and `Dernière modification` (`cree_le` / `modifie_le`, else `created_at` / `updated_at`), `Identifiant Grist : …`, then `Enregistrer`, `Publier` or `Masquer`, `Annuler`, `Supprimer`, `Voir la page publique` for a visible démarche or solution with a slug, and `Prévisualiser` while a draft exists ([admin-previsualisation.md](admin-previsualisation.md)). `Enregistrer` is disabled until a named field changes (enabled from the start on a form re-rendered with errors, and always without JavaScript); `Publier` / `Masquer` are never disabled. `Enregistrer` never changes the state; `Publier` (`Masquer`) saves the fields with `visible` true (false). A donnée utile's page shows neither ([admin-brouillon.md](admin-brouillon.md)). On a published démarche or solution both `Publier` and `Masquer` show, and `Enregistrer` keeps a draft ([admin-brouillon.md](admin-brouillon.md)). The form keeps no button and no `Visible sur simplifions` box; the column buttons reach it through `form="formulaire-fiche"`.
 
+## Sub-features
+
+- `colonne-collante` the `État et actions` column stays in view while scrolling; above the form at 375 px.
+- `colonne-etat` badge `Publiée` / `Masquée`.
+- `colonne-dates-grist` `Création`, `Dernière modification`, `Identifiant Grist : …` (spec only).
+- `colonne-enregistrer` `Enregistrer` disabled until a field changes, enabled on a refused form; Enter saves without changing the state.
+- `colonne-publier-masquer` `Publier` / `Masquer` save the fields and set the state; `Voir la page publique` opens the public page.
+- `colonne-supprimer` `Supprimer` from the column, after the confirm `Supprimer « … » ?`.
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → `Démarches` → a row name. Démarche 1 (`Marchés publics | Dépôt…`) scrolls about 3 000 px in its `Fiche` tab (Firefox reports a 14 000 px `scrollHeight`, Chrome 4 000): scroll, the column stays in view.

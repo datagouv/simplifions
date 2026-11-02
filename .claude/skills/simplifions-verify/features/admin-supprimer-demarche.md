@@ -2,6 +2,12 @@
 
 Deleting a démarche from the administration removes its recommandations with it; the recommended solution stays. The confirmation names the row and counts what goes or changes with it; for an organisation, it names the solutions that would become private (it was their only `Public` operator).
 
+## Sub-features
+
+- `supprimer-demarche` `Supprimer`, confirmation `Supprimer « <nom> » ? 1 recommandation sera supprimée.`: recommandations go, the solution stays.
+- `supprimer-autres-tables` the same button on the six other edit pages, counting what goes or is detached (spec only).
+- `supprimer-organisation` an organisation's confirmation names `Ces solutions deviendront privées : <noms>.`
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → link `Démarches` → search the name → click it → `Supprimer` in the `État et actions` column, confirm `Supprimer « <nom> » ? 1 recommandation sera supprimée.`

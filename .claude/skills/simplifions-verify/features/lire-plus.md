@@ -2,6 +2,15 @@
 
 On a cas d'usage page, Contexte and Cadre juridique taller than 8 lines are folded, their bottom fading out, with a button « Lire plus » under the text, looking like a link with a down arrow, that unfolds it and becomes « Lire moins » with an up arrow. A shorter text shows whole with no button; without JavaScript every text shows whole.
 
+## Sub-features
+
+- `lire-plus-replie` Contexte and Cadre juridique taller than 8 lines are folded with a fade and a `Lire plus` link-like button.
+- `lire-plus-bascule` `Lire plus` unfolds into `Lire moins`; folding back from the bottom brings the section title back in view.
+- `lire-plus-focus` focusing a link inside a folded text unfolds it.
+- `lire-plus-mobile` at 375 px the text stays folded with its button and folds back to its title.
+- `lire-plus-court` a text of 8 lines or less shows whole, with no button.
+- `lire-plus-sans-js` without JavaScript every text shows whole, no button.
+
 ## How to get to it (user POV)
 
 - `/demarches/<slug>`, section « Contexte et cadre juridique », first block of the page under the header.

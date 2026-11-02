@@ -2,6 +2,16 @@
 
 `/contact` orients a visitor in steps (`/contact/<besoin>`), then gives a prefilled e-mail link and three blocks to copy: the team address, the subject and the message template. On the « modifier » steps a select picks the démarche or solution; from a cas d'usage or solution page, it comes preselected and the subject and message cite that page.
 
+## Sub-features
+
+- `contact-etapes` `/contact` orients in steps (`/contact/<besoin>`), `Retour` goes back one step.
+- `contact-etape-inconnue` an unknown step is a 404 (spec only).
+- `contact-fiche` from a cas d'usage page, the démarche comes preselected and the subject and the prefilled e-mail cite it.
+- `contact-solution` from a solution page, the solution and its operator are preselected and cited (spec only).
+- `contact-choix` the `Démarche concernée` select changes the URL and the subject without reloading the page.
+- `contact-copier` `Copier l'e-mail`, `Copier l'objet`, `Copier le modèle` copy and announce it to screen readers.
+- `contact-sans-adresse` « J'ai une question sur ma propre démarche administrative » answers without giving an address.
+
 ## How to get to it (user POV)
 
 - From a cas d'usage page, the « Proposer une modification du contenu » block opens `/contact/modifier-cas-usage?demarche=<slug>` in a new tab; a solution page opens `/contact/modifier-solution?solution=<slug>`.

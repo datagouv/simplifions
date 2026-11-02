@@ -2,6 +2,13 @@
 
 The server refuses a solution image whose content is not png, jpeg or webp, whatever its file name: error `doit être une image png, jpg ou webp` under `Image principale` and in the summary, HTTP 422, the other typed fields kept in the form. A hidden solution keeps no file; a published one writes no draft and keeps no blob. A file with no signature (plain text) keeps the type of its extension. The Grist import notes `Solutions:N — image M : type <x> refusé` instead (request and interactor specs only).
 
+## Sub-features
+
+- `image-refusee` a content other than png, jpg, webp is refused under `Image principale`, other fields kept; no file, no draft, no blob.
+- `image-refusee-acceptee` a real png goes into the draft of a published solution.
+- `image-refusee-texte` a file with no signature keeps the type of its extension (not driven).
+- `image-refusee-import` the Grist import notes `Solutions:N — image M : type <x> refusé` (spec only).
+
 ## How to get to it (user POV)
 
 - `/admin` → `Solutions` → a row → `Image principale` → `Enregistrer`. Admin only.

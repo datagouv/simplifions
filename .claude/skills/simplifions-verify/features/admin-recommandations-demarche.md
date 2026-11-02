@@ -2,6 +2,13 @@
 
 A démarche's admin form lists, in its `Recommandations (<n>)` tab, its recommandations as editable rows (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)), sorted by type then ordre, each with `Modifier la recommandation <solution>` linking to the recommandation, then a blank row (the only way to add one from the démarche). `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Ordre, Visible, Modifié le).
 
+## Sub-features
+
+- `recos-demarche-tableau` the `Recommandations (<n>)` tab lists every recommandation as a row, then a blank row to add one.
+- `recos-demarche-nouvelle` `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche.
+- `recos-demarche-encart` a recommandation's form opens on `Démarche : <nom>`, `Voir la fiche <nom>`, accordion `Autres recommandations de la démarche (<n>)`.
+- `recos-demarche-modifier` `Modifier la recommandation <solution>` opens the recommandation, whose `Supprimer` removes it.
+
 ## How to get to it (user POV)
 
 - `/admin/demarches/<id>/edit`, tab `Recommandations (<n>)`.

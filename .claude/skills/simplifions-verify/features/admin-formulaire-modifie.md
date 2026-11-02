@@ -2,6 +2,16 @@
 
 An admin form that was changed and not saved asks `Quitter sans enregistrer les modifications ?` before the page goes away: `Annuler`, any Turbo link, the browser back button, another form on the page (`Supprimer`, `Se déconnecter`), and the browser's own prompt on reload or close. Saving never asks. A form re-rendered with errors (422) counts as changed. Only fields with a `name` count (filter inputs do not).
 
+## Sub-features
+
+- `formulaire-modifie-sans-saisie` an unchanged form leaves without a question.
+- `formulaire-modifie-question` a changed form asks `Quitter sans enregistrer les modifications ?` on `Annuler`, back, `Supprimer`; refusing keeps the typing.
+- `formulaire-modifie-rechargement` the browser's own prompt on reload or close.
+- `formulaire-modifie-quitter` accepting leaves without saving; forward shows the saved value.
+- `formulaire-modifie-echec` a failed send or a refused form (422) still counts as changed.
+- `formulaire-modifie-enregistrer` `Enregistrer`, and `Supprimer` on an unchanged form, never ask.
+- `formulaire-modifie-filtres` typing in a filter field (no `name`) does not count (not driven).
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → any table → row name, or `Ajouter`; type in a field, then leave.

@@ -2,6 +2,13 @@
 
 The seven admin forms name their fields with the Grist words (`Identifiant data.gouv`, `Mots-clés`, `Type d’intégration`), show list values in French (`Donnée utile (API ou jeu de données)`, `Brique technique`, `Intégrée`), explain ambiguous fields with a hint inside the label, and follow the order of the Grist record cards.
 
+## Sub-features
+
+- `libelles-noms` fields named with the Grist words (`Identifiant data.gouv`, `Mots-clés`, `Type d’intégration`).
+- `libelles-valeurs` selects show French values (`Donnée utile (API ou jeu de données)`, `Intégrée`), the key is stored.
+- `libelles-aide` an ambiguous field carries its hint inside its label (`Type de recommandation`).
+- `libelles-ordre` fields follow the order of the Grist record cards (spec only).
+
 ## How to get to it (user POV)
 
 - `/admin/recommandations/<id>/edit`: select `Type de recommandation` with its hint.

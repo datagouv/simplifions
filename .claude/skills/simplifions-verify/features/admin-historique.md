@@ -2,6 +2,14 @@
 
 Every create, update and delete on the seven admin tables is kept by paper_trail (`versions` table) with its author: the admin's id, `Import Grist` (import job and `grist:import`) or `data.gouv` (data.gouv refresh). The `État et actions` column of an edit page says `Créée par … le …` or `Modifiée par … le …` (admin e-mail or import label) and links `Historique`, only when a version exists (rows untouched since deploy have none). `/admin/historique/<table>/<id>` lists the versions, newest first: one `h2` per version (`Modification par … le 07/10/2026 à 11:40`) and a table `Champ / Avant / Après` under the French label of each changed field. On a published démarche, solution or recommandation, each `Enregistrer` kept as a draft gets its own line, `Modification en brouillon par …`, with the fields it changed (before: the previous draft, else the published value); `Publier` gives `Publication du brouillon par …`, `Abandonner le brouillon` gives `Abandon du brouillon par …` (before: the draft, after: the published value). Habtm links and the image are not versioned.
 
+## Sub-features
+
+- `historique-colonne` `Créée par …` / `Modifiée par … le …` and link `Historique` in the column.
+- `historique-sans-version` nothing said on a row without version (spec only).
+- `historique-page` versions newest first, `Champ / Avant / Après`, no horizontal scroll at 375 px, `Retour à la fiche`.
+- `historique-brouillon` lines `Modification en brouillon`, `Publication du brouillon`, `Abandon du brouillon` in the `Historique` tab.
+- `historique-data-gouv` author `data.gouv` for the data.gouv refresh (spec only).
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → `Démarches` → a row name → column `Historique`.

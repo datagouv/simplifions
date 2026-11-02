@@ -2,6 +2,13 @@
 
 The admin table `types_acteurs` is named « Fournisseurs de services » (Grist's word). A fournisseur is read before it is edited, and its « Regroupements » (the public `Démarches gérées par` filters) are ticked from the closed list `TypeActeur::FILTRES`.
 
+## Sub-features
+
+- `fournisseurs-lire` the table « Fournisseurs de services »; a row opens on its read page (`Regroupements`…), button `Modifier`.
+- `fournisseurs-formulaire` `Regroupements` checkboxes; `Ce que cela inclut` and `Codes juridiques` hinted `Mémo interne, non affiché sur le site`.
+- `fournisseurs-enregistrer` create or untick, back on the read page; the list's `Regroupements` column follows.
+- `fournisseurs-supprimer` `Supprimer` from the edit page.
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → link `Fournisseurs de services`; URL `/admin/types_acteurs` (unchanged).

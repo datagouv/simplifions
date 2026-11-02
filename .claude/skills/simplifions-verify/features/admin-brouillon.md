@@ -4,6 +4,18 @@ On a published démarche or solution, `Enregistrer` keeps the form in a draft (`
 
 Recommandations follow their démarche: `Enregistrer` on a published one keeps a draft (badge `Brouillon — sera publiée avec la démarche`); a new one added to a published démarche is created `Masquée` with that badge (notice `« <démarche> → <solution> » : brouillon enregistré, non publié.`). The démarche column counts them (`N recommandations en brouillon`), and the démarche's `Publier` puts them online together, or nothing if one is refused (error names it). A hidden recommandation without draft still saves directly. Données utiles (type `Donnée utile`) arrive `Publiée` from the import and follow the same rule; one added to a démarche, published or hidden, or a hidden recommandation switched to `Donnée utile` (even one keeping a draft), waits for the démarche's `Publier` (request spec only). As soon as `Donnée utile` is chosen in `Type de recommandation`, saved or not (`Nouvelle ligne` included), the page has neither `Publier` nor `Masquer`: it goes online with its démarche; back to `Solution recommandée`, they return. When an import Grist changed the fiche after the draft started (`commence_le`, kept across saves), the column shows a warning `Le Grist a modifié cette fiche le … : publier remplacera ces changements.` with `Voir l’historique` (request spec only, the drive does not run an import).
 
+## Sub-features
+
+- `brouillon-enregistrer` `Enregistrer` on a published fiche keeps a draft: notice, badge `Brouillon non publié`, draft date, public page unchanged.
+- `brouillon-publier` the form reopens on the draft; `Publier` puts it online.
+- `brouillon-publication-refusee` an incomplete draft saves, its `Publier` is refused with the error (spec only).
+- `brouillon-masquer` `Masquer` hides the fiche and keeps the draft; a hidden fiche saves directly (spec only).
+- `brouillon-abandonner` `Abandonner le brouillon`, after a confirm, returns to the published version.
+- `brouillon-image` a new image waits in the draft until `Publier`.
+- `brouillon-recommandations` recommandations of a published démarche wait as drafts, counted in its column, published by its `Publier`.
+- `brouillon-donnees-utiles` a `Donnée utile` waits for the démarche's `Publier`; choosing that type removes `Publier` and `Masquer`.
+- `brouillon-alerte-grist` warning `Le Grist a modifié cette fiche le …` with `Voir l’historique` (spec only).
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → `Démarches` (or `Solutions`) → a published row → change a field → `Enregistrer`.

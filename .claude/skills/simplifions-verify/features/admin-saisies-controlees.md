@@ -2,6 +2,14 @@
 
 Four admin fields that used to break the public site in silence: a solution URL typed without `https://` is completed, an intégration's statut is a closed list, an organisation's « Public ou privé » is a radio group, a démarche or solution slug outside `a-z0-9-` is refused with a message.
 
+## Sub-features
+
+- `saisies-url` `Site internet` typed without `https://` is completed.
+- `saisies-statut` `Statut de l’intégration` is a closed list.
+- `saisies-public-prive` `Public ou privé` is a radio group: `Non renseigné`, `Public`, `Privé`.
+- `saisies-slug` a slug outside `a-z0-9-` is refused with its message; the old slug and the public page stay.
+- `saisies-incoherences` an intégration of a solution with itself and a vocabulaire without slug are refused, nothing saved.
+
 ## How to get to it (user POV)
 
 - `/admin/solutions/<id>/edit` field `Site internet` (also `URL de demande d’accès`).

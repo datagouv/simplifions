@@ -2,6 +2,13 @@
 
 `RafraichirCatalogueJob` replays the Grist import then the data.gouv copy. Solid Queue runs it every night at 00:30 UTC in production only (`config/recurring.yml`, one section per environment), before very_ansible copies production to staging and sandbox at 01:30 UTC; the other environments only clear finished jobs every hour. It runs on the servers, where Puma starts the supervisor (`plugin :solid_queue`, very_ansible), only on the frontal host: `FRONTAL=false` (written by very_ansible) skips the recurring tasks (`config/initializers/solid_queue_frontal.rb`). A failed Grist import raises, keeps the previous catalogue and reaches Sentry; Sentry is off locally.
 
+## Sub-features
+
+- `rafraichissement-nuit-job` `RafraichirCatalogueJob` replays the Grist import then the data.gouv titles.
+- `rafraichissement-nuit-planning` scheduled at 00:30 UTC in production only; other environments only clear finished jobs.
+- `rafraichissement-nuit-frontal` with `FRONTAL=false` no task is scheduled.
+- `rafraichissement-nuit-echec` a failed Grist import raises without calling data.gouv (spec only).
+
 ## How to get to it (user POV)
 
 - No UI. In production the catalogue changes overnight; staging and sandbox get it with the 01:30 UTC copy. Locally nothing runs it unless a supervisor is started by hand.
