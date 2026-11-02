@@ -2,6 +2,12 @@
 
 The administration shows a row's Grist identifier as text (`Identifiant Grist : Cas_d_usages:1`), never as a field: changing it made the next Grist import delete the row. A solution's six data.gouv fields show in a `Repris de data.gouv.fr` block, read-only: the data.gouv refresh rewrites them.
 
+## Sub-features
+
+- `lecture-seule-grist` `Identifiant Grist : <id>` as text in `État et actions`, no field.
+- `lecture-seule-datagouv` a solution's data.gouv fields in the read-only block `Repris de data.gouv.fr`.
+- `lecture-seule-requete` a value sent anyway by a crafted request is ignored (spec only).
+
 ## How to get to it (user POV)
 
 - Any `edit` page of the seven admin tables: `Identifiant Grist : …` in the `État et actions` column, absent on `new` and on rows created in the admin.

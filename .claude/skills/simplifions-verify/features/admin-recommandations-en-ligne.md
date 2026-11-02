@@ -2,6 +2,15 @@
 
 In a démarche's `Recommandations (<n>)` tab, each recommandation is a table row with three fields (`Solution`, `Type de recommandation`, `Ordre`), an `État` cell (`Publiée`/`Masquée`, then the modification date), a `Brouillon` badge when it has a draft, a button `Enregistrer la recommandation <solution>`, a link `Modifier la recommandation <solution>` (long texts stay on that page) and a trash button `Supprimer la recommandation <solution>` (confirmation `Supprimer la recommandation <solution> ?`, then `destroy!` as on the recommandation page, the row and its two hidden forms removed by turbo-stream). The table fits the page width from 1024 px up (no horizontal scroll in `.fr-table__content`). A last blank row adds one (`Ajouter la nouvelle recommandation`). A row saves alone, in place (turbo-stream): the message goes to `#message-recommandations` (role=status), an error stays on its row (`fr-error-text`, `aria-describedby` from the row's fields and button). Draft rules are the recommandation page's: in a published démarche, a change is a draft and a new one waits for the démarche's next `Publier`.
 
+## Sub-features
+
+- `recos-ligne-enregistrer` a row saves alone with `Enregistrer la recommandation <solution>`: draft and badge `Brouillon` on a published démarche, focus kept.
+- `recos-ligne-fiche` saving a row keeps the fiche's unsaved changes, no leave question.
+- `recos-ligne-erreur` an error stays on its row (`Choisissez une solution`), described by the row's button.
+- `recos-ligne-ajouter` the last blank row adds one (`Ajouter la nouvelle recommandation`), hidden until the démarche's `Publier`.
+- `recos-ligne-supprimer` trash `Supprimer la recommandation <solution>`, confirmation, row gone, focus on `supprimé`.
+- `recos-ligne-largeur` the table fits the page at 1280 and 1024 px.
+
 ## How to get to it (user POV)
 
 `/admin/demarches/<id>/edit`, tab `Recommandations (<n>)`. Admin only.

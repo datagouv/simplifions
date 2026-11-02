@@ -2,6 +2,16 @@
 
 The démarches of an intégration are those that recommend its API or jeu de données (a recommandation of `integree`, visible or not). The intégration form only offers those démarches; the démarche form only offers the intégrations whose API it recommends. A link already out of the rule stays checked, labelled `(hors règle)`, so it can be unchecked. The server refuses an out-of-rule link with `La démarche « … » ne recommande pas l’API ou le jeu de données intégré` and saves nothing. A new intégration (no API yet) or a démarche recommending nothing shows a hint instead of the list. The Grist import drops such links with a note.
 
+## Sub-features
+
+- `integrations-api-demarche` a démarche's `Intégrations` tab offers only intégrations of APIs it recommends.
+- `integrations-api-integration` an intégration offers only démarches recommending its API.
+- `integrations-api-hors-regle` an out-of-rule link stays checked, labelled `(hors règle)`.
+- `integrations-api-refus` the server refuses an out-of-rule link, names the démarche, saves nothing.
+- `integrations-api-aide` a new intégration shows a hint instead of the list.
+- `integrations-api-demarche-vide` a démarche recommending nothing shows a hint (spec only).
+- `integrations-api-import` the Grist import drops out-of-rule links with a note (spec only).
+
 ## How to get to it (user POV)
 
 - `Démarches` → a démarche → `Intégrations (<n>)` tab; `Intégrations` → a fiche → `Démarches` group; `Intégrations` → `Ajouter`.

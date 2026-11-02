@@ -2,6 +2,13 @@
 
 On a démarche or solution that holds a draft, the column `État et actions` shows `Prévisualiser` (new window). It opens `/admin/<demarches|solutions>/:id/previsualisation`: the public page built from the draft in memory (nothing written), under a DSFR notice `Prévisualisation, non publiée.` that says recommandations and intégrations show in their published version, tab title prefixed `Prévisualisation - `, header `X-Robots-Tag: noindex`. Admin only; no link without a draft.
 
+## Sub-features
+
+- `previsualisation-lien` `Prévisualiser` in `État et actions` only once a draft exists, opening a new window.
+- `previsualisation-page` the public page built from the draft under `Prévisualisation, non publiée.`; the site and the base unchanged.
+- `previsualisation-image` a solution's draft image shows in the preview, still not attached.
+- `previsualisation-entete` tab title prefixed `Prévisualisation - `, header `X-Robots-Tag: noindex`, admin only (spec only).
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → `Démarches` (or `Solutions`) → a published row → change a field → `Enregistrer` → `Prévisualiser`.

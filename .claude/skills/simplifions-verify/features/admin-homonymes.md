@@ -2,6 +2,14 @@
 
 Wherever the admin offers or lists a solution (checkbox lists, select menus, intégration and recommandation names, the solutions list `Nom` and `Intégrée par` columns), the solution shows as `<nom> (<catégorie>)`, e.g. `API Impôt particulier (API)` and `API Impôt particulier (Brique technique)`. A solution without catégorie shows its name alone.
 
+## Sub-features
+
+- `homonymes-selects` recommandation and intégration selects show `<nom> (<catégorie>)`.
+- `homonymes-cases` the `Solutions` checkbox lists of the forms show the same labels.
+- `homonymes-integree-par` the solutions list `Intégrée par` column names `<nom> (<catégorie>)`.
+- `homonymes-lignes` recommandation row names, solution H1 and breadcrumb (spec only).
+- `homonymes-sans-categorie` a solution without catégorie shows its name alone (not driven).
+
 ## How to get to it (user POV)
 
 - `/admin/recommandations/new` (Solution), `/admin/integrations/new` (both selects), fournisseurs de services, organisations and vocabulaires forms (`Solutions` list), `/admin/integrations` and `/admin/recommandations` (row names), `/admin/solutions` (`Nom`, `Intégrée par`; `features/admin-listes.rb` reads them). Admin only.

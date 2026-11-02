@@ -2,6 +2,14 @@
 
 A button on the admin dashboard enqueues `RafraichirCatalogueJob` (Grist import then data.gouv), the same job as the nightly run. One run at a time: Solid Queue discards a request that arrives while a run holds the `rafraichir_catalogue` lock (one hour). The dashboard reads the last `SolidQueue::Job` of that class: none, `en cours`, `terminé le JJ/MM/AAAA à HH:MM` (Paris), `échoué (message)`. While the last run is `en cours` the button is disabled and reads `Rafraîchissement en cours…`, as of page load (no live update). Finished jobs are cleared after a day, then it says `Aucun rafraîchissement récent.`
 
+## Sub-features
+
+- `rafraichissement-admin-bouton` `Rafraîchir depuis Grist et data.gouv` asks to confirm, enqueues the job, says `Rafraîchissement lancé.`
+- `rafraichissement-admin-en-cours` while the last run is `en cours`, the button is disabled and reads `Rafraîchissement en cours…`.
+- `rafraichissement-admin-termine` once finished, `terminé le … à HH:MM` in Paris time, button enabled again.
+- `rafraichissement-admin-statut` a failed run shows `échoué (message)`, no recent run `Aucun rafraîchissement récent.` (spec only).
+- `rafraichissement-admin-un-seul` a request arriving during a run is discarded (spec only).
+
 ## How to get to it (user POV)
 
 - Log in as admin → `/admin` → section `Rafraîchir le catalogue` → button `Rafraîchir depuis Grist et data.gouv` → native confirm (« Rafraîchir le catalogue depuis Grist et data.gouv ? Le contenu du Grist remplacera les modifications faites dans l’administration. ») → back on `/admin` with `Rafraîchissement lancé.`, `Dernier rafraîchissement : en cours.` and the disabled `Rafraîchissement en cours…` button.

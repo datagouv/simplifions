@@ -2,6 +2,16 @@
 
 A refused admin form shows a titled summary (`2 erreurs à corriger`) at its top that takes the focus, one link per error to its field, and each field in error in DSFR red with its message under it (`aria-invalid`, `aria-describedby`). Messages read as French sentences (`Choisissez une démarche`). Required fields say `(obligatoire)` in their label and carry `required`; the forms are `novalidate`, so the browser never blocks the send and the server summary always shows. Conditional rules (slug required when visible) sit in the hint.
 
+## Sub-features
+
+- `erreurs-obligatoire` required fields say `(obligatoire)` and carry `required`; the browser never blocks the send.
+- `erreurs-recapitulatif` summary `2 erreurs à corriger` takes the focus, one link per error that moves the focus to its field.
+- `erreurs-champ` field in error with `aria-invalid` and its message under it.
+- `erreurs-recommandation` French messages under the selects: `Choisissez une démarche`, `Choisissez une solution`.
+- `erreurs-quitter` a refused form counts as changed: `Annuler` asks before leaving.
+- `erreurs-etroit` no horizontal scroll at 640 px.
+- `erreurs-aide` the hint states rules that depend on another field, like the slug when visible (spec only).
+
 ## How to get to it (user POV)
 
 - Dashboard `/admin` → `Démarches` → `Ajouter`; leave `Nom` empty, click `Publier` in the `État et actions` column (sends `visible=1`, so the slug is required too).

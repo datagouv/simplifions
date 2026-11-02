@@ -2,6 +2,12 @@
 
 `bin/rails grist:import` copies the Grist document into the catalogue (démarches, solutions, intégrations, recommandations, solution images), then chains `datagouv:import`. Rows it cannot map go to quarantine instead of stopping the run. It runs at every deploy.
 
+## Sub-features
+
+- `import-grist-catalogue` `bin/rails grist:import` copies démarches, solutions, intégrations, recommandations, then chains `datagouv:import`.
+- `import-grist-images` every Grist solution image is attached, its filename valid UTF-8.
+- `import-grist-quarantaine` rows it cannot map go to quarantine with a report instead of stopping the run (spec only).
+
 ## How to get to it (user POV)
 
 - Operator command, no UI: `bin/rails grist:import`. Needs network to the Grist document; a few minutes.

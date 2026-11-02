@@ -2,6 +2,17 @@
 
 A solution's `Intégrations (<n>)` tab holds two editable tables, `Ce qu’elle intègre` (the row edits the `API ou jeu de données`) and `Solutions qui l’intègrent` (the row edits the `Solution`); the solution itself is the fixed other side. Each row has three selects: the other solution, then `Type d’intégration` above `Statut` in one column (at least 12rem, so the statut stays readable), a button `Enregistrer l’intégration <libellé>`, a link `Modifier l’intégration <libellé>` to the integration's own page (its démarches are ticked there) and a trash button `Supprimer l’intégration <libellé>` (confirmation `… ?`, then `destroy!`, the row and its two hidden forms removed by turbo-stream, focus on the message). A last blank row per table adds one (`Ajouter la nouvelle ligne de « Ce qu’elle intègre »` / `… « Solutions qui l’intègrent »`). A row saves alone, in place: message in `#message-integrations` (role=status), errors on the row (`fr-error-text`, `aria-describedby`), e.g. `Une solution ne peut pas s’intégrer elle-même`, or a démarche that leaves the rule when the other solution changes. No draft: integrations have none. The tables fit the page width from 1024 px up. `<n>` counts integrations (two types between the same pair are two rows). A bouquet's tab also lists, read-only under `Solutions qui l’intègrent`, each « Intégrée » intégration of one of its APIs as `<solution> — via <API>` with a `Voir la fiche` link to the API, where it is edited; `<n>` counts these lines too.
 
+## Sub-features
+
+- `integrations-ligne` a row saves alone with `Enregistrer l’intégration <libellé>`: `enregistré` in `#message-integrations`, fiche `Enregistrer` stays greyed.
+- `integrations-erreur` a refused row keeps its error on the row (`… elle-même`), described by its button; nothing saved.
+- `integrations-hors-regle` changing the other solution so that a démarche leaves the rule is refused on the row (spec only).
+- `integrations-ajouter` the last blank row of `Ce qu’elle intègre` and of `Solutions qui l’intègrent` adds one, then a blank row again.
+- `integrations-modifier` link `Modifier l’intégration <libellé>` to the integration's own page (spec only).
+- `integrations-supprimer` trash `Supprimer l’intégration <libellé>`, confirmation, row gone, focus on `supprimé`.
+- `integrations-largeur` both tables fit the page at 1280 and 1024 px, statut select readable.
+- `integrations-bouquet` a bouquet lists read-only `<solution> — via <API>` lines with `Voir la fiche`, counted in `Intégrations (<n>)`.
+
 ## How to get to it (user POV)
 
 `/admin/solutions/<id>/edit`, tab `Intégrations (<n>)`. Admin only.

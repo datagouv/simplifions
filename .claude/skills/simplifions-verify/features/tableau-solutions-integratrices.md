@@ -2,6 +2,15 @@
 
 In the cas d'usage tab « Solutions ayant intégré ces données », a « Cartes / Tableau comparatif » choice and a « Trier par » menu sit above the categories. « Tableau comparatif » shows, per category, one table: a row per solution with its counter, columns grouped by bouquet (then « Autres API et jeux de données »), one column per useful datum, a check or a dash per cell. « Trier par » (« Le plus de données intégrées » on arrival, or « Titre ») orders cards and tables alike.
 
+## Sub-features
+
+- `tableau-integratrices-arrivee` the tab opens on `Cartes`, sorted by « Le plus de données intégrées », no table.
+- `tableau-integratrices-tri` « Trier par » `Titre` or « Le plus de données intégrées » orders cards and tables alike.
+- `tableau-integratrices-tableau` « Tableau comparatif » shows one table per category, columns grouped by bouquet, one per useful datum.
+- `tableau-integratrices-annonce` each cell reads as solution, group, datum and `Intégrée` or `Non intégrée`.
+- `tableau-integratrices-mobile` at 375 px the table scrolls inside its container, the solution name frozen.
+- `tableau-integratrices-sans-js` without JavaScript cards and tables both show, no choice, no sort menu.
+
 ## How to get to it (user POV)
 
 - `/demarches/<slug>#solutions-integratrices`, then « Tableau comparatif » and the « Trier par : » menu.

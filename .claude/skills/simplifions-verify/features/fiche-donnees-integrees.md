@@ -2,6 +2,14 @@
 
 On a cas d'usage page, each integrating solution card in « Données disponibles » shows the count of its recommendation (or a green check for a single datum) and the cas d'usage total, and has an eye button that opens that card's window: the same two counts, then the useful published data of the cas d'usage grouped by recommended data, each checked or crossed, and a click on a row shows or hides its detail. The « Solutions ayant intégré ces données » tab reuses the card and window with the total only ([onglet-solutions-integratrices.md](onglet-solutions-integratrices.md)).
 
+## Sub-features
+
+- `donnees-integrees-compteurs` each card shows its recommendation's count (or a check) and the cas d'usage total.
+- `donnees-integrees-fenetre` the eye opens the card's window: the same counts and the useful data, each checked or crossed.
+- `donnees-integrees-detail` a click on a row shows its detail (access, producer, data.gouv link), a second click hides it.
+- `donnees-integrees-fermer` Escape closes the window and gives the focus back to the eye.
+- `donnees-integrees-ordre` cards come by their recommendation's count, highest first, then by name.
+
 ## How to get to it (user POV)
 
 - `/demarches/<slug>`, unfold a « Via … » accordion, click the eye on a card.

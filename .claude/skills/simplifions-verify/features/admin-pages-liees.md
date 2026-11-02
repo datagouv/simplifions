@@ -2,6 +2,14 @@
 
 On an admin form, each text area is as tall as its content (rows computed server-side, no JS) and the fields rendered as Markdown on the site say `Markdown accepté`. A visible démarche or solution with a slug offers `Voir la page publique` in the `État et actions` column (new tab, announced in the `title`). Each checked box of a filterable list from the catalogue, the recommandation's solution and the intégration's two solutions offer `Voir la fiche`, named `Voir la fiche <libellé>`, outside the checkbox label. Every vocabulaire and every fournisseur de services (checked or not) offers instead a `?` icon (`fr-icon-question-line`) beside its label, its text `Fiche de <nom> (nouvel onglet)` read by screen readers only, opening its read page in a new tab; both lists sit on three columns from 992 px (two from 576 px, one below).
 
+## Sub-features
+
+- `pages-liees-texte` each text area as tall as its content; Markdown fields say `Markdown accepté`.
+- `pages-liees-publique` `Voir la page publique` in `État et actions` opens the public page in a new tab.
+- `pages-liees-referentiel` a `?` beside each vocabulaire and fournisseur opens its read page in a new tab; three columns from 992 px.
+- `pages-liees-recommandation` `Voir la fiche <solution>` on a recommandation opens the solution's form.
+- `pages-liees-cases` `Voir la fiche <libellé>` beside each checked catalogue box and the intégration's two solutions (spec only).
+
 ## How to get to it (user POV)
 
 - `/admin/demarches/<id>/edit` of a visible démarche: `Contexte`, `Voir la page publique`, `Fournisseurs de services` checked boxes.

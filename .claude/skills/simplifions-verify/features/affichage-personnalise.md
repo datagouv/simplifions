@@ -39,3 +39,4 @@ Preconditions: a visible démarche with at least two categories in `Demarche#int
 - Wait for `.fr-collapsing` to go before counting expanded sections.
 - The recommandation accordions are `data-fr-group="false"`: in a DSFR group, opening the brique accordion closed the direct-access one.
 - Headless Firefox will not go under about 480 px wide: still a phone width.
+- Wait two animation frames after `visit` before the `scrollTo` of Scroll: Firefox misses a jump made before the page's first observation of the top, the banner then stays open.

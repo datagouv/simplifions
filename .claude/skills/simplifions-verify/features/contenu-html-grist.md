@@ -2,6 +2,13 @@
 
 Les blocs markdown du Grist portent parfois du HTML (encadrés DSFR, `<details>`, `<hr>`). Le site l'affiche, nettoyé des scripts, attributs `on*` et liens `javascript:`/`data:`.
 
+## Sub-features
+
+- `contenu-html-encadre` a DSFR callout typed in a Grist markdown field shows as a `fr-callout`.
+- `contenu-html-separateur` a typed `<hr>` shows on the solution page.
+- `contenu-html-aucun-omis` no page whose markdown holds HTML renders `raw HTML omitted`.
+- `contenu-html-nettoye` scripts, `on*` attributes and `javascript:`/`data:` links are removed (spec only).
+
 ## How to get to it (user POV)
 
 - `/demarches/actes-detat-civil` : encadré « Utilisez Comedec… » dans la recommandation COMEDEC (Recommandations:212).

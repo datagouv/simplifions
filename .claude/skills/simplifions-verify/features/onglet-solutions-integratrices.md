@@ -2,6 +2,15 @@
 
 A cas d'usage page has two tabs: « Données disponibles et utiles (N) » and « Solutions ayant intégré ces données (N) ». The second groups, by category (logiciel métier, brique, site), the solutions that integrated at least one useful published datum, with the same card and window as the first tab, the counter at the cas d'usage total.
 
+## Sub-features
+
+- `onglet-integratrices-ouvrir` the tab « Solutions ayant intégré ces données (N) » lists the solutions by category, in the served order.
+- `onglet-integratrices-titres` plural category titles with their count badge and « Sans développement », kept inside the window at 375 px.
+- `onglet-integratrices-categorie` a click or Enter on a category title hides then shows its content, focus kept.
+- `onglet-integratrices-oeil` a card's eye opens its window at the cas d'usage total; Escape closes it.
+- `onglet-integratrices-ancre` `#solutions-integratrices` opens the tab from another site, a Turbo visit or the sommaire.
+- `onglet-integratrices-sans-js` without JavaScript the solutions panel follows the data panel, cards visible.
+
 ## How to get to it (user POV)
 
 - `/demarches/<slug>`, click the tab « Solutions ayant intégré ces données », its sommaire entry, or any link to `/demarches/<slug>#solutions-integratrices`.

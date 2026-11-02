@@ -2,6 +2,13 @@
 
 A solution's admin form offers its `Type de solution` as checkboxes on the fixed list `Solution::TYPES_SOLUTION` (9 values, a value outside it is refused), the `Légende de l’image` as a one-line text field, and the hint `L’image sera retirée à l’enregistrement.` under `Retirer l’image`. Its `Intégrations` tab lists `Ce qu’elle intègre` and `Solutions qui l’intègrent` as editable rows (see [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md)); its `Recommandée dans` tab lists the démarches that recommend it.
 
+## Sub-features
+
+- `saisie-solution-types` `Type de solution` as checkboxes on the 9 fixed values, saved as ticked.
+- `saisie-solution-type-refuse` a type outside the list is refused (spec only).
+- `saisie-solution-image` `Légende de l’image` on one line, hint `L’image sera retirée à l’enregistrement.` under `Retirer l’image`.
+- `saisie-solution-liens` tabs `Intégrations` and `Recommandée dans` list the linked rows, and the API lists the solution back.
+
 ## How to get to it (user POV)
 
 - `/admin/solutions/<id>/edit`. Admin only.
