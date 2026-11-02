@@ -2452,13 +2452,53 @@ RSpec.describe 'Administration' do
       expect([lien['href'], lien['target']]).to eq(["/admin/demarches/#{demarche.id}/previsualisation", '_blank'])
       get lien['href']
       expect(response.parsed_body.at_css('h1').text.squish).to eq('Aides sociales')
-      expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations et les intégrations y paraissent dans leur version publiée')
+      expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations y paraissent telles qu’elles seront publiées avec la démarche', 'intégrations, dans leur version publiée')
       expect(response.headers['X-Robots-Tag']).to eq('noindex')
       expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Cas').and include('Aides sociales')
 
       get '/demarches/aides'
       expect([response.parsed_body.at_css('h1').text.squish, bandeau]).to eq(['Aides', nil])
       expect(demarche.reload.nom).to eq('Aides')
+    end
+
+    it 'montre les recommandations et données utiles qui partiront avec la démarche, absentes du site' do
+      sign_in admin
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      api = Solution.create!(nom: 'API Impôt', categorie: 'api').tap { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: bouquet.id, niveau: 'niveau_2' } }
+      patch "/admin/recommandations/#{Recommandation.last.id}", params: { ligne: 1, recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_1' } }
+      en_ligne = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: :niveau_2, ordre: 1, donnees_utiles: 'Quotient', visible: true)
+      patch "/admin/recommandations/#{en_ligne.id}", params: { ligne: 1, recommandation: { donnees_utiles: 'Revenu du foyer' } }
+
+      get lien_previsualiser("demarches/#{demarche.id}")['href']
+      cartes = response.parsed_body.css('.reco-card').map { it.text.squish }
+      expect(cartes.size).to eq(2)
+      expect(cartes.first).to include('Mes Aides', 'Revenu du foyer')
+      expect(cartes.second).to include('Bouquet', 'Revenu fiscal', 'API Impôt')
+
+      get '/demarches/aides'
+      expect(response.parsed_body.css('.reco-card').map { it.text.squish }).to contain_exactly(include('Mes Aides', 'Quotient'))
+    end
+
+    it 'montre la page que « Publier » produira, niveau et ordre des brouillons compris' do
+      sign_in admin
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      api = Solution.create!(nom: 'API Impôt', categorie: 'api').tap { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, ordre: 1, visible: true)
+      devenue_utile = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, ordre: 2, visible: true)
+      remontee = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: :niveau_2, ordre: 3, visible: true)
+      patch "/admin/recommandations/#{devenue_utile.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+      patch "/admin/recommandations/#{remontee.id}", params: { ligne: 1, recommandation: { ordre: '0' } }
+
+      get lien_previsualiser("demarches/#{demarche.id}")['href']
+      apercu = response.parsed_body.css('.reco-card').map { it.text.squish }
+      expect(apercu.map { it[/Mes Aides|Bouquet|API Impôt/] }).to eq(['Mes Aides', 'Bouquet'])
+      expect(apercu.second).to include('API Impôt')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      get '/demarches/aides'
+      expect(response.parsed_body.css('.reco-card').map { it.text.squish }).to eq(apercu)
     end
 
     it 'garde Prévisualisation devant le title SEO du brouillon' do

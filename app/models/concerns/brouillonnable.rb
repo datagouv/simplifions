@@ -41,6 +41,8 @@ module Brouillonnable
     self
   end
 
+  def previsualiser = appliquer_brouillon
+
   def abandonner_brouillon!
     purger_les_fichiers(brouillon.to_h)
     ecrire_le_brouillon(nil, 'abandon')

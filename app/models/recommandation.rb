@@ -41,6 +41,8 @@ class Recommandation < ApplicationRecord
 
   validate :ne_recommande_pas_de_solution_privee
 
+  attr_writer :apis_utiles
+
   def solutions_integratrices
     Solution.visibles.where(
       id: Integration.en_production.pour_demarche(demarche)

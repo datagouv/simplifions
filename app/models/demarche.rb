@@ -61,8 +61,13 @@ class Demarche < ApplicationRecord
     end
   end
 
+  def previsualiser
+    @apercu = true
+    super
+  end
+
   def recommandations_publiees
-    @recommandations_publiees ||= recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
+    @recommandations_publiees ||= @apercu ? cartes_telles_que_publiees : recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
   end
 
   def groupes_donnees_utiles
@@ -96,6 +101,22 @@ class Demarche < ApplicationRecord
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 
   private
+
+  def cartes_telles_que_publiees
+    utiles, cartes = recommandations_telles_que_publiees.partition(&:niveau_1?)
+    cartes.select(&:visible?).sort_by { [it.ordre || Float::INFINITY, it.id] }.each do |carte|
+      carte.apis_utiles = utiles.select { it.solution.in?(carte.solution.fournies) }.sort_by { rang_de_donnee_utile(it) }
+    end
+  end
+
+  def rang_de_donnee_utile(utile)
+    [utile.ordre || Float::INFINITY, utile.description ? -utile.description.length : 1, I18n.transliterate(utile.solution.nom).downcase]
+  end
+
+  def recommandations_telles_que_publiees
+    a_publier = recommandations_en_brouillon.ids
+    recommandations.includes(solution: %i[exposees organisations]).to_a.each { it.appliquer_brouillon if it.id.in?(a_publier) }
+  end
 
   def publier_les_recommandations
     refusee = recommandations_en_brouillon.find { !it.publier_avec_la_demarche }
