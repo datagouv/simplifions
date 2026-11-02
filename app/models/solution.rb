@@ -57,6 +57,7 @@ class Solution < ApplicationRecord
     prefix: true
 
   scope :visibles, -> { where(visible: true) }
+  scope :en_brouillon, -> { where.not(brouillon: nil) }
   scope :sur_datagouv, -> { where.not(uid_datagouv: [nil, '']) }
   scope :fiches, -> { where(categorie: [nil, *categories.keys - HORS_FICHES]) }
   scope :franceconnectees, -> { visibles.categorie_api.where(france_connectee: true).sur_datagouv.includes(:organisations).order(:id) }

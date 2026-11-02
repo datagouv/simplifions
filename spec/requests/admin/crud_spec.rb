@@ -353,6 +353,31 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'brouillons en cours dans les listes' do
+    before do
+      sign_in admin
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api', visible: true, brouillon: { 'nom' => 'API QF v2' })
+      api_sirene = Solution.create!(nom: 'API Sirene', categorie: 'api', visible: true)
+      Solution.create!(nom: 'API Urssaf', categorie: 'api')
+      Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, brouillon: { 'nom' => 'Aides v2' })
+      Demarche.create!(nom: 'Bourses', slug: 'bourses', visible: true)
+        .recommandations.create!(solution: api_qf, niveau: :niveau_2, brouillon: { 'visible' => '1' })
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+        .recommandations.create!(solution: api_sirene, niveau: :niveau_2, visible: true, brouillon: { 'description' => 'Nouveau texte' })
+      Demarche.create!(nom: 'Déchets', slug: 'dechets', visible: true)
+    end
+
+    def brouillons(chemin) = colonnes(chemin).to_h { [it['Nom'], it['Visible']] }
+
+    it 'marque « Brouillon » les démarches avec un brouillon ou une recommandation qui attend leur publication' do
+      expect(brouillons('demarches')).to eq('Aides' => 'Oui Brouillon', 'Bourses' => 'Oui Brouillon', 'Cantine' => 'Oui Brouillon', 'Déchets' => 'Oui')
+    end
+
+    it 'marque « Brouillon » les solutions avec un brouillon' do
+      expect(brouillons('solutions')).to eq('API QF (API)' => 'Oui Brouillon', 'API Sirene (API)' => 'Oui', 'API Urssaf (API)' => 'Non')
+    end
+  end
+
   describe 'ordre d’une API fournie' do
     before { sign_in admin }
 

@@ -3,6 +3,7 @@ class Admin::SolutionsController < Admin::BaseController
 
   def index
     @solutions = paginer(Solution.ransack(recherche: params[:q].to_s).result.preload(:integratrices, :organisations, integrations_de_ses_api: :integratrice).order(:id))
+    @en_brouillon = Solution.en_brouillon.ids.to_set
   end
 
   def new

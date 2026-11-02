@@ -3,6 +3,7 @@ class Admin::DemarchesController < Admin::BaseController
 
   def index
     @demarches = paginer(Demarche.ransack(recherche: params[:q].to_s).result.order(:id))
+    @en_brouillon = Demarche.en_brouillon.ids.to_set
   end
 
   def new
