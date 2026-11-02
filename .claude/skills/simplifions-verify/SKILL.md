@@ -35,7 +35,7 @@ Everything runs in Docker: Docker Desktop on a Mac (Apple silicon or Intel), Doc
    docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb
    ```
 
-From a git worktree, add `-p <folder name of the main checkout>` (`-p simplifions`) right after `docker compose` in every command: the worktree's code is the one mounted, the database, gems and browsers are the main checkout's. Without it Compose builds a separate stack for the worktree, with an empty database.
+From a worktree made by `bin/setup_worktree.sh`, the commands run as written from the worktree: it has its own Compose stack and its own database, empty at first. Run `make import` there once before the first drive, otherwise drives that need catalogue rows fail (`Données utiles`).
 
 No `.env` and no `config/master.key` are needed in development (the only credential read is the Sentry DSN, optional).
 
