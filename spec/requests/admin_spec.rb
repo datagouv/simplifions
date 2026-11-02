@@ -28,6 +28,27 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'brouillons en cours sur le tableau de bord' do
+    before { sign_in admin }
+
+    def liens = response.parsed_body.css('a').to_h { [it.text.strip, it['href']] }
+
+    it 'compte les démarches et les solutions en brouillon, chaque nombre menant à la liste filtrée' do
+      Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, brouillon: { 'nom' => 'Aides v2' })
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api', visible: true, brouillon: { 'nom' => 'API QF v2' })
+      Demarche.create!(nom: 'Bourses').recommandations.create!(solution: api_qf, niveau: :niveau_1, brouillon: { 'visible' => '1' })
+      Demarche.create!(nom: 'Cantine')
+
+      get admin_root_path
+      expect(liens).to include('2 démarches' => '/admin/demarches?brouillons=1', '1 solution' => '/admin/solutions?brouillons=1')
+    end
+
+    it 'affiche zéro quand aucune fiche n’attend de publication' do
+      get admin_root_path
+      expect(liens).to include('0 démarche' => '/admin/demarches?brouillons=1', '0 solution' => '/admin/solutions?brouillons=1')
+    end
+  end
+
   describe 'dernier rafraîchissement sur le tableau de bord' do
     let(:passage) { SolidQueue::Job.create!(class_name: 'RafraichirCatalogueJob', queue_name: 'default') }
 
