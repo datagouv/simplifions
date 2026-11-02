@@ -92,7 +92,7 @@ fr:
         consomme: "Intégrée"
     hints:
       demarche:
-        titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Cas d’usage - <icône du titre> <nom> »."
+        titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Cas d’usage - <nom> »."
         slug: "Obligatoire si la démarche est visible sur simplifions. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
         contexte: "Markdown accepté"
         cadre_juridique: "Markdown accepté"
