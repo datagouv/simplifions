@@ -872,7 +872,7 @@ RSpec.describe 'Administration' do
       poubelle = response.parsed_body.at_css("tr#recommandation_#{recommandation.id} button[data-turbo-confirm]")
       formulaire = response.parsed_body.at_css("form##{poubelle['form']}")
       expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'delete', 0])
-      expect([poubelle.text.squish, poubelle['data-turbo-confirm']]).to eq(['Supprimer la recommandation API QF (API)', 'Supprimer la recommandation API QF (API) ?'])
+      expect([poubelle.text.squish, poubelle['data-turbo-confirm']]).to eq(['Supprimer la recommandation API QF (API)', "Supprimer la recommandation API QF (API) ? #{I18n.t('admin.suppression.immediate')}"])
       expect(response.parsed_body.css('tr#new_recommandation button[data-turbo-confirm]')).to be_empty
 
       delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }, as: :turbo_stream
@@ -1126,6 +1126,25 @@ RSpec.describe 'Administration' do
       expect(confirmation("/admin/vocabulaires/#{usager.id}/edit"))
         .to eq('Supprimer « Particuliers » ? 1 démarche en sera détachée. 2 solutions en seront détachées.')
       expect(confirmation("/admin/types_acteurs/#{communes.id}/edit")).to eq('Supprimer « Communes » ? 1 démarche en sera détachée.')
+    end
+
+    describe 'suppression immédiate, même pendant un brouillon' do
+      let(:immediate) { 'La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas.' }
+
+      def poubelle(chemin, ligne)
+        get chemin
+        response.parsed_body.at_css("tr##{ActionView::RecordIdentifier.dom_id(ligne)} button[data-turbo-confirm]")['data-turbo-confirm']
+      end
+
+      it 'le dit en supprimant une recommandation d’une démarche publiée, pas d’une démarche masquée' do
+        recommandation = Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
+        expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq('Supprimer la recommandation API QF (API) ?')
+        expect(confirmation("/admin/recommandations/#{recommandation.id}/edit")).to eq('Supprimer « Aides → API QF (API) » ?')
+
+        aides.update!(slug: 'aides', visible: true)
+        expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq("Supprimer la recommandation API QF (API) ? #{immediate}")
+        expect(confirmation("/admin/recommandations/#{recommandation.id}/edit")).to eq("Supprimer « Aides → API QF (API) » ? #{immediate}")
+      end
     end
 
     it 'nomme les solutions qu’une organisation rendrait privées' do
