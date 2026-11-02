@@ -134,9 +134,12 @@ def tags(page, sections)
   relacher_api(page, sections)
 end
 
+def attendre_deux_images(page) = page.evaluate_async_script('requestAnimationFrame(() => requestAnimationFrame(arguments[0]))')
+
 def defiler_puis_lire_l_entete(page, demarche, largeur, hauteur)
   page.current_window.resize_to(largeur, hauteur)
   page.visit("/demarches/#{demarche.slug}")
+  attendre_deux_images(page)
   page.execute_script('window.scrollTo(0, 1500)')
   page.assert_no_selector('button.fr-tag')
   haut, bas = entete(page)
