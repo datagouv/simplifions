@@ -44,6 +44,10 @@ class Demarche < ApplicationRecord
 
   delegate :en_brouillon, to: :recommandations, prefix: :recommandations
 
+  def en_brouillon? = brouillon? || recommandations_en_brouillon.exists?
+  def brouillon_abandonnable? = brouillon? || recommandations.a_publier_avec_la_demarche.exists?
+  def suppression_sans_retour_a_annoncer? = visible? || brouillon_abandonnable?
+
   def enregistrer(attributs)
     return super unless publication_demandee?(attributs)
 

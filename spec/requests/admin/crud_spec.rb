@@ -1192,10 +1192,17 @@ RSpec.describe 'Administration' do
         response.parsed_body.at_css("tr##{ActionView::RecordIdentifier.dom_id(ligne)} button[data-turbo-confirm]")['data-turbo-confirm']
       end
 
-      it 'le dit en supprimant une recommandation d’une démarche publiée, pas d’une démarche masquée' do
+      it 'le dit en supprimant une recommandation d’une démarche publiée ou masquée avec un brouillon, pas masquée sans brouillon' do
         recommandation = Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
         expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq('Supprimer la recommandation API QF (API) ?')
         expect(confirmation("/admin/recommandations/#{recommandation.id}/edit")).to eq('Supprimer « Aides → API QF (API) » ?')
+
+        recommandation.update!(brouillon: { 'visible' => '1' })
+        expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq("Supprimer la recommandation API QF (API) ? #{immediate}")
+        get "/admin/recommandations/#{recommandation.id}/edit"
+        expect(response.parsed_body.css('form[data-turbo-confirm]').pluck('data-turbo-confirm')).to include("Supprimer « Aides → API QF (API) » ? #{immediate}")
+
+        recommandation.update!(brouillon: nil)
 
         aides.update!(slug: 'aides', visible: true)
         expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq("Supprimer la recommandation API QF (API) ? #{immediate}")
@@ -2260,6 +2267,17 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(cartes_publiques.map { it[/Mes Aides|Bouquet/] }).to eq(['Bouquet'])
       expect(nouvelle.reload.slice(:visible, :brouillon)).to eq('visible' => true, 'brouillon' => nil)
+    end
+
+    it 'met la démarche en brouillon, à prévisualiser, dès qu’une recommandation attend sa publication, à abandonner si elle est ajoutée' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser')
+      expect(colonne.text).not_to include('Abandonner le brouillon')
+
+      ajouter_bouquet
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser', 'Abandonner le brouillon')
     end
 
     it 'ne publie rien et nomme la recommandation refusée' do
