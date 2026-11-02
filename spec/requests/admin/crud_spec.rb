@@ -1081,6 +1081,16 @@ RSpec.describe 'Administration' do
       expect(panneau("/admin/solutions/#{bouquet.id}/edit")).not_to include(sans_brouillon)
       expect(panneau("/admin/recommandations/#{recommandation.id}/edit")).not_to include(sans_brouillon)
     end
+
+    it 'le dit au-dessus des lignes de chaque onglet d’intégrations d’une solution' do
+      get "/admin/solutions/#{bouquet.id}/edit"
+      debuts = %w[api-fournies api-integrees integratrices].map do |onglet|
+        response.parsed_body.at_css("#onglet-#{onglet}-panneau").text.squish
+      end
+      expect(debuts).to all(start_with(sans_brouillon))
+      expect(debuts.map { it.delete_prefix(sans_brouillon).split.first(2).join(' ') })
+        .to eq(['API fournies', 'API intégrées', 'Solutions qui'])
+    end
   end
 
   describe 'ce que la suppression emporte' do
