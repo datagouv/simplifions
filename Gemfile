@@ -45,7 +45,7 @@ gem "paper_trail", "~> 17.0"
 gem "ransack", "~> 6.0"
 
 # Pagination de l'administration et du catalogue, gabarits DSFR de DataPass
-gem "kaminari", "~> 1.2"
+gem "kaminari", "~> 1.3"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
