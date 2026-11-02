@@ -47,8 +47,8 @@ module ApplicationHelper
     link_to 'Voir la fiche', fiche_admin(ligne), class: 'fr-link fr-link--sm', aria: { label: "Voir la fiche #{nom}" }
   end
 
-  def lien_nouvel_onglet(texte, url)
-    link_to texte, url, target: '_blank', rel: 'noopener', title: "#{texte} - nouvelle fenêtre"
+  def lien_nouvel_onglet(texte, url, data: {})
+    link_to texte, url, target: '_blank', rel: 'noopener', title: "#{texte} - nouvelle fenêtre", data:
   end
 
   def libelle_hors_regle(libelle, dans_la_regle) = dans_la_regle ? libelle : "#{libelle} (hors règle)"

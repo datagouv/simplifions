@@ -2,5 +2,6 @@
   <% if @description %>
     <p class="fr-callout__text fr-text--sm"><strong>Lire plus</strong> • <%= @description %></p>
   <% end %>
-  <%= link_to @title, @href, class: "fr-link fr-link--sm fr-icon-article-line fr-link--icon-left" %>
+  <%= link_to @title, @href, class: "fr-link fr-link--sm fr-icon-article-line fr-link--icon-left",
+        data: { matomo_action: "Lire aussi", matomo_nom: @title } %>
 </div>

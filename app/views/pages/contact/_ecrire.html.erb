@@ -5,7 +5,7 @@
 <% corps_du_lien = corps_du_message(informations.map { |libelle, _options| libelle }, fiche) %>
 
 
-<div class="fr-mt-4w" data-controller="copier">
+<div class="fr-mt-4w" data-controller="copier" <%= tag.attributes(data: { matomo_zone: "Contact › Écrire", matomo_nom: sujet }) %>>
   <p class="fr-text--lg">Utilisez le modèle d'e-mail ci-dessous pour nous transmettre les informations qui nous seront utiles pour comprendre <%= local_assigns.fetch(:a_comprendre, "votre proposition") %>.</p>
 
   <div class="fr-background-default--grey fr-p-2w">
@@ -13,7 +13,8 @@
     <p>Ce bouton ouvre votre messagerie avec l'adresse, l'objet et les rubriques du message déjà remplis.</p>
     <div class="fr-btns-group fr-btns-group--sm fr-btns-group--inline fr-btns-group--right fr-btns-group--icon-left">
       <%= mail_to email, "Ouvrir un e-mail déjà pré-rempli", subject: sujet, body: corps_du_lien.gsub("\n", "\r\n"),
-            class: "fr-btn fr-btn--sm fr-btn--tertiary fr-background-default--grey fr-icon-mail-line fr-btn--icon-left fr-mb-0" %>
+            class: "fr-btn fr-btn--sm fr-btn--tertiary fr-background-default--grey fr-icon-mail-line fr-btn--icon-left fr-mb-0",
+            data: { matomo_action: "Ouvrir l'e-mail pré-rempli" } %>
     </div>
   </div>
 
@@ -29,7 +30,8 @@
         <div class="contact-bloc-a-copier fr-background-alt--grey fr-p-2w">
           <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-background-default--grey fr-icon-clipboard-line fr-btn--icon-left fr-hidden"
             data-copier-target="bouton" data-action="copier#copier"
-            data-copier-texte-param="<%= texte %>" data-copier-confirmation-param="<%= confirmation %>"><%= bouton %></button>
+            data-copier-texte-param="<%= texte %>" data-copier-confirmation-param="<%= confirmation %>"
+            data-matomo-action="<%= bouton %>"><%= bouton %></button>
           <div id="<%= id %>" class="contact-a-copier"><%= texte %></div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 <div class="solution-integratrice-card">
   <div class="solution-integratrice-card__header">
     <p class="solution-integratrice-card__title fr-text--lg fr-text--bold"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug),
-          data: matomo_fiche_solution(solution, 'démarche') %></p>
+          data: matomo_fiche_solution(solution) %></p>
     <%= render "badge_operateur", solution: solution %>
   </div>
   <% if solution.types_solution.any? %>
@@ -22,7 +22,8 @@
       <% end %>
       <button type="button" class="solution-integratrice-card__oeil fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-eye-line"
         aria-controls="<%= modale_id %>" data-fr-opened="false"
-        title="Voir les données intégrées par <%= solution.nom %>">Voir les données intégrées par <%= solution.nom %></button>
+        title="Voir les données intégrées par <%= solution.nom %>"
+        <%= tag.attributes(data: matomo_evenement('Voir les données intégrées', solution.nom, solution)) %>>Voir les données intégrées par <%= solution.nom %></button>
       <p class="solution-integratrice-card__total fr-text--xs fr-text-mention--grey">
         <%= render 'compteur', couverture: demarche.couverture(solution), total: true, attenue: couverture.present? %>
         <span>API ou jeux de données au total pour ce cas d’usage</span>
@@ -35,7 +36,7 @@
   <% if solution.page_publique? %>
     <p class="solution-integratrice-card__fiche fr-mb-0">
       <%= link_to solution_path(solution.slug), class: 'fr-link fr-icon-arrow-right-line fr-link--icon-right',
-            data: matomo_fiche_solution(solution, 'démarche') do %>
+            data: matomo_fiche_solution(solution) do %>
         Voir la fiche<span class="fr-sr-only"> <%= solution.nom %></span>
       <% end %>
     </p>

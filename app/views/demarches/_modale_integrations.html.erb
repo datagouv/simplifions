@@ -1,7 +1,8 @@
 <% cible = recommandation&.solution
    jeu_de_donnees = cible&.categorie_base_de_donnees?
    integrees_par_la_solution = demarche.integrees_par(solution) %>
-<dialog id="<%= modale_id %>" class="fr-modal" aria-labelledby="<%= modale_id %>_titre">
+<dialog id="<%= modale_id %>" class="fr-modal" aria-labelledby="<%= modale_id %>_titre"
+  <%= tag.attributes(data: matomo_zone("Cas d'usage › Modale données intégrées", demarche.nom)) %>>
   <div class="fr-container fr-container--fluid fr-container-md">
     <div class="fr-grid-row fr-grid-row--center">
       <div class="fr-col-12 fr-col-md-8">
@@ -11,7 +12,7 @@
           </div>
           <div class="fr-modal__content">
             <h2 id="<%= modale_id %>_titre" class="fr-modal__title fr-mb-1w"><%= link_to_if solution.page_publique?, solution.nom, solution_path(solution.slug),
-                  data: matomo_fiche_solution(solution, 'démarche') %></h2>
+                  data: matomo_fiche_solution(solution) %></h2>
             <%= render 'badge_operateur', solution: %>
             <div class="integration-indicator fr-p-1w fr-mt-2w">
               <%= render('compteur', couverture:) if couverture %>
@@ -31,7 +32,7 @@
             <% demarche.groupes_donnees_utiles.each do |bouquet, utiles, recommandations| %>
               <% titre = titre_groupe_donnees(bouquet) %>
               <details class="donnees-integrees fr-mt-3w" <%= 'open' if recommandation.nil? || utiles.intersect?(recommandation.donnees_attendues) %>>
-                <summary class="fr-text--bold fr-mb-1w">
+                <summary class="fr-text--bold fr-mb-1w" data-matomo-action="Déplier un groupe de données" data-matomo-nom="<%= titre %>">
                   <span aria-hidden="true" class="donnees-integrees__fleche fr-icon-arrow-down-s-fill"></span>
                   <%= titre %>
                   <span class="fr-text--regular fr-text--sm fr-mb-0 fr-text-mention--grey">(<%= demarche.couverture_du_groupe(recommandations, solution).join('/') %>)</span>
@@ -48,7 +49,7 @@
                     <li class="fr-mb-1v <%= 'fr-text-mention--grey' unless integree %>">
                       <% if badge || producteur || donnee.uid_datagouv.present? %>
                         <details class="donnees-integrees">
-                          <summary>
+                          <summary <%= tag.attributes(data: matomo_evenement('Déplier une donnée', donnee.nom, donnee)) %>>
                             <%= ligne %>
                             <span aria-hidden="true" class="donnees-integrees__fleche fr-icon-arrow-down-s-line fr-icon--sm"></span>
                           </summary>
@@ -61,7 +62,7 @@
                             <% end %>
                             <% if donnee.uid_datagouv.present? %>
                               <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm', target: '_blank', rel: 'noopener external',
-                                    data: matomo_sortie_datagouv(donnee.nom, donnee, 'démarche', 'modale liste api par solution') do %>
+                                    data: matomo_sortie_datagouv(donnee.nom, donnee) do %>
                                 Voir sur data.gouv.fr<span class="fr-sr-only"> <%= donnee.nom %> - nouvelle fenêtre</span>
                               <% end %>
                             <% end %>
@@ -77,7 +78,8 @@
             <% end %>
             <p class="fr-text--sm fr-mt-3w fr-mb-0">
               ✒️ Une information manque ou est erronée ? Vous pouvez
-              <%= link_to lien_modification, target: '_blank', rel: 'noopener', title: 'proposer une modification du contenu - nouvelle fenêtre' do %>proposer une modification du contenu<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %>.
+              <%= link_to lien_modification, target: '_blank', rel: 'noopener', title: 'proposer une modification du contenu - nouvelle fenêtre',
+                    data: { matomo_action: 'Proposer une modification', matomo_nom: solution.nom } do %>proposer une modification du contenu<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %>.
             </p>
           </div>
         </div>

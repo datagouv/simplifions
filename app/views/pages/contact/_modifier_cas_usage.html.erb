@@ -1,14 +1,14 @@
 <%= render "pages/contact/retour", vers: contact_path("contenu") %>
 <%= render "pages/contact/titre", titre: "Proposer une modification d'une démarche existante", pictogramme: "document/sign-document" %>
 <%= form_with url: contact_path("modifier-cas-usage"), method: :get, class: "fr-mb-4w",
-      data: { controller: "form", turbo_frame: "modele-de-mail", turbo_action: "advance" } do %>
+      data: { controller: "form", turbo_frame: "modele-de-mail", turbo_action: "advance", matomo_zone: "Contact › Choix de la fiche" } do %>
   <div class="fr-select-group">
     <%= label_tag :demarche, class: "fr-label" do %>
       Démarche concernée
       <span class="fr-hint-text">Le modèle de mail ci-dessous se met à jour selon votre choix.</span>
     <% end %>
     <%= select_tag :demarche, options_from_collection_for_select(@demarches, :slug, :titre, @fiche&.slug),
-          prompt: "Sélectionner une démarche", class: "fr-select", data: { action: "change->form#submit" } %>
+          prompt: "Sélectionner une démarche", class: "fr-select", data: { action: "change->form#submit", matomo_action: "Choisir la démarche à modifier" } %>
   </div>
   <noscript>
     <button type="submit" class="fr-btn fr-btn--secondary">Préremplir le message</button>

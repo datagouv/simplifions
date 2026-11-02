@@ -1,6 +1,27 @@
 require 'rails_helper'
 
 RSpec.describe 'Articles' do
+  describe 'liste des API FranceConnectées, nombre de requêtes' do
+    def requetes_organisations
+      requetes = 0
+      compter = ->(*, details) { requetes += 1 if details[:sql].include?('organisations') && !details[:cached] && details[:name] != 'SCHEMA' }
+      ActiveSupport::Notifications.subscribed(compter, 'sql.active_record') { get article_path('apis-franceconnectees') }
+      requetes
+    end
+
+    def creer_api_franceconnectee(numero)
+      Solution.create!(nom: "API #{numero}", categorie: 'api', visible: true, france_connectee: true, uid_datagouv: "uid-#{numero}")
+    end
+
+    it 'n’augmente pas avec le nombre d’API affichées' do
+      creer_api_franceconnectee(1)
+      avec_une_api = requetes_organisations
+      (2..4).each { creer_api_franceconnectee(it) }
+
+      expect(requetes_organisations).to eq(avec_une_api)
+    end
+  end
+
   describe 'GET /articles' do
     it 'liste les six articles' do
       get articles_path
@@ -13,6 +34,19 @@ RSpec.describe 'Articles' do
     it 'grise, comme un bouton désactivé, les mots-clefs sans article' do
       get articles_path
       expect(response.body).to match(%r{<button[^>]*class="fr-tag"[^>]*disabled[^>]*>Jeux de données \(0\)</button>})
+    end
+
+    it 'prépare pour Matomo le choix et le retrait d’un mot-clef, et l’ouverture d’un article' do
+      get articles_path(keywords: 'Guide de base')
+      page = Capybara.string(response.body)
+
+      expect(page.find('.fr-container[data-matomo-zone]')['data-matomo-zone']).to eq('Articles › Liste')
+      retrait = page.find('a.fr-tag[aria-pressed="true"]')
+      expect([retrait['data-matomo-action'], retrait['data-matomo-nom']]).to eq(['Retirer un mot-clé', 'Guide de base'])
+      expect(page.first('a.fr-tag[aria-pressed="false"]')['data-matomo-action']).to eq('Filtrer par mot-clé')
+      carte = page.find_link('Guide de base pour les petites collectivités')
+      expect([carte['data-matomo-action'], carte['data-matomo-nom']])
+        .to eq(['Ouvrir un article', 'Guide de base pour les petites collectivités'])
     end
 
     it 'filtre par mot-clef' do
@@ -98,6 +132,27 @@ RSpec.describe 'Articles' do
       expect(carrousel.css('.carousel-track')).to be_present
       expect(carrousel.css('[data-carousel-target="nav"].fr-hidden')).to be_present
       expect(carrousel.css('button').map(&:text).map(&:strip)).to eq(%w[Précédent Suivant])
+    end
+
+    it 'prépare pour Matomo le sommaire, les liens du texte, « Lire aussi » et les mentions de l’article' do
+      Solution.create!(nom: 'Bouquet API Entreprise', slug: 'bouquet-api-entreprise', visible: true)
+
+      get article_path('qu-est-ce-qu-une-api')
+      page = Capybara.string(response.body)
+      article = page.find('.article-page')
+
+      expect([article['data-matomo-zone'], article['data-matomo-contexte']])
+        .to eq(['Article › Contenu', Article.find('qu-est-ce-qu-une-api').h1])
+      sommaire = page.find('nav.article-toc')
+      expect(sommaire['data-matomo-zone']).to eq('Article › Sommaire')
+      expect(sommaire.find('button')['data-matomo-action']).to eq('Ouvrir le sommaire')
+      expect(sommaire.all('a').pluck('data-matomo-action').uniq).to eq(['Aller à une section'])
+      expect(page.find('.article-content')['data-matomo-liens']).to eq("Ouvrir un lien de l'article")
+      expect(page.find('.fr-callout a', text: 'interlocuteurs', match: :first)['data-matomo-action']).to eq('Lire aussi')
+      mentions = page.find('[data-controller="carousel"]')
+      expect(mentions['data-matomo-zone']).to eq('Article › Mentions')
+      expect(mentions.all('button').pluck('data-matomo-action'))
+        .to eq(['Voir la mention précédente', 'Voir la mention suivante'])
     end
 
     it 'réserve au démonstrateur Sirene une annonce vide au chargement, pour le lecteur d’écran' do

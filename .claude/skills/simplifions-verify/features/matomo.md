@@ -24,7 +24,7 @@ Preconditions:
 - Launch done and doctor green (SKILL.md § Launch, § Doctor); the browser containers reach stats.data.gouv.fr.
 - One visible démarche matches « eaje ».
 
-The drive sets `MATOMO_SITE_ID=999999` for its own server and counts the `matomo.php` requests the browser sent (`performance.getEntriesByType('resource')`).
+The drive sets `MATOMO_SITE_ID=999999` for its own server and counts the `matomo.php` requests the browser sent (`performance.getEntriesByType('resource')`), events aside: those carry `e_a` and have their own feature, [`matomo-evenements.md`](matomo-evenements.md).
 
 - **Load.** `visit "/demarches"`. 1 hit, `action_name` `Cas d'usages | …`, no `search`.
 - **Search.** `fill_in "Rechercher", with: "eaje"`, `click_button "Rechercher"`. 2 hits; the last has `search=eaje`, `search_cat=Cas d'usages`, `search_count` = `Demarche.catalogue({ "q" => "eaje" }).count`, and `url` the page's path without its parameters.

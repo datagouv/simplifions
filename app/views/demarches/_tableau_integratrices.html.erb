@@ -1,6 +1,7 @@
 <% groupes = demarche.groupes_donnees_utiles
    prefixe = "tableau-#{categorie.to_s.dasherize}" %>
-<div class="fr-table fr-table--bordered fr-table--sm fr-table--multiline fr-table--no-caption fr-mt-1w vue-tableau tableau-integratrices">
+<div class="fr-table fr-table--bordered fr-table--sm fr-table--multiline fr-table--no-caption fr-mt-1w vue-tableau tableau-integratrices"
+  <%= tag.attributes(data: matomo_zone("Cas d'usage › Tableau comparatif")) %>>
   <div class="fr-table__wrapper">
     <div class="fr-table__container">
       <div class="fr-table__content">
@@ -31,7 +32,7 @@
                     <% if donnee.uid_datagouv.present? %>
                       <%= link_to donnee.lien_datagouv, class: 'fr-link fr-link--sm fr-mt-1w', target: '_blank', rel: 'noopener external',
                             title: "#{nom} sur data.gouv.fr - nouvelle fenêtre",
-                            data: matomo_sortie_datagouv(donnee.nom, donnee, 'démarche', 'tableau') do %>data.gouv.fr<span class="fr-sr-only"> : <%= nom %> - nouvelle fenêtre</span><% end %>
+                            data: matomo_sortie_datagouv(donnee.nom, donnee) do %>data.gouv.fr<span class="fr-sr-only"> : <%= nom %> - nouvelle fenêtre</span><% end %>
                     <% end %>
                   </th>
                 <% end %>
@@ -46,7 +47,7 @@
               <tr data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
                 <th scope="row" id="<%= ligne %>" class="fr-cell--fixed tableau-integratrices__solution">
                   <%= link_to_if solution.slug.present?, solution.nom, solution_path(solution.slug),
-                        data: matomo_fiche_solution(solution, 'démarche') %>
+                        data: matomo_fiche_solution(solution) %>
                   <%= render 'badge_operateur', solution: %>
                   <% if solution.types_solution.any? %>
                     <span class="fr-text--xs fr-mb-0 tableau-integratrices__types"><%= solution.types_solution.join(' • ') %></span>

@@ -7,7 +7,8 @@
 <div class="fr-container fr-mb-8w">
   <h1>Nous contacter</h1>
 
-  <section class="fr-grid-row" aria-label="Orienter votre demande">
+  <section class="fr-grid-row" aria-label="Orienter votre demande"
+    <%= tag.attributes(data: matomo_zone("Contact", content_for(:etape)).merge(matomo_liens: "Suivre un lien")) %>>
     <div class="fr-col-12 fr-col-lg-8 fond-beige-gris-galet fr-p-4w">
       <%= etape %>
     </div>

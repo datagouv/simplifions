@@ -1,5 +1,6 @@
 <% record = local_assigns[:record] %>
-<nav role="navigation" aria-labelledby="fr-summary-title" class="fr-summary">
+<nav role="navigation" aria-labelledby="fr-summary-title" class="fr-summary"
+  data-matomo-zone="Navigation › Sommaire" data-matomo-liens="Aller à une section">
   <h2 id="fr-summary-title" class="fr-summary__title fr-text--md">Sommaire</h2>
   <ol data-turbo="false">
     <% sections.each do |id, label, sous_sections| %>
@@ -19,7 +20,8 @@
     <hr class="fr-hr fr-my-2w">
     <p class="fr-text--sm">
       <span class="subtitle">Contenu rédigé par :</span><br>
-      <a href="https://www.data.gouv.fr/organizations/direction-interministerielle-du-numerique" rel="noopener external" target="_blank">Direction interministérielle du numérique</a>
+      <a href="https://www.data.gouv.fr/organizations/direction-interministerielle-du-numerique" rel="noopener external" target="_blank"
+        data-matomo-action="Ouvrir la page de la DINUM">Direction interministérielle du numérique</a>
       <% if record.cree_le %><br>le <time datetime="<%= record.cree_le.iso8601 %>"><%= l record.cree_le.to_date, format: :long %>.</time><% end %>
       <% if record.modifie_le %><br><span class="fr-text--xs">Modifié le <time datetime="<%= record.modifie_le.iso8601 %>"><%= l record.modifie_le.to_date, format: :long %>.</time></span><% end %>
     </p>

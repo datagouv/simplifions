@@ -1,7 +1,7 @@
 require_relative '../harness'
 
 def hits_matomo(page, attendus)
-  script = "performance.getEntriesByType('resource').map(e => e.name).filter(n => n.includes('matomo.php'))"
+  script = "performance.getEntriesByType('resource').map(e => e.name).filter(n => n.includes('matomo.php') && !n.includes('e_a='))"
   Timeout.timeout(10) { sleep 0.2 until page.evaluate_script(script).size >= attendus }
   sleep 1
   page.evaluate_script(script).map { |url| Rack::Utils.parse_query(URI(url).query).slice('url', 'action_name', 'search', 'search_cat', 'search_count', 'urlref', 'link', 'download') }

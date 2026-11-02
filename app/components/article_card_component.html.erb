@@ -7,7 +7,7 @@
         </div>
       <% end %>
       <h3 class="fr-card__title fr-text--lead fr-mb-0">
-        <%= link_to @article.h1, article_path(@article.slug) %>
+        <%= link_to @article.h1, article_path(@article.slug), data: { matomo_action: "Ouvrir un article", matomo_nom: @article.h1 } %>
       </h3>
       <p class="fr-card__desc fr-text--md"><%= @article.description %></p>
       <% tags = @article.keywords_in("Thématique") %>

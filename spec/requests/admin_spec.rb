@@ -109,7 +109,7 @@ RSpec.describe 'Administration' do
   describe 'outils de l’en-tête' do
     it 'propose la connexion aux visiteurs' do
       get root_path
-      expect(response.body).to include('<a class="fr-btn fr-icon-lock-line" href="/admin/connexion">Se connecter</a>')
+      expect(Capybara.string(response.body).find_link('Se connecter')[:href]).to eq('/admin/connexion')
       expect(response.body).not_to include('Se déconnecter')
     end
 
@@ -117,7 +117,7 @@ RSpec.describe 'Administration' do
       sign_in admin
       get root_path
       expect(response.body).to include('<a class="fr-btn fr-icon-settings-5-line" href="/admin">Administration</a>')
-      expect(response.body).to include('<form class="button_to" method="post" action="/admin/deconnexion">')
+      expect(response.parsed_body.at_css('form.button_to[method=post][action="/admin/deconnexion"]')).to be_present
       expect(response.body).to include('<button class="fr-btn fr-icon-logout-box-r-line" type="submit">Se déconnecter</button>')
       expect(response.body).not_to include('Se connecter')
     end
@@ -174,7 +174,7 @@ RSpec.describe 'Administration' do
     it 'présente le formulaire de connexion en DSFR' do
       get new_admin_session_path
       expect(response.body).to include('<h1>Connexion à l’administration</h1>')
-      expect(response.body).to include('<form class="fr-mt-4w" action="/admin/connexion" accept-charset="UTF-8" method="post">')
+      expect(response.parsed_body.at_css('form.fr-mt-4w[method=post][action="/admin/connexion"]')).to be_present
       expect(response.body).to include('<label class="fr-label" for="admin_email">Adresse e-mail</label>')
       expect(response.body).to include('<label class="fr-label" for="admin_password">Mot de passe</label>')
       expect(response.body).to include('<input class="fr-input" autocomplete="current-password" type="password" name="admin[password]" id="admin_password" />')

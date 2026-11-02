@@ -22,22 +22,21 @@ class DataserviceCardComponent < ApplicationComponent
     { label:, classe:, icone: }
   end
 
-  def initialize(solution, origine:, heading: 'h3')
+  def initialize(solution, heading: 'h3')
     @solution = solution
-    @origine = origine
     @heading = heading
   end
 
   private
 
-  attr_reader :solution, :origine
+  attr_reader :solution
 
   delegate :datagouv_logo, :lien_datagouv, :producteur, to: :solution
 
   def jeu_de_donnees? = solution.categorie_base_de_donnees?
   def titre = solution.datagouv_titre.presence || solution.nom
   def badge = self.class.badge(solution)
-  def mesure = helpers.matomo_sortie_datagouv(titre, solution, origine, 'carte')
+  def mesure = helpers.matomo_sortie_datagouv(titre, solution)
 
   def service_public? = solution.datagouv_organisation_badges.include?('public-service')
   def certifiee? = solution.datagouv_organisation_badges.include?('certified')
