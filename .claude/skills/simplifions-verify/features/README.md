@@ -49,7 +49,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [fiche-donnees-integrees.md](fiche-donnees-integrees.md) — from a cas d'usage card, open the window of the data integrated by its solution: same counts as the card, total = checked rows over rows; a row click shows then hides its detail; Escape gives focus back.
 - [admin-erreurs-formulaire.md](admin-erreurs-formulaire.md) — a refused admin form: titled summary with focus and links to the fields, DSFR error under each field, French messages, required fields marked.
 - [admin-previsualisation.md](admin-previsualisation.md) — preview a démarche or solution draft as its public page, under a « Prévisualisation » notice; the public page stays as published.
-- [admin-listes.md](admin-listes.md) — admin lists: search, 50 rows per page, name links to the edit page, Visible / Modifié le / Intégrée par columns.
+- [admin-listes.md](admin-listes.md) — admin lists: search (and its no-result sentence), 50 rows per page, name links to the edit page, Visible / Modifié le / Intégrée par columns.
 - [admin-liste-filtrable.md](admin-liste-filtrable.md) — a list of 10 linked rows or fewer shows every box; longer lists show only checked boxes and filter as you type; vocabulaires grouped by category.
 - [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — list and add a démarche's recommandations from its form; a recommandation keeps its démarche in view.
 - [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md) — edit, add and see errors on a démarche's recommandations row by row in its tab, drafts kept off the public page.

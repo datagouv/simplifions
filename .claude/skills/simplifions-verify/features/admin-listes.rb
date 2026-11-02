@@ -111,6 +111,24 @@ def demarches(page)
   Verify.evidence(DOSSIER, page, 'demarche-icone', "demarche=#{demarche.id} cellule=#{cellule_avec_icone(page, demarche)}")
 end
 
+def recherche_sans_resultat(page)
+  Verify.rubrique(page, 'Vocabulaires')
+  Verify.rechercher(page, 'zzz-introuvable')
+  statut = page.find('[role=status]').text
+  raise "statut #{statut}" unless statut == 'Aucun vocabulaire ne contient « zzz-introuvable ».' && page.has_no_css?('table', wait: 0)
+
+  Verify.evidence(DOSSIER, page, 'recherche-sans-resultat', "statut=#{statut}")
+  effacer_la_recherche(page)
+end
+
+def effacer_la_recherche(page)
+  page.click_link 'Effacer la recherche'
+  page.assert_current_path('/admin/vocabulaires')
+  lignes = [Vocabulaire.count, 50].min
+  page.assert_selector 'tbody tr', count: lignes
+  Verify.evidence(DOSSIER, page, 'recherche-effacee', "url=#{page.current_path} lignes=#{lignes} en_base=#{Vocabulaire.count}")
+end
+
 Verify.drive(__FILE__) do |page|
   integree = Solution.joins(:integrations_comme_integree).order(:id).first
   Verify.login(page)
@@ -122,6 +140,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Dashboard') { tableau_de_bord(page) }
   Verify.check('Organisations') { organisations(page) }
   Verify.check('Intégrations') { integrations(page) }
+  Verify.check('Search without result') { recherche_sans_resultat(page) }
   Verify.check('Démarches') { demarches(page) }
   Verify.check('Proof') { Verify.logout(page) }
 end
