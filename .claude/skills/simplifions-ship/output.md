@@ -1,46 +1,43 @@
 # Output templates
 
+`<compare link>` is `https://github.com/datagouv/simplifions/compare/<branch>?expand=1`, with the full git branch name: the user opens it in a browser and pastes the title and body to open the PR.
+
 ### When resuming:
 ```
-Resuming ship session (started YYYY-MM-DD).
-Progress: 3/10 issues shipped, 1 in-progress.
-Current: SIM-124 (phase: implement, step 3/5)
-
-Continuing implementation...
+Resuming SIM-124 (started YYYY-MM-DD), phase implement, step 3/5.
 ```
 
-### After each issue ships:
+### When shipped:
 ```
-Shipped SIM-124 -> PR: https://github.com/org/repo/pull/124 (review clean after 2 rounds)
-Continuing with SIM-125...
+Shipped SIM-124 — review clean after 2 rounds — proof: tmp/verify/<feature>/
+Open the PR: <compare link>
+Title: <title>
+Body:
+<body>
+(a large PR) In Linear, attach the file .notes/<branch_name>/review-guide.md to https://linear.app/pole-api/issue/SIM-124
 ```
 
 ### When the review cap is hit:
 ```
-SIM-124 -> PR: https://github.com/org/repo/pull/124 — 3 review rounds done, findings still open:
+SIM-124 — 3 review rounds done, findings still open:
   - [finding]
-Session saved. Open findings listed in the PR body for Thomas.
+Suspect: design | scope — [why]
+Open the PR for Thomas: <compare link>
+Title: <title>
+Body:
+<body, the open findings listed for Thomas>
 ```
 
-### When batch complete:
+### When skipped:
 ```
-Shipping complete.
-
-Shipped:
-  SIM-123 - title -> PR: https://github.com/org/repo/pull/123
-  SIM-124 - title -> PR: https://github.com/org/repo/pull/124
-
-Skipped (has questions):
-  SIM-125 - title (run /simplifions-plan SIM-125 to resolve)
-
-Failed:
-  SIM-126 - title (error: reason)
+SIM-124 not shipped: the plan has open questions. Run /simplifions-plan SIM-124 to resolve them.
+(or) SIM-124 not shipped: the plan's `Flag:` waits for Thomas's technical go-ahead.
 ```
 
-### On error:
+### When blocked or on error:
 ```
-Error shipping SIM-126: [error details]
-
-Session saved. Run `/simplifions-ship` to retry this issue or continue with remaining.
-To skip this issue: manually mark as skipped in .notes/_ship-session.md
+SIM-124 not shipped: [what stopped the drive, the design that did not hold, or the error]
+(a design that did not hold) Comment for Thomas, to post on https://linear.app/pole-api/issue/SIM-124:
+<comment>
+Session saved. Run /simplifions-ship SIM-124 to retry; after Thomas answers on a design, /simplifions-plan SIM-124 first.
 ```

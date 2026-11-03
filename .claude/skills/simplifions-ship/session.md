@@ -1,47 +1,26 @@
 # Ship session file and resumption
 
-All progress is persisted in `.notes/_ship-session.md` so work survives context compaction or session restarts. Always read the session file first to reorient yourself.
+Progress lives in `.notes/<branch_name>/ship-session.md`, so it survives compaction and restarts, and two ships never share it. Read it first to reorient yourself.
 
 ```markdown
-# Ship Session
+# Ship SIM-124
 Started: YYYY-MM-DD HH:MM
+Status: in-progress
+Phase: implement
+Plan step: 3/5
+Review round: 0
 
-## Issues
-- [x] SIM-123 - shipped (PR: #123, review clean round 2)
-- [>] SIM-124 - in-progress (step: implement, plan-step: 3/5)
-- [ ] SIM-125 - pending
-- [-] SIM-126 - skipped (has questions)
-- [!] SIM-127 - failed (test failures)
-
-## Current
-SIM-124
-
-## Current Phase
-implement
+## Pull request
 
 ## Notes
-SIM-127: RuntimeError in the Grist import - needs investigation
 ```
 
-Status markers:
-- `[ ]` pending - not yet started
-- `[>]` in-progress - currently being shipped
-- `[x]` shipped - PR created and review loop finished clean
-- `[-]` skipped - has questions or intentionally skipped
-- `[!]` failed - error during shipping
+Status: `in-progress`, `shipped` (branch pushed, review loop finished clean or cap reported), `skipped` (the plan has questions or a `Flag:`), `blocked` (no proof, or a design that does not hold; reason in Notes), `failed` (error, reason in Notes).
 
-Phases: `setup` → `post-plan` → `implement` → `push-pr` → `review` → `done`
+Phases: `setup` → `implement` → `push-pr` → `review` → `done`
 
 ## Resumption
 
-When resuming (via `/simplifions-ship` with no args):
-1. Read `.notes/_ship-session.md` to understand current state
-2. Find the `## Current` issue and `## Current Phase`
-3. For `implement` phase: also read `.notes/<branch>/implement-plan.md` to find current step
-4. For `review` phase: read the latest `.notes/<branch>/review-round-N.md` — unfixed findings → resume the fix cycle; all fixed → spawn the next review subagent
-5. Continue from that exact point
-
-This works even after:
-- Context compaction (conversation summarized)
-- Session restart (new Claude Code session)
-- Interruption (user closes terminal)
+`/simplifions-ship` with no args: scan `.notes/*/ship-session.md` for Status `in-progress`. Several: report the list and stop; the session that spawned you reruns `/simplifions-ship <issue>`. One: switch to its branch and continue from its Phase:
+- `implement`: from its Plan step
+- `review`: read the latest `.notes/<branch_name>/review-round-N.md`; open findings (`review-loop.md`) → resume the fix cycle; none → spawn the next review subagent
