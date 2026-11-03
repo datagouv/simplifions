@@ -179,6 +179,34 @@ def lecture_fiches(page)
   attendre_lecture(page, 'Lire un article')
 end
 
+def visibilite(page, cachee)
+  page.execute_script(<<~JS)
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => #{cachee} });
+    document.dispatchEvent(new Event('visibilitychange', { bubbles: true }));
+  JS
+end
+
+def cacher_pendant_la_lecture(page)
+  page.visit('/articles/qu-est-ce-qu-une-api')
+  vider(page)
+  descendre(page)
+  sleep 9
+  visibilite(page, true)
+  sleep 26
+  raise "lecture comptée pendant que la page était cachée : #{evenements(page)}" if lecture?(page, 'Lire un article')
+end
+
+def lecture_page_cachee(page)
+  cacher_pendant_la_lecture(page)
+  visibilite(page, false)
+  reveil = Time.current
+  sleep 0.5 until lecture?(page, 'Lire un article') || Time.current > reveil + 30
+  attente = Time.current - reveil
+  raise "lecture #{attente.round} s après le retour, attendu environ 20 s" unless attente.between?(15, 25)
+
+  garder_lecture(page, 'Lire un article (page cachée)')
+end
+
 def connexion_sans_matomo(page)
   page.visit('/admin/connexion')
   raise 'Matomo absent avant la connexion' unless matomo_present?(page)
@@ -227,6 +255,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Contact') { contact(page) }
   Verify.check('Lecture démarche') { lecture_demarche(page) }
   Verify.check('Lecture fiches') { lecture_fiches(page) }
+  Verify.check('Lecture page cachée') { lecture_page_cachee(page) }
   Verify.check('Admin') { admin(page) }
 ensure
   ENV['MATOMO_SITE_ID'] = site_id
