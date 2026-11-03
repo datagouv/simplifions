@@ -61,6 +61,6 @@ class Admin::IntegrationsController < Admin::BaseController
   end
 
   def integration_params
-    params.expect(integration: [:integratrice_id, :integree_id, :type_integration, :statut, :ordre, { demarche_ids: [] }])
+    params.expect(integration: [:integratrice_id, :integree_id, :type_integration, :statut, { demarche_ids: [] }])
   end
 end

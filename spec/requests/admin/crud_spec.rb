@@ -356,19 +356,29 @@ RSpec.describe 'Administration' do
   describe 'ordre d’une API fournie' do
     before { sign_in admin }
 
-    it 'se saisit sur la page de son intégration, et se vide' do
-      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'),
-        integree: Solution.create!(nom: 'API QF', categorie: 'api'), type_integration: 'expose', ordre: 2)
+    let(:bouquet) { Solution.create!(nom: 'Bouquet') }
+    let(:api_qf) { Solution.create!(nom: 'API QF', categorie: 'api') }
+
+    def rang = response.parsed_body.at_css('#formulaire-fiche [data-rang]')
+
+    it 'se lit sur la page d’une API fournie, sans champ, avec un lien vers le rangement de sa solution' do
+      integration = Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'expose', ordre: 2)
 
       get "/admin/integrations/#{integration.id}/edit"
-      champ = response.parsed_body.at_css('input[type=number][name="integration[ordre]"]')
-      expect(champ['value']).to eq('2')
-      expect(response.body).to include('apparaît haut dans « Données et API fournies » sur la page de la solution')
+
+      expect(response.parsed_body.at_css('[name="integration[ordre]"]')).to be_nil
+      expect(rang.text.squish).to eq('Ordre : 2 Ranger les API fournies de Bouquet')
+      expect(rang.at_css('a')['href']).to eq("/admin/solutions/#{bouquet.id}/edit?onglet=api-fournies")
+    end
+
+    it 'n’est ni lu ni modifiable sur une API intégrée' do
+      integration = Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme', ordre: 2)
+
+      get "/admin/integrations/#{integration.id}/edit"
+      expect(rang).to be_nil
 
       patch "/admin/integrations/#{integration.id}", params: { integration: { ordre: '1' } }
-      expect(integration.reload.ordre).to eq(1)
-      patch "/admin/integrations/#{integration.id}", params: { integration: { ordre: '' } }
-      expect(integration.reload.ordre).to be_nil
+      expect(integration.reload.ordre).to eq(2)
     end
   end
 

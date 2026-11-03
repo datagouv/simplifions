@@ -8,7 +8,12 @@
   <% end %>
   <%= f.dsfr_select :type_integration, options_traduites(Integration, :type_integration) %>
   <%= f.dsfr_select :statut, Integration::STATUTS %>
-  <%= f.dsfr_number_field :ordre %>
+  <% if en_base&.expose? %>
+    <p class="fr-mb-3w" data-rang>
+      <%= Integration.human_attribute_name(:ordre) %> : <%= en_base.ordre || "aucun" %>
+      <%= link_to "Ranger les API fournies de #{en_base.integratrice.libelle_admin}", edit_admin_solution_path(en_base.integratrice, onglet: "api-fournies"), class: "fr-link fr-ml-1w" %>
+    </p>
+  <% end %>
   <% demarches = integration.demarches_proposees.order(:nom).load %>
   <% autorisees = integration.demarches_autorisees.ids %>
   <% if demarches.any? %>
