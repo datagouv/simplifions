@@ -956,7 +956,7 @@ RSpec.describe 'Administration' do
 
       expect(flux.map { [it['action'], it['target']] }).to eq([
         ['remove', "integration_#{integration.id}"], ['remove', "formulaire_integration_#{integration.id}"],
-        ['remove', "suppression_integration_#{integration.id}"], %w[update message-integrations]
+        ['remove', "suppression_integration_#{integration.id}"], ['remove', "deplacement_integration_#{integration.id}"], %w[update message-integrations]
       ])
       expect(flux.last.at_css('[autofocus][tabindex="-1"]').text.squish).to eq('« Bouquet → API QF (API) (intégrée) » supprimé.')
       expect(Integration.exists?(integration.id)).to be(false)
@@ -965,6 +965,79 @@ RSpec.describe 'Administration' do
     it 'garde la redirection vers la liste quand on supprime depuis la page de l’intégration' do
       delete "/admin/integrations/#{integration.id}"
       expect(response).to redirect_to('/admin/integrations')
+    end
+  end
+
+  describe 'rang des API fournies d’une solution' do
+    let!(:bouquet) { Solution.create!(nom: 'Bouquet') }
+    let!(:fournies) do
+      ['API Alpha', 'API Beta', 'API Gamma'].map do |nom|
+        Integration.create!(integratrice: bouquet, integree: Solution.create!(nom:, categorie: 'api'), type_integration: 'expose')
+      end
+    end
+    let(:gamma) { fournies.last }
+
+    before { sign_in admin }
+
+    def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
+    def ordre_admin = flux.last.css('template tr').map { it.at_css('select').at_css('option[selected]')&.text }
+    def boutons(ligne) = ligne.css('button[name=sens]').map { [it.text.squish, it['value'], it['form']] }
+
+    it 'porte sur chaque API fournie une poignée et les boutons Monter et Descendre, reliés à un formulaire hors de la fiche' do
+      Integration.create!(integratrice: bouquet, integree: Solution.create!(nom: 'API Delta', categorie: 'api'), type_integration: 'consomme')
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      ligne = response.parsed_body.at_css("#onglet-api-fournies-panneau tr#integration_#{gamma.id}")
+      expect(ligne.at_css('[data-poignee]')).to be_present
+      expect(boutons(ligne)).to eq([
+        ['Monter l’intégration Bouquet → API Gamma (API) (fournie)', 'monter', "deplacement_integration_#{gamma.id}"],
+        ['Descendre l’intégration Bouquet → API Gamma (API) (fournie)', 'descendre', "deplacement_integration_#{gamma.id}"]
+      ])
+      formulaire = response.parsed_body.at_css("form#deplacement_integration_#{gamma.id}")
+      expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size])
+        .to eq(["/admin/integrations/#{gamma.id}/position", 'patch', 0])
+      expect(response.parsed_body.css('#onglet-api-fournies-panneau tr#fournies_integration button[name=sens], #onglet-api-integrees-panneau button[name=sens], #onglet-api-integrees-panneau [data-poignee]')).to be_empty
+    end
+
+    it 'monte une API fournie, renvoie la liste rangée et l’annonce, le focus resté sur le bouton' do
+      patch "/admin/integrations/#{gamma.id}/position", params: { sens: 'monter' }, as: :turbo_stream
+
+      expect(flux.map { [it['action'], it['target']] }).to eq([%w[update message-integrations], %w[update lignes-fournies]])
+      expect(flux.first.text.squish).to eq('« Bouquet → API Gamma (API) (fournie) » déplacée en position 2.')
+      expect(ordre_admin).to eq(['API Alpha (API)', 'API Gamma (API)', 'API Beta (API)', nil])
+      expect(flux.last.at_css('[autofocus]').text.squish).to start_with('Monter l’intégration Bouquet → API Gamma')
+      expect(bouquet.api_fournies_dans_l_ordre.map(&:nom)).to eq(['API Alpha', 'API Gamma', 'API Beta'])
+    end
+
+    it 'garde le focus sur Descendre quand la ligne arrive en tête' do
+      patch "/admin/integrations/#{fournies.second.id}/position", params: { sens: 'monter' }, as: :turbo_stream
+
+      expect(flux.last.at_css('[autofocus]').text.squish).to start_with('Descendre l’intégration Bouquet → API Beta')
+    end
+
+    it 'range à la position donnée par le glisser-déposer' do
+      patch "/admin/integrations/#{fournies.first.id}/position", params: { position: '3' }, as: :turbo_stream
+
+      expect(ordre_admin).to eq(['API Beta (API)', 'API Gamma (API)', 'API Alpha (API)', nil])
+      expect(flux.last.at_css('[autofocus]')).to be_nil
+    end
+
+    it 'revient sur l’onglet API fournies sans JavaScript' do
+      patch "/admin/integrations/#{fournies.first.id}/position", params: { sens: 'descendre' }
+
+      expect(response).to redirect_to("/admin/solutions/#{bouquet.id}/edit?onglet=api-fournies")
+      expect(bouquet.api_fournies_dans_l_ordre.map(&:nom)).to eq(['API Beta', 'API Alpha', 'API Gamma'])
+    end
+
+    it 'refuse de ranger une API intégrée, ordre inchangé' do
+      integree = Integration.create!(integratrice: bouquet, integree: Solution.create!(nom: 'API Delta', categorie: 'api'), type_integration: 'consomme')
+
+      patch "/admin/integrations/#{integree.id}/position", params: { position: '1' }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(flux.map { [it['action'], it['target']] }).to eq([%w[update message-integrations]])
+      expect(flux.first.text.squish).to eq('Intégration non déplacée : Seule une API ou un jeu de données fourni se range')
+      expect(fournies.map { it.reload.ordre }).to eq([nil, nil, nil])
     end
   end
 

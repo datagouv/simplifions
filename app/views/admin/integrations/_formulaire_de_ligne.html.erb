@@ -9,4 +9,8 @@
   <%= form_with model: [:admin, ligne], method: :delete, id: "suppression_#{id}", data: { enregistre_sur_place: true } do %>
     <%= hidden_field_tag :ligne, 1, id: nil %>
   <% end %>
+  <% if liste == :fournies %>
+    <%= form_with url: position_admin_integration_path(ligne), method: :patch, id: dom_id(ligne, :deplacement), data: { enregistre_sur_place: true } do %>
+    <% end %>
+  <% end %>
 <% end %>

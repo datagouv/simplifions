@@ -146,6 +146,21 @@ form :target {
   min-width: 12rem;
 }
 
+.ligne-rangee {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.poignee {
+  cursor: grab;
+}
+
+#lignes-fournies tr:first-child [value="monter"],
+#lignes-fournies tr:nth-last-child(2) [value="descendre"] {
+  display: none;
+}
+
 #modele-message {
   font-family: inherit;
   resize: vertical;

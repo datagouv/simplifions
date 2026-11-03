@@ -9,7 +9,7 @@
         <th scope="col">Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="lignes-<%= liste %>">
       <%= render partial: "admin/integrations/ligne", collection: lignes, locals: { liste: } %>
     </tbody>
   </table>

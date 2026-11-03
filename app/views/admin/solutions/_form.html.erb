@@ -1,9 +1,5 @@
 <% if en_base %>
-  <% listes = {
-       fournies: en_base.integrations_qu_elle_expose.dans_l_ordre_public,
-       integrees: en_base.integrations_comme_integratrice.consomme.par_libelle_admin_de(:integree),
-       integratrices: en_base.integrations_comme_integree.par_libelle_admin_de(:integratrice)
-     }.to_h { |liste, integrations| [liste, [*integrations.preload(colonne_de_la_liste(liste)), ligne_vide(liste, en_base.id)]] } %>
+  <% listes = %i[fournies integrees integratrices].index_with { |liste| lignes_d_integrations(en_base, liste) } %>
   <% integrations_de_ses_api = Integration.where(id: en_base.integrations_de_ses_api.select(:id)).par_libelle_admin_de(:integratrice).preload(:integratrice, :integree).load %>
 <% end %>
 <%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>

@@ -1,0 +1,16 @@
+<%= turbo_stream.update "message-integrations" do %>
+  <% if @deplacee %>
+    <p class="fr-valid-text fr-mb-2w"><%= t("admin.deplacee", nom: nom_de(@integration), position: @integration.ordre) %></p>
+  <% else %>
+    <p class="fr-error-text fr-mb-2w"><%= t("admin.non_deplacee", erreurs: @integration.errors.full_messages.to_sentence) %></p>
+  <% end %>
+<% end %>
+<% if @deplacee %>
+  <% lignes = lignes_d_integrations(@integration.integratrice, :fournies) %>
+  <% focus = sens_du_focus(params[:sens], @integration.ordre, lignes.size - 1) %>
+  <%= turbo_stream.update "lignes-fournies" do %>
+    <% lignes.each do |ligne| %>
+      <%= render "ligne", ligne:, liste: :fournies, focus: (focus if ligne == @integration) %>
+    <% end %>
+  <% end %>
+<% end %>
