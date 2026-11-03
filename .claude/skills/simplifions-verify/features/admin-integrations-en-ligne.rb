@@ -26,6 +26,7 @@ def solutions_masquees(ctx)
   raise 'une solution de vérif est publiée' if ctx[:masquee].visible? || ctx[:masquee_api].visible?
 
   ctx[:integration_masquee] = Integration.create!(integratrice: ctx[:masquee], integree: ctx[:masquee_api], type_integration: ctx[:integration].type_integration)
+  ctx[:integration_mixte] = Integration.create!(integratrice: ctx[:masquee], integree: Solution.visibles.categorie_api.order(:id).first, type_integration: 'consomme')
 end
 
 def compter(solution)
@@ -179,7 +180,7 @@ end
 
 def avertissement_de_la_fiche(page, integration, publiee)
   page.visit("/admin/integrations/#{integration.id}/edit")
-  Verify.refuser_la_suppression_de_la_fiche(page, publiee, Verify::SUPPRESSION_SANS_BROUILLON)
+  Verify.refuser_la_suppression_de_la_fiche(page, publiee, Verify::Etapes::SUPPRESSION_SANS_BROUILLON)
 end
 
 def toujours_en_base(*integrations)
@@ -191,6 +192,7 @@ def lire_les_avertissements(page, ctx)
     ligne_publiee: avertissement_de_la_ligne(page, ctx[:solution], ctx[:integration], true),
     fiche_publiee: avertissement_de_la_fiche(page, ctx[:integration], true),
     ligne_masquee: avertissement_de_la_ligne(page, ctx[:masquee], ctx[:integration_masquee], false),
+    ligne_masquee_api_publiee: avertissement_de_la_ligne(page, ctx[:masquee], ctx[:integration_mixte], true),
     ligne_masquee_autre_cote: avertissement_de_la_ligne(page, ctx[:masquee_api], ctx[:integration_masquee], false, 'integratrices'),
     fiche_masquee: avertissement_de_la_fiche(page, ctx[:integration_masquee], false)
   }
@@ -199,7 +201,7 @@ end
 def avertissements(page, ctx)
   solutions_masquees(ctx)
   lu = lire_les_avertissements(page, ctx)
-  toujours_en_base(ctx[:integration], ctx[:integration_masquee])
+  toujours_en_base(ctx[:integration], ctx[:integration_masquee], ctx[:integration_mixte])
   Verify.evidence(DOSSIER, page, 'avertissement', lu.map { |cle, texte| "#{cle}=#{texte.inspect}" }.join(' '))
 end
 
