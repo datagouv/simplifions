@@ -208,8 +208,8 @@ RSpec.describe 'Articles' do
       expect(avis.all('label').map { it.text.strip }).to eq(%w[Non Moyennement Oui])
       expect(avis).to have_button('Envoyer mon avis', disabled: true)
       expect(avis['data-matomo-contexte']).to eq(article.h1)
-      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('modifier-article'), visible: :all)
-      expect(avis).to have_link('Écrivez-nous', href: contact_path('modifier-article'), visible: :all)
+      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('donner-son-avis', article: article.slug), visible: :all)
+      expect(avis).to have_link('Écrivez-nous', href: contact_path('donner-son-avis', article: article.slug), visible: :all)
     end
   end
 

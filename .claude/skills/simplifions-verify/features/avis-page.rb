@@ -10,17 +10,19 @@ def avis(page) = page.evaluate_script(EVENEMENTS_AVIS)
 
 def bloc_avis(page) = page.find('[data-controller="avis-page"]')
 
+def attendre_avis(page, attendu)
+  fin = Time.current + 10
+  sleep 0.1 until avis(page).include?(attendu) || Time.current > fin
+  raise "pas d'évènement « #{attendu} », vus : #{avis(page)}" unless avis(page) == [attendu]
+end
+
 def voter(page, choix, nom)
   bloc = bloc_avis(page)
   bloc.scroll_to(bloc)
   Verify.evidence('avis-page', page, "#{nom.parameterize.first(30)}-avant")
   bloc.choose choix, allow_label_click: true
   bloc.click_button 'Envoyer mon avis'
-  attendu = "Avis sur la page | Trouver la page utile | #{choix} — #{nom}"
-  fin = Time.current + 5
-  sleep 0.1 until avis(page).include?(attendu) || Time.current > fin
-  raise "pas d'évènement « #{attendu} », vus : #{avis(page)}" unless avis(page) == [attendu]
-
+  attendre_avis(page, "Avis sur la page | Trouver la page utile | #{choix} — #{nom}")
   bloc.assert_text 'Merci pour votre avis !'
   raise "le focus n'est pas sur le remerciement" unless page.evaluate_script('document.activeElement.textContent').include?('Merci')
 
@@ -44,7 +46,7 @@ end
 
 def vote_demarche(page, demarche)
   bloc = voter(page, 'Non', demarche.nom)
-  attendu = "/contact/modifier-cas-usage?demarche=#{demarche.slug}"
+  attendu = "/contact/donner-son-avis?demarche=#{demarche.slug}"
   raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?(attendu)
   raise 'lien Écrivez-nous affiché après Non' if bloc.has_link?('Écrivez-nous', wait: 0)
 end
@@ -61,14 +63,14 @@ def vote_solution(page, solution)
   raise 'lien « Dites-nous ce qui manque » affiché après Oui' if lien_de_retour(bloc)
 
   ecrire = bloc.all(:link, 'Écrivez-nous').first&.[]('href')
-  raise "lien Écrivez-nous : #{ecrire.inspect}" unless ecrire&.end_with?("/contact/modifier-solution?solution=#{solution.slug}")
+  raise "lien Écrivez-nous : #{ecrire.inspect}" unless ecrire&.end_with?("/contact/donner-son-avis?solution=#{solution.slug}")
 end
 
 def vote_article(page)
   article = Article.find('qu-est-ce-qu-une-api')
   page.visit("/articles/#{article.slug}")
   bloc = voter(page, 'Moyennement', article.h1)
-  raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?('/contact/modifier-article')
+  raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?("/contact/donner-son-avis?article=#{article.slug}")
 end
 
 def mobile(page, demarche)
@@ -76,10 +78,10 @@ def mobile(page, demarche)
   page.visit("/demarches/#{demarche.slug}")
   bloc = bloc_avis(page)
   bloc.scroll_to(bloc)
-  largeurs = bloc.all('.fr-radio-rich').map { page.evaluate_script('arguments[0].getBoundingClientRect()', it) }
-  raise "smileys côte à côte : #{largeurs}" unless largeurs.map { it['left'].round }.uniq.size == 1
+  gauches = bloc.all('.fr-radio-rich').map { page.evaluate_script('arguments[0].getBoundingClientRect().left', it).round }
+  raise "choix côte à côte, bords gauches : #{gauches}" unless gauches.uniq.size == 1
 
-  Verify.evidence('avis-page', page, 'mobile', largeurs.map { it['width'].round }.join(' / '))
+  Verify.evidence('avis-page', page, 'mobile', "bords gauches #{gauches.join(' / ')}")
 ensure
   page.current_window.resize_to(1280, 900)
 end

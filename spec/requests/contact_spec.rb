@@ -326,6 +326,43 @@ RSpec.describe 'Contact' do
     end
   end
 
+  describe 'GET /contact/donner-son-avis' do
+    it 'propose un modèle d’e-mail pour donner son avis sur une page, sans la citer quand on n’arrive pas d’une page' do
+      get contact_path('donner-son-avis')
+
+      expect(response.parsed_body.at('.contact-titre h2').text).to eq('Donner son avis sur une page')
+      expect(response.parsed_body.at('#objet-message').text).to eq('Avis sur une page')
+      expect(response.parsed_body.at('#modele-message').text)
+        .to include("Le titre et l'URL de la page concernée", 'Votre avis sur le contenu de cette page')
+    end
+
+    it 'cite la démarche, la solution ou l’article d’où vient l’avis' do
+      Demarche.create!(nom: 'Cantine à 1€', slug: 'cantine', icone: '🍽️', visible: true)
+      Solution.create!(nom: 'Logiciel RH', slug: 'logiciel-rh', visible: true, categorie: 'logiciel_metier_cle_en_main')
+      article = Article::ALL.first
+
+      { { demarche: 'cantine' } => ['🍽️ Cantine à 1€', 'http://www.example.com/demarches/cantine'],
+        { solution: 'logiciel-rh' } => ['Logiciel RH', 'http://www.example.com/solutions/logiciel-rh'],
+        { article: article.slug } => [article.h1, "http://www.example.com/articles/#{article.slug}"] }.each do |origine, (titre, url)|
+        get contact_path('donner-son-avis', origine)
+
+        expect(response.parsed_body.at('#objet-message').text).to eq("Avis sur une page : #{titre}")
+        expect(response.parsed_body.at('#modele-message').text).to include("Fiche concernée : #{titre} – #{url}")
+        expect(response.parsed_body.at('#modele-message').text).not_to include("Le titre et l'URL")
+      end
+    end
+
+    it 'ignore une page inconnue ou qui n’est pas un texte' do
+      ['/contact/donner-son-avis?article=inconnu', '/contact/donner-son-avis?article[]=x',
+       '/contact/donner-son-avis?demarche=inconnue'].each do |chemin|
+        get chemin
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body.at('#objet-message').text).to eq('Avis sur une page')
+      end
+    end
+  end
+
   describe 'mesure Matomo' do
     def zone_matomo(element) = element.find(:xpath, 'ancestor-or-self::*[@data-matomo-zone][1]')['data-matomo-zone']
 

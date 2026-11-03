@@ -276,9 +276,9 @@ RSpec.describe 'Solutions' do
       expect(avis.all('label').map { it.text.strip }).to eq(%w[Non Moyennement Oui])
       expect(avis).to have_button('Envoyer mon avis', disabled: true)
       expect(avis['data-matomo-contexte']).to eq('Logiciel RH')
-      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('modifier-solution', solution: 'logiciel-rh'),
+      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('donner-son-avis', solution: 'logiciel-rh'),
         visible: :all)
-      expect(avis).to have_link('Écrivez-nous', href: contact_path('modifier-solution', solution: 'logiciel-rh'), visible: :all)
+      expect(avis).to have_link('Écrivez-nous', href: contact_path('donner-son-avis', solution: 'logiciel-rh'), visible: :all)
     end
 
     it 'n’affiche pas le bloc « Données et API » vide quand des API sont utilisées mais aucune fournie' do

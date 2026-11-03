@@ -1,6 +1,6 @@
 # Avis sur la page
 
-At the end of every article, fiche démarche and fiche solution, the reader answers « Cette page vous a-t-elle été utile ? » by choosing one of three DSFR rich radios with the Je donne mon avis smileys (Non, Moyennement, Oui), then `Envoyer mon avis`, which sends one Matomo event named after the choice, the page as its context; the page thanks the reader, offers a link to write to the team (what is missing after Non or Moyennement, a remark after Oui), the pre-filled e-mail of the contact page. `Envoyer mon avis` stays disabled until a choice is made; once sent, the choice is locked.
+At the end of every article, fiche démarche and fiche solution, the reader answers « Cette page vous a-t-elle été utile ? » by choosing one of three DSFR rich radios with the Je donne mon avis smileys (Non, Moyennement, Oui), then `Envoyer mon avis`, which sends one Matomo event named after the choice, the page as its context; the page thanks the reader, offers a link to write to the team (what is missing after Non or Moyennement, a remark after Oui), the pre-filled « Avis sur une page » e-mail of the contact page, citing the page. `Envoyer mon avis` stays disabled until a choice is made; once sent, the choice is locked.
 
 ## Sub-features
 
@@ -22,10 +22,10 @@ Drive: `features/avis-page.rb` (SKILL.md § Drive).
 Preconditions: one visible démarche and one visible fiche solution (Grist import). The drive sets `MATOMO_SITE_ID=999999` and reads the events from the `matomo.php` requests, as in [`matomo-evenements.md`](matomo-evenements.md).
 
 - **Sans choix.** On the first visible démarche, `Envoyer mon avis` is disabled; choose `Moyennement`: it becomes active, no event yet.
-- **Vote démarche.** Choose `Non`, click `Envoyer mon avis`: the event `Avis sur la page | Trouver la page utile | Non — <nom>` is sent, focus moves to `Merci pour votre avis !`, and the link `Dites-nous ce qui manque` to `/contact/modifier-cas-usage?demarche=<slug>` show.
+- **Vote démarche.** Choose `Non`, click `Envoyer mon avis`: the event `Avis sur la page | Trouver la page utile | Non — <nom>` is sent, focus moves to `Merci pour votre avis !`, and the link `Dites-nous ce qui manque` to `/contact/donner-son-avis?demarche=<slug>` show.
 - **Vote unique.** The three radios are disabled and `Envoyer mon avis` is gone.
-- **Vote solution.** On the first visible fiche solution, choose `Oui` and send: its event is sent, `Merci pour votre avis !` shows with the link `Écrivez-nous` to `/contact/modifier-solution?solution=<slug>`, not `Dites-nous ce qui manque`.
-- **Vote article.** On `/articles/qu-est-ce-qu-une-api`, choose `Moyennement` and send: its event is sent, and the link to `/contact/modifier-article` shows.
+- **Vote solution.** On the first visible fiche solution, choose `Oui` and send: its event is sent, `Merci pour votre avis !` shows with the link `Écrivez-nous` to `/contact/donner-son-avis?solution=<slug>`, not `Dites-nous ce qui manque`.
+- **Vote article.** On `/articles/qu-est-ce-qu-une-api`, choose `Moyennement` and send: its event is sent, and the link to `/contact/donner-son-avis?article=qu-est-ce-qu-une-api` shows.
 - **Mobile.** At 375 px wide, the three rich radios stack in one column.
 - **Proof.** Screenshots of the block before and after each vote, desktop and mobile; read-back of the events sent.
 
@@ -33,3 +33,4 @@ Preconditions: one visible démarche and one visible fiche solution (Grist impor
 
 - Never run with `MATOMO_SITE_ID=311`: the votes would land in the real statistics.
 - The block sits low on long fiches: Capybara scrolls to the radio before choosing, the screenshot is taken after `scroll_to`.
+- The first vote of a run waits up to 10 s for its event: the Matomo tag loads from stats.data.gouv.fr, slower on a cold start.
