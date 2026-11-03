@@ -2,7 +2,7 @@
 
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
-  <%= render layout: "admin/fiche" do %>
+  <%= render layout: "admin/fiche", locals: { consequences: [(t("admin.suppression.sans_brouillon") if [en_base.integratrice, en_base.integree].any?(&:visible?))] } do %>
     <%= render "form", integration: @integration %>
   <% end %>
 </div>

@@ -10,7 +10,15 @@ def contexte
   demarche = Demarche.visibles.where.not(slug: [nil, '']).max_by { |ligne| ligne.recommandations.count }
   reco = demarche.recommandations.visibles.par_niveau_et_ordre.first
   { demarche:, reco:, solution: api_a_recommander(demarche), nom: "la recommandation #{reco.solution.libelle_admin}",
-    avant: demarche.recommandations.count }
+    avant: demarche.recommandations.count, nom_masquee: "Vérif verify-map #{Verify.browser}" }
+end
+
+def demarche_masquee(ctx)
+  masquee = Demarche.create!(nom: ctx[:nom_masquee])
+  raise 'la démarche de vérif est publiée' if masquee.visible?
+
+  ctx[:reco_masquee] = Recommandation.create!(demarche: masquee, solution: ctx[:reco].solution, niveau: :niveau_1)
+  masquee
 end
 
 def cartes_publiques(page, demarche)
@@ -118,16 +126,21 @@ def abandonner_le_brouillon(page, ctx)
   page.visit("/admin/demarches/#{ctx[:demarche].id}/edit?onglet=recommandations")
 end
 
-def supprimer_l_ajoutee(page, ctx)
-  creee = ctx[:creee]
-  poubelle = "Supprimer la recommandation #{ctx[:solution].libelle_admin}"
-  page.dismiss_confirm("#{poubelle} ?") { page.click_button poubelle }
-  page.assert_selector "tr#recommandation_#{creee.id}"
-  raise 'refuser la confirmation a supprimé' unless ActiveRecord::Base.uncached { Recommandation.exists?(creee.id) }
+def refuser_puis_garder(page, ctx, poubelle)
+  attendue = Verify.question_de_suppression("#{poubelle} ?", ctx[:demarche].visible?)
+  Verify.refuser_la_suppression(page, poubelle, attendue)
+  page.assert_selector "tr#recommandation_#{ctx[:creee].id}"
+  raise 'refuser la confirmation a supprimé' unless ActiveRecord::Base.uncached { Recommandation.exists?(ctx[:creee].id) }
 
-  page.accept_confirm("#{poubelle} ?") { page.click_button poubelle }
+  attendue
+end
+
+def supprimer_l_ajoutee(page, ctx)
+  poubelle = "Supprimer la recommandation #{ctx[:solution].libelle_admin}"
+  attendue = refuser_puis_garder(page, ctx, poubelle)
+  page.accept_confirm(attendue) { page.click_button poubelle }
   page.assert_selector '#message-recommandations .fr-valid-text', text: 'supprimé'
-  page.assert_no_selector "tr#recommandation_#{creee.id}"
+  page.assert_no_selector "tr#recommandation_#{ctx[:creee].id}"
 end
 
 def focus_apres_suppression(page)
@@ -135,6 +148,38 @@ def focus_apres_suppression(page)
   raise "focus perdu après suppression (#{Verify.focus_sur(page).inspect})" unless focus&.include?('supprimé')
 
   focus
+end
+
+def avertissement_de_la_ligne(page, demarche, reco, publiee)
+  onglet_recommandations(page, demarche)
+  poubelle = "Supprimer la recommandation #{reco.solution.libelle_admin}"
+  attendue = Verify.question_de_suppression("#{poubelle} ?", publiee)
+  Verify.refuser_la_suppression(page, poubelle, attendue)
+  attendue
+end
+
+def avertissement_de_la_fiche(page, reco, publiee)
+  page.visit("/admin/recommandations/#{reco.id}/edit")
+  Verify.refuser_la_suppression_de_la_fiche(page, publiee)
+end
+
+def toujours_en_base(*recos)
+  raise 'recommandation supprimée par une confirmation refusée' unless ActiveRecord::Base.uncached { Recommandation.where(id: recos).count == recos.size }
+end
+
+def lire_les_avertissements(page, ctx, masquee)
+  {
+    ligne_publiee: avertissement_de_la_ligne(page, ctx[:demarche], ctx[:reco], true),
+    fiche_publiee: avertissement_de_la_fiche(page, ctx[:reco], true),
+    ligne_masquee: avertissement_de_la_ligne(page, masquee, ctx[:reco_masquee], false),
+    fiche_masquee: avertissement_de_la_fiche(page, ctx[:reco_masquee], false)
+  }
+end
+
+def avertissements(page, ctx)
+  lu = lire_les_avertissements(page, ctx, demarche_masquee(ctx))
+  toujours_en_base(ctx[:reco], ctx[:reco_masquee])
+  Verify.evidence(DOSSIER, page, 'avertissement', lu.map { |cle, texte| "#{cle}=#{texte.inspect}" }.join(' '))
 end
 
 def etat_revenu(ctx)
@@ -162,6 +207,7 @@ end
 
 def nettoyer(ctx)
   ActiveRecord::Base.uncached do
+    Demarche.where(nom: ctx[:nom_masquee]).destroy_all
     ctx[:demarche].recommandations.where(ordre: 99, grist_id: nil, solution: ctx[:solution]).destroy_all
     ctx[:reco].reload.abandonner_brouillon! if ctx[:reco].reload.brouillon?
   end
@@ -178,6 +224,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Public page') { page_publique_inchangee(page, ctx) }
   Verify.check('Width') { largeurs(page, ctx[:demarche]) }
   Verify.check('Undo') { defaire(page, ctx) }
+  Verify.check('Warning') { avertissements(page, ctx) }
   Verify.check('Proof') { preuve(page, ctx) }
 ensure
   nettoyer(ctx) if ctx
