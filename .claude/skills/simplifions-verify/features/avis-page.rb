@@ -16,13 +16,17 @@ def attendre_avis(page, attendu)
   raise "pas d'évènement « #{attendu} », vus : #{avis(page)}" unless avis(page) == [attendu]
 end
 
-def voter(page, choix, nom)
+def lecture_comptee?(page) = page.evaluate_script(<<~JS)
+  performance.getEntriesByType('resource').some(e => e.name.includes('matomo.php') && new URL(e.name).searchParams.get('e_c') === 'Lecture')
+JS
+
+def voter(page, choix, nom, moment = 'avant lecture')
   bloc = bloc_avis(page)
   bloc.scroll_to(bloc)
   Verify.evidence('avis-page', page, "#{nom.parameterize.first(30)}-avant")
   bloc.choose choix, allow_label_click: true
   bloc.click_button 'Envoyer mon avis'
-  attendre_avis(page, "Avis sur la page | Trouver la page utile | #{choix} — #{nom}")
+  attendre_avis(page, "Avis sur la page | Trouver la page utile | #{choix} (#{moment}) — #{nom}")
   bloc.assert_text 'Merci pour votre avis !'
   raise "le focus n'est pas sur le remerciement" unless page.evaluate_script('document.activeElement.textContent').include?('Merci')
 
@@ -73,6 +77,17 @@ def vote_article(page)
   raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?("/contact/donner-son-avis?article=#{article.slug}")
 end
 
+def vote_apres_lecture(page)
+  article = Article.find('qu-est-ce-qu-une-api')
+  page.visit("/articles/#{article.slug}")
+  page.find('body').send_keys(:end)
+  depart = Time.current
+  sleep 0.5 until lecture_comptee?(page) || Time.current > depart + 40
+  raise 'pas de lecture comptée après 40 s' unless lecture_comptee?(page)
+
+  voter(page, 'Oui', article.h1, 'après lecture')
+end
+
 def mobile(page, demarche)
   page.current_window.resize_to(375, 800)
   page.visit("/demarches/#{demarche.slug}")
@@ -97,6 +112,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Vote unique') { vote_unique(page) }
   Verify.check('Vote solution') { vote_solution(page, solution) }
   Verify.check('Vote article') { vote_article(page) }
+  Verify.check('Vote après lecture') { vote_apres_lecture(page) }
   Verify.check('Mobile') { mobile(page, demarche) }
 ensure
   ENV['MATOMO_SITE_ID'] = site_id

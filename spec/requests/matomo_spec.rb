@@ -38,6 +38,16 @@ RSpec.describe 'Matomo' do
     expect(script).to include("addEventListener('turbo:load'")
   end
 
+  it 'marque les blocs d’avis comme lus au moment où la lecture de la page est comptée' do
+    allow(ENV).to receive(:[]).with('MATOMO_SITE_ID').and_return('311')
+
+    get root_path
+
+    script = response.parsed_body.css('head script').map(&:text).find { |texte| texte.include?("'Lecture'") }
+    envoi_de_la_lecture = script[/lectures\.add\(lecture\.action\);.*?lecture = null;/m]
+    expect(envoi_de_la_lecture).to include("avis.dataset.avisPageLuValue = 'true'")
+  end
+
   it 'donne au tag le mot-clé, le catalogue et le nombre de résultats de la recherche' do
     Demarche.create!(nom: 'Tarification EAJE', slug: 'eaje', visible: true)
 
