@@ -29,13 +29,19 @@ class Recommandation < ApplicationRecord
     return super unless new_record?
 
     assign_attributes(attributs)
-    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current } if demarche&.visible? || niveau_1?
+    self.brouillon = { 'visible' => '1', 'modifie_le' => modifie_le, 'commence_le' => Time.current }
     save
   end
 
   def publier_avec_la_demarche = ecrire('visible' => '1')
 
+  def abandonner_avec_la_demarche!
+    created_at >= brouillon['commence_le'].to_time ? destroy! : abandonner_brouillon!
+  end
+
   validate :ne_recommande_pas_de_solution_privee
+
+  attr_writer :apis_utiles
 
   def solutions_integratrices
     Solution.visibles.where(

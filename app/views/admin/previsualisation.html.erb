@@ -5,7 +5,7 @@
     <div class="fr-notice__body">
       <p>
         <span class="fr-notice__title">Prévisualisation, non publiée.</span>
-        <span class="fr-notice__desc">Cette page montre le brouillon de « <%= nom_en_base %> » tel qu’il sera publié. Les recommandations et les intégrations y paraissent dans leur version publiée, sans leurs brouillons.</span>
+        <span class="fr-notice__desc">Cette page montre le brouillon de « <%= nom_en_base %> » tel qu’il sera publié. <%= t("admin.previsualisation.#{modele.model_name.i18n_key}", default: "Les recommandations et les intégrations y paraissent dans leur version publiée, sans leurs brouillons.") %></span>
       </p>
     </div>
   </div>

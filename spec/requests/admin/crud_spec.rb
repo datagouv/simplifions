@@ -8,6 +8,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let!(:ligne) { modele.create!(attributs) }
   let(:nom) { attributs[:nom] }
   let(:nom_cree) { nom }
+  let(:message_cree) { "« #{nom_cree} » enregistré." }
   let(:nom_liste) { nom }
   let(:fiche) { ->(id) { "/admin/#{chemin}/#{id}/edit" } }
 
@@ -103,7 +104,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     expect { post "/admin/#{chemin}", params: { cle => nouveaux } }.to change(modele, :count).by(1)
     expect(response).to redirect_to(fiche.call(modele.last.id))
     follow_redirect!
-    expect(response.body).to include("« #{nom_cree} » enregistré.")
+    expect(response.body).to include(message_cree)
   end
 
   it 'refuse une ligne invalide et réaffiche le formulaire avec l’erreur' do
@@ -183,6 +184,7 @@ RSpec.describe 'Administration' do
     let(:nouveaux) { attributs.merge(demarche_id: Demarche.create!(nom: 'Autre démarche').id, niveau: 'niveau_2') }
     let(:nom) { 'Aides → API QF (API)' }
     let(:nom_cree) { 'Autre démarche → API QF (API)' }
+    let(:message_cree) { "« #{nom_cree} » : brouillon enregistré, non publié." }
   end
 
   it_behaves_like 'un CRUD brut', Integration, 'integrations' do
@@ -1190,10 +1192,17 @@ RSpec.describe 'Administration' do
         response.parsed_body.at_css("tr##{ActionView::RecordIdentifier.dom_id(ligne)} button[data-turbo-confirm]")['data-turbo-confirm']
       end
 
-      it 'le dit en supprimant une recommandation d’une démarche publiée, pas d’une démarche masquée' do
+      it 'le dit en supprimant une recommandation d’une démarche publiée ou masquée avec un brouillon, pas masquée sans brouillon' do
         recommandation = Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
         expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq('Supprimer la recommandation API QF (API) ?')
         expect(confirmation("/admin/recommandations/#{recommandation.id}/edit")).to eq('Supprimer « Aides → API QF (API) » ?')
+
+        recommandation.update!(brouillon: { 'visible' => '1' })
+        expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq("Supprimer la recommandation API QF (API) ? #{immediate}")
+        get "/admin/recommandations/#{recommandation.id}/edit"
+        expect(response.parsed_body.css('form[data-turbo-confirm]').pluck('data-turbo-confirm')).to include("Supprimer « Aides → API QF (API) » ? #{immediate}")
+
+        recommandation.update!(brouillon: nil)
 
         aides.update!(slug: 'aides', visible: true)
         expect(poubelle("/admin/demarches/#{aides.id}/edit", recommandation)).to eq("Supprimer la recommandation API QF (API) ? #{immediate}")
@@ -2250,6 +2259,46 @@ RSpec.describe 'Administration' do
       expect(cartes_publiques).to be_empty
     end
 
+    it 'publie avec la démarche masquée la recommandation ajoutée depuis son onglet' do
+      demarche.update!(visible: false)
+      publiee.update!(visible: false)
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: Solution.create!(nom: 'Bouquet', categorie: 'api').id, niveau: 'niveau_2' } }
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(cartes_publiques.map { it[/Mes Aides|Bouquet/] }).to eq(['Bouquet'])
+      expect(nouvelle.reload.slice(:visible, :brouillon)).to eq('visible' => true, 'brouillon' => nil)
+    end
+
+    it 'met la démarche en brouillon, à prévisualiser, dès qu’une recommandation attend sa publication, à abandonner si elle est ajoutée' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser')
+      expect(colonne.text).not_to include('Abandonner le brouillon')
+
+      ajouter_bouquet
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser', 'Abandonner le brouillon')
+    end
+
+    it 'supprime à l’abandon du brouillon de la démarche les recommandations ajoutées depuis sa publication, et elles seules' do
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      ajouter_bouquet
+      ajoutee = nouvelle
+      ancienne = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API Impôt', categorie: 'api'), niveau: :niveau_2, visible: true)
+      patch "/admin/recommandations/#{ancienne.id}", params: { recommandation: { visible: '0' } }
+      patch "/admin/recommandations/#{ancienne.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+
+      patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.parsed_body.css("tr#recommandation_#{ajoutee.id}")).to be_empty
+      expect(ancienne.reload.slice(:niveau, :visible, :brouillon)).to eq('niveau' => 'niveau_2', 'visible' => false, 'brouillon' => nil)
+      expect(publiee.reload.brouillon).to include('donnees_utiles' => 'Revenu fiscal')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(cartes_publiques.map { it[/Mes Aides|Bouquet|API Impôt/] }).to eq(['Mes Aides'])
+      expect(cartes_publiques.first).to include('Revenu fiscal')
+    end
+
     it 'ne publie rien et nomme la recommandation refusée' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { niveau: '' } }
       ajouter_bouquet
@@ -2403,13 +2452,53 @@ RSpec.describe 'Administration' do
       expect([lien['href'], lien['target']]).to eq(["/admin/demarches/#{demarche.id}/previsualisation", '_blank'])
       get lien['href']
       expect(response.parsed_body.at_css('h1').text.squish).to eq('Aides sociales')
-      expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations et les intégrations y paraissent dans leur version publiée')
+      expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations y paraissent telles qu’elles seront publiées avec la démarche', 'intégrations, dans leur version publiée')
       expect(response.headers['X-Robots-Tag']).to eq('noindex')
       expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Cas').and include('Aides sociales')
 
       get '/demarches/aides'
       expect([response.parsed_body.at_css('h1').text.squish, bandeau]).to eq(['Aides', nil])
       expect(demarche.reload.nom).to eq('Aides')
+    end
+
+    it 'montre les recommandations et données utiles qui partiront avec la démarche, absentes du site' do
+      sign_in admin
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      api = Solution.create!(nom: 'API Impôt', categorie: 'api').tap { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: bouquet.id, niveau: 'niveau_2' } }
+      patch "/admin/recommandations/#{Recommandation.last.id}", params: { ligne: 1, recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_1' } }
+      en_ligne = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: :niveau_2, ordre: 1, donnees_utiles: 'Quotient', visible: true)
+      patch "/admin/recommandations/#{en_ligne.id}", params: { ligne: 1, recommandation: { donnees_utiles: 'Revenu du foyer' } }
+
+      get lien_previsualiser("demarches/#{demarche.id}")['href']
+      cartes = response.parsed_body.css('.reco-card').map { it.text.squish }
+      expect(cartes.size).to eq(2)
+      expect(cartes.first).to include('Mes Aides', 'Revenu du foyer')
+      expect(cartes.second).to include('Bouquet', 'Revenu fiscal', 'API Impôt')
+
+      get '/demarches/aides'
+      expect(response.parsed_body.css('.reco-card').map { it.text.squish }).to contain_exactly(include('Mes Aides', 'Quotient'))
+    end
+
+    it 'montre la page que « Publier » produira, niveau et ordre des brouillons compris' do
+      sign_in admin
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      api = Solution.create!(nom: 'API Impôt', categorie: 'api').tap { Integration.create!(integratrice: bouquet, integree: it, type_integration: 'expose') }
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, ordre: 1, visible: true)
+      devenue_utile = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, ordre: 2, visible: true)
+      remontee = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: :niveau_2, ordre: 3, visible: true)
+      patch "/admin/recommandations/#{devenue_utile.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
+      patch "/admin/recommandations/#{remontee.id}", params: { ligne: 1, recommandation: { ordre: '0' } }
+
+      get lien_previsualiser("demarches/#{demarche.id}")['href']
+      apercu = response.parsed_body.css('.reco-card').map { it.text.squish }
+      expect(apercu.map { it[/Mes Aides|Bouquet|API Impôt/] }).to eq(['Mes Aides', 'Bouquet'])
+      expect(apercu.second).to include('API Impôt')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      get '/demarches/aides'
+      expect(response.parsed_body.css('.reco-card').map { it.text.squish }).to eq(apercu)
     end
 
     it 'garde Prévisualisation devant le title SEO du brouillon' do

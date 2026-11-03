@@ -10,7 +10,7 @@ class Admin::BaseController < ApplicationController
   end
 
   def previsualisation
-    instance_variable_set(:"@#{modele.model_name.element}", en_base.appliquer_brouillon)
+    instance_variable_set(:"@#{modele.model_name.element}", en_base.previsualiser)
     response.headers['X-Robots-Tag'] = 'noindex'
     render 'admin/previsualisation'
   end

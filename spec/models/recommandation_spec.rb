@@ -281,20 +281,20 @@ RSpec.describe Recommandation do
       expect(Solution.find(bouquet.id).couvertures[logiciel.id]).to eq(demarche => [1, 1])
     end
 
-    it 'publie aussitôt une nouvelle recommandation créée avec Publier, et écrit celle d’une démarche masquée' do
+    it 'publie aussitôt une nouvelle recommandation créée avec Publier' do
       publiee = described_class.new
       publiee.enregistrer('demarche_id' => demarche.id, 'solution_id' => solution.id, 'niveau' => 'niveau_2', 'visible' => '1')
-      masquee = described_class.new
-      masquee.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_2')
 
-      expect([en_base(publiee), en_base(masquee)].map { it.slice(:visible, :brouillon) }).to eq([{ 'visible' => true, 'brouillon' => nil }, { 'visible' => false, 'brouillon' => nil }])
+      expect(en_base(publiee).slice(:visible, :brouillon)).to eq('visible' => true, 'brouillon' => nil)
     end
 
-    it 'fait attendre la publication de sa démarche, même masquée, à une nouvelle donnée utile' do
-      utile = described_class.new
-      utile.enregistrer('demarche_id' => Demarche.create!(nom: 'Aides').id, 'solution_id' => solution.id, 'niveau' => 'niveau_1')
+    it 'fait attendre la publication de sa démarche, même masquée, à une nouvelle recommandation ou donnée utile' do
+      masquee = Demarche.create!(nom: 'Aides')
+      nouvelles = %w[niveau_1 niveau_2].map do |niveau|
+        described_class.new.tap { it.enregistrer('demarche_id' => masquee.id, 'solution_id' => Solution.create!(nom: niveau, categorie: 'api').id, 'niveau' => niveau) }
+      end
 
-      expect(en_base(utile)).to have_attributes(visible: false, brouillon: include('visible' => '1'))
+      expect(nouvelles.map { en_base(it) }).to all(have_attributes(visible: false, brouillon: include('visible' => '1')))
     end
   end
 end

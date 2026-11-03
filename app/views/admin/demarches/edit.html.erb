@@ -2,8 +2,9 @@
 
 <div class="fr-container fr-mb-6w">
   <h1><%= nom_en_base %></h1>
+  <% en_brouillon = en_base.en_brouillon? %>
   <%= render layout: "admin/fiche", locals: { page_publique: (demarche_path(en_base.slug) if en_base.page_publique?),
-    previsualisation: (previsualisation_admin_demarche_path(en_base) if en_base.brouillon?),
+    brouillon: en_brouillon, abandon: en_base.brouillon_abandonnable?, previsualisation: (previsualisation_admin_demarche_path(en_base) if en_brouillon),
     consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
       t("admin.suppression.integrations_detachees", count: en_base.integrations.count)],
     en_brouillon: t("admin.recommandations_en_brouillon", count: en_base.recommandations_en_brouillon.count) } do %>

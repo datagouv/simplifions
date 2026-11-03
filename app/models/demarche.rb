@@ -44,14 +44,30 @@ class Demarche < ApplicationRecord
 
   delegate :en_brouillon, to: :recommandations, prefix: :recommandations
 
+  def en_brouillon? = brouillon? || recommandations_en_brouillon.exists?
+  def brouillon_abandonnable? = brouillon? || recommandations.a_publier_avec_la_demarche.exists?
+  def suppression_sans_retour_a_annoncer? = visible? || brouillon_abandonnable?
+
   def enregistrer(attributs)
     return super unless publication_demandee?(attributs)
 
     transaction { (super && publier_les_recommandations) || raise(ActiveRecord::Rollback) } || false
   end
 
+  def abandonner_brouillon!
+    transaction do
+      recommandations.a_publier_avec_la_demarche.each(&:abandonner_avec_la_demarche!)
+      super
+    end
+  end
+
+  def previsualiser
+    @apercu = true
+    super
+  end
+
   def recommandations_publiees
-    @recommandations_publiees ||= recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
+    @recommandations_publiees ||= @apercu ? cartes_telles_que_publiees : recommandations.visibles.niveau_2.includes(solution: %i[exposees organisations]).order(:ordre, :id).to_a
   end
 
   def groupes_donnees_utiles
@@ -85,6 +101,22 @@ class Demarche < ApplicationRecord
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 
   private
+
+  def cartes_telles_que_publiees
+    utiles, cartes = recommandations_telles_que_publiees.partition(&:niveau_1?)
+    cartes.select(&:visible?).sort_by { [it.ordre || Float::INFINITY, it.id] }.each do |carte|
+      carte.apis_utiles = utiles.select { it.solution.in?(carte.solution.fournies) }.sort_by { rang_de_donnee_utile(it) }
+    end
+  end
+
+  def rang_de_donnee_utile(utile)
+    [utile.ordre || Float::INFINITY, utile.description ? -utile.description.length : 1, I18n.transliterate(utile.solution.nom).downcase]
+  end
+
+  def recommandations_telles_que_publiees
+    a_publier = recommandations_en_brouillon.ids
+    recommandations.includes(solution: %i[exposees organisations]).to_a.each { it.appliquer_brouillon if it.id.in?(a_publier) }
+  end
 
   def publier_les_recommandations
     refusee = recommandations_en_brouillon.find { !it.publier_avec_la_demarche }
