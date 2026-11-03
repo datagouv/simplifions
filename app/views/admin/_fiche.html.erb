@@ -3,6 +3,9 @@
   <aside class="fr-col-12 fr-col-md-4 admin-panneau" aria-labelledby="etat-et-actions">
     <div class="fr-p-3w fr-background-alt--grey">
       <h2 id="etat-et-actions" class="fr-h6">État et actions</h2>
+      <% unless modele.has_attribute?(:brouillon) %>
+        <p class="fr-text--sm"><%= t("admin.sans_brouillon") %></p>
+      <% end %>
       <% if en_base %>
         <% historique = admin_historique_path(modele.model_name.route_key, en_base) %>
         <% if modele.has_attribute?(:visible) %>

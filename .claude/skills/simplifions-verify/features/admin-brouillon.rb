@@ -4,6 +4,7 @@ DOSSIER = 'admin-brouillon'.freeze
 IMAGE = Rails.root.join('app/assets/images/articles/api-franceconnectees-donnees-personnelles.png').to_s
 DRAFT_BADGE = /Brouillon non publié/i
 RECO_EN_BROUILLON = /Brouillon — sera publiée avec la démarche/i
+SANS_BROUILLON = 'Pas de brouillon : « Enregistrer » met en ligne tout de suite.'.freeze
 CHAMP_UTILE = 'En quoi cette API ou ce jeu de données est utile'.freeze
 
 def lu(&) = ActiveRecord::Base.uncached(&)
@@ -242,6 +243,48 @@ def brouillon_type_choisi(page, demarche, nom)
   end
 end
 
+def phrase_du_panneau(page) = page.find('aside[aria-labelledby="etat-et-actions"]').all('p').map { it.text.squish }.include?(SANS_BROUILLON)
+
+def panneau_sans_brouillon(page, etape, chemin, attendu)
+  page.visit(chemin)
+  page.assert_selector 'aside[aria-labelledby="etat-et-actions"]'
+  dit = phrase_du_panneau(page)
+  raise "#{etape} : phrase #{dit ? 'présente' : 'absente'} du panneau" unless dit == attendu
+
+  Verify.evidence(DOSSIER, page, "sans-brouillon-#{etape}", "phrase=#{dit}")
+end
+
+ONGLETS_D_INTEGRATIONS = { 'api-fournies' => 'API fournies', 'api-integrees' => 'API intégrées', 'integratrices' => 'Solutions qui l’intègrent' }.freeze
+
+def phrase_des_onglets_d_integrations(page, solution)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  ONGLETS_D_INTEGRATIONS.each do |onglet, libelle|
+    Verify.onglet(page, libelle)
+    texte = page.find("#onglet-#{onglet}-panneau").text.squish
+    raise "onglet #{libelle} : #{texte.first(120)}" unless texte.start_with?("#{SANS_BROUILLON} #{libelle}")
+
+    Verify.evidence(DOSSIER, page, "sans-brouillon-onglet-#{onglet}", "début=#{texte.first(100)}")
+  end
+end
+
+def brouillon_fiches_sans_brouillon(page, demarche, nom)
+  bouquet = Solution.create!(nom: "#{nom} e")
+  api = Solution.create!(nom: "#{nom} f", categorie: 'api')
+  integration = Integration.create!(integratrice: bouquet, integree: api, type_integration: 'consomme')
+  reco = Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
+  sans = {
+    'integration' => "/admin/integrations/#{integration.id}/edit",
+    'organisation' => "/admin/organisations/#{Organisation.create!(nom: "#{nom} org").id}/edit",
+    'fournisseur' => "/admin/types_acteurs/#{TypeActeur.create!(nom: "#{nom} fournisseur").id}/edit",
+    'vocabulaire' => "/admin/vocabulaires/#{Vocabulaire.create!(nom: "#{nom} voc", slug: "#{nom.parameterize}-voc", categorie: 'usager').id}/edit"
+  }
+  sans.each { |etape, chemin| panneau_sans_brouillon(page, etape, chemin, true) }
+  phrase_des_onglets_d_integrations(page, bouquet)
+  panneau_sans_brouillon(page, 'demarche-absente', "/admin/demarches/#{demarche.id}/edit", false)
+  panneau_sans_brouillon(page, 'solution-absente', "/admin/solutions/#{bouquet.id}/edit", false)
+  panneau_sans_brouillon(page, 'recommandation-absente', "/admin/recommandations/#{reco.id}/edit", false)
+end
+
 Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
   slug = "verif-verify-map-#{Verify.browser}"
@@ -260,8 +303,12 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Recommandations') { brouillon_recommandations(page, demarche.reload, nom) }
   Verify.check('Données utiles') { brouillon_donnees_utiles(page, demarche, nom) }
   Verify.check('Type chosen') { brouillon_type_choisi(page, demarche, nom) }
+  Verify.check('No draft') { brouillon_fiches_sans_brouillon(page, demarche, nom) }
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f"])).destroy_all
+  Organisation.where(nom: "#{nom} org").destroy_all
+  TypeActeur.where(nom: "#{nom} fournisseur").destroy_all
+  Vocabulaire.where(nom: "#{nom} voc").destroy_all
 end

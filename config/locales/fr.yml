@@ -180,6 +180,7 @@ fr:
       recommandation: "Brouillon — sera publiée avec la démarche"
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
     brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
+    sans_brouillon: "Pas de brouillon : « Enregistrer » met en ligne tout de suite."
     recommandations_en_brouillon:
       zero: ""
       one: "1 recommandation en brouillon"

@@ -1053,6 +1053,46 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'fiches sans brouillon' do
+    let(:sans_brouillon) { 'Pas de brouillon : « Enregistrer » met en ligne tout de suite.' }
+    let(:bouquet) { Solution.create!(nom: 'Bouquet') }
+    let(:api_qf) { Solution.create!(nom: 'API QF', categorie: 'api') }
+    let(:aides) { Demarche.create!(nom: 'Aides') }
+
+    before { sign_in admin }
+
+    def panneau(chemin)
+      get chemin
+      response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]').text.squish
+    end
+
+    it 'dit dans le panneau qu’« Enregistrer » met en ligne tout de suite' do
+      integration = Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
+      expect(panneau("/admin/integrations/#{integration.id}/edit")).to include(sans_brouillon)
+      expect(panneau("/admin/organisations/#{Organisation.create!(nom: 'DINUM').id}/edit")).to include(sans_brouillon)
+      expect(panneau("/admin/types_acteurs/#{TypeActeur.create!(nom: 'Communes').id}/edit")).to include(sans_brouillon)
+      vocabulaire = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      expect(panneau("/admin/vocabulaires/#{vocabulaire.id}/edit")).to include(sans_brouillon)
+    end
+
+    it 'ne change pas le panneau des fiches à brouillon' do
+      recommandation = Recommandation.create!(demarche: aides, solution: api_qf, niveau: 'niveau_1')
+      expect(panneau("/admin/demarches/#{aides.id}/edit")).not_to include(sans_brouillon)
+      expect(panneau("/admin/solutions/#{bouquet.id}/edit")).not_to include(sans_brouillon)
+      expect(panneau("/admin/recommandations/#{recommandation.id}/edit")).not_to include(sans_brouillon)
+    end
+
+    it 'le dit au-dessus des lignes de chaque onglet d’intégrations d’une solution' do
+      get "/admin/solutions/#{bouquet.id}/edit"
+      debuts = %w[api-fournies api-integrees integratrices].map do |onglet|
+        response.parsed_body.at_css("#onglet-#{onglet}-panneau").text.squish
+      end
+      expect(debuts).to all(start_with(sans_brouillon))
+      expect(debuts.map { it.delete_prefix(sans_brouillon).split.first(2).join(' ') })
+        .to eq(['API fournies', 'API intégrées', 'Solutions qui'])
+    end
+  end
+
   describe 'ce que la suppression emporte' do
     let(:aides) { Demarche.create!(nom: 'Aides') }
     let(:bouquet) { Solution.create!(nom: 'Bouquet') }
