@@ -1,6 +1,7 @@
 <%# locals: (ligne:, liste:, focus: nil) -%>
 <% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, liste) %>
-<% nom = ligne.persisted? ? "l’intégration #{(ligne.changed? ? Integration.find(ligne.id) : ligne).libelle}" : "la nouvelle ligne de « #{t("admin.integrations_de_la_solution.#{liste}")} »" %>
+<% en_base = ligne.changed? ? Integration.find(ligne.id) : ligne if ligne.persisted? %>
+<% nom = ligne.persisted? ? "l’intégration #{en_base.libelle}" : "la nouvelle ligne de « #{t("admin.integrations_de_la_solution.#{liste}")} »" %>
 <% formulaire = "formulaire_#{id}" %>
 <% erreurs = "erreurs_#{id}" %>
 <% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
@@ -35,8 +36,7 @@
     <% if ligne.persisted? %>
       <%= link_to edit_admin_integration_path(ligne), class: "fr-link fr-link--sm" do %>Modifier<span class="fr-sr-only"> <%= nom %></span><% end %>
       <% supprimer = "Supprimer #{nom}" %>
-      <% solution_de_l_onglet = ligne.public_send(colonne_fixe_de_la_liste(liste)) %>
-      <%= tag.button supprimer, type: "submit", form: "suppression_#{id}", title: supprimer, class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line", data: { turbo_confirm: ["#{supprimer} ?", (t("admin.suppression.immediate") if solution_de_l_onglet.visible?)].compact.join(" ") } %>
+      <%= tag.button supprimer, type: "submit", form: "suppression_#{id}", title: supprimer, class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line", data: { turbo_confirm: ["#{supprimer} ?", (t("admin.suppression.immediate") if [en_base.integratrice, en_base.integree].any?(&:visible?))].compact.join(" ") } %>
     <% end %>
     <% if ligne.errors.any? %>
       <p id="<%= erreurs %>" class="fr-error-text"><%= ligne.errors.full_messages.to_sentence %></p>
