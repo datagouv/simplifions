@@ -1,7 +1,5 @@
 # Split granularity
 
-Read at step 6 of the challenge framework, only when recommending a split, and whenever work is split into issues or PRs.
-
 Splitting an oversized issue is correct — but the right grain is **the smallest change that still delivers coherent, reviewable functionality**, not the smallest change possible. A PR must let the reviewer see the global purpose; over-atomic splits destroy that.
 
 - Each resulting issue = a **vertical slice** (thin end-to-end functionality the user or system can observe), not a **horizontal layer** (a "model" PR, a "controller" PR, a "tests" PR — never split this way).
