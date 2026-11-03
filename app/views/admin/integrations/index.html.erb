@@ -3,30 +3,31 @@
 <div class="fr-container fr-mb-6w">
   <h1>Intégrations</h1>
   <%= link_to "Ajouter", new_admin_integration_path, class: "fr-btn fr-mb-3w" %>
-  <%= render "recherche", total: @integrations.total_count %>
-  <div class="fr-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Id</th>
-          <th><%= Integration.human_attribute_name(:integratrice) %></th>
-          <th><%= Integration.human_attribute_name(:integree) %></th>
-          <th><%= Integration.human_attribute_name(:type_integration) %></th>
-          <th><%= Integration.human_attribute_name(:statut) %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @integrations.each do |ligne| %>
+  <%= render layout: "recherche", locals: { total: @integrations.total_count } do %>
+    <div class="fr-table">
+      <table>
+        <thead>
           <tr>
-            <td><%= ligne.id %></td>
-            <td><%= link_to ligne.integratrice.libelle_admin, edit_admin_integration_path(ligne), aria: { label: ligne.libelle } %></td>
-            <td><%= ligne.integree.libelle_admin %></td>
-            <td><%= ligne.type_libelle %></td>
-            <td><%= ligne.statut %></td>
+            <th>Id</th>
+            <th><%= Integration.human_attribute_name(:integratrice) %></th>
+            <th><%= Integration.human_attribute_name(:integree) %></th>
+            <th><%= Integration.human_attribute_name(:type_integration) %></th>
+            <th><%= Integration.human_attribute_name(:statut) %></th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          <% @integrations.each do |ligne| %>
+            <tr>
+              <td><%= ligne.id %></td>
+              <td><%= link_to ligne.integratrice.libelle_admin, edit_admin_integration_path(ligne), aria: { label: ligne.libelle } %></td>
+              <td><%= ligne.integree.libelle_admin %></td>
+              <td><%= ligne.type_libelle %></td>
+              <td><%= ligne.statut %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
   <%= pagination @integrations, %w[q] %>
 </div>

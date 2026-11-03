@@ -5,4 +5,10 @@
     <button type="submit" class="fr-btn">Rechercher</button>
   </div>
 <% end %>
-<p class="fr-text--sm fr-mb-1w" role="status"><%= total %> ligne<%= "s" if total > 1 %></p>
+<% if total.zero? && params[:q].present? %>
+  <p class="fr-mb-1w" role="status"><%= t("admin.aucun_resultat.#{modele.model_name.i18n_key}", q: params[:q]) %></p>
+  <%= link_to "Effacer la recherche", request.path, class: "fr-link" %>
+<% else %>
+  <p class="fr-text--sm fr-mb-1w" role="status"><%= total %> ligne<%= "s" if total > 1 %></p>
+  <%= yield %>
+<% end %>
