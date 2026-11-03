@@ -34,7 +34,7 @@ RSpec.describe SolutionCardComponent, type: :component do
     render_inline(described_class.pour(solution))
 
     lien = page.find_link('Bouquet API Particulier')
-    expect(lien['data-matomo-action']).to eq('Ouvrir la fiche solution')
+    expect(lien['data-matomo-action']).to eq('Ouvrir la fiche solution API-jdd')
     expect(lien['data-matomo-nom']).to eq('Bouquet API Particulier [API, publique]')
   end
 

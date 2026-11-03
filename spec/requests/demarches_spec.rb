@@ -305,7 +305,7 @@ RSpec.describe 'Demarches' do
       page = Capybara.string(response.body)
 
       fiche = page.find_link('Plus d\'informations sur Bouquet API Particulier')
-      expect(fiche['data-matomo-action']).to eq('Ouvrir la fiche solution')
+      expect(fiche['data-matomo-action']).to eq('Ouvrir la fiche solution API-jdd')
       expect(fiche['data-matomo-nom']).to eq('Bouquet API Particulier [API, restreint public, publique]')
       logiciel = page.find_link('Voir la fiche Acheteza', match: :first)
       expect(logiciel['data-matomo-action']).to eq('Ouvrir la fiche solution')
