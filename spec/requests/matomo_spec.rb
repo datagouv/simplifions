@@ -108,6 +108,11 @@ RSpec.describe 'Matomo' do
       expect(page.find_link('Se connecter')['data-matomo-action']).to eq('Se connecter')
       pied = page.find('footer').find_link('Plan du site')
       expect([zone_matomo(pied), liens_matomo(pied)]).to eq(['Navigation › Pied de page', 'Aller vers une page'])
+      liens_suivis = ['Signaler un problème sur le site', 'Nous contacter', 'Proposer une modification de contenu',
+                      "Demander le référencement d'une démarche", "Demander le référencement d'une solution"]
+      expect(liens_suivis.map { page.find('footer').find_link(it)['data-matomo-action'] })
+        .to eq(['Signaler un problème (pied de page)', 'Nous contacter (pied de page)', 'Proposer une modification (pied de page)',
+                'Proposer une nouvelle démarche (pied de page)', 'Proposer une nouvelle solution (pied de page)'])
       contenu = page.find('main')
       expect([contenu['data-matomo-zone'], contenu['data-matomo-liens']]).to eq(['Page › À propos', 'Suivre un lien'])
       fil = page.find('.fr-breadcrumb')

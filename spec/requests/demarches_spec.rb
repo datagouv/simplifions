@@ -606,7 +606,7 @@ RSpec.describe 'Demarches' do
         .to eq(['Déplier un groupe de données', 'Déplier une donnée'])
       expect(modale.find('summary[data-matomo-nom^="API BODACC"]', visible: :all)['data-matomo-nom']).to eq('API BODACC [API, ouvert]')
       expect(modale.find_link('proposer une modification du contenu - nouvelle fenêtre', visible: :all)['data-matomo-action'])
-        .to eq('Proposer une modification')
+        .to eq('Proposer une modification (données intégrées)')
     end
 
     it 'replie le détail d’une donnée derrière sa ligne, qui s’ouvre et se referme au clic' do
