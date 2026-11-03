@@ -27,7 +27,7 @@ def voter(page, choix, nom, moment = 'avant lecture')
   bloc.choose choix, allow_label_click: true
   bloc.click_button 'Envoyer mon avis'
   attendre_avis(page, "Avis sur la page | Trouver la page utile | #{choix} (#{moment}) — #{nom}")
-  bloc.assert_text 'Merci pour votre avis !'
+  bloc.assert_text "Merci pour votre avis ! Vous avez répondu « #{choix} »."
   raise "le focus n'est pas sur le remerciement" unless page.evaluate_script('document.activeElement.textContent').include?('Merci')
 
   Verify.evidence('avis-page', page, "#{nom.parameterize.first(30)}-#{choix.parameterize}", avis(page).join(' ; '))
@@ -103,6 +103,53 @@ def renvoi_sommaire(page, chemin)
   Verify.evidence('avis-page', page, "renvoi-#{chemin.split('/')[1]}", page.evaluate_script('location.hash'))
 end
 
+AXE = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js'.freeze
+
+def violations_axe(page, zone)
+  page.execute_script(<<~JS)
+    window.__axe = null;
+    const lancer = () => axe.run(document.querySelector('#{zone}'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
+      .then(r => { window.__axe = r.violations.map(v => v.id + ' : ' + v.nodes.map(n => n.target.join(' ')).join(', ')) });
+    if (window.axe) lancer(); else { const s = document.createElement('script'); s.src = '#{AXE}'; s.onload = lancer; document.head.appendChild(s); }
+  JS
+  fin = Time.current + 20
+  sleep 0.2 until page.evaluate_script('window.__axe') || Time.current > fin
+  page.evaluate_script('window.__axe') || raise('axe-core non chargé')
+end
+
+def axe(page, demarche)
+  page.visit("/demarches/#{demarche.slug}")
+  vues = { 'bloc' => violations_axe(page, '#avis-bas'), 'sommaire' => violations_axe(page, 'nav.fr-summary') }
+  bloc = bloc_avis(page)
+  bloc.choose 'Non', allow_label_click: true
+  bloc.click_button 'Envoyer mon avis'
+  vues['bloc après vote'] = violations_axe(page, '#avis-bas')
+  page.visit("/contact/donner-son-avis?demarche=#{demarche.slug}")
+  vues['contact'] = violations_axe(page, 'main')
+  raise "violations : #{vues.reject { |_, v| v.empty? }}" if vues.values.any?(&:any?)
+
+  Verify.evidence('avis-page', page, 'axe', "aucune violation WCAG 2.1 AA : #{vues.keys.join(', ')}")
+end
+
+def touches(page, *touches) = touches.each { page.driver.browser.switch_to.active_element.send_keys(it) }
+
+def clavier(page, solution)
+  page.visit("/solutions/#{solution.slug}")
+  page.execute_script("document.getElementById('avis-bas-bad').focus()")
+  touches(page, :arrow_right)
+  raise 'la flèche ne choisit pas Moyennement' unless page.find('#avis-bas-medium', visible: :all).checked?
+
+  touches(page, :tab)
+  raise 'Tab ne mène pas à Envoyer mon avis' unless page.evaluate_script('document.activeElement.textContent') == 'Envoyer mon avis'
+
+  touches(page, :enter)
+  attendre_avis(page, "Avis sur la page | Trouver la page utile | Moyennement (avant lecture) — #{solution.nom}")
+  annonce = page.evaluate_script('document.activeElement.innerText').squish
+  raise "focus sur « #{annonce} »" unless annonce.start_with?('Merci pour votre avis ! Vous avez répondu « Moyennement ».')
+
+  Verify.evidence('avis-page', page, 'clavier', annonce)
+end
+
 def mobile(page, demarche)
   page.current_window.resize_to(375, 800)
   page.visit("/demarches/#{demarche.slug}")
@@ -112,6 +159,7 @@ def mobile(page, demarche)
   raise "choix côte à côte, bords gauches : #{gauches}" unless gauches.uniq.size == 1
 
   Verify.evidence('avis-page', page, 'mobile', "bords gauches #{gauches.join(' / ')}")
+  renvoi_sommaire(page, "/demarches/#{demarche.slug}")
 ensure
   page.current_window.resize_to(1280, 900)
 end
@@ -128,6 +176,8 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Vote solution') { vote_solution(page, solution) }
   Verify.check('Vote article') { vote_article(page) }
   Verify.check('Vote après lecture') { vote_apres_lecture(page) }
+  Verify.check('Clavier') { clavier(page, solution) }
+  Verify.check('Axe') { axe(page, demarche) }
   Verify.check('Renvoi sommaire') do
     renvoi_sommaire(page, "/demarches/#{demarche.slug}")
     renvoi_sommaire(page, "/solutions/#{solution.slug}")

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["choix", "envoi", "merci", "manque", "remarque"]
+  static targets = ["choix", "envoi", "merci", "rappel", "manque", "remarque"]
   static values = { lu: Boolean }
 
   get moment() {
@@ -24,6 +24,7 @@ export default class extends Controller {
     const utile = choisi.value === "Oui"
     this.manqueTarget.classList.toggle("fr-hidden", utile)
     this.remarqueTarget.classList.toggle("fr-hidden", !utile)
+    this.rappelTarget.textContent = `Vous avez répondu « ${choisi.value} ».`
     this.merciTarget.classList.remove("fr-hidden")
     this.merciTarget.focus()
   }
