@@ -5,7 +5,7 @@ Every page a visitor sees sends one Matomo hit, on the first load and after each
 ## Sub-features
 
 - `matomo-page-vue` one hit per page shown, `url` (the path, without parameters) and `action_name` of that page.
-- `matomo-recherche` a new keyword in `Rechercher` sends `search`, `search_cat` (`Cas d'usages` or `Solutions`) and `search_count`, and no page view.
+- `matomo-recherche` a new keyword in `Rechercher` sends `search` (lowercased, so `SFIP` and `sfip` are one keyword), `search_cat` (`Cas d'usages` or `Solutions`) and `search_count`, and no page view.
 - `matomo-meme-recherche` the keyword last measured (same search again, filter change), a keyword under 2 characters, or a search page reached by the back button is a page view.
 - `matomo-lien-sortant` a click on a link to another site sends one hit with `link`, a click on a file link (pdf, csv, xlsx, docx, odt, ods, zip) one hit with `download` and no `link`, on the first page and after Turbo visits alike; a middle click or a right click (context menu) counts once too, as matomo.js does.
 

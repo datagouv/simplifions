@@ -49,6 +49,14 @@ RSpec.describe 'Matomo' do
     expect(formulaire['data-matomo-resultats']).to eq('1')
   end
 
+  it 'donne au tag le mot-clé en minuscules, pour regrouper « SFIP » et « sfip »' do
+    get demarches_path(q: 'SFIP Écoles')
+
+    formulaire = response.parsed_body.at_css('form.catalogue')
+    expect(formulaire['data-matomo-recherche']).to eq('sfip écoles')
+    expect(formulaire.at_css('input[name="q"]')['value']).to eq('SFIP Écoles')
+  end
+
   it 'donne zéro résultat dans le catalogue des solutions quand rien ne correspond' do
     get solutions_path(q: 'zzzz')
 
