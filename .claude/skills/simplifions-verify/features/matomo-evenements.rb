@@ -102,6 +102,83 @@ def contact(page)
   attendre_evenement(page, 'Choisir la solution à modifier')
 end
 
+def lecture?(page, action) = evenements(page).any? { it.start_with?("Lecture | #{action} |") }
+
+def attendre_lecture(page, action)
+  depart = Time.current
+  until lecture?(page, action)
+    raise "pas de lecture « #{action} » après 40 s, vues : #{evenements(page)}" if Time.current > depart + 40
+
+    sleep 0.5
+  end
+  raise "lecture « #{action} » partie avant 30 s" if Time.current < depart + 25
+
+  garder_lecture(page, action)
+end
+
+def garder_lecture(page, action)
+  nombre = nombre_de_lectures(page)
+  Verify.evidence('matomo-evenements', page, "lecture-#{action.parameterize}", evenements(page).grep(/^Lecture/).join(' ; '))
+  vider(page)
+  nombre
+end
+
+def nombre_de_lectures(page) = evenements(page).count { it.start_with?('Lecture |') }
+
+def descendre(page)
+  sleep 1
+  page.execute_script('document.activeElement.blur()')
+  page.find('body').send_keys(:end)
+end
+
+def vue(page, libelle)
+  page.find('label', text: libelle).click
+  descendre(page)
+end
+
+def onglet_lu(page, libelle)
+  Verify.onglet(page, libelle)
+  descendre(page)
+end
+
+def lecture_vues_quittees(page)
+  demarche = Demarche.visibles.find { it.integratrices_par_categorie.any? } || raise('aucune démarche avec des solutions intégratrices')
+  page.visit("/demarches/#{demarche.slug}")
+  vider(page)
+  descendre(page)
+  sleep 5
+  onglet_lu(page, 'Solutions ayant intégré ces données')
+  sleep 5
+  vue(page, 'Tableau comparatif')
+  vues = attendre_lecture(page, 'Lire une fiche démarche › Solutions (tableau)')
+  raise "une vue quittée avant 30 s a été comptée : #{evenements(page)}" if vues > 1
+end
+
+def lecture_vues_restantes(page)
+  vue(page, 'Cartes')
+  attendre_lecture(page, 'Lire une fiche démarche › Solutions (cartes)')
+  onglet_lu(page, 'Données disponibles et utiles')
+  attendre_lecture(page, 'Lire une fiche démarche › Données disponibles')
+  Verify.onglet(page, 'Solutions ayant intégré ces données')
+  vue(page, 'Tableau comparatif')
+  sleep 32
+  raise "une vue déjà lue a été recomptée : #{evenements(page)}" if nombre_de_lectures(page).positive?
+end
+
+def lecture_demarche(page)
+  lecture_vues_quittees(page)
+  lecture_vues_restantes(page)
+end
+
+def lecture_fiches(page)
+  page.visit("/solutions/#{Solution.visibles.fiches.first.slug}")
+  descendre(page)
+  attendre_lecture(page, 'Lire une fiche solution')
+  page.visit('/articles/qu-est-ce-qu-une-api')
+  descendre(page)
+  attendre_lecture(page, 'Lire un article')
+end
+
 def connexion_sans_matomo(page)
   page.visit('/admin/connexion')
   raise 'Matomo absent avant la connexion' unless matomo_present?(page)
@@ -148,6 +225,8 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Affichage') { affichage(page, demarche) }
   Verify.check('Sirene') { sirene(page) }
   Verify.check('Contact') { contact(page) }
+  Verify.check('Lecture démarche') { lecture_demarche(page) }
+  Verify.check('Lecture fiches') { lecture_fiches(page) }
   Verify.check('Admin') { admin(page) }
 ensure
   ENV['MATOMO_SITE_ID'] = site_id

@@ -12,6 +12,7 @@ The site sends Matomo an event for each visitor gesture, filed by page zone. A l
 - endpoints: changing page and filtering the endpoints of a recommended API.
 - sirene: the Sirene demo reports its result, never the SIRET typed.
 - contact: choosing a solution to modify.
+- lecture: a fiche counts as read after 75 % and 30 s on the same view; a démarche counts each of its three views once.
 - admin: no Matomo once logged in, Matomo back after logging out, with no manual reload.
 
 ## How to get to it (user POV)
@@ -33,12 +34,15 @@ Preconditions: more than 20 visible démarches, and a démarche whose direct acc
 - **Endpoints.** In the open accordion, click `Page 2`: `Changer de page d'endpoints`. Type a word and click `Filtrer`: `Filtrer les endpoints`, ending with the démarche's name.
 - **Sirene.** On `/articles/qu-est-ce-qu-une-api`, submit an invalid SIRET: `Interroger l'API Sirene` is named `SIRET invalide` followed by the article's title, without the number.
 - **Contact.** On `/contact/modifier-solution`, choose a solution: `Choisir la solution à modifier` carries its label.
+- **Lecture démarche.** On a démarche with solutions intégratrices, press `End`, open the tab `Solutions ayant intégré ces données` after 5 s, press `End`, choose `Tableau comparatif` after 5 s more, press `End`: only `Lire une fiche démarche › Solutions (tableau)` is sent, 30 s after that last choice. Choose `Cartes`, then the tab `Données disponibles et utiles`, pressing `End` each time (outside the tab list, where `End` jumps to the last tab, and once the tab has finished opening: until then the page is not at its full height): `› Solutions (cartes)` then `› Données disponibles`, each 30 s after its switch. Back on `Tableau comparatif` for 30 s: nothing more.
+- **Lecture fiches.** On a fiche solution, then on `/articles/qu-est-ce-qu-une-api`, press `End`: `Lire une fiche solution`, then `Lire un article`, each after 30 s.
 - **Admin.** After the login form, `window._paq` does not exist, nor after following a link to the public site. After `Se déconnecter`, it exists again without any `visit`, and a click sends its event.
 - **Proof.** Screenshots of the catalogue page 2 and of the logged-out page; read-back of the events sent at each step.
 
 ## Gotchas
 
 - Never run with `MATOMO_SITE_ID=311`: the events would land in the real statistics.
+- The lecture steps take about three minutes: the 30 s are real.
 - Wait for an event rather than reading the list once: the section and scroll events arrive after a delay.
 - Between two steps the list is emptied by hand: a Turbo navigation keeps it, a `visit` restarts it.
 - A step that closes the session must not use `visit` before its check: a reload would hide a script left running after the login or the logout.
