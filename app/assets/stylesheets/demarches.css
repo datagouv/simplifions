@@ -190,6 +190,14 @@ body:has(.bouton-proposer-modification) {
   }
 }
 
+.onglets-pleine-largeur {
+  box-shadow: none;
+}
+
+.onglets-pleine-largeur::before {
+  box-shadow: inset 0 1px 0 0 var(--border-default-grey);
+}
+
 .onglets-pleine-largeur .fr-tabs__list {
   padding-inline: 1rem;
 }

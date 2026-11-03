@@ -266,6 +266,21 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Aucun jeu de données ou API utilisé ou fourni')
     end
 
+    it 'demande en bas de page si la fiche a été utile, et propose d’écrire ce qui manque' do
+      Solution.create!(nom: 'Logiciel RH', categorie: 'logiciel_metier_cle_en_main', slug: 'logiciel-rh', visible: true)
+
+      get solution_path('logiciel-rh')
+      avis = Capybara.string(response.body).find('[data-controller="avis-page"]')
+
+      expect(avis).to have_css('h2', text: 'Cette page vous a-t-elle été utile ?')
+      expect(avis.all('label').map { it.text.strip }).to eq(%w[Non Moyennement Oui])
+      expect(avis).to have_button('Envoyer mon avis', disabled: true)
+      expect(avis['data-matomo-contexte']).to eq('Logiciel RH')
+      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('modifier-solution', solution: 'logiciel-rh'),
+        visible: :all)
+      expect(avis).to have_link('Écrivez-nous', href: contact_path('modifier-solution', solution: 'logiciel-rh'), visible: :all)
+    end
+
     it 'n’affiche pas le bloc « Données et API » vide quand des API sont utilisées mais aucune fournie' do
       logiciel = Solution.create!(nom: 'Logiciel RH', categorie: 'logiciel_metier_cle_en_main', visible: true,
         slug: 'logiciel-rh')

@@ -1,0 +1,101 @@
+require_relative '../harness'
+
+EVENEMENTS_AVIS = <<~JS.freeze
+  performance.getEntriesByType('resource').map(e => e.name).filter(n => n.includes('matomo.php') && n.includes('e_a='))
+    .map(n => { const p = new URL(n).searchParams; return [p.get('e_c'), p.get('e_a'), p.get('e_n')].join(' | ') })
+    .filter(e => e.startsWith('Avis sur la page'))
+JS
+
+def avis(page) = page.evaluate_script(EVENEMENTS_AVIS)
+
+def bloc_avis(page) = page.find('[data-controller="avis-page"]')
+
+def voter(page, choix, nom)
+  bloc = bloc_avis(page)
+  bloc.scroll_to(bloc)
+  Verify.evidence('avis-page', page, "#{nom.parameterize.first(30)}-avant")
+  bloc.choose choix, allow_label_click: true
+  bloc.click_button 'Envoyer mon avis'
+  attendu = "Avis sur la page | Trouver la page utile | #{choix} — #{nom}"
+  fin = Time.current + 5
+  sleep 0.1 until avis(page).include?(attendu) || Time.current > fin
+  raise "pas d'évènement « #{attendu} », vus : #{avis(page)}" unless avis(page) == [attendu]
+
+  bloc.assert_text 'Merci pour votre avis !'
+  raise "le focus n'est pas sur le remerciement" unless page.evaluate_script('document.activeElement.textContent').include?('Merci')
+
+  Verify.evidence('avis-page', page, "#{nom.parameterize.first(30)}-#{choix.parameterize}", avis(page).join(' ; '))
+  bloc
+end
+
+def lien_de_retour(bloc) = bloc.all(:link, 'Dites-nous ce qui manque').first&.[]('href')
+
+def sans_choix(page, demarche)
+  page.visit("/demarches/#{demarche.slug}")
+  bloc = bloc_avis(page)
+  raise 'Envoyer mon avis actif sans choix' unless bloc.has_button?('Envoyer mon avis', disabled: true)
+
+  bloc.choose 'Moyennement', allow_label_click: true
+  raise 'Envoyer mon avis reste désactivé après un choix' unless bloc.has_button?('Envoyer mon avis', disabled: false)
+  raise "évènement envoyé au simple choix : #{avis(page)}" if avis(page).any?
+
+  Verify.evidence('avis-page', page, 'sans-choix', 'bouton désactivé, puis actif après un choix, aucun évènement')
+end
+
+def vote_demarche(page, demarche)
+  bloc = voter(page, 'Non', demarche.nom)
+  attendu = "/contact/modifier-cas-usage?demarche=#{demarche.slug}"
+  raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?(attendu)
+  raise 'lien Écrivez-nous affiché après Non' if bloc.has_link?('Écrivez-nous', wait: 0)
+end
+
+def vote_unique(page)
+  bloc = bloc_avis(page)
+  raise 'bouton Envoyer encore affiché' if bloc.has_button?('Envoyer mon avis', wait: 0)
+  raise 'choix encore modifiables' unless bloc.all('input[type=radio]', visible: :all).all?(&:disabled?)
+end
+
+def vote_solution(page, solution)
+  page.visit("/solutions/#{solution.slug}")
+  bloc = voter(page, 'Oui', solution.nom)
+  raise 'lien « Dites-nous ce qui manque » affiché après Oui' if lien_de_retour(bloc)
+
+  ecrire = bloc.all(:link, 'Écrivez-nous').first&.[]('href')
+  raise "lien Écrivez-nous : #{ecrire.inspect}" unless ecrire&.end_with?("/contact/modifier-solution?solution=#{solution.slug}")
+end
+
+def vote_article(page)
+  article = Article.find('qu-est-ce-qu-une-api')
+  page.visit("/articles/#{article.slug}")
+  bloc = voter(page, 'Moyennement', article.h1)
+  raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?('/contact/modifier-article')
+end
+
+def mobile(page, demarche)
+  page.current_window.resize_to(375, 800)
+  page.visit("/demarches/#{demarche.slug}")
+  bloc = bloc_avis(page)
+  bloc.scroll_to(bloc)
+  largeurs = bloc.all('.fr-radio-rich').map { page.evaluate_script('arguments[0].getBoundingClientRect()', it) }
+  raise "smileys côte à côte : #{largeurs}" unless largeurs.map { it['left'].round }.uniq.size == 1
+
+  Verify.evidence('avis-page', page, 'mobile', largeurs.map { it['width'].round }.join(' / '))
+ensure
+  page.current_window.resize_to(1280, 900)
+end
+
+Verify.drive(__FILE__) do |page|
+  site_id = ENV.fetch('MATOMO_SITE_ID', nil)
+  ENV['MATOMO_SITE_ID'] = '999999'
+  demarche = Demarche.visibles.order(:nom).first
+  solution = Solution.visibles.fiches.order(:nom).first
+
+  Verify.check('Sans choix') { sans_choix(page, demarche) }
+  Verify.check('Vote démarche') { vote_demarche(page, demarche) }
+  Verify.check('Vote unique') { vote_unique(page) }
+  Verify.check('Vote solution') { vote_solution(page, solution) }
+  Verify.check('Vote article') { vote_article(page) }
+  Verify.check('Mobile') { mobile(page, demarche) }
+ensure
+  ENV['MATOMO_SITE_ID'] = site_id
+end
