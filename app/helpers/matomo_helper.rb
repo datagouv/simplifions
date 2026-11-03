@@ -16,7 +16,10 @@ module MatomoHelper
 
   def matomo_sortie_datagouv(nom, solution) = matomo_evenement('Ouvrir la fiche data.gouv', nom, solution)
 
-  def matomo_fiche_solution(solution) = matomo_evenement('Ouvrir la fiche solution', solution.nom, solution)
+  def matomo_fiche_solution(solution)
+    action = matomo_type(solution).in?(['API', 'Jeu de données']) ? 'Ouvrir la fiche solution API-jdd' : 'Ouvrir la fiche solution'
+    matomo_evenement(action, solution.nom, solution)
+  end
 
   private
 

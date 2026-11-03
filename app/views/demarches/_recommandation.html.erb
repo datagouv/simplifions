@@ -106,7 +106,7 @@
                                   <br>
                                   <%= link_to 'Documentation', utile.solution.lien_datagouv, class: 'fr-link fr-link--xs',
                                         rel: 'noopener external', target: '_blank',
-                                        data: matomo_sortie_datagouv(utile.solution.nom, utile.solution) %>
+                                        data: matomo_evenement("Ouvrir la fiche data.gouv d'un endpoint", utile.solution.nom, utile.solution) %>
                                 <% end %>
                               </td>
                               <% if utile.description.present? %>

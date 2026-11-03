@@ -267,7 +267,7 @@ RSpec.describe 'Demarches' do
       expect(zone_matomo(carte)).to eq("Cas d'usage › Recommandation › Accès direct")
       expect(carte['data-matomo-nom']).to eq('Bouquet API Particulier (data.gouv) [API, restreint public, publique]')
       documentation = page.find_link('Documentation', match: :first)
-      expect(documentation['data-matomo-action']).to eq('Ouvrir la fiche data.gouv')
+      expect(documentation['data-matomo-action']).to eq("Ouvrir la fiche data.gouv d'un endpoint")
       expect(documentation['data-matomo-nom']).to eq('API Quotient familial [API]')
       tableau = page.find('.tableau-integratrices', match: :first)
       expect(tableau['data-matomo-zone']).to eq("Cas d'usage › Tableau comparatif")
@@ -305,7 +305,7 @@ RSpec.describe 'Demarches' do
       page = Capybara.string(response.body)
 
       fiche = page.find_link('Plus d\'informations sur Bouquet API Particulier')
-      expect(fiche['data-matomo-action']).to eq('Ouvrir la fiche solution')
+      expect(fiche['data-matomo-action']).to eq('Ouvrir la fiche solution API-jdd')
       expect(fiche['data-matomo-nom']).to eq('Bouquet API Particulier [API, restreint public, publique]')
       logiciel = page.find_link('Voir la fiche Acheteza', match: :first)
       expect(logiciel['data-matomo-action']).to eq('Ouvrir la fiche solution')

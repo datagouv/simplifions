@@ -76,13 +76,20 @@ RSpec.describe MatomoHelper do
       bouquet = Solution.new(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', types_solution: ['API'])
 
       expect(helper.matomo_fiche_solution(bouquet))
-        .to eq(matomo_action: 'Ouvrir la fiche solution', matomo_nom: 'Bouquet API Particulier [API]')
+        .to eq(matomo_action: 'Ouvrir la fiche solution API-jdd', matomo_nom: 'Bouquet API Particulier [API]')
+    end
+
+    it 'range un jeu de données avec les API' do
+      jeu = Solution.new(nom: 'Base SIRENE', categorie: 'base_de_donnees')
+
+      expect(helper.matomo_fiche_solution(jeu)[:matomo_action]).to eq('Ouvrir la fiche solution API-jdd')
     end
 
     it 'mesure aussi les autres fiches, avec leur catégorie' do
       site = Solution.new(nom: 'Portail', categorie: 'site_de_consultation', types_solution: ['Portail agent'])
 
-      expect(helper.matomo_fiche_solution(site)[:matomo_nom]).to eq('Portail [Portail de consultation]')
+      expect(helper.matomo_fiche_solution(site))
+        .to eq(matomo_action: 'Ouvrir la fiche solution', matomo_nom: 'Portail [Portail de consultation]')
     end
   end
 end
