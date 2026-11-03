@@ -135,11 +135,25 @@
           function demarrerLecture() {
             if (lecture) clearTimeout(lecture.minuteur);
             var action = actionDeLecture();
-            lecture = action && !lectures.has(action) ? { action: action } : null;
+            lecture = action && !lectures.has(action) ? { action: action, restant: 30000 } : null;
             if (!lecture) return;
-            lecture.minuteur = setTimeout(function() { lecture.duree = true; suivreLecture(); }, 30000);
+            relancerMinuteur();
             suivreLecture();
           }
+          function relancerMinuteur() {
+            if (!lecture || lecture.duree || document.hidden) return;
+            lecture.depuis = Date.now();
+            lecture.minuteur = setTimeout(function() { lecture.duree = true; suivreLecture(); }, lecture.restant);
+          }
+          function suspendreMinuteur() {
+            if (!lecture || lecture.duree || !lecture.depuis) return;
+            clearTimeout(lecture.minuteur);
+            lecture.restant -= Date.now() - lecture.depuis;
+            lecture.depuis = null;
+          }
+          document.addEventListener('visibilitychange', function() {
+            if (document.hidden) suspendreMinuteur(); else relancerMinuteur();
+          });
           function suivreLecture() {
             if (!lecture || !geste) return;
             if ((scrollY + innerHeight) / document.documentElement.scrollHeight * 100 >= 74) lecture.atteinte = true;
