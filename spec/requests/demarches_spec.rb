@@ -204,6 +204,17 @@ RSpec.describe 'Demarches' do
       expect(avis).to have_link('Écrivez-nous', href: contact_path('donner-son-avis', demarche: 'cantine'), visible: :all)
     end
 
+    it 'renvoie depuis le sommaire vers l’avis en bas de la fiche' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+
+      get demarche_path('cantine')
+      page = Capybara.string(response.body)
+      lien = page.find('nav.fr-summary').find_link('Donner votre avis sur cette page')
+
+      expect(page).to have_css("#{lien['href']} h2", text: 'Cette page vous a-t-elle été utile ?')
+      expect(lien['data-matomo-action']).to eq("Aller à l'avis sur la page")
+    end
+
     it 'prépare pour Matomo le choix d’utilité de la fiche' do
       Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
 

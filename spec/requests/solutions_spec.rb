@@ -266,6 +266,16 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('Aucun jeu de données ou API utilisé ou fourni')
     end
 
+    it 'renvoie depuis le sommaire vers l’avis en bas de la fiche' do
+      Solution.create!(nom: 'Logiciel RH', categorie: 'logiciel_metier_cle_en_main', slug: 'logiciel-rh', visible: true)
+
+      get solution_path('logiciel-rh')
+      page = Capybara.string(response.body)
+      lien = page.find('nav.fr-summary').find_link('Donner votre avis sur cette page')
+
+      expect(page).to have_css("#{lien['href']} h2", text: 'Cette page vous a-t-elle été utile ?')
+    end
+
     it 'demande en bas de page si la fiche a été utile, et propose d’écrire ce qui manque' do
       Solution.create!(nom: 'Logiciel RH', categorie: 'logiciel_metier_cle_en_main', slug: 'logiciel-rh', visible: true)
 

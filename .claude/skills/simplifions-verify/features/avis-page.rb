@@ -88,6 +88,21 @@ def vote_apres_lecture(page)
   voter(page, 'Oui', article.h1, 'après lecture')
 end
 
+TITRE_DECOUVERT = <<~JS.freeze
+  (() => { const titre = document.querySelector('#avis-bas h2'), r = titre.getBoundingClientRect();
+    return titre.contains(document.elementFromPoint(r.left + 20, r.top + r.height / 2)) })()
+JS
+
+def renvoi_sommaire(page, chemin)
+  page.visit(chemin)
+  page.find('nav.fr-summary').click_link 'Donner votre avis sur cette page'
+  fin = Time.current + 3
+  sleep 0.1 until page.evaluate_script(TITRE_DECOUVERT) || Time.current > fin
+  raise 'titre de l’avis caché ou hors écran après le renvoi' unless page.evaluate_script(TITRE_DECOUVERT)
+
+  Verify.evidence('avis-page', page, "renvoi-#{chemin.split('/')[1]}", page.evaluate_script('location.hash'))
+end
+
 def mobile(page, demarche)
   page.current_window.resize_to(375, 800)
   page.visit("/demarches/#{demarche.slug}")
@@ -113,6 +128,10 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Vote solution') { vote_solution(page, solution) }
   Verify.check('Vote article') { vote_article(page) }
   Verify.check('Vote après lecture') { vote_apres_lecture(page) }
+  Verify.check('Renvoi sommaire') do
+    renvoi_sommaire(page, "/demarches/#{demarche.slug}")
+    renvoi_sommaire(page, "/solutions/#{solution.slug}")
+  end
   Verify.check('Mobile') { mobile(page, demarche) }
 ensure
   ENV['MATOMO_SITE_ID'] = site_id

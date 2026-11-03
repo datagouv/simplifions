@@ -7,13 +7,15 @@ At the end of every article, fiche démarche and fiche solution, the reader answ
 - sans-choix: `Envoyer mon avis` is disabled until a smiley is chosen; choosing alone sends nothing.
 - vote: sending `Avis sur la page | Trouver la page utile | <choix> (avant lecture|après lecture) — <page>`, locks the choice and thanks the reader, focus on the thanks.
 - lecture: the vote says `après lecture` once the page has sent its `Lecture` event (a gesture, 74 % of the page, 30 s visible), `avant lecture` before.
+- renvoi: on a démarche or a fiche solution, the Sommaire link `Donner votre avis sur cette page`, under « Contenu rédigé par », jumps to the block.
 - retour: after Non or Moyennement, the link `Dites-nous ce qui manque` opens the contact page of the fiche; after Oui, the link `Écrivez-nous` to the same page instead.
 - unique: after sending, the radios are disabled and `Envoyer mon avis` is gone.
 
 ## How to get to it (user POV)
 
 - `/demarches/<slug>` and `/solutions/<slug>`: under the content, just above « Proposer une modification du contenu ».
-- `/articles/<slug>`: at the end of the article text.
+- `/articles/<slug>`: at the end of the article, above « Sont mentionnés dans cet article ».
+- From the Sommaire of a démarche or a fiche solution: `Donner votre avis sur cette page`.
 - Anyone; the votes are read in Matomo › Comportement › Évènements, category `Avis sur la page`.
 
 ## Driving it with Capybara
@@ -28,6 +30,7 @@ Preconditions: one visible démarche and one visible fiche solution (Grist impor
 - **Vote solution.** On the first visible fiche solution, choose `Oui` and send: its event is sent, `Merci pour votre avis !` shows with the link `Écrivez-nous` to `/contact/donner-son-avis?solution=<slug>`, not `Dites-nous ce qui manque`.
 - **Vote article.** On `/articles/qu-est-ce-qu-une-api`, choose `Moyennement` and send: its event is sent, and the link to `/contact/donner-son-avis?article=qu-est-ce-qu-une-api` shows.
 - **Vote après lecture.** On `/articles/qu-est-ce-qu-une-api`, press `End` and wait for the `Lecture` event (30 s), then choose `Oui` and send: the event is named `Oui (après lecture) — <titre>`.
+- **Renvoi sommaire.** On the démarche, then on the fiche solution, click `Donner votre avis sur cette page` in the Sommaire: the page jumps to the block, its title « Cette page vous a-t-elle été utile ? » visible, not under the sticky header.
 - **Mobile.** At 375 px wide, the three rich radios stack in one column.
 - **Proof.** Screenshots of the block before and after each vote, desktop and mobile; read-back of the events sent.
 
