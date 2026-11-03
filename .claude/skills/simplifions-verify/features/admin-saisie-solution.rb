@@ -3,11 +3,13 @@ require_relative '../harness'
 DOSSIER = 'admin-saisie-solution'.freeze
 IMAGE = 'app/assets/images/articles/api-franceconnectees-donnees-personnelles.png'.freeze
 
+PANNEAUX = { 'API fournies' => 'api-fournies', 'API intégrées' => 'api-integrees', 'Solutions qui l’intègrent' => 'integratrices' }.freeze
+
 def integrations_liees(page)
-  Verify.onglet(page, 'Intégrations')
-  page.all('#onglet-integrations-panneau h2').to_h do |titre|
-    selects = page.find("table[aria-labelledby='#{titre[:id]}']").all('tbody tr td:first-child select')
-    [titre.text, selects.filter_map { it.all('option[selected]', visible: :all).first&.text }]
+  PANNEAUX.to_h do |onglet, panneau|
+    Verify.onglet(page, onglet)
+    selects = page.find("#onglet-#{panneau}-panneau table").all('tbody tr td:first-child select', visible: :all)
+    [page.find("#onglet-#{panneau}-panneau h2").text, selects.filter_map { it.all('option[selected]', visible: :all).first&.text }]
   end
 end
 
@@ -51,7 +53,7 @@ def autre_cote(page, api, solution)
   page.assert_selector 'h1', text: api.libelle_admin
   integratrices = elements_lies(page)['Solutions qui l’intègrent']
   base = integratrices_en_base(api)
-  raise "integratrices #{integratrices} != #{base}" unless integratrices == base && integratrices.include?(solution.libelle_admin)
+  raise "integratrices #{integratrices.size}/#{base.size} manquantes #{base - integratrices} en trop #{integratrices - base}" unless integratrices == base && integratrices.include?(solution.libelle_admin)
 
   Verify.evidence(DOSSIER, page, 'api-liee', "url=#{page.current_path} integratrices_page=#{integratrices.size} base=#{base.size} inclut_verif=true")
 end
@@ -97,7 +99,7 @@ Verify.drive(__FILE__) do |page|
   demarche = Demarche.visibles.order(:id).first
   solution = creer_solution(nom, api, demarche)
   Verify.login(page)
-  Verify.check('Fiche') { fiche(page, solution, { 'Ce qu’elle intègre' => [api.libelle_admin], 'Recommandée dans' => [demarche.nom] }) }
+  Verify.check('Fiche') { fiche(page, solution, { 'API intégrées' => [api.libelle_admin], 'Recommandée dans' => [demarche.nom] }) }
   Verify.check('Other side') { autre_cote(page, api, solution) }
   Verify.check('Types') do
     cocher_deux_types(page, neuf_types(page, solution))
