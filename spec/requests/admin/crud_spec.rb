@@ -996,6 +996,8 @@ RSpec.describe 'Administration' do
       formulaire = response.parsed_body.at_css("form#deplacement_integration_#{gamma.id}")
       expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size])
         .to eq(["/admin/integrations/#{gamma.id}/position", 'patch', 0])
+      expect([response.parsed_body.at_css('tbody#lignes-fournies')['data-controller'], ligne['data-deplacement']]).to eq(['rangement', formulaire['id']])
+      expect(formulaire.at_css('button[type=submit][name=position][hidden]')).to be_present
       expect(response.parsed_body.css('#onglet-api-fournies-panneau tr#fournies_integration button[name=sens], #onglet-api-integrees-panneau button[name=sens], #onglet-api-integrees-panneau [data-poignee]')).to be_empty
     end
 

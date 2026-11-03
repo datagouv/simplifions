@@ -11,6 +11,7 @@
   <% end %>
   <% if liste == :fournies %>
     <%= form_with url: position_admin_integration_path(ligne), method: :patch, id: dom_id(ligne, :deplacement), data: { enregistre_sur_place: true } do %>
+      <%= tag.button type: "submit", name: "position", hidden: true %>
     <% end %>
   <% end %>
 <% end %>

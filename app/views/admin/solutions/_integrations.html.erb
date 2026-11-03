@@ -9,8 +9,8 @@
         <th scope="col">Actions</th>
       </tr>
     </thead>
-    <tbody id="lignes-<%= liste %>">
+    <%= tag.tbody id: "lignes-#{liste}", data: ({ controller: "rangement" } if liste == :fournies) do %>
       <%= render partial: "admin/integrations/ligne", collection: lignes, locals: { liste: } %>
-    </tbody>
+    <% end %>
   </table>
 </div></div></div></div>

@@ -6,7 +6,7 @@
 <% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
 <% solution = :"#{colonne_de_la_liste(liste)}_id" %>
 <% rangee = liste == :fournies && ligne.persisted? %>
-<tr id="<%= id %>">
+<%= tag.tr id:, data: ({ deplacement: dom_id(ligne, :deplacement) } if rangee) do %>
   <%= fields model: ligne, namespace: id do |f| %>
     <td>
       <div class="ligne-rangee">
@@ -41,4 +41,4 @@
       <p id="<%= erreurs %>" class="fr-error-text"><%= ligne.errors.full_messages.to_sentence %></p>
     <% end %>
   </td>
-</tr>
+<% end %>
