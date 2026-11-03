@@ -981,6 +981,14 @@ RSpec.describe 'Administration' do
       expect(integration.reload.integratrice).to eq(bouquet)
     end
 
+    it 'garde sur une ligne refusée l’avertissement des solutions enregistrées' do
+      bouquet.update!(slug: 'bouquet', visible: true)
+      patch "/admin/integrations/#{integration.id}", params: { ligne: 1, liste: 'integratrices', integration: { integratrice_id: '' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(ligne_renvoyee.at_css('button[data-turbo-confirm]')['data-turbo-confirm']).to end_with(I18n.t('admin.suppression.immediate'))
+    end
+
     it 'refuse sur la ligne un changement de solution qui sort une démarche de la règle' do
       aides = Demarche.create!(nom: 'Aides')
       Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1)
@@ -1209,16 +1217,20 @@ RSpec.describe 'Administration' do
         expect(confirmation("/admin/recommandations/#{recommandation.id}/edit")).to eq("Supprimer « Aides → API QF (API) » ? #{immediate}")
       end
 
-      it 'le dit en supprimant une intégration dans l’onglet d’une solution publiée, pas d’une solution masquée' do
+      it 'le dit en supprimant une intégration dans les onglets de ses deux solutions dès que l’une est publiée' do
         integration = Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme')
+        sans_avertissement = 'Supprimer l’intégration Bouquet → API QF (API) (intégrée) ?'
+        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq(sans_avertissement)
+        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq(sans_avertissement)
+
         bouquet.update!(slug: 'bouquet', visible: true)
-        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq("Supprimer l’intégration Bouquet → API QF (API) (intégrée) ? #{immediate}")
-        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq('Supprimer l’intégration Bouquet → API QF (API) (intégrée) ?')
+        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq("#{sans_avertissement} #{immediate}")
+        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq("#{sans_avertissement} #{immediate}")
 
         bouquet.update!(visible: false)
         api_qf.update!(visible: true)
-        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq('Supprimer l’intégration Bouquet → API QF (API) (intégrée) ?')
-        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq("Supprimer l’intégration Bouquet → API QF (API) (intégrée) ? #{immediate}")
+        expect(poubelle("/admin/solutions/#{bouquet.id}/edit", integration)).to eq("#{sans_avertissement} #{immediate}")
+        expect(poubelle("/admin/solutions/#{api_qf.id}/edit", integration)).to eq("#{sans_avertissement} #{immediate}")
       end
 
       it 'le dit sur la fiche d’une intégration dont une des deux solutions est publiée' do
