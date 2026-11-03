@@ -353,6 +353,60 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'brouillons en cours dans les listes' do
+    before do
+      sign_in admin
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api', visible: true, brouillon: { 'nom' => 'API QF v2' })
+      api_sirene = Solution.create!(nom: 'API Sirene', categorie: 'api', visible: true)
+      Solution.create!(nom: 'API Urssaf', categorie: 'api')
+      Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, brouillon: { 'nom' => 'Aides v2' })
+      Demarche.create!(nom: 'Bourses', slug: 'bourses', visible: true)
+        .recommandations.create!(solution: api_qf, niveau: :niveau_2, brouillon: { 'visible' => '1' })
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+        .recommandations.create!(solution: api_sirene, niveau: :niveau_2, visible: true, brouillon: { 'description' => 'Nouveau texte' })
+      Demarche.create!(nom: 'Déchets', slug: 'dechets', visible: true)
+    end
+
+    def brouillons(chemin) = colonnes(chemin).to_h { [it['Nom'], it['Visible']] }
+
+    it 'marque « Brouillon » les démarches avec un brouillon ou une recommandation qui attend leur publication' do
+      expect(brouillons('demarches')).to eq('Aides' => 'Oui Brouillon', 'Bourses' => 'Oui Brouillon', 'Cantine' => 'Oui Brouillon', 'Déchets' => 'Oui')
+    end
+
+    it 'marque « Brouillon » les solutions avec un brouillon' do
+      expect(brouillons('solutions')).to eq('API QF (API)' => 'Oui Brouillon', 'API Sirene (API)' => 'Oui', 'API Urssaf (API)' => 'Non')
+    end
+
+    def noms(chemin, params = {})
+      get("/admin/#{chemin}", params:)
+      response.parsed_body.css('tbody tr').map { it.css('td')[1].text.strip }
+    end
+
+    def lien(texte) = response.parsed_body.css('a').find { it.text.strip == texte }&.[]('href')
+
+    it 'ne garde que les démarches en brouillon depuis le lien au-dessus de la liste' do
+      noms('demarches')
+      expect(lien('Brouillons en cours (3)')).to eq('/admin/demarches?brouillons=1')
+      expect(noms('demarches', brouillons: '1')).to eq(%w[Aides Bourses Cantine])
+      expect(lien('Voir toutes les lignes')).to eq('/admin/demarches')
+      expect(noms('demarches', brouillons: '1', q: 'bour')).to eq(%w[Bourses])
+      expect(noms('demarches', brouillons: '0')).to eq(%w[Aides Bourses Cantine Déchets])
+    end
+
+    it 'ne garde que les solutions en brouillon depuis le lien au-dessus de la liste' do
+      noms('solutions')
+      expect(lien('Brouillons en cours (1)')).to eq('/admin/solutions?brouillons=1')
+      expect(noms('solutions', brouillons: '1')).to eq(['API QF (API)'])
+    end
+
+    it 'garde le filtre dans la recherche et d’une page à l’autre' do
+      Demarche.create!(Array.new(55) { |n| { nom: "Aides #{n}", brouillon: { 'nom' => 'Autre' } } })
+      get '/admin/demarches', params: { brouillons: '1', q: 'aides' }
+      expect(response.parsed_body.at_css('form input[type=hidden][name=brouillons]')['value']).to eq('1')
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/demarches?brouillons=1&page=2&q=aides')
+    end
+  end
+
   describe 'ordre d’une API fournie' do
     before { sign_in admin }
 

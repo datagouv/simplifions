@@ -11,6 +11,12 @@
     <li><%= link_to "Organisations", admin_organisations_path, class: "fr-link" %></li>
   </ul>
 
+  <h2>Brouillons en cours</h2>
+  <ul>
+    <li><%= link_to t("admin.brouillons_en_cours.demarches", count: @demarches_en_brouillon), admin_demarches_path(brouillons: 1), class: "fr-link" %></li>
+    <li><%= link_to t("admin.brouillons_en_cours.solutions", count: @solutions_en_brouillon), admin_solutions_path(brouillons: 1), class: "fr-link" %></li>
+  </ul>
+
   <h2>Référentiels</h2>
   <ul>
     <li><%= link_to "Fournisseurs de services", admin_types_acteurs_path, class: "fr-link" %></li>

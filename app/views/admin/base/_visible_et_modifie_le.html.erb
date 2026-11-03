@@ -1,2 +1,8 @@
-<td><p class="fr-badge fr-badge--sm fr-badge--no-icon <%= "fr-badge--success" if ligne.visible? %>"><%= ligne.visible? ? "Oui" : "Non" %></p></td>
+<%# locals: (ligne:, brouillon: false) -%>
+<td>
+  <p class="fr-badge fr-badge--sm fr-badge--no-icon <%= "fr-badge--success" if ligne.visible? %>"><%= ligne.visible? ? "Oui" : "Non" %></p>
+  <% if brouillon %>
+    <p class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--new">Brouillon</p>
+  <% end %>
+</td>
 <td><% if ligne.modifie_le %><time datetime="<%= ligne.modifie_le.iso8601 %>"><%= l ligne.modifie_le.to_date %></time><% end %></td>

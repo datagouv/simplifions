@@ -181,6 +181,15 @@ fr:
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
     brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
     sans_brouillon: "Pas de brouillon : « Enregistrer » met en ligne tout de suite."
+    brouillons_en_cours:
+      demarches:
+        zero: "0 démarche"
+        one: "1 démarche"
+        other: "%{count} démarches"
+      solutions:
+        zero: "0 solution"
+        one: "1 solution"
+        other: "%{count} solutions"
     recommandations_en_brouillon:
       zero: ""
       one: "1 recommandation en brouillon"

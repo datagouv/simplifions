@@ -1,9 +1,21 @@
+<%# locals: (total:, brouillons: nil) -%>
+<% filtre_brouillons = brouillons && filtre_brouillons? %>
 <%= form_with url: request.path, method: :get, class: "fr-mb-3w" do |f| %>
   <div class="fr-search-bar" role="search">
     <%= f.label :q, "Rechercher", class: "fr-label" %>
     <%= f.search_field :q, value: params[:q], class: "fr-input", placeholder: "Rechercher" %>
     <button type="submit" class="fr-btn">Rechercher</button>
   </div>
+  <%= hidden_field_tag :brouillons, "1", id: nil if filtre_brouillons %>
+<% end %>
+<% if brouillons %>
+  <p class="fr-mb-1w">
+    <% if filtre_brouillons %>
+      <%= link_to "Voir toutes les lignes", url_for(q: params[:q].presence), class: "fr-link" %>
+    <% else %>
+      <%= link_to "Brouillons en cours (#{brouillons})", url_for(q: params[:q].presence, brouillons: 1), class: "fr-link" %>
+    <% end %>
+  </p>
 <% end %>
 <% if total.zero? && params[:q].present? %>
   <p class="fr-mb-1w" role="status"><%= t("admin.aucun_resultat.#{modele.model_name.i18n_key}", q: params[:q]) %></p>

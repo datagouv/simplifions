@@ -16,6 +16,7 @@ class Demarche < ApplicationRecord
   validate { integrations_ecartees.each { errors.add(:base, :integration_hors_regle, libelle: it.libelle) } }
 
   scope :visibles, -> { where(visible: true) }
+  scope :en_brouillon, -> { where.not(brouillon: nil).or(where(id: Recommandation.en_brouillon.select(:demarche_id))) }
   def page_publique? = visible? && slug.present?
   def titre = "#{icone} #{nom}".strip
   def chapo = description_courte.to_s.lines.first&.strip
@@ -24,7 +25,7 @@ class Demarche < ApplicationRecord
 
   scope :recherche, ->(q) { chaque_mot_dans("unaccent(concat_ws(' ', nom, description_courte, array_to_string(mots_clefs, ' '))) ILIKE unaccent(:motif)", q) }
   def self.ransackable_attributes(_auth_object = nil) = %w[nom]
-  def self.ransackable_scopes(_auth_object = nil) = %w[recherche]
+  def self.ransackable_scopes(_auth_object = nil) = %w[recherche en_brouillon]
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 

@@ -7,7 +7,7 @@ Each admin list has a DSFR search bar, 50 rows per page with the site's paginati
 - `admin-recherche` field `Rechercher` + button `Rechercher` (GET `?q=`), accents and case ignored, every word must match. A search with no result shows « Aucune démarche ne contient « x ». » (« Aucun vocabulaire… », noun and gender of the list) instead of the count and the table, then a link `Effacer la recherche` back to the full list. Démarches and solutions reuse the public catalogue search (name, short description, keywords for démarches); recommandations and intégrations match the names of the démarche and solutions they link; the other tables match the name.
 - `admin-pagination` 50 rows, `Page 2` link keeps `q`.
 - `admin-colonnes` headers `Id`, `Nom` (or `Ligne`), `Privée` (solutions only, badge `Oui` / `Non`), `Visible`, `Modifié le`, `Intégrée par` (solutions only). Organisations: `Nom court`, `Nom long`. Intégrations: the form labels `Solution` (the link), `API ou jeu de données`, `Type d’intégration`, `Statut de l’intégration`. Démarches: the icon (`aria-hidden`) before the name link.
-- `admin-accueil` `/admin` groups the links under `Catalogue` and `Référentiels` (Fournisseurs de services, Vocabulaires).
+- `admin-accueil` `/admin` groups the links under `Catalogue` and `Référentiels` (Fournisseurs de services, Vocabulaires), with `Brouillons en cours` between them ([admin-brouillons-en-cours.md](admin-brouillons-en-cours.md)).
 
 ## How to get to it (user POV)
 
