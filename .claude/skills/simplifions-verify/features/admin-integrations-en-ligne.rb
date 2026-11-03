@@ -1,7 +1,7 @@
 require_relative '../harness'
 
 DOSSIER = 'admin-integrations-en-ligne'.freeze
-INTEGRE = 'la nouvelle ligne de « Ce qu’elle intègre »'.freeze
+INTEGRE = 'la nouvelle ligne de « API intégrées »'.freeze
 L_INTEGRENT = 'la nouvelle ligne de « Solutions qui l’intègrent »'.freeze
 
 def api_non_integree(solution)
@@ -14,7 +14,7 @@ end
 
 def contexte
   solution = Solution.visibles.where.not(categorie: 'api').max_by { it.integrations_comme_integratrice.count }
-  integration = solution.integrations_comme_integratrice.par_libelle_admin_de(:integree).first
+  integration = solution.integrations_comme_integratrice.consomme.par_libelle_admin_de(:integree).first
   { solution:, integration:, statut: integration.statut, nom: "l’intégration #{integration.libelle}",
     api: api_non_integree(solution), integratrice: integratrice_absente(solution) }
 end
@@ -23,13 +23,13 @@ def compter(solution)
   ActiveRecord::Base.uncached { [solution.integrations_comme_integratrice.count, solution.integrations_comme_integree.count] }
 end
 
-def onglet_integrations(page, solution)
-  page.visit("/admin/solutions/#{solution.id}/edit?onglet=integrations")
+def onglet_integrees(page, solution)
+  page.visit("/admin/solutions/#{solution.id}/edit?onglet=api-integrees")
 end
 
 def changer_le_statut(page, ctx)
   page.visit("/admin/solutions/#{ctx[:solution].id}/edit")
-  Verify.onglet(page, 'Intégrations')
+  Verify.onglet(page, 'API intégrées')
   page.select (Integration::STATUTS - [ctx[:statut]]).first, from: "Statut de #{ctx[:nom]}"
   raise 'la ligne a marqué la fiche' unless Verify.enregistrer_desactive?(page)
 end
@@ -53,9 +53,10 @@ end
 
 def erreur_elle_meme(page, ctx)
   page.select ctx[:solution].libelle_admin, from: "API ou jeu de données de #{INTEGRE} (obligatoire)"
-  page.select 'Intégrée', from: "Type d’intégration de #{INTEGRE} (obligatoire)"
+  raise 'type non présélectionné' unless page.find_field("Type d’intégration de #{INTEGRE} (obligatoire)").value == 'consomme'
+
   page.click_button "Ajouter #{INTEGRE}"
-  erreur = page.find('#erreurs_integree_integration', text: 'elle-même')
+  erreur = page.find('#erreurs_integrees_integration', text: 'elle-même')
   en_base = compter(ctx[:solution])
   raise "créée malgré l'erreur : #{en_base} au lieu de #{ctx[:avant]}" unless en_base == ctx[:avant]
 
@@ -64,7 +65,7 @@ end
 
 def preuve_de_l_erreur(page, erreur, en_base, avant)
   Verify.evidence(DOSSIER, page, 'erreur-ligne', "erreur=#{erreur.text} focus=#{Verify.focus_sur(page)} en_base=#{en_base} avant=#{avant} " \
-                                                 "decrit_par=#{page.find('tr#integree_integration button')['aria-describedby']}")
+                                                 "decrit_par=#{page.find('tr#integrees_integration button')['aria-describedby']}")
 end
 
 def ajouter_une_ligne(page, ligne, choix)
@@ -80,6 +81,7 @@ def ajouter_l_integree(page, ctx)
 end
 
 def ajouter_l_integratrice(page, ctx)
+  Verify.onglet(page, 'Solutions qui l’intègrent')
   ajouter_une_ligne(page, L_INTEGRENT, 'Solution' => ctx[:integratrice].libelle_admin, 'Type d’intégration' => 'Fournie')
   ctx[:integratrice_creee] = ActiveRecord::Base.uncached { ctx[:solution].integrations_comme_integree.find_by!(integratrice: ctx[:integratrice]) }
   page.assert_selector "tr#integration_#{ctx[:integratrice_creee].id}"
@@ -92,17 +94,22 @@ def ajouter(page, ctx)
 end
 
 def preuve_des_ajouts(page, ctx)
-  vides = %w[integree integratrice].map { |cote| page.find("tr##{cote}_integration select[name='integration[#{cote}_id]']").value }
+  vides = [%w[integrees integree], %w[integratrices integratrice]].map { |liste, cote| page.find("tr##{liste}_integration select[name='integration[#{cote}_id]']", visible: :all).value }
   types = [ctx[:integree_creee].type_integration, ctx[:integratrice_creee].type_integration]
   Verify.evidence(DOSSIER, page, 'ajoutees', "en_base=#{compter(ctx[:solution])} avant=#{ctx[:avant]} lignes_vides=#{vides.inspect} types=#{types}")
 end
 
+def tableaux_a_l_etroit(page, ctx, onglet)
+  page.visit("/admin/solutions/#{ctx[:solution].id}/edit?onglet=#{onglet}")
+  page.evaluate_script("[...document.querySelectorAll('#onglet-#{onglet}-panneau .fr-table__content')].map(c => [c.scrollWidth, c.clientWidth])")
+end
+
 def mesurer_a(page, ctx, largeur)
   page.current_window.resize_to(largeur, 1024)
-  onglet_integrations(page, ctx[:solution])
-  defilement = page.evaluate_script("[...document.querySelectorAll('#onglet-integrations-panneau .fr-table__content')].map(c => [c.scrollWidth, c.clientWidth])")
-  raise "tableaux à #{largeur} px : #{defilement}" if defilement.any? { |defilable, visible| defilable > visible }
+  defilement = %w[api-integrees integratrices].flat_map { tableaux_a_l_etroit(page, ctx, it) }
+  raise "tableaux à #{largeur} px : #{defilement}" if defilement.empty? || defilement.any? { |defilable, visible| defilable > visible }
 
+  onglet_integrees(page, ctx[:solution])
   selects = page.evaluate_script("[...document.querySelector('tr#integration_#{ctx[:integration].id}').querySelectorAll('select')].map(s => s.clientWidth)")
   raise "selects trop étroits à #{largeur} px (solution, type, statut) : #{selects}" if selects.first < 150 || selects.last < 180
 
@@ -112,7 +119,7 @@ end
 def largeurs(page, ctx)
   [1280, 1024].each { mesurer_a(page, ctx, it) }
   page.current_window.resize_to(375, 812)
-  onglet_integrations(page, ctx[:solution])
+  onglet_integrees(page, ctx[:solution])
   Verify.evidence(DOSSIER, page, 'etroit-375', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
   page.current_window.resize_to(1280, 1024)
 end
@@ -136,14 +143,17 @@ def supprimer_depuis_la_ligne(page, integration)
 end
 
 def remettre_le_statut(page, ctx)
+  Verify.onglet(page, 'API intégrées')
   page.find_field("Statut de #{ctx[:nom]}").find("option[value='#{ctx[:statut]}']").select_option
   page.click_button "Enregistrer #{ctx[:nom]}"
   page.assert_selector '#message-integrations .fr-valid-text', text: 'enregistré'
 end
 
 def defaire(page, ctx)
-  onglet_integrations(page, ctx[:solution])
-  ctx[:focus] = [ctx[:integree_creee], ctx[:integratrice_creee]].map { supprimer_depuis_la_ligne(page, it) }
+  onglet_integrees(page, ctx[:solution])
+  ctx[:focus] = [supprimer_depuis_la_ligne(page, ctx[:integree_creee])]
+  Verify.onglet(page, 'Solutions qui l’intègrent')
+  ctx[:focus] << supprimer_depuis_la_ligne(page, ctx[:integratrice_creee])
   remettre_le_statut(page, ctx)
   etat_revenu(ctx)
 end
@@ -189,17 +199,17 @@ end
 
 def onglet_du_bouquet(page, bouquet)
   page.visit("/admin/solutions/#{bouquet.id}/edit")
-  Verify.onglet(page, 'Intégrations')
+  Verify.onglet(page, 'Solutions qui l’intègrent')
   titre = page.find('[role=tab][aria-selected=true]').text
   lignes = bouquet.integrations_de_ses_api.count
-  total = bouquet.integrations_comme_integratrice.count + bouquet.integrations_comme_integree.count + lignes
-  raise "onglet #{titre} != #{total}" unless titre == "Intégrations (#{total})"
+  total = bouquet.integrations_comme_integree.count + lignes
+  raise "onglet #{titre} != #{total}" unless titre == "Solutions qui l’intègrent (#{total})"
 
   lignes_via(page, titre, lignes)
 end
 
 def lignes_via(page, titre, lignes)
-  items = page.all('#onglet-integrations-panneau ul li', visible: :all)
+  items = page.all('#onglet-integratrices-panneau ul li', visible: :all)
   raise "lignes via #{items.size} != #{lignes}" unless items.size == lignes && items.all? { it.text(:all).include?(' — via ') }
 
   page.scroll_to(items.first, align: :center)

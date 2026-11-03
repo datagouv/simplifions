@@ -109,4 +109,59 @@ RSpec.describe Integration do
         .to eq(["L’intégration « #{integration.libelle} » porte sur une API ou un jeu de données que la démarche ne recommande pas"])
     end
   end
+
+  describe '#deplacer_a' do
+    let(:noms) { ['API Alpha', 'API Beta', 'API Gamma', 'API Delta'] }
+    let!(:fournies) do
+      noms.zip([2, nil, 1, nil]).map do |nom, ordre|
+        described_class.create!(integratrice: bouquet, integree: Solution.create!(nom:, categorie: 'api'),
+          type_integration: 'expose', ordre:)
+      end
+    end
+    let(:alpha) { fournies[0] }
+    let(:delta) { fournies[3] }
+
+    def ordre_public = bouquet.api_fournies_dans_l_ordre.map(&:nom)
+
+    it 'part de l’ordre public et renumérote les API fournies de 1 à n' do
+      expect(ordre_public).to eq(['API Gamma', 'API Alpha', 'API Beta', 'API Delta'])
+
+      expect(delta.deplacer_a(1)).to be(true)
+
+      expect(ordre_public).to eq(['API Delta', 'API Gamma', 'API Alpha', 'API Beta'])
+      expect(fournies.map { it.reload.ordre }).to eq([3, 4, 2, 1])
+    end
+
+    it 'garde la position dans les bornes de la liste' do
+      alpha.deplacer_a(99)
+      expect(ordre_public.last).to eq('API Alpha')
+
+      alpha.deplacer_a(0)
+      expect(ordre_public.first).to eq('API Alpha')
+    end
+
+    it 'ne touche pas aux intégrations de la solution ni aux API fournies par une autre' do
+      integree = described_class.create!(integratrice: bouquet, integree: api, type_integration: 'consomme', ordre: 7)
+      autre = described_class.create!(integratrice: Solution.create!(nom: 'Autre'), integree: api, type_integration: 'expose', ordre: 5)
+
+      delta.deplacer_a(1)
+
+      expect([integree.reload.ordre, autre.reload.ordre]).to eq([7, 5])
+    end
+
+    it 'n’écrit, et ne versionne, que les lignes dont le rang change' do
+      fournies.each.with_index(1) { |fournie, rang| fournie.update!(ordre: rang) }
+
+      expect { fournies[2].deplacer_a(4) }.to change(PaperTrail::Version, :count).by(2)
+      expect(fournies.map { it.reload.ordre }).to eq([1, 2, 4, 3])
+    end
+
+    it 'refuse de ranger une API intégrée' do
+      integree = described_class.create!(integratrice: bouquet, integree: api, type_integration: 'consomme')
+
+      expect(integree.deplacer_a(1)).to be(false)
+      expect(integree.errors.full_messages).to eq(['Seule une API ou un jeu de données fourni se range'])
+      expect(fournies.map { it.reload.ordre }).to eq([2, nil, 1, nil])
+    end
+  end
 end

@@ -9,4 +9,27 @@ module IntegrationsHelper
   end
 
   def titre_groupe_donnees(bouquet) = bouquet || t('public.autres_donnees_utiles')
+
+  def colonne_de_la_liste(liste) = liste == :integratrices ? :integratrice : :integree
+  def colonne_fixe_de_la_liste(liste) = liste == :integratrices ? :integree : :integratrice
+
+  def ligne_vide(liste, solution_id)
+    Integration.new("#{colonne_fixe_de_la_liste(liste)}_id": solution_id, type_integration: { fournies: 'expose', integrees: 'consomme' }[liste])
+  end
+
+  def lignes_d_integrations(solution, liste)
+    integrations = {
+      fournies: solution.integrations_qu_elle_expose.dans_l_ordre_public,
+      integrees: solution.integrations_comme_integratrice.consomme.par_libelle_admin_de(:integree),
+      integratrices: solution.integrations_comme_integree.par_libelle_admin_de(:integratrice)
+    }.fetch(liste)
+    [*integrations.preload(colonne_de_la_liste(liste)), ligne_vide(liste, solution.id)]
+  end
+
+  def sens_du_focus(sens, rang, nombre)
+    return 'descendre' if sens == 'monter' && rang == 1
+    return 'monter' if sens == 'descendre' && rang == nombre
+
+    sens
+  end
 end

@@ -1,12 +1,17 @@
-<%# locals: (ligne:, cote:) -%>
-<% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, cote) %>
+<%# locals: (ligne:, liste:) -%>
+<% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, liste) %>
 <%= form_with model: [:admin, ligne], id: "formulaire_#{id}", data: { enregistre_sur_place: true } do |f| %>
   <%= hidden_field_tag :ligne, 1, id: nil %>
-  <%= hidden_field_tag :cote, cote, id: nil %>
-  <%= f.hidden_field cote == :integree ? :integratrice_id : :integree_id, id: nil if ligne.new_record? %>
+  <%= hidden_field_tag :liste, liste, id: nil %>
+  <%= f.hidden_field :"#{colonne_fixe_de_la_liste(liste)}_id", id: nil if ligne.new_record? %>
 <% end %>
 <% if ligne.persisted? %>
   <%= form_with model: [:admin, ligne], method: :delete, id: "suppression_#{id}", data: { enregistre_sur_place: true } do %>
     <%= hidden_field_tag :ligne, 1, id: nil %>
+  <% end %>
+  <% if liste == :fournies %>
+    <%= form_with url: position_admin_integration_path(ligne), method: :patch, id: dom_id(ligne, :deplacement), data: { enregistre_sur_place: true } do %>
+      <%= tag.button type: "submit", name: "position", hidden: true %>
+    <% end %>
   <% end %>
 <% end %>

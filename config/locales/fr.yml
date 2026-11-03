@@ -114,7 +114,6 @@ fr:
         parametres_a_saisir: "Markdown accepté"
         description: "Markdown accepté"
       integration:
-        ordre: "Plus le nombre est petit, plus l’API ou le jeu de données apparaît haut dans « Données et API fournies » sur la page de la solution."
         type_integration: "Fournie : la solution met l’API ou le jeu de données à disposition. Intégrée : la solution l’utilise."
       type_acteur:
         description: "Mémo interne, non affiché sur le site"
@@ -157,6 +156,7 @@ fr:
       deja_utilise: "est déjà celui de « %{fiche} »"
       format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"
+      pas_fournie: "Seule une API ou un jeu de données fourni se range"
       demarche_hors_regle: "La démarche « %{nom} » ne recommande pas l’API ou le jeu de données intégré"
       integration_hors_regle: "L’intégration « %{libelle} » porte sur une API ou un jeu de données que la démarche ne recommande pas"
       recommandation_refusee: "La recommandation « %{libelle} » ne peut pas être publiée : %{erreurs}"
@@ -186,12 +186,15 @@ fr:
       other: "%{count} recommandations en brouillon"
     enregistre: "« %{nom} » enregistré."
     integrations_de_la_solution:
-      integree: "Ce qu’elle intègre"
-      integratrice: "Solutions qui l’intègrent"
+      fournies: "API fournies"
+      integrees: "API intégrées"
+      integratrices: "Solutions qui l’intègrent"
     erreurs:
       one: "1 erreur à corriger"
       other: "%{count} erreurs à corriger"
     supprime: "« %{nom} » supprimé."
+    deplacee: "« %{nom} » déplacée en position %{position}."
+    non_deplacee: "Intégration non déplacée : %{erreurs}"
     rafraichissement_lance: "Rafraîchissement lancé."
     suppression:
       recommandations:

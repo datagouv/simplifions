@@ -53,8 +53,8 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-liste-filtrable.md](admin-liste-filtrable.md) — a list of 10 linked rows or fewer shows every box; longer lists show only checked boxes and filter as you type; vocabulaires grouped by category.
 - [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — list and add a démarche's recommandations from its form; a recommandation keeps its démarche in view.
 - [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md) — edit, add and see errors on a démarche's recommandations row by row in its tab, drafts kept off the public page.
-- [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md) — edit, add, delete and see errors on a solution's integrations row by row, in both lists of its `Intégrations` tab; a bouquet's tab also lists, read-only, the intégrations of its APIs.
-- [ordre-api-fournies.md](ordre-api-fournies.md) — the team ranks a solution's « Données et API fournies » with `Ordre` on each integration; unranked ones follow by the title shown on the card.
+- [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md) — edit, add, delete and see errors on a solution's integrations row by row, in the three tabs `API fournies`, `API intégrées` and `Solutions qui l’intègrent`; a bouquet's last tab also lists, read-only, the intégrations of its APIs.
+- [ordre-api-fournies.md](ordre-api-fournies.md) — the team ranks a solution's « Données et API fournies » by moving rows (handle, Monter / Descendre, keyboard) in the admin tab `API fournies`; the public order follows, unranked ones by card title.
 - [admin-formulaire-solution.md](admin-formulaire-solution.md) — a solution form shows only the fields of its catégorie, its image (removable) and whether it is private.
 - [admin-fournisseurs-de-services.md](admin-fournisseurs-de-services.md) — fournisseurs de services (types d'acteurs): read page first, regroupements ticked from the public filters, memo hints.
 - [admin-homonymes.md](admin-homonymes.md) — two solutions with the same name show as `<nom> (<catégorie>)` in every admin select, checkbox list and list column.

@@ -5,12 +5,12 @@
     <p class="fr-error-text fr-mb-2w">Intégration non enregistrée : <%= @integration.errors.full_messages.to_sentence %></p>
   <% end %>
 <% end %>
-<% vide = dom_id(Integration, @cote) %>
+<% vide = dom_id(Integration, @liste) %>
 <% if @integration.previously_new_record? %>
-  <% fixe = @cote == :integree ? :integratrice_id : :integree_id %>
-  <%= turbo_stream.before vide, partial: "ligne", locals: { ligne: @integration, cote: @cote } %>
-  <%= turbo_stream.append "formulaires-integrations", partial: "formulaire_de_ligne", locals: { ligne: @integration, cote: @cote } %>
-  <%= turbo_stream.replace vide, partial: "ligne", locals: { ligne: Integration.new(@integration.slice(fixe)), cote: @cote }, method: :morph %>
+  <% solution_id = @integration.public_send(:"#{colonne_fixe_de_la_liste(@liste)}_id") %>
+  <%= turbo_stream.before vide, partial: "ligne", locals: { ligne: @integration, liste: @liste } %>
+  <%= turbo_stream.append "formulaires-integrations", partial: "formulaire_de_ligne", locals: { ligne: @integration, liste: @liste } %>
+  <%= turbo_stream.replace vide, partial: "ligne", locals: { ligne: ligne_vide(@liste, solution_id), liste: @liste }, method: :morph %>
 <% else %>
-  <%= turbo_stream.replace @integration.persisted? ? dom_id(@integration) : vide, partial: "ligne", locals: { ligne: @integration, cote: @cote }, method: :morph %>
+  <%= turbo_stream.replace @integration.persisted? ? dom_id(@integration) : vide, partial: "ligne", locals: { ligne: @integration, liste: @liste }, method: :morph %>
 <% end %>
