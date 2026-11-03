@@ -25,6 +25,9 @@ class Integration < ApplicationRecord
   scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
   scope :par_libelle_admin_de, ->(cote) { joins(cote).merge(Solution.par_libelle_admin).order(:id) }
 
+  def self.ordre_public = [arel_table[:ordre].asc.nulls_last, Arel.sql("COALESCE(NULLIF(BTRIM(solutions.datagouv_titre), ''), solutions.nom)")]
+  scope :dans_l_ordre_public, -> { joins(:integree).order(ordre_public) }
+
   def demarches_autorisees = Demarche.where(id: Recommandation.where(solution_id: integree_id).select(:demarche_id))
   def autorisee_pour?(demarche) = Recommandation.exists?(demarche:, solution_id: integree_id)
   def demarches_proposees = demarches_autorisees.or(Demarche.where(id: demarche_ids))

@@ -1,10 +1,10 @@
-<%# locals: (ligne:, cote:) -%>
-<% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, cote) %>
-<% nom = ligne.persisted? ? "l’intégration #{(ligne.changed? ? Integration.find(ligne.id) : ligne).libelle}" : "la nouvelle ligne de « #{t("admin.integrations_de_la_solution.#{cote}")} »" %>
+<%# locals: (ligne:, liste:) -%>
+<% id = ligne.persisted? ? dom_id(ligne) : dom_id(Integration, liste) %>
+<% nom = ligne.persisted? ? "l’intégration #{(ligne.changed? ? Integration.find(ligne.id) : ligne).libelle}" : "la nouvelle ligne de « #{t("admin.integrations_de_la_solution.#{liste}")} »" %>
 <% formulaire = "formulaire_#{id}" %>
 <% erreurs = "erreurs_#{id}" %>
 <% invalide = ligne.errors.any? ? { invalid: true, describedby: erreurs } : {} %>
-<% solution = :"#{cote}_id" %>
+<% solution = :"#{colonne_de_la_liste(liste)}_id" %>
 <tr id="<%= id %>">
   <%= fields model: ligne, namespace: id do |f| %>
     <td>

@@ -1,8 +1,9 @@
 <% if en_base %>
   <% listes = {
-       integree: [*en_base.integrations_comme_integratrice.par_libelle_admin_de(:integree).preload(:integree), Integration.new(integratrice_id: en_base.id)],
-       integratrice: [*en_base.integrations_comme_integree.par_libelle_admin_de(:integratrice).preload(:integratrice), Integration.new(integree_id: en_base.id)]
-     } %>
+       fournies: en_base.integrations_qu_elle_expose.dans_l_ordre_public,
+       integrees: en_base.integrations_comme_integratrice.consomme.par_libelle_admin_de(:integree),
+       integratrices: en_base.integrations_comme_integree.par_libelle_admin_de(:integratrice)
+     }.to_h { |liste, integrations| [liste, [*integrations.preload(colonne_de_la_liste(liste)), ligne_vide(liste, en_base.id)]] } %>
   <% integrations_de_ses_api = Integration.where(id: en_base.integrations_de_ses_api.select(:id)).par_libelle_admin_de(:integratrice).preload(:integratrice, :integree).load %>
 <% end %>
 <%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>
@@ -71,25 +72,8 @@
     <% end %>
   <% end %>
   <% if en_base %>
-    <% integrations = capture do %>
-      <div id="message-integrations" role="status"></div>
-      <% listes.each do |cote, lignes| %>
-        <h2 id="integrations-<%= cote %>" class="fr-h6 fr-mb-1w"><%= t("admin.integrations_de_la_solution.#{cote}") %></h2>
-        <div class="fr-table"><div class="fr-table__wrapper"><div class="fr-table__container"><div class="fr-table__content">
-          <table class="lignes-modifiables lignes-integrations" aria-labelledby="integrations-<%= cote %>">
-            <thead>
-              <tr>
-                <th scope="col"><%= Integration.human_attribute_name(:"#{cote}_id") %> (obligatoire)</th>
-                <th scope="col"><%= Integration.human_attribute_name(:type_integration) %> (obligatoire) et statut</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%= render partial: "admin/integrations/ligne", collection: lignes, locals: { cote: } %>
-            </tbody>
-          </table>
-        </div></div></div></div>
-      <% end %>
+    <% integratrices = capture do %>
+      <%= render "integrations", liste: :integratrices, lignes: listes[:integratrices] %>
       <% if integrations_de_ses_api.any? %>
         <ul>
           <% integrations_de_ses_api.each do |integration| %>
@@ -98,10 +82,14 @@
         </ul>
       <% end %>
     <% end %>
+    <% nombres = listes.transform_values { |lignes| lignes.count(&:persisted?) } %>
     <% demarches = en_base.demarches_recommandantes.order(:nom).load %>
+    <div id="message-integrations" role="status"></div>
     <%= render "admin/onglets", objet: solution, onglets: {
           "fiche" => ["Fiche", fiche],
-          "integrations" => ["Intégrations (#{listes.values.flatten.count(&:persisted?) + integrations_de_ses_api.size})", integrations],
+          "api-fournies" => ["#{t("admin.integrations_de_la_solution.fournies")} (#{nombres[:fournies]})", render("integrations", liste: :fournies, lignes: listes[:fournies])],
+          "api-integrees" => ["#{t("admin.integrations_de_la_solution.integrees")} (#{nombres[:integrees]})", render("integrations", liste: :integrees, lignes: listes[:integrees])],
+          "integratrices" => ["#{t("admin.integrations_de_la_solution.integratrices")} (#{nombres[:integratrices] + integrations_de_ses_api.size})", integratrices],
           "recommandee-dans" => ["Recommandée dans (#{demarches.size})", render("admin/liens_vers_les_fiches", lignes: demarches, vide: "Aucune démarche ne la recommande.")],
           "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
         } %>
@@ -111,8 +99,8 @@
 <% end %>
 <% if listes %>
   <div id="formulaires-integrations">
-    <% listes.each do |cote, lignes| %>
-      <%= render partial: "admin/integrations/formulaire_de_ligne", collection: lignes, as: :ligne, locals: { cote: } %>
+    <% listes.each do |liste, lignes| %>
+      <%= render partial: "admin/integrations/formulaire_de_ligne", collection: lignes, as: :ligne, locals: { liste: } %>
     <% end %>
   </div>
 <% end %>

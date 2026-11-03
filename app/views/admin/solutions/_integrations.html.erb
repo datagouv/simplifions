@@ -1,0 +1,16 @@
+<%# locals: (liste:, lignes:) -%>
+<h2 id="integrations-<%= liste %>" class="fr-h6 fr-mb-1w"><%= t("admin.integrations_de_la_solution.#{liste}") %></h2>
+<div class="fr-table"><div class="fr-table__wrapper"><div class="fr-table__container"><div class="fr-table__content">
+  <table class="lignes-modifiables lignes-integrations" aria-labelledby="integrations-<%= liste %>">
+    <thead>
+      <tr>
+        <th scope="col"><%= Integration.human_attribute_name(:"#{colonne_de_la_liste(liste)}_id") %> (obligatoire)</th>
+        <th scope="col"><%= Integration.human_attribute_name(:type_integration) %> (obligatoire) et statut</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: "admin/integrations/ligne", collection: lignes, locals: { liste: } %>
+    </tbody>
+  </table>
+</div></div></div></div>

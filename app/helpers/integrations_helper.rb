@@ -9,4 +9,11 @@ module IntegrationsHelper
   end
 
   def titre_groupe_donnees(bouquet) = bouquet || t('public.autres_donnees_utiles')
+
+  def colonne_de_la_liste(liste) = liste == :integratrices ? :integratrice : :integree
+  def colonne_fixe_de_la_liste(liste) = liste == :integratrices ? :integree : :integratrice
+
+  def ligne_vide(liste, solution_id)
+    Integration.new("#{colonne_fixe_de_la_liste(liste)}_id": solution_id, type_integration: { fournies: 'expose', integrees: 'consomme' }[liste])
+  end
 end

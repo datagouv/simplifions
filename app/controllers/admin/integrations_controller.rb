@@ -31,7 +31,7 @@ class Admin::IntegrationsController < Admin::BaseController
 
   def enregistrer_puis_repondre(page, enregistree)
     if params[:ligne]
-      @cote = params[:cote] == 'integratrice' ? :integratrice : :integree
+      @liste = params.expect(:liste).presence_in(%w[fournies integrees integratrices])&.to_sym || :integrees
       render :ligne, formats: :turbo_stream, status: enregistree ? :ok : :unprocessable_content
     elsif enregistree
       redirige_vers_la_fiche(@integration)
