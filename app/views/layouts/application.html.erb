@@ -115,16 +115,50 @@
           });
         })();
         (function() {
-          var paliers, vues, minuteurs, observateur, geste, attente;
+          var paliers, vues, minuteurs, observateur, geste, attente, lecture, lectures, onglet;
           function nomDeLaPage() {
             var page = document.querySelector('main[data-matomo-zone]');
             return page ? page.dataset.matomoZone.replace('Page › ', '') : document.title;
           }
           ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(function(type) {
-            addEventListener(type, function() { geste = true; }, { capture: true, passive: true });
+            addEventListener(type, function() { geste = true; suivreLecture(); }, { capture: true, passive: true });
+          });
+          function actionDeLecture() {
+            var fiche = location.pathname.match(/^\/(demarches|solutions|articles)\/[^\/]+$/);
+            if (!fiche || document.querySelector('[data-matomo-erreur]')) return null;
+            if (fiche[1] === 'solutions') return 'Lire une fiche solution';
+            if (fiche[1] === 'articles') return 'Lire un article';
+            if (onglet !== 'solutions-integratrices') return 'Lire une fiche démarche › Données disponibles';
+            var tableau = document.querySelector('input[name="affichage-solutions"][value="tableau"]:checked');
+            return 'Lire une fiche démarche › Solutions (' + (tableau ? 'tableau' : 'cartes') + ')';
+          }
+          function demarrerLecture() {
+            if (lecture) clearTimeout(lecture.minuteur);
+            var action = actionDeLecture();
+            lecture = action && !lectures.has(action) ? { action: action } : null;
+            if (!lecture) return;
+            lecture.minuteur = setTimeout(function() { lecture.duree = true; suivreLecture(); }, 30000);
+            suivreLecture();
+          }
+          function suivreLecture() {
+            if (!lecture || !geste) return;
+            if ((scrollY + innerHeight) / document.documentElement.scrollHeight * 100 >= 74) lecture.atteinte = true;
+            if (!lecture.atteinte || !lecture.duree) return;
+            lectures.add(lecture.action);
+            _paq.push(['trackEvent', 'Lecture', lecture.action, nomDeLaPage()]);
+            lecture = null;
+          }
+          addEventListener('dsfr.disclose', function(event) {
+            if (!event.target.matches('#donnees-disponibles, #solutions-integratrices')) return;
+            onglet = event.target.id;
+            demarrerLecture();
+          });
+          addEventListener('change', function(event) {
+            if (event.target.name === 'affichage-solutions') demarrerLecture();
           });
           function mesurerPaliers() {
             attente = false;
+            suivreLecture();
             var hauteur = document.documentElement.scrollHeight;
             if (!paliers || !geste || hauteur <= innerHeight) return;
             var vu = (scrollY + innerHeight) / hauteur * 100;
@@ -157,6 +191,9 @@
             vues = new Set();
             minuteurs = new Map();
             geste = false;
+            lectures = new Set();
+            onglet = 'donnees-disponibles';
+            demarrerLecture();
             if (!('IntersectionObserver' in window)) return;
             var seuils = [];
             for (var i = 0; i <= 20; i++) seuils.push(i / 20);
