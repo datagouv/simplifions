@@ -28,7 +28,8 @@ Constats and bracketed text in French. Labels, type, severity and verdict words,
 ## Code Review: [PR title or branch] — [verdict]
 Author: [PR author login, or the branch owner] · Model: [the model this review ran on] · Head: [the commit SHA reviewed]
 Ask: [SIM-ID and title, "no source found", or "not run — <reason>"] — delivered | partial | off-target
-Note: [what the review could not check, or left out]
+Drive: [the evidence path under tmp/verify/ of each drive]
+Note: [what the review could not check: a feature not driven, an issue not pasted]
 
 ### Findings
 | # | Severity | Type | Constat |
@@ -46,6 +47,8 @@ Details item N is finding N, in the line of its type:
 - `simplicity`, `readability`: `[what it costs] · Where: [path:line]`
 - `rule`: `[the rule, quoted] — [its file] · Where: [path:line]`
 - `ask`: `[the ask line] — missing | deviates: [how] | extra: [the limit it crosses] · Result: [what the visitor gets] · Decision: [what the product owner decides]`, or `[the ask line] — unclear: [what would settle it]`
+
+A finding with a visual direction ends its line with `· Capture: [the capture's local path]`.
 
 ## To paste on the PR
 

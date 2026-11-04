@@ -82,7 +82,7 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 
 `tmp/verify/<feature>/` in the checkout (the container writes into it): `<browser>-<step>.png` screenshots and one `read-back.txt` line per step, `timestamp browser step: <state read from the page and from the database>`. A mutation is proven by the read-back after it, then by the read-back after its undo. `tmp/` is gitignored, so evidence stays on the machine and survives branch switches and cleanup.
 
-Nobody else can open that folder. For the PR reader, attach to the Linear issue the screenshots that show the change and the `read-back.txt` (the tracker's attach-a-file call: prepare the upload, PUT the bytes within 60 s, then create the attachment); the PR body names the evidence folders and says the files are on the issue.
+Nobody else can open that folder. The agent gives the user, in its report, the paths of the screenshots that show the change and of `read-back.txt`; the user attaches them by hand to the PR comment or the Linear issue. A local path goes only in that report, never in a PR body or a commit.
 
 ## Cleanup
 

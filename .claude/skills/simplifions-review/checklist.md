@@ -1,6 +1,6 @@
 # Built-in checklist
 
-Read at step 3 of `/simplifions-review`, before the repo's `REVIEW.md`. The bar for a finding is in `SKILL.md` § Rules.
+Read at step 4 of `/simplifions-review`, before the repo's `REVIEW.md`. The bar for a finding is in `SKILL.md` § Rules.
 
 ## Pass 1: CRITICAL
 Issues that will break production, lose data, or create security holes.
