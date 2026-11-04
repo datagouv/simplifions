@@ -1,43 +1,31 @@
 ---
 name: simplifions-review
-description: "Paranoid two-pass code review of a Simplifions branch, PR, or files, run by a fresh agent before Thomas reviews. Use whenever the user asks to review a PR, a pull request URL, a branch, or files (\"can you review…\", \"est-ce qu'on peut review…\"), or to review a PR's design together (\"relis cette PR avec moi\", \"review de conception\")."
+description: "Paranoid code review of a Simplifions branch, PR, or files: asked versus built, the repo's written rules, four passes, every finding proven. Use whenever the user asks to review a PR, a pull request URL, a branch, or files (\"can you review…\", \"est-ce qu'on peut review…\")."
 ---
 
-Paranoid code review. Two-pass structural audit of changes, designed to catch bugs that pass CI but blow up in production.
+Paranoid code review. It checks what was built against what was asked, checks the diff against the repo's written rules, then runs four passes (critical, informational, design, simplicity). Every finding is proven and ranked by severity. It catches the bugs that pass CI and break in production.
 
 ## Usage
-- `/simplifions-review` - Review current branch changes against origin/main
-- `/simplifions-review <PR-number>` or `/simplifions-review <PR URL>` - Review a specific PR (also triggered by a plain request such as "peux-tu review https://github.com/org/repo/pull/504")
-- `/simplifions-review <file1> <file2> ...` - Review specific files
-- `/simplifions-review design <PR>` - Design review in conversation with the user, ending with a shareable page ([`design-review.md`](design-review.md)); also triggered by "relis cette PR avec moi", "review de conception"
-
-## Purpose
-
-This is the **paranoid staff engineer brain**. Not a style review, not a linting pass. This catches structural bugs: race conditions, N+1 queries, trust boundary violations, silent failures, and logic errors.
+- `/simplifions-review`: the current branch against `origin/main`
+- `/simplifions-review <PR number or URL>`: a PR (also on a plain request such as « peux-tu review https://github.com/datagouv/simplifions/pull/204 »)
+- `/simplifions-review <file1> <file2> ...`: those files
 
 ## Steps
 
-1. **Gather the diff**
-   - No args: `git fetch && git diff origin/main...HEAD` (all changes on current branch)
-   - PR number or URL: fetch PR diff via `gh pr diff <number-or-url>`; past a handful of commits read them in order (`gh pr view --json commits`, then `git show` each) and follow the review guide when the body links one, since the commits are the author's reading path; and the author via `gh pr view <number-or-url> --json author -q .author.login` — the report prints it, so whoever relays the findings knows whether the fix is ours to delegate or the author's (Apistration PR #383, 2026-09-15: a team PR framed as ours to fix)
-   - Specific files: `git diff origin/main -- <files>`
-2. **Asked versus built**: [`asked.md`](asked.md) — the ask as a checklist from the issue, then the diff marked against it. Done when every line carries delivered / missing / deviates and the extras are listed.
-3. **Read the checklist**: [`checklist.md`](checklist.md), then the repo's root [`REVIEW.md`](../../../REVIEW.md): what failure looks like here, the checks the passes add, what is already known, the paths to skip.
-4. **Launch the Codex second opinion (background)**. Start it before your own passes so it runs in parallel (review mode is read-only by design):
-   - Branch: `mkdir -p .notes/<branch>` (branch name with the prefix before `/` stripped, as for the plan), then `codex exec review --base origin/main > .notes/<branch>/codex-review.md 2>&1`
-   - PR number or URL: never switch the session's checkout (ship works there). Check the PR out in a separate worktree: `git fetch origin pull/<n>/head && git worktree add --detach <scratch>/pr-<n> FETCH_HEAD`, run the same command from there with the output path pointing at this checkout's `.notes/<branch>/`, then `git worktree remove <scratch>/pr-<n>`
-   - Specific files: not run (`--base` takes no prompt), say so under CODEX SECOND OPINION
-   Run it with `run_in_background`; collect the file after Pass 4. If `codex` is missing or fails (quota, login, "Review blocked … sandbox could not start"), say so under CODEX SECOND OPINION and continue — the second opinion is additive, never blocking. Never pass `--dangerously-bypass-approvals-and-sandbox` to get past a sandbox error: review mode then runs commands unsandboxed (it will happily run the test suite).
-5. **Run the four passes** of the checklist in order: CRITICAL, INFORMATIONAL, DESIGN, SIMPLICITY. A pass is done when every category has been checked against the whole diff.
-6. **Merge the Codex opinion**. Read `codex-review.md`. For each Codex finding: verify it against the code (same bar as your own — concrete failure scenario or drop it). Agreements get a "(also Codex)" tag on your finding; new confirmed findings go under CODEX SECOND OPINION; findings you reject get a one-line rebuttal there so the user sees the disagreement, not silence.
-7. **Diagram the data flow** (if the diff touches a data pipeline, request handler, or multi-step process): ASCII diagram, mark where validation happens (or doesn't), mark where errors can occur and how they're handled.
-8. **Write the report** in the format of [`output.md`](output.md).
+1. **Gather the diff.** The session's checkout stays on its branch: `/simplifions-ship` may be working there.
+   - No args: `git fetch origin`, note the head SHA (`git rev-parse HEAD`), then `git diff origin/main...<sha>`.
+   - PR: `git fetch origin`, then `git fetch origin pull/<n>/head` and note the head SHA (`git rev-parse FETCH_HEAD`). The diff is `git diff origin/main...<sha>`, a file at the head `git show <sha>:<path>`. Read every commit message (`git log --reverse origin/main..<sha>`, then `git show` each past a handful), and the PR body and author on https://github.com/datagouv/simplifions/pull/<n> (WebFetch): they hold the author's why.
+   - Files: `git diff origin/main -- <files>`.
+   - **Earlier rounds** given in the prompt (`/simplifions-ship`'s loop past round 1): read them, then review only what changed since the `Head:` of the latest one (`git diff <Head>..<sha>`; after a force-push, `git range-diff`). A finding triaged `rebutted` or `deferred` is not raised again; a fixed one is checked as fixed.
+2. **Asked versus built**: [`asked.md`](asked.md). Done when every line of the ask carries its mark and the extras are listed.
+3. **Rules check.** Read [`checklist.md`](checklist.md), then the root [`REVIEW.md`](../../../REVIEW.md) (what failure looks like here, the repo's own checks, what is already known, the paths to skip). Check the diff against every rule of `CLAUDE.md` and `REVIEW.md` whose area it touches. A broken rule is a `rule` row, the rule quoted. Done when every rule touching the diff was checked.
+4. **Run the four passes** of the checklist in order: CRITICAL, INFORMATIONAL, DESIGN, SIMPLICITY. Done when every category was checked against the whole diff.
+5. **Write the report** in the shape of [`output.md`](output.md), and show it. When the user asks for it on the PR, give the text to paste (`output.md` § To paste on the PR) with the PR's full link; the user posts it.
 
 ## Rules
 
-- No style nits a linter catches. Pass 2 Readability is not a nit.
-- Every critical finding must include a concrete failure scenario ("when X happens, Y breaks because Z").
-- Don't flag things that are already covered by existing tests (read the test files).
-- If the diff is clean, say "no issues found, ship it" — don't invent problems. Clean code that misses a line of the ask is not clean: the verdict is `partial`.
-- Be specific. "This could be a problem" is useless. "This N+1 fires on the index page with 50+ records and will timeout" is useful.
-- Read surrounding code for context before flagging — the "bug" might be handled elsewhere.
+- **Proven or cut.** Every finding has a trace: the entry point that reaches it, the values that get there, the line that misbehaves. A `bug`, `test` or `ask` row ranked critical or important carries a concrete failure scenario (« when X happens, Y breaks because Z »); a `design` row says who holds what. A doubt is investigated, then proven or dropped: no « potential », « may », « risky ». An Unproven premise, or an ask line marked `unclear` or `unproven`, states a missing proof: that is the fact, and it stays.
+- **Read before raising.** Read the tests before a `bug` or `test` row: a behaviour a test already pins is not a finding. A choice the PR body or a commit message explains is raised only when the explanation does not hold, quoted in the row.
+- **No lint nits**; Pass 2 Readability is not a nit. A clean diff says « ship it ». Clean code that misses a line of the ask is `partial`.
+- **One row per class of bug.** Several instances of one kind of bug are one row with its `Class:` and every instance, so one round fixes them all. A bug in code the diff did not change is a `pre-existing` row, left out of the verdict.
+- **Who decides** (`CLAUDE.md` § Qui décide quoi): product and UX belong to the product owner. An `ask` row, and any finding about what the visitor sees (a text, a page, a path through the site), ends on the decision she has to make. A technical finding names the rule of `CLAUDE.md` or `REVIEW.md` that settles it, or stands on its proof alone.
