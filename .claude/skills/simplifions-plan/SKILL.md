@@ -1,23 +1,22 @@
 ---
 name: simplifions-plan
-description: "Write or replan `.notes/<branch>/plan.md` for Simplifions issues in Linear."
+description: "Write or replan `.notes/<branch>/plan.md` for one Simplifions issue in Linear."
 ---
 
-Plan command for issues in Linear ([`simplifions-work` § Linear](../simplifions-work/SKILL.md#linear)). Handles both initial planning and replanning.
+Plans one Linear issue, first plan or replan.
 
 ## Usage
-- `/simplifions-plan <issue1> <issue2> ...` - Create or replan for listed issues (IDs or URLs)
-- `/simplifions-plan` (no args) - Resume active session OR replan plans with unanswered questions
+- `/simplifions-plan <issue>` - Create or replan the plan for that issue (ID or URL)
+- `/simplifions-plan` (no args) - Scan `.notes/*/plan.md` for unanswered questions or FIXMEs and replan those, one at a time
 
 ## Steps
 
 1. Read [`one-rule.md`](one-rule.md). Every plan is measured against it; a plan that escalates complexity on its own is wrong even when it works.
-2. Open or resume the session file ([`session.md`](session.md)).
-   - **With issue arguments**: write the session file with the issue list. Per issue: read the issue from Linear → get branch name → create/replan/skip at `.notes/<branch>/plan.md` in the format of [`plan-format.md`](plan-format.md) → update session status.
-   - **Without arguments**: resume from the session file if pending items exist; else scan `.notes/*/plan.md` for unanswered questions / FIXMEs and replan those. A plan waiting for Thomas: read the issue's comments; his answer settles the Question or the Flag, which is then removed.
-3. Stop the moment a plan has questions or a flag — do NOT guess on ambiguity. Who answers is [`simplifions-work` § Who decides](../simplifions-work/SKILL.md#who-decides): a product question goes to the user, a technical go-ahead to Thomas as a comment on the issue. Done when every listed issue is `ready`, `has-questions`, or skipped in the session file.
+2. Get the issue and its branch name ([`simplifions-work` § Linear](../simplifions-work/SKILL.md#linear)) → create or replan `.notes/<branch>/plan.md` in the format of [`plan-format.md`](plan-format.md). On a replan, read the comments appended to `issue.md` first: Thomas's answer settles a Question or the Flag, which is then removed.
+3. Stop the moment the plan has questions or a flag — do NOT guess on ambiguity. Who answers is [`simplifions-work` § Who decides](../simplifions-work/SKILL.md#who-decides): a product question goes to the user, a technical go-ahead to Thomas as a comment the user posts on the issue. Done when the plan is ready, its questions are written in it, or the issue goes back to `/simplifions-challenge` or to the user.
 
 ## Output
 
-On stop: show progress list + the questions, so the user can answer inline (product questions only; a technical go-ahead says the issue waits for Thomas).
-On batch complete: list ready issues with branch names + a copy-pasteable `/simplifions-ship SIM-123 SIM-124` line, and any still-has-questions issues.
+Questions: show them, so the user can answer inline (product questions only). A flag or a technical go-ahead: say in one sentence that the issue waits for Thomas, and hand over the comment that asks him.
+Ready: the branch name and a copy-pasteable `/simplifions-ship <issue>` line.
+No `plan.md` (several stories, or a screen with no mockup): why, and the line to run next, or the mockup to ask the user for.
