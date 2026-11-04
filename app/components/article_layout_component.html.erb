@@ -84,7 +84,7 @@
     </div>
   </div>
 
-  <%= render "application/avis_page", page: @article.h1, lien: helpers.contact_path("donner-son-avis", article: @article.slug) %>
+  <%= render "application/avis_page", page: "Article : #{@article.h1}", lien: helpers.contact_path("donner-son-avis", article: @article.slug) %>
 
   <% if @mentions.any? %>
     <section class="topics-carousel fr-mt-6w fr-py-5w" style="background-image: <%= @article.hero_backdrop_gradient %>">

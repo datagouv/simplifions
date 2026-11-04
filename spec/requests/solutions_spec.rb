@@ -285,7 +285,7 @@ RSpec.describe 'Solutions' do
       expect(avis).to have_css('h2', text: 'Cette page vous a-t-elle été utile ?')
       expect(avis.all('label').map { it.text.strip }).to eq(%w[Non Moyennement Oui])
       expect(avis).to have_button('Envoyer mon avis', disabled: true)
-      expect(avis['data-matomo-contexte']).to eq('Logiciel RH')
+      expect(avis['data-matomo-contexte']).to eq('Solution : Logiciel RH')
       expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('donner-son-avis', solution: 'logiciel-rh'),
         visible: :all)
       expect(avis).to have_link('Écrivez-nous', href: contact_path('donner-son-avis', solution: 'logiciel-rh'), visible: :all)
