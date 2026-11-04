@@ -92,6 +92,6 @@
 
 <%= yield :modales_integrations %>
 
-<%= render "avis_page", page: @demarche.nom, lien: contact_path("donner-son-avis", demarche: @demarche.slug) %>
+<%= render "avis_page", page: "Démarche : #{@demarche.nom}", lien: contact_path("donner-son-avis", demarche: @demarche.slug) %>
 
 <%= render "bloc_modification", sujet: "cette démarche", lien: lien_modification %>

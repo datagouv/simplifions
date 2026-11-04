@@ -49,7 +49,7 @@ def sans_choix(page, demarche)
 end
 
 def vote_demarche(page, demarche)
-  bloc = voter(page, 'Non', demarche.nom)
+  bloc = voter(page, 'Non', "Démarche : #{demarche.nom}")
   attendu = "/contact/donner-son-avis?demarche=#{demarche.slug}"
   raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?(attendu)
   raise 'lien Écrivez-nous affiché après Non' if bloc.has_link?('Écrivez-nous', wait: 0)
@@ -63,7 +63,7 @@ end
 
 def vote_solution(page, solution)
   page.visit("/solutions/#{solution.slug}")
-  bloc = voter(page, 'Oui', solution.nom)
+  bloc = voter(page, 'Oui', "Solution : #{solution.nom}")
   raise 'lien « Dites-nous ce qui manque » affiché après Oui' if lien_de_retour(bloc)
 
   ecrire = bloc.all(:link, 'Écrivez-nous').first&.[]('href')
@@ -73,7 +73,7 @@ end
 def vote_article(page)
   article = Article.find('qu-est-ce-qu-une-api')
   page.visit("/articles/#{article.slug}")
-  bloc = voter(page, 'Moyennement', article.h1)
+  bloc = voter(page, 'Moyennement', "Article : #{article.h1}")
   raise "lien de retour : #{lien_de_retour(bloc).inspect}" unless lien_de_retour(bloc)&.end_with?("/contact/donner-son-avis?article=#{article.slug}")
 end
 
@@ -85,7 +85,7 @@ def vote_apres_lecture(page)
   sleep 0.5 until lecture_comptee?(page) || Time.current > depart + 40
   raise 'pas de lecture comptée après 40 s' unless lecture_comptee?(page)
 
-  voter(page, 'Oui', article.h1, 'après lecture')
+  voter(page, 'Oui', "Article : #{article.h1}", 'après lecture')
 end
 
 TITRE_DECOUVERT = <<~JS.freeze
@@ -143,7 +143,7 @@ def clavier(page, solution)
   raise 'Tab ne mène pas à Envoyer mon avis' unless page.evaluate_script('document.activeElement.textContent') == 'Envoyer mon avis'
 
   touches(page, :enter)
-  attendre_avis(page, "Avis sur la page | Trouver la page utile | Moyennement (avant lecture) — #{solution.nom}")
+  attendre_avis(page, "Avis sur la page | Trouver la page utile | Moyennement (avant lecture) — Solution : #{solution.nom}")
   annonce = page.evaluate_script('document.activeElement.innerText').squish
   raise "focus sur « #{annonce} »" unless annonce.start_with?('Merci pour votre avis ! Vous avez répondu « Moyennement ».')
 

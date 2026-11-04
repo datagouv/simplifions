@@ -222,7 +222,7 @@ RSpec.describe 'Demarches' do
       avis = Capybara.string(response.body).find('[data-controller="avis-page"]')
 
       expect(avis['data-matomo-zone']).to eq('Avis sur la page')
-      expect(avis['data-matomo-contexte']).to eq('Cantine')
+      expect(avis['data-matomo-contexte']).to eq('Démarche : Cantine')
     end
 
     it 'propose d’écrire son avis quand le JavaScript ne tourne pas' do
