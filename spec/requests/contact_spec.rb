@@ -151,6 +151,25 @@ RSpec.describe 'Contact' do
       expect(response.parsed_body.at('[aria-live="polite"][data-copier-target="statut"]')).to be_present
     end
 
+    it 'n’affiche pas de bouton Retour, qu’on prendrait pour un retour à la page consultée' do
+      PagesController::BESOINS_DE_CONTACT.each do |besoin|
+        get contact_path(besoin)
+
+        expect(Capybara.string(response.body)).to have_no_link('Retour', exact: true), besoin
+      end
+    end
+
+    it 'remonte au choix du besoin par le fil d’Ariane, l’étape restant la page courante' do
+      get contact_path('nouveau-cas-usage')
+      fil = Capybara.string(response.body).find('.fr-breadcrumb__list')
+
+      expect(fil.find_link('Nous contacter')[:href]).to eq('/contact')
+      expect(fil.find('[aria-current="page"]').text).to eq('Proposer une nouvelle démarche')
+
+      get contact_path
+      expect(Capybara.string(response.body).find('.fr-breadcrumb__list [aria-current="page"]').text).to eq('Nous contacter')
+    end
+
     it 'garde chaque lien e-mail sous 2 000 caractères, les options restant dans le modèle à copier' do
       30.times { |rang| TypeActeur.create!(nom: "Établissements publics nationaux à caractère administratif #{rang}") }
 
@@ -381,7 +400,6 @@ RSpec.describe 'Contact' do
       etape = page.find('section[data-matomo-zone="Contact"]')
       expect([etape['data-matomo-contexte'], etape['data-matomo-liens']]).to eq(['Proposer une nouvelle démarche', 'Suivre un lien'])
       expect(zone_matomo(page.find_link('Consultez la doctrine de référencement des démarches'))).to eq("Contact › Avant d'écrire")
-      expect(page.find_link('Retour')['data-matomo-action']).to eq("Revenir à l'étape précédente")
       ecrire = page.find('[data-controller="copier"]')
       expect([zone_matomo(ecrire), ecrire['data-matomo-nom']]).to eq(['Contact › Écrire', "Proposition d'une nouvelle démarche"])
       expect(ecrire.find('a[href^="mailto:"]')['data-matomo-action']).to eq("Ouvrir l'e-mail pré-rempli")

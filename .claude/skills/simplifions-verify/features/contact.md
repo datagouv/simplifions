@@ -4,7 +4,7 @@
 
 ## Sub-features
 
-- `contact-etapes` `/contact` orients in steps (`/contact/<besoin>`), `Retour` goes back one step.
+- `contact-etapes` `/contact` orients in steps (`/contact/<besoin>`); no `Retour` button, it read as going back to the page the visitor came from: the breadcrumb `Accueil › Nous contacter › <étape>` links back to `/contact` instead.
 - `contact-etape-inconnue` an unknown step is a 404 (spec only).
 - `contact-fiche` from a cas d'usage page, the démarche comes preselected and the subject and the prefilled e-mail cite it.
 - `contact-solution` from a solution page, the solution and its operator are preselected and cited (spec only).
@@ -31,8 +31,8 @@ Preconditions:
 - **Fiche cited.** The select `Démarche concernée` shows the démarche's `titre` (emoji prefix included); the text of `#objet-message` ends with ` : <titre>`; the decoded `href` of the link `Ouvrir un e-mail déjà pré-rempli` holds `Fiche concernée : <titre>`.
 - **Copy.** Buttons `Copier l'e-mail`, `Copier l'objet`, `Copier le modèle`. Chrome needs `page.driver.browser.add_permission('clipboard-write', 'granted')`. Click `Copier l'objet`; the sr-only `[data-copier-target=statut]` reads `Objet du mail copié` (`visible: :all`).
 - **Another démarche, no reload.** Set a `window` marker, `select <titre>, from: "Démarche concernée"`: the form submits on change into a Turbo frame, the URL becomes `?demarche=<slug>`, the subject follows, the marker is still there.
-- **Chosen without a fiche.** `Retour` → `/contact/contenu` (group heading h3 `Démarches`), click `Proposer une modification d'une démarche existante`: subject without ` : `; select a démarche → URL and subject follow. `Retour` → `/contact/contenu`.
-- **No-contact answer.** `Retour` → `/contact`, click `J'ai une question sur ma propre démarche administrative`: the answer shows, no `mailto:` link in it.
+- **Chosen without a fiche.** No `Retour` link (exact text); visit `/contact/contenu` (group heading h3 `Démarches`), click `Proposer une modification d'une démarche existante`: subject without ` : `; select a démarche → URL and subject follow. Visit `/contact/contenu` again.
+- **No-contact answer.** Visit `/contact`, click `J'ai une question sur ma propre démarche administrative`: the answer shows, no `mailto:` link in it.
 - **Proof.** Screenshots `fiche-citee`, `demarche-changee`, `demarche-choisie` and `reponse-sans-adresse`.
 
 ## Gotchas
