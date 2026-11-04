@@ -76,13 +76,13 @@ Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse
 - A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join('.claude/skills/simplifions-verify/harness.rb')` and `page = Verify.session`, run with `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
 - A `bin/rails …` command in a feature file runs the same way, `docker compose run --rm web bin/rails …`. The features on a throwaway database spell out each command in full, guarded by `test "$DATABASE_URL" = …`; copy them as they are, never drop the `-e` or the guard.
 - Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, `select "Entreprises", from: "Démarches à destination des :"`). The catalogue selects wait for the `Appliquer les filtres` button; the search field needs the `Rechercher` button.
-- Both browsers, every time: the users browse with Firefox, CI and Capybara defaults lean on Chrome.
+- Both browsers, every time a change is proven (a review's drive takes one): the users browse with Firefox, CI and Capybara defaults lean on Chrome.
 
 ## Evidence
 
 `tmp/verify/<feature>/` in the checkout (the container writes into it): `<browser>-<step>.png` screenshots and one `read-back.txt` line per step, `timestamp browser step: <state read from the page and from the database>`. A mutation is proven by the read-back after it, then by the read-back after its undo. `tmp/` is gitignored, so evidence stays on the machine and survives branch switches and cleanup.
 
-Nobody else can open that folder. The agent gives the user, in its report, the paths of the screenshots that show the change and of `read-back.txt`; the user attaches them by hand to the PR comment or the Linear issue. A local path goes only in that report, never in a PR body or a commit.
+Nobody else can open that folder. The agent gives the user, in its report, the paths of the screenshots that show the change and of `read-back.txt`; the user attaches them by hand to the PR comment or the Linear issue. A local path goes only in that report, never in a PR body, a PR comment or a commit.
 
 ## Cleanup
 
