@@ -28,6 +28,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [fiche-cas-usage.md](fiche-cas-usage.md) — open a cas d'usage from the list and unfold a recommended data source; a moyen d'accès with no solution stays a readable, non-clickable line.
 - [matomo-evenements.md](matomo-evenements.md) — the events sent for each visitor gesture, read from the requests the browser sent; a logged-in admin is not measured.
 - [fiche-solution.md](fiche-solution.md) — open a solution: operator badge, one tab per category of integrating solution with its count.
+- [avis-page.md](avis-page.md) — say whether an article or a fiche was useful: one Matomo event per vote, a thank-you, and after Non or Moyennement a link to write what is missing.
 - [article-cartes.md](article-cartes.md) — the solution and cas d'usage cards cited in an article come from the base; a hidden record's card is skipped, the article still renders.
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.

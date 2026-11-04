@@ -211,4 +211,6 @@
   <% end %>
 </div>
 
+<%= render "avis_page", page: @solution.nom, lien: contact_path("donner-son-avis", solution: @solution.slug) %>
+
 <%= render "bloc_modification", sujet: "cette solution", lien: lien_modification %>

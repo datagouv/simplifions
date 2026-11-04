@@ -1,6 +1,7 @@
 class PagesController < ApplicationController
   BESOINS_DE_CONTACT = %w[contenu nouveau-cas-usage modifier-cas-usage nouvelle-solution modifier-solution nouvel-article
-                          modifier-article autre-contenu demarche-personnelle question-api probleme-site autre].freeze
+                          modifier-article autre-contenu demarche-personnelle question-api probleme-site autre
+                          donner-son-avis].freeze
 
   def home; end
   def about; end
@@ -31,7 +32,18 @@ class PagesController < ApplicationController
     case @besoin
     when 'modifier-cas-usage' then fiche_publiee(Demarche.visibles, params[:demarche])
     when 'modifier-solution' then fiche_publiee(Solution.visibles.fiches, params[:solution])
+    when 'donner-son-avis' then page_de_l_avis
     end
+  end
+
+  def page_de_l_avis
+    fiche_publiee(Demarche.visibles, params[:demarche]) ||
+      fiche_publiee(Solution.visibles.fiches, params[:solution]) ||
+      article_publie(params[:article])
+  end
+
+  def article_publie(slug)
+    Article.find(slug) if slug.is_a?(String)
   end
 
   def fiche_publiee(fiches, slug)

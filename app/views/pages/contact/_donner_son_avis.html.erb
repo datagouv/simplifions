@@ -1,0 +1,6 @@
+<%= render "pages/contact/titre", titre: "Donner son avis sur une page", pictogramme: "environment/human-cooperation" %>
+<%= render "pages/contact/ecrire", fiche: page_concernee(@fiche), objet: "Avis sur une page", a_comprendre: "votre avis", informations: [
+      ("Le titre et l'URL de la page concernée" unless @fiche),
+      "Votre avis sur le contenu de cette page",
+      "Votre organisation et votre fonction, si vous le souhaitez"
+    ].compact %>

@@ -1,6 +1,6 @@
 <% etape = render "pages/contact/#{(@besoin || 'besoins').tr('-', '_')}" %>
 <% content_for :title, safe_join([content_for(:etape), " - "]) if content_for?(:etape) %>
-<%= render "entete_page", titre: "Nous contacter" %>
+<%= render "entete_page", titre: "Nous contacter", lien: contact_path, etape: (content_for(:etape) if @besoin) %>
 <% content_for :description, "Proposition de contenu, signalement d’une erreur, question : répondez à quelques questions pour être orienté vers la bonne réponse ou le bon contact." %>
 <% content_for :robots, "noindex" if @besoin %>
 

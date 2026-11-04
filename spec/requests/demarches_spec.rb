@@ -190,6 +190,51 @@ RSpec.describe 'Demarches' do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'demande en bas de page si la fiche a été utile, et propose d’écrire ce qui manque' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+
+      get demarche_path('cantine')
+      avis = Capybara.string(response.body).find('[data-controller="avis-page"]')
+
+      expect(avis).to have_css('h2', text: 'Cette page vous a-t-elle été utile ?')
+      expect(avis.all('label').map { it.text.strip }).to eq(%w[Non Moyennement Oui])
+      expect(avis).to have_button('Envoyer mon avis', disabled: true)
+      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('donner-son-avis', demarche: 'cantine'),
+        visible: :all)
+      expect(avis).to have_link('Écrivez-nous', href: contact_path('donner-son-avis', demarche: 'cantine'), visible: :all)
+    end
+
+    it 'renvoie depuis le sommaire vers l’avis en bas de la fiche' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+
+      get demarche_path('cantine')
+      page = Capybara.string(response.body)
+      lien = page.find('nav.fr-summary').find_link('Donner votre avis sur cette page')
+
+      expect(page).to have_css("#{lien['href']} h2", text: 'Cette page vous a-t-elle été utile ?')
+      expect(lien['data-matomo-action']).to eq("Aller à l'avis sur la page")
+    end
+
+    it 'prépare pour Matomo le choix d’utilité de la fiche' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+
+      get demarche_path('cantine')
+      avis = Capybara.string(response.body).find('[data-controller="avis-page"]')
+
+      expect(avis['data-matomo-zone']).to eq('Avis sur la page')
+      expect(avis['data-matomo-contexte']).to eq('Cantine')
+    end
+
+    it 'propose d’écrire son avis quand le JavaScript ne tourne pas' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+
+      get demarche_path('cantine')
+      avis = Capybara.string(response.body).find('[data-controller="avis-page"]')
+      page_contact = avis.find_link('Dites-nous ce qui manque', visible: :all)['href']
+
+      expect(avis.find('noscript', visible: :all)).to have_link('Écrivez-nous', href: page_contact, visible: :all)
+    end
+
     it 'garde « Aucun contenu actuellement » sans bouton « Lire plus » quand Contexte et Cadre juridique sont vides' do
       Demarche.create!(nom: 'Vide', slug: 'vide', visible: true)
 

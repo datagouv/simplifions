@@ -197,6 +197,20 @@ RSpec.describe 'Articles' do
       get article_path('nexiste-pas')
       expect(response).to have_http_status(:not_found)
     end
+
+    it 'demande à la fin de l’article s’il a été utile, et propose d’écrire ce qui manque' do
+      article = Article::ALL.first
+
+      get article_path(article.slug)
+      avis = Capybara.string(response.body).find('[data-controller="avis-page"]')
+
+      expect(avis).to have_css('h2', text: 'Cette page vous a-t-elle été utile ?')
+      expect(avis.all('label').map { it.text.strip }).to eq(%w[Non Moyennement Oui])
+      expect(avis).to have_button('Envoyer mon avis', disabled: true)
+      expect(avis['data-matomo-contexte']).to eq(article.h1)
+      expect(avis).to have_link('Dites-nous ce qui manque', href: contact_path('donner-son-avis', article: article.slug), visible: :all)
+      expect(avis).to have_link('Écrivez-nous', href: contact_path('donner-son-avis', article: article.slug), visible: :all)
+    end
   end
 
   describe 'anciennes URLs à plat' do

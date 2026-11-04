@@ -1,5 +1,5 @@
 <% content_for :title, titre %>
 
 <div class="fr-container">
-  <%= render "breadcrumb", id: "breadcrumb-#{titre.parameterize}", liens: [["Accueil", root_path], [titre, nil]] %>
+  <%= render "breadcrumb", id: "breadcrumb-#{titre.parameterize}", liens: [["Accueil", root_path], [titre, local_assigns[:lien]], (local_assigns[:etape] && [etape, nil])].compact %>
 </div>

@@ -25,5 +25,9 @@
       <% if record.cree_le %><br>le <time datetime="<%= record.cree_le.iso8601 %>"><%= l record.cree_le.to_date, format: :long %>.</time><% end %>
       <% if record.modifie_le %><br><span class="fr-text--xs">Modifié le <time datetime="<%= record.modifie_le.iso8601 %>"><%= l record.modifie_le.to_date, format: :long %>.</time></span><% end %>
     </p>
+    <p class="fr-mb-0" data-turbo="false">
+      <a href="#avis-bas" class="fr-link fr-link--sm fr-icon-arrow-down-line fr-link--icon-left"
+        data-matomo-action="Aller à l'avis sur la page">Donner votre avis sur cette page</a>
+    </p>
   <% end %>
 </nav>

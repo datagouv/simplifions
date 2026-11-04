@@ -42,8 +42,9 @@ def choisir(page, demarche)
 end
 
 def retour_aux_contenus(page)
-  page.click_link 'Retour'
-  page.assert_current_path('/contact/contenu')
+  raise 'bouton Retour affiché' if page.has_link?('Retour', exact: true, wait: 0)
+
+  page.visit('/contact/contenu')
 end
 
 def choisie_sans_fiche(page, demarche)
@@ -58,8 +59,7 @@ def choisie_sans_fiche(page, demarche)
 end
 
 def reponse_sans_adresse(page)
-  page.click_link 'Retour'
-  page.assert_current_path('/contact')
+  page.visit('/contact')
   page.click_link "J'ai une question sur ma propre démarche administrative"
   page.assert_text 'Nous ne sommes pas en mesure de vous aider à ce sujet.'
   raise 'adresse donnée sans contact' if page.find('section', text: 'Nous ne sommes pas').has_css?('a[href^="mailto:"]', wait: 0)

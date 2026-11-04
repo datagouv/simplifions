@@ -1,0 +1,40 @@
+<div id="avis-bas" class="fr-background-alt--blue-france fr-mt-6w">
+  <div class="fr-container fr-py-4w">
+    <form class="avis-page" data-controller="avis-page" data-action="avis-page#envoyer:prevent" <%= tag.attributes(data: matomo_zone("Avis sur la page", page)) %>>
+      <fieldset class="fr-fieldset" aria-labelledby="avis-bas-titre" data-avis-page-target="choix" data-action="change->avis-page#activer">
+        <legend class="fr-fieldset__legend" id="avis-bas-titre">
+          <h2 class="fr-h5 fr-mb-2w">Cette page vous a-t-elle été utile ?</h2>
+        </legend>
+        <% [["bad", "Non"], ["medium", "Moyennement"], ["good", "Oui"]].each do |smiley, libelle| %>
+          <div class="fr-fieldset__element fr-fieldset__element--inline@md">
+            <div class="fr-radio-group fr-radio-rich">
+              <input type="radio" id="avis-bas-<%= smiley %>" name="avis-bas" value="<%= libelle %>">
+              <label class="fr-label" for="avis-bas-<%= smiley %>"><%= libelle %></label>
+              <div class="fr-radio-rich__img fr-p-1w">
+                <%= image_tag "avis/#{smiley}.svg", alt: "", width: 46, height: 46 %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </fieldset>
+      <button type="submit" class="fr-btn" disabled data-avis-page-target="envoi">Envoyer mon avis</button>
+      <noscript>
+        <p class="fr-mt-2w fr-mb-0">
+          Pour nous donner votre avis, <%= lien_nouvel_onglet "Écrivez-nous", lien %>.
+        </p>
+      </noscript>
+      <p class="fr-mb-0 fr-hidden" tabindex="-1" data-avis-page-target="merci">
+        <strong>Merci pour votre avis !</strong>
+        <span data-avis-page-target="rappel"></span>
+        <span class="fr-hidden" data-avis-page-target="manque">
+          Une information manque ou n'est pas claire ?
+          <%= lien_nouvel_onglet "Dites-nous ce qui manque", lien, data: { matomo_action: "Dites-nous ce qui manque" } %>.
+        </span>
+        <span class="fr-hidden" data-avis-page-target="remarque">
+          Une remarque, une suggestion ?
+          <%= lien_nouvel_onglet "Écrivez-nous", lien, data: { matomo_action: "Écrire une remarque" } %>.
+        </span>
+      </p>
+    </form>
+  </div>
+</div>

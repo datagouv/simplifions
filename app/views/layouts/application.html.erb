@@ -160,6 +160,7 @@
             if (!lecture.atteinte || !lecture.duree) return;
             lectures.add(lecture.action);
             _paq.push(['trackEvent', 'Lecture', lecture.action, nomDeLaPage()]);
+            document.querySelectorAll('[data-controller~="avis-page"]').forEach(function(avis) { avis.dataset.avisPageLuValue = 'true'; });
             lecture = null;
           }
           addEventListener('dsfr.disclose', function(event) {
