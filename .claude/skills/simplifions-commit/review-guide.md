@@ -1,6 +1,6 @@
 # Review guide for a large PR
 
-Read at `/simplifions-ship` phase 4 and at `gh pr create` when the PR cannot be read commit by commit in one sitting: roughly more than ten commits, or generated files outweighing the hand-written change. Model: Loïc's guide for Apistration #395 (545 files, 46 000 lines, 2026-09), https://assets.delmai.re/apistration-pr-395/.
+Read at `/simplifions-ship`'s prove-and-push phase and before opening a PR that cannot be read commit by commit in one sitting: more than about ten commits, or generated files outweighing the hand-written change. Model: Loïc's guide for Apistration #395 (545 files, 46 000 lines, 2026-09), https://assets.delmai.re/apistration-pr-395/.
 
 Write `.notes/<branch>/review-guide.md` in French, these sections in this order:
 
@@ -10,4 +10,4 @@ Write `.notes/<branch>/review-guide.md` in French, these sections in this order:
 4. **Gardes-fous** — the tests that keep the pieces from diverging, what they cover, what they do not.
 5. **Commits & tests** — the commits in reading order, each with « ce qu'il faut lire » (the files and the idea, not the diff), and the commands to run locally. Split the essential hand-written lines from the skimmable generated ones, with the counts.
 
-The guide is attached to the Linear issue as a file (`simplifions-work` § Linear, attach a file), and the PR body's third line says so. It never replaces the commits: it tells the reviewer which one to open next.
+The user attaches the guide to the Linear issue as a file ([`simplifions-work` § Linear](../simplifions-work/SKILL.md#linear)), and the PR body's third line says so. It never replaces the commits: it tells the reviewer which one to open next.
