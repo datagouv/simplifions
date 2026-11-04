@@ -1,6 +1,6 @@
 # Output format
 
-The review is one list of findings, every one proven (`SKILL.md` § Rules), ranked by severity, most severe first. Its reader is the author or the next agent, who finds the fix on their own. Each finding says what is wrong; it may end with one sentence of direction in plain words (« Moving the rule into the model would solve it »), never code.
+The review is one list of findings, every one proven (`SKILL.md` § Rules), ranked by severity, most severe first. Its reader is the author or the next agent. Each finding says what is wrong; it may end with one sentence of direction in plain words (« Moving the rule into the model would solve it »), never code: a way to go, not the fix. A visual direction, pointing to a screen the site already shows (« comme sur les pages « modifier » »), comes with a capture of that screen taken with `simplifions-verify`, its local path given: the user attaches it to the comment by hand.
 
 ## Severity
 
@@ -10,11 +10,11 @@ The review is one list of findings, every one proven (`SKILL.md` § Rules), rank
 
 ## Type
 
-One of: `ask` (a line of the ask missing, deviating, unclear or unproven, or an extra that crosses a limit), `bug`, `test`, `design`, `simplicity`, `readability`, `rule` (a written rule the diff breaks), `pre-existing` (a bug in code the diff did not change).
+One of: `ask` (a line of the ask missing, deviating or unclear, or an extra that crosses a limit), `bug`, `test`, `design`, `simplicity`, `readability`, `rule` (a written rule the diff breaks), `pre-existing` (a bug in code the diff did not change).
 
 ## Constat
 
-One or two sentences of 20 words at most, in French and in the site's own words (démarche, solution, cas d'usage, brouillon…), naming the behaviour a visitor, an admin or a developer meets. A finding that only exists in the code (a missing index, an unrelated reformatting) names the page, the data or the change it touches. A `rule` row quotes the rule. File paths and code names live on the `Where:` line of § Details only.
+Written for the PR's author, who may be the product owner, not a developer: one or two sentences of 20 words at most, in French and in the site's own words (démarche, solution, cas d'usage, brouillon…), naming the behaviour, who meets it (a visitor, an admin, a developer) and when. A finding that only exists in the code (a missing index, an unrelated reformatting) names the page, the data or the change it touches. A `rule` row quotes the rule. File paths and code names live on the `Where:` line of § Details only.
 
 ## Verdict
 
@@ -28,6 +28,7 @@ Constats and bracketed text in French. Labels, type, severity and verdict words,
 ## Code Review: [PR title or branch] — [verdict]
 Author: [PR author login, or the branch owner] · Model: [the model this review ran on] · Head: [the commit SHA reviewed]
 Ask: [SIM-ID and title, "no source found", or "not run — <reason>"] — delivered | partial | off-target
+Note: [what the review could not check, or left out]
 
 ### Findings
 | # | Severity | Type | Constat |
@@ -44,12 +45,12 @@ Details item N is finding N, in the line of its type:
 - `design`: `[who decides or holds what today] · [who should] · [what disappears if it moves] · Where: [path:line]`, the first three in plain words, no code names
 - `simplicity`, `readability`: `[what it costs] · Where: [path:line]`
 - `rule`: `[the rule, quoted] — [its file] · Where: [path:line]`
-- `ask`: `[the ask line] — missing | deviates: [how] | extra: [the limit it crosses] · Result: [what the visitor gets] · Decision: [what the product owner decides]`, or `[the ask line] — unclear: [what would settle it] | unproven` (no Result: the missing proof is the fact)
+- `ask`: `[the ask line] — missing | deviates: [how] | extra: [the limit it crosses] · Result: [what the visitor gets] · Decision: [what the product owner decides]`, or `[the ask line] — unclear: [what would settle it]`
 
 ## To paste on the PR
 
 When the user asks for the review on a PR, give one block of text, all in French, labels translated, for them to paste as a comment on the PR's page (full link given with it); the agent itself posts nothing. Its content:
 
-- `**[verdict]** · commit [short SHA]`, then the `Ask:` line.
-- The findings table (sévérité, type, constat).
-- For each `bug` or `test` row: its number, one `Reproduire :` line with the steps only (the constat already says the result), and the `path:line` where it starts.
+- `**[verdict]** · commit [short SHA]`, then the ask on its own lines: when the `Ask:` line carries a mark (`no source found` and `not run` carry none), `Demande : https://linear.app/pole-api/issue/SIM-<n>` and `Demande réalisée : oui | non | partielle` (from `delivered | off-target | partial`); when the report has a `Note:`, `Commentaire : [the Note:, as the review's own limit, never as a gap of the PR]`.
+- The findings table (sévérité, type, constat alone).
+- For each row with a direction, or a `bug` or `test` row: its number, `Piste de correction : [the direction]` when it has one (a visual one followed by its capture's path), and for a `bug` or `test` one `Reproduire :` line with the steps only (the constat already says the result) and the `path:line` where it starts.

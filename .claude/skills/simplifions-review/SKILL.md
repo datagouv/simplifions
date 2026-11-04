@@ -24,7 +24,7 @@ Paranoid code review. It checks what was built against what was asked, checks th
 
 ## Rules
 
-- **Proven or cut.** Every finding has a trace: the entry point that reaches it, the values that get there, the line that misbehaves. A `bug`, `test` or `ask` row ranked critical or important carries a concrete failure scenario (« when X happens, Y breaks because Z »); a `design` row says who holds what. A doubt is investigated, then proven or dropped: no « potential », « may », « risky ». An Unproven premise, or an ask line marked `unclear` or `unproven`, states a missing proof: that is the fact, and it stays.
+- **Proven or cut.** Every finding has a trace: the entry point that reaches it, the values that get there, the line that misbehaves. A `bug`, `test` or `ask` row ranked critical or important carries a concrete failure scenario (« when X happens, Y breaks because Z »); a `design` row says who holds what. A doubt is investigated, then proven or dropped: no « potential », « may », « risky ». An Unproven premise, or an ask line marked `unclear`, states a missing proof: that is the fact, and it stays.
 - **Read before raising.** Read the tests before a `bug` or `test` row: a behaviour a test already pins is not a finding. A choice the PR body or a commit message explains is raised only when the explanation does not hold, quoted in the row.
 - **No lint nits**; Pass 2 Readability is not a nit. A clean diff says « ship it ». Clean code that misses a line of the ask is `partial`.
 - **One row per class of bug.** Several instances of one kind of bug are one row with its `Class:` and every instance, so one round fixes them all. A bug in code the diff did not change is a `pre-existing` row, left out of the verdict.
