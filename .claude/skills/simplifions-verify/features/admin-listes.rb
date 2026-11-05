@@ -56,14 +56,6 @@ def lignes_et_visibilite(page)
   "lignes=#{lignes_affichees(page).size} visible=#{visibles}"
 end
 
-def tableau_de_bord(page)
-  page.visit('/admin')
-  rubriques = %w[Catalogue Référentiels].index_with { |titre| page.find('h2', text: titre).find(:xpath, 'following-sibling::ul[1]').all('a').map(&:text) }
-  raise "rubriques #{rubriques}" unless rubriques['Référentiels'] == ['Fournisseurs de services', 'Vocabulaires']
-
-  Verify.evidence(DOSSIER, page, 'accueil-rubriques', rubriques.map { |titre, liens| "#{titre}=#{liens.join('|')}" }.join(' '))
-end
-
 def une_seule_page(page)
   raise 'pagination organisations' if page.has_css?('.fr-pagination', wait: 0)
 
@@ -137,7 +129,6 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Search') { recherche(page, integree) }
   Verify.check('Integrator link') { lien_integratrice(page, integree) }
   Verify.check('Joined search') { recherche_jointe(page) }
-  Verify.check('Dashboard') { tableau_de_bord(page) }
   Verify.check('Organisations') { organisations(page) }
   Verify.check('Intégrations') { integrations(page) }
   Verify.check('Search without result') { recherche_sans_resultat(page) }

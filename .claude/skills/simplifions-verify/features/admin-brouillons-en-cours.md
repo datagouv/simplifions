@@ -1,17 +1,15 @@
-# Retrouver les brouillons en cours depuis les listes et le tableau de bord
+# Retrouver les brouillons en cours depuis les listes
 
-The démarches and solutions lists mark with a `Brouillon` badge, in the `Visible` column, every row whose changes wait for a « Publier »: its own draft, or for a démarche a recommandation that waits for the démarche's publication ([admin-brouillon.md](admin-brouillon.md), [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). Above both lists, `Brouillons en cours (N)` keeps only those rows; the filtered list offers `Voir toutes les lignes`, and the search and the pages keep the filter. The dashboard counts them under `Brouillons en cours`, each number linking to the filtered list.
+The démarches and solutions lists mark with a `Brouillon` badge, in the `Visible` column, every row whose changes wait for a « Publier »: its own draft, or for a démarche a recommandation that waits for the démarche's publication ([admin-brouillon.md](admin-brouillon.md), [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). Above both lists, `Brouillons en cours (N)` keeps only those rows; the filtered list offers `Voir toutes les lignes`, and the search and the pages keep the filter. The admin home page lists them under `À reprendre` ([admin-accueil.md](admin-accueil.md)).
 
 ## Sub-features
 
 - `admin-badge-brouillon` badge `Brouillon` beside `Oui` / `Non` in the `Visible` cell of the démarches and solutions lists.
 - `admin-filtre-brouillons` link `Brouillons en cours (N)` (GET `?brouillons=1`), back link `Voir toutes les lignes`; `q` and `Page 2` keep the filter.
-- `admin-accueil-brouillons` `/admin`, section `Brouillons en cours`: `N démarche(s)`, `N solution(s)`, each to its filtered list.
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → `Brouillons en cours` → `N démarches` or `N solutions`. Admin only.
-- `/admin/demarches` or `/admin/solutions` → `Brouillons en cours (N)`.
+- `/admin/demarches` or `/admin/solutions` → `Brouillons en cours (N)`. Admin only.
 
 ## Driving it with Capybara
 
@@ -19,8 +17,7 @@ Drive: `features/admin-brouillons-en-cours.rb` (SKILL.md § Drive).
 
 Preconditions: logged in. The drive creates a published démarche `Vérif verify-map <browser>` with a draft and a solution of the same name with a draft, and deletes both at the end.
 
-- **Dashboard counts.** `/admin`: under `Brouillons en cours`, the two links read the counts of démarches and solutions with a draft read from the database; `click_link` on the démarches one lands on `/admin/demarches?brouillons=1`.
-- **Filtered démarches.** On that list: the `[role=status]` count equals the database count, every row shows `Brouillon`, the drive's démarche is listed; `Voir toutes les lignes` goes back to `/admin/demarches`.
+- **Filtered démarches.** `Démarches` rubrique, `Brouillons en cours (N)`: lands on `/admin/demarches?brouillons=1`; the `[role=status]` count equals the database count, every row shows `Brouillon`, the drive's démarche is listed; `Voir toutes les lignes` goes back to `/admin/demarches`.
 - **Search keeps the filter.** `Brouillons en cours (N)`, then `Verify.rechercher(page, "Vérif verify-map")`: the URL keeps `brouillons=1`, only the drive's démarche is listed, with `Brouillon`.
 - **Filtered solutions.** `Solutions` rubrique, `Brouillons en cours (N)` with N the database count: the drive's solution is listed with `Brouillon`.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-brouillons-en-cours/`.

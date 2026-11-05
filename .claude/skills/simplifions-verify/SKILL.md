@@ -55,7 +55,7 @@ One role: admin. Visitors need no account.
 | Visitor | none | every public page |
 | Admin | `verif@simplifions.local` / `verif-simplifions-2026` | created by `Verify.ensure_admin` (harness.rb) at the start of a drive, removed at cleanup; dev-only, never exists in staging or production |
 
-Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse e-mail` and `Mot de passe`, button `Se connecter`. Landing: `/admin`, an info alert `Connecté.`, an H1 `Administration` with one link per catalogue table. The header then shows `Administration` and `Se déconnecter` instead of `Se connecter`. In a drive `Verify.login(page)` does this and is a no-op when already logged in; end with `Verify.logout(page)`, which waits for `Se connecter`: a bare click lets the next `Verify.login` see the dying session and skip the form.
+Login path: header button `Se connecter` → `/admin/connexion`, fields `Adresse e-mail` and `Mot de passe`, button `Se connecter`. Landing: `/admin`, an info alert `Connecté.`, an H1 `Bonjour` ([`features/admin-accueil.md`](features/admin-accueil.md)). The header then shows `Administration` and `Se déconnecter` instead of `Se connecter`. In a drive `Verify.login(page)` does this and is a no-op when already logged in; end with `Verify.logout(page)`, which waits for `Se connecter`: a bare click lets the next `Verify.login` see the dying session and skip the form.
 
 ## Drive
 

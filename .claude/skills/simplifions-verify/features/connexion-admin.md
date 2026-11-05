@@ -5,7 +5,7 @@ An admin signs in from the header, lands on the administration dashboard, and si
 ## Sub-features
 
 - `connexion-formulaire` DSFR login form, wrong credentials stay on the form with an error alert.
-- `connexion-tableau-de-bord` `/admin` lists the seven catalogue tables under `Catalogue` (5) and `Référentiels` (2), then the `Rafraîchir le catalogue` section.
+- `connexion-tableau-de-bord` `/admin` says `Bonjour` ([admin-accueil.md](admin-accueil.md)).
 - `connexion-deconnexion` the header button ends the session.
 - `connexion-garde` `/admin/*` without a session redirects to the login form.
 
@@ -25,7 +25,7 @@ Preconditions:
 - The dev-only admin exists (`Verify.ensure_admin`, SKILL.md § Enter).
 
 - **Guard.** `visit "/admin"` → text `Vous devez vous connecter pour accéder à cette page.`
-- **Log in.** `Verify.login(page)`: fill `Adresse e-mail`, `Mot de passe`, `click_button "Se connecter"`. Alert `Connecté.`, H1 `Administration`, header link `Administration`.
+- **Log in.** `Verify.login(page)`: fill `Adresse e-mail`, `Mot de passe`, `click_button "Se connecter"`. Alert `Connecté.`, H1 `Bonjour`, header link `Administration`.
 - **Log out.** `click_button "Se déconnecter"`. Header link `Se connecter` is back; `visit "/admin"` lands on `/admin/connexion`.
 - **Proof.** Screenshot of the dashboard and of the guard after logout; read-back of `current_path` at both points.
 

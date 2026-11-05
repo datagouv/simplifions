@@ -7,11 +7,10 @@ Each admin list has a DSFR search bar, 50 rows per page with the site's paginati
 - `admin-recherche` field `Rechercher` + button `Rechercher` (GET `?q=`), accents and case ignored, every word must match. A search with no result shows « Aucune démarche ne contient « x ». » (« Aucun vocabulaire… », noun and gender of the list) instead of the count and the table, then a link `Effacer la recherche` back to the full list. Démarches and solutions reuse the public catalogue search (name, short description, keywords for démarches); recommandations and intégrations match the names of the démarche and solutions they link; the other tables match the name.
 - `admin-pagination` 50 rows, `Page 2` link keeps `q`.
 - `admin-colonnes` headers `Id`, `Nom` (or `Ligne`), `Privée` (solutions only, badge `Oui` / `Non`), `Visible`, `Modifié le`, `Intégrée par` (solutions only). Organisations: `Nom court`, `Nom long`. Intégrations: the form labels `Solution` (the link), `API ou jeu de données`, `Type d’intégration`, `Statut de l’intégration`. Démarches: the icon (`aria-hidden`) before the name link.
-- `admin-accueil` `/admin` groups the links under `Catalogue` and `Référentiels` (Fournisseurs de services, Vocabulaires), with `Brouillons en cours` between them ([admin-brouillons-en-cours.md](admin-brouillons-en-cours.md)).
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → any table link. Admin only.
+- Dashboard `/admin` → any table link under `Catalogue` ([admin-accueil.md](admin-accueil.md)), or the header rubriques. Admin only.
 
 ## Driving it with Capybara
 
@@ -24,7 +23,6 @@ Read-only. Preconditions: logged in, catalogue imported (230 solutions on 2026-1
 - **Search.** `Verify.rechercher(page, <nom of an integrated solution>)`: rows equal `Solution.recherche(q)` names.
 - **Integrator link.** In that row, click an `Intégrée par` name: lands on `/admin/solutions/<integratrice id>/edit`.
 - **Joined search.** Recommandations, search `<first word of the démarche> <last word of the solution>`: the recommandation's link is listed.
-- **Dashboard.** `/admin`: links under `Référentiels` are `Fournisseurs de services`, `Vocabulaires`.
 - **Organisations.** `click_link "Organisations"`: no `.fr-pagination`, rows = `Organisation.count`; the first organisation with a `nom_long` shows both names in its row.
 - **Intégrations.** `click_link "Intégrations"`: headers `Id`, `Solution`, `API ou jeu de données`, `Type d’intégration`, `Statut de l’intégration`; first row equals the first integration by id read from the database.
 - **Search without result.** Vocabulaires, search `zzz-introuvable`: status reads « Aucun vocabulaire ne contient « zzz-introuvable ». », no `table`; `click_link "Effacer la recherche"`: no `q` in the URL, rows = `[Vocabulaire.count, 50].min`.

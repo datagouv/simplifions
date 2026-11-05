@@ -4,19 +4,9 @@ DOSSIER = 'admin-brouillons-en-cours'.freeze
 
 def en_base = ActiveRecord::Base.uncached { [Demarche.en_brouillon.count, Solution.en_brouillon.count] }
 
-def liens_du_tableau_de_bord(page)
-  page.find('h2', text: 'Brouillons en cours').find(:xpath, 'following-sibling::ul[1]').all('a').map { [it.text, URI(it[:href]).request_uri] }
-end
-
-def tableau_de_bord(page)
-  page.visit('/admin')
-  demarches, solutions = en_base
-  attendus = [["#{demarches} démarche#{'s' if demarches > 1}", '/admin/demarches?brouillons=1'],
-              ["#{solutions} solution#{'s' if solutions > 1}", '/admin/solutions?brouillons=1']]
-  raise "liens #{liens_du_tableau_de_bord(page)} != #{attendus}" unless liens_du_tableau_de_bord(page) == attendus
-
-  Verify.evidence(DOSSIER, page, 'tableau-de-bord', "liens=#{attendus.map(&:first).join(' | ')} en_base=#{[demarches, solutions]}")
-  page.click_link attendus.first.first
+def liste_filtree(page)
+  Verify.rubrique(page, 'Démarches')
+  page.click_link "Brouillons en cours (#{en_base.first})"
   page.assert_current_path('/admin/demarches?brouillons=1')
 end
 
@@ -28,6 +18,7 @@ def toutes_en_brouillon(page, colonne = 2)
 end
 
 def demarches_filtrees(page, nom)
+  liste_filtree(page)
   total = en_base.first
   page.assert_selector '[role=status]', text: "#{total} ligne"
   page.assert_selector 'tbody a', text: nom
@@ -64,7 +55,6 @@ Verify.drive(__FILE__) do |page|
   Demarche.create!(nom:, slug:, visible: true, brouillon: { 'nom' => "#{nom} v2" })
   Solution.create!(nom:, categorie: 'api', visible: true, brouillon: { 'nom' => "#{nom} v2" })
   Verify.login(page)
-  Verify.check('Dashboard counts') { tableau_de_bord(page) }
   Verify.check('Filtered démarches') { demarches_filtrees(page, nom) }
   Verify.check('Search keeps the filter') { recherche_filtree(page, nom) }
   Verify.check('Filtered solutions') { solutions_filtrees(page, nom) }
