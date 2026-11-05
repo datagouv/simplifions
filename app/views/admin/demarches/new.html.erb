@@ -1,8 +1,8 @@
 <%= render "entete_page", titre: "Nouvelle ligne — Démarche" %>
 
-<div class="fr-container fr-mb-6w">
+<%= render layout: "liste_et_fiche", locals: { lignes: @demarches } do %>
   <h1>Démarche : nouvelle ligne</h1>
   <%= render layout: "admin/fiche" do %>
     <%= render "form", demarche: @demarche %>
   <% end %>
-</div>
+<% end %>

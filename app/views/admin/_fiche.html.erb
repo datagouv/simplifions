@@ -52,7 +52,7 @@
             <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="0" class="fr-btn fr-btn--secondary">Masquer</button></li>
           <% end %>
         <% end %>
-        <li><%= link_to "Annuler", url_for(action: :index), class: "fr-btn fr-btn--tertiary" %></li>
+        <li><%= link_to "Annuler", url_for(action: :index, **filtres_de_la_liste), class: "fr-btn fr-btn--tertiary" %></li>
         <% if abandon %>
           <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, en_base], method: :patch, class: "fr-btn fr-btn--tertiary",
               form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_en_base} » ? Les modifications non publiées seront perdues." } } %></li>

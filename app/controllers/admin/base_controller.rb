@@ -2,7 +2,9 @@ class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   before_action :set_paper_trail_whodunnit
-  helper_method :filtre_brouillons?, :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
+  helper_method :filtre_brouillons?, :filtres_de_la_liste, :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
+
+  CRITERES_D_ETAT = { 'publiees' => { visible_true: 1 }, 'masquees' => { visible_false: 1 }, 'brouillons' => { en_brouillon: true } }.freeze
 
   def abandonner_brouillon
     en_base.abandonner_brouillon!
@@ -21,10 +23,14 @@ class Admin::BaseController < ApplicationController
 
   def filtre_brouillons? = params[:brouillons] == '1'
 
+  def filtres_de_la_liste = params.slice(:q, :etat).permit(:q, :etat).to_h.compact_blank.symbolize_keys
+
+  def liste(relation) = relation.ransack(recherche: params[:q].to_s, **CRITERES_D_ETAT.fetch(params[:etat].to_s, {})).result
+
   def user_for_paper_trail = current_admin.id
 
   def redirige_vers_la_fiche(ligne)
-    redirect_to polymorphic_path(helpers.fiche_admin(ligne), onglet: params[:onglet].presence), notice: message_d_enregistrement(ligne), status: :see_other
+    redirect_to polymorphic_path(helpers.fiche_admin(ligne), onglet: params[:onglet].presence, **filtres_de_la_liste), notice: message_d_enregistrement(ligne), status: :see_other
   end
 
   def message_d_enregistrement(ligne)

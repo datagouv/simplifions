@@ -11,6 +11,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
   let(:message_cree) { "« #{nom_cree} » enregistré." }
   let(:nom_liste) { nom }
   let(:fiche) { ->(id) { "/admin/#{chemin}/#{id}/edit" } }
+  let(:liens_de_la_liste) { 'tbody a' }
 
   def fil_d_ariane = response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }
 
@@ -23,19 +24,18 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     sign_in admin
     get "/admin/#{chemin}"
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include("<td>#{ligne.id}</td>")
-    expect(response.parsed_body.at_css("tbody a[href=\"#{fiche.call(ligne.id)}\"]").text).to eq(nom_liste)
+    expect(response.parsed_body.at_css("#{liens_de_la_liste}[href=\"#{fiche.call(ligne.id)}\"]").text.squish).to start_with(nom_liste)
     expect(response.body).not_to include('Supprimer')
-    expect(response.parsed_body.css('tbody a').map(&:text)).not_to include('Modifier')
+    expect(response.parsed_body.css(liens_de_la_liste).map(&:text)).not_to include('Modifier')
   end
 
   it 'filtre la liste sur le nom, sans tenir compte des accents ni de la casse' do
     sign_in admin
     get "/admin/#{chemin}", params: { q: I18n.transliterate(nom.split.first).upcase }
-    expect(response.body).to include("href=\"#{fiche.call(ligne.id)}\"")
+    expect(response.body).to include("href=\"#{fiche.call(ligne.id)}")
     expect(response.parsed_body.at_css('input[name=q]')['value']).to eq(I18n.transliterate(nom.split.first).upcase)
     get "/admin/#{chemin}", params: { q: 'introuvable' }
-    expect(response.body).not_to include("href=\"#{fiche.call(ligne.id)}\"")
+    expect(response.body).not_to include("href=\"#{fiche.call(ligne.id)}")
   end
 
   it 'dit qu’une recherche ne trouve rien et propose de l’effacer' do
@@ -164,6 +164,7 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Demarche, 'demarches' do
+    let(:liens_de_la_liste) { '.liste-defilante a' }
     let(:aucun) { 'Aucune démarche' }
     let(:collection) { 'Démarches' }
     let(:attributs) { { nom: 'Aides publiques' } }
@@ -224,6 +225,8 @@ RSpec.describe 'Administration' do
 
     def noms_listes(chemin, recherche)
       get "/admin/#{chemin}", params: { q: recherche }
+      return response.parsed_body.css('.liste-defilante .fr-text--bold').map { it.text.strip } if chemin == 'demarches'
+
       response.parsed_body.css('tbody tr').map { |ligne| ligne.css('td')[1].text.strip }
     end
 
@@ -263,19 +266,19 @@ RSpec.describe 'Administration' do
     before { sign_in admin }
 
     it 'montre 50 lignes par page et garde la recherche d’une page à l’autre' do
-      Demarche.create!(Array.new(60) { |n| { nom: "Aides #{n}" } } + [{ nom: 'Autre' }])
+      Vocabulaire.create!(Array.new(60) { |n| { nom: "Aides #{n}", slug: "aides-#{n}", categorie: 'usager' } } + [{ nom: 'Autre', slug: 'autre', categorie: 'usager' }])
 
-      get '/admin/demarches', params: { q: 'aides' }
+      get '/admin/vocabulaires', params: { q: 'aides' }
       expect(response.parsed_body.css('tbody tr').size).to eq(50)
-      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/demarches?page=2&q=aides')
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/vocabulaires?page=2&q=aides')
 
-      get '/admin/demarches', params: { q: 'aides', page: 2 }
+      get '/admin/vocabulaires', params: { q: 'aides', page: 2 }
       expect(response.parsed_body.css('tbody tr').size).to eq(10)
 
-      get '/admin/demarches', params: { q: 'aides', foo: 'bar', params: { q: 'autre' } }
-      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/demarches?page=2&q=aides')
+      get '/admin/vocabulaires', params: { q: 'aides', foo: 'bar', params: { q: 'autre' } }
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/vocabulaires?page=2&q=aides')
 
-      get '/admin/demarches', params: { page: ['2'] }
+      get '/admin/vocabulaires', params: { page: ['2'] }
       expect(response.parsed_body.css('tbody tr').size).to eq(50)
     end
 
@@ -292,21 +295,14 @@ RSpec.describe 'Administration' do
   describe 'colonnes des listes' do
     before { sign_in admin }
 
-    it 'montre si la démarche, la solution ou la recommandation est visible, et sa date de modification' do
-      aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, modifie_le: Time.utc(2026, 10, 4, 23, 30))
+    it 'montre si la solution ou la recommandation est visible, et sa date de modification' do
+      aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true)
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
       Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1, visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
 
-      expect(colonnes('demarches')).to eq([{ 'Nom' => 'Aides', 'Visible' => 'Oui', 'Modifié le' => '05/10/2026' }])
-      expect(response.parsed_body.at_css('tbody time')['datetime']).to eq('2026-10-05T01:30:00+02:00')
       expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
+      expect(response.parsed_body.at_css('tbody time')['datetime']).to eq('2026-03-01T12:00:00+01:00')
       expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
-    end
-
-    it 'place l’icône d’une démarche devant son nom, sans la lire aux lecteurs d’écran' do
-      Demarche.create!(nom: 'Eau', icone: '💧')
-      expect(colonnes('demarches').first['Nom']).to eq('💧 Eau')
-      expect(response.parsed_body.at_css('tbody [aria-hidden=true]').text).to eq('💧')
     end
 
     it 'titre les colonnes des intégrations avec les libellés du formulaire' do
@@ -361,8 +357,13 @@ RSpec.describe 'Administration' do
 
     def brouillons(chemin) = colonnes(chemin).to_h { [it['Nom'], it['Visible']] }
 
+    def etats_des_demarches
+      get '/admin/demarches'
+      response.parsed_body.css('.liste-defilante a').to_h { [it.at_css('.fr-text--bold').text.strip, it.css('.fr-badge').map(&:text).join(' ')] }
+    end
+
     it 'marque « Brouillon » les démarches avec un brouillon ou une recommandation qui attend leur publication' do
-      expect(brouillons('demarches')).to eq('Aides' => 'Oui Brouillon', 'Bourses' => 'Oui Brouillon', 'Cantine' => 'Oui Brouillon', 'Déchets' => 'Oui')
+      expect(etats_des_demarches).to eq('Aides' => 'Publiée Brouillon', 'Bourses' => 'Publiée Brouillon', 'Cantine' => 'Publiée Brouillon', 'Déchets' => 'Publiée')
     end
 
     it 'marque « Brouillon » les solutions avec un brouillon' do
@@ -371,18 +372,17 @@ RSpec.describe 'Administration' do
 
     def noms(chemin, params = {})
       get("/admin/#{chemin}", params:)
+      return response.parsed_body.css('.liste-defilante .fr-text--bold').map { it.text.strip } if chemin == 'demarches'
+
       response.parsed_body.css('tbody tr').map { it.css('td')[1].text.strip }
     end
 
     def lien(texte) = response.parsed_body.css('a').find { it.text.strip == texte }&.[]('href')
 
-    it 'ne garde que les démarches en brouillon depuis le lien au-dessus de la liste' do
-      noms('demarches')
-      expect(lien('Brouillons en cours (3)')).to eq('/admin/demarches?brouillons=1')
-      expect(noms('demarches', brouillons: '1')).to eq(%w[Aides Bourses Cantine])
-      expect(lien('Voir toutes les lignes')).to eq('/admin/demarches')
-      expect(noms('demarches', brouillons: '1', q: 'bour')).to eq(%w[Bourses])
-      expect(noms('demarches', brouillons: '0')).to eq(%w[Aides Bourses Cantine Déchets])
+    it 'ne garde que les démarches en brouillon avec le filtre « En brouillon »' do
+      expect(noms('demarches', etat: 'brouillons')).to eq(%w[Aides Bourses Cantine])
+      expect(noms('demarches', etat: 'brouillons', q: 'bour')).to eq(%w[Bourses])
+      expect(noms('demarches', etat: '')).to eq(%w[Aides Bourses Cantine Déchets])
     end
 
     it 'ne garde que les solutions en brouillon depuis le lien au-dessus de la liste' do
@@ -392,10 +392,10 @@ RSpec.describe 'Administration' do
     end
 
     it 'garde le filtre dans la recherche et d’une page à l’autre' do
-      Demarche.create!(Array.new(55) { |n| { nom: "Aides #{n}", brouillon: { 'nom' => 'Autre' } } })
-      get '/admin/demarches', params: { brouillons: '1', q: 'aides' }
+      Solution.create!(Array.new(55) { |n| { nom: "API #{n}", brouillon: { 'nom' => 'Autre' } } })
+      get '/admin/solutions', params: { brouillons: '1', q: 'api' }
       expect(response.parsed_body.at_css('form input[type=hidden][name=brouillons]')['value']).to eq('1')
-      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/demarches?brouillons=1&page=2&q=aides')
+      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/solutions?brouillons=1&page=2&q=api')
     end
   end
 

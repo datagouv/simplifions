@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Modifier — Démarche" %>
 
-<div class="fr-container fr-mb-6w">
+<%= render layout: "liste_et_fiche", locals: { lignes: @demarches } do %>
   <% affichee = @demarche.errors.any? ? Demarche.find(@demarche.id).appliquer_brouillon : @demarche %>
   <% lignes = [*en_base.recommandations.par_niveau_et_ordre.includes(:solution), Recommandation.new(demarche: en_base)] %>
   <%= render "barre_d_etat", demarche: en_base %>
@@ -32,10 +32,10 @@
       <li><%= link_to "Historique de la démarche", admin_historique_path("demarches", en_base), class: "fr-btn fr-btn--tertiary-no-outline fr-icon-time-line fr-btn--icon-left" %></li>
     <% end %>
     <% if en_base.visible? %>
-      <li><%= button_to "Masquer la démarche", [:admin, en_base], method: :patch, params: { "demarche[visible]" => "0" }, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-eye-off-line fr-btn--icon-left" %></li>
+      <li><%= button_to "Masquer la démarche", [:admin, en_base], method: :patch, params: { "demarche[visible]" => "0", **filtres_de_la_liste }, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-eye-off-line fr-btn--icon-left" %></li>
     <% end %>
     <li><%= button_to "Supprimer la démarche", [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-delete-line fr-btn--icon-left",
         form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", t("admin.suppression.recommandations", count: en_base.recommandations.count),
           t("admin.suppression.integrations_detachees", count: en_base.integrations.count)].compact_blank.join(" ") } } %></li>
   </ul>
-</div>
+<% end %>

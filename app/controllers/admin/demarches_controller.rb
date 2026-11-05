@@ -1,10 +1,8 @@
 class Admin::DemarchesController < Admin::BaseController
   before_action :set_demarche, only: %i[edit update destroy]
+  before_action :charger_la_liste, only: %i[index new edit create update]
 
-  def index
-    @demarches = paginer(Demarche.ransack(recherche: params[:q].to_s, en_brouillon: filtre_brouillons?).result.order(:id))
-    @en_brouillon = Demarche.en_brouillon.ids.to_set
-  end
+  def index; end
 
   def new
     @demarche = Demarche.new
@@ -37,6 +35,12 @@ class Admin::DemarchesController < Admin::BaseController
   end
 
   private
+
+  def charger_la_liste
+    @demarches = liste(Demarche).order(:nom, :id)
+    @en_brouillon = Demarche.en_brouillon.ids.to_set
+    @nombre_de_recommandations = Recommandation.group(:demarche_id).count
+  end
 
   def set_demarche
     @demarche = Demarche.find(params.expect(:id))
