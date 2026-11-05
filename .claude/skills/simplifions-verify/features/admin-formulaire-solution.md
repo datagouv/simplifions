@@ -1,13 +1,13 @@
 # Formulaire solution adapté à sa catégorie
 
-A solution's admin form shows only the fields of its catégorie: for `API` or `Jeu de données` the fiche fields (Slug, Site internet, URL de demande d’accès, Image principale, Légende de l’image, Description courte, Cette solution permet / ne permet pas) are hidden (`fr-hidden`) and disabled, on render and as soon as the `Catégorie de solution` select changes; a fiche field filled on screen or on render (and the image group while an image is shown) stays visible and enabled, so it can be emptied in the same save. The current image is shown (alt = légende) with a `Retirer l’image` box and the hint `Formats acceptés : png, jpg, webp`. A private solution carries a `Privée` badge under its H1 and in the `Privée` column of the list (`Oui`/`Non`, like `Visible`).
+A solution's admin form shows only the fields of its catégorie: for `API` or `Jeu de données` the fiche fields (Slug, Site internet, URL de demande d’accès, Image principale, Légende de l’image, Description courte, Cette solution permet / ne permet pas) are hidden (`fr-hidden`) and disabled, on render and as soon as the `Catégorie de solution` select changes; a fiche field filled on screen or on render (and the image group while an image is shown) stays visible and enabled, so it can be emptied in the same save. The current image is shown (alt = légende) with a `Retirer l’image` box and the hint `Formats acceptés : png, jpg, webp`. A private solution carries a `Privée` badge under its H1.
 
 ## Sub-features
 
 - `formulaire-solution-categorie` fiche fields hidden and disabled for `API` or `Jeu de données`, as soon as `Catégorie de solution` changes.
 - `formulaire-solution-a-vider` a filled field or the shown image stays visible, so it is emptied in the same save.
 - `formulaire-solution-image` current image (alt = légende), `Retirer l’image`, hint `Formats acceptés : png, jpg, webp`.
-- `formulaire-solution-privee` `Privée` badge under the H1, `Oui` in the list's `Privée` column.
+- `formulaire-solution-privee` `Privée` badge under the H1.
 
 ## How to get to it (user POV)
 
@@ -19,7 +19,7 @@ Drive: `features/admin-formulaire-solution.rb` (SKILL.md § Drive).
 
 Preconditions: logged in; the drive works on a solution it creates (`Vérif verify-map <browser>`, Brique technique, image + légende, no organisation) and deletes.
 
-- **Privée.** Badge under the H1; list searched by name shows `Oui` in `Privée`.
+- **Privée.** Open the solution from the left list: badge under the H1.
 - **Image.** Preview alt = légende, hint lists the formats.
 - **Catégorie.** Select `API` → empty Slug and Description courte hidden and disabled, the filled légende and the image group (`Retirer l’image`) stay visible and enabled; `Annuler` asks « Quitter sans enregistrer » (#81 still sees the change); back to `Brique technique` → all visible.
 - **One save.** Empty the légende, tick `Retirer l’image`, select `API` (the emptied légende stays visible: its rendered value was filled), `Enregistrer` → database: catégorie api, no légende, no image.

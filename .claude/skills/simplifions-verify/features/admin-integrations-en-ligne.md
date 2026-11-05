@@ -36,10 +36,10 @@ Rows. Solution: the visible non-API one with the most integrations it makes; row
 
 Bouquet, read-only: the solution with the most intégrations of its APIs (Bouquet API Entreprise, 202 on 2026-10-28).
 
-- **Bouquet list.** `Solutions`, search its name: the `Intégrée par` cell of its row lists `integree_par` (26 on 2026-10-28).
+- **Bouquet list.** `Solutions`, search its name, open its row: the fiche opens on the right, the open row of the left list is `aria-current`.
 - **Bouquet tab.** Its fiche, `Solutions qui l’intègrent`: tab `Solutions qui l’intègrent (<own rows + lines via its APIs>)`, as many `— via` lines as `integrations_de_ses_api`.
 - **Bouquet link.** The first line's `Voir la fiche`: opens the edit page of one of its APIs.
-- **Bouquet proof.** `tmp/verify/admin-integrations-en-ligne/`, steps `bouquet-integree-par`, `bouquet-lignes-via` and `bouquet-fiche-via`.
+- **Bouquet proof.** `tmp/verify/admin-integrations-en-ligne/`, steps `bouquet-liste`, `bouquet-lignes-via` and `bouquet-fiche-via`.
 
 ## Gotchas
 

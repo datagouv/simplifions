@@ -15,19 +15,13 @@ def creer_solution(nom)
   solution.tap(&:save!)
 end
 
-def privee_dans_la_liste(page, solution)
-  page.visit('/admin/solutions')
-  Verify.rechercher(page, solution.nom)
-  privee = page.find('tbody tr', text: solution.nom).all('td')[2][:textContent].strip
-  raise "colonne Privée #{privee.inspect}" unless privee == 'Oui'
-
-  Verify.evidence(DOSSIER, page, 'liste', "colonne_privee=#{privee} en_base=#{solution.privee?}")
-end
-
 def badge_privee(page, solution)
-  page.click_link solution.libelle_admin
+  page.visit('/admin/solutions')
+  Verify.ouvrir_depuis_la_liste(page, solution.nom)
   badge = page.find('h1 + .fr-badge')[:textContent].strip
-  raise "badge=#{badge}" unless badge == 'Privée'
+  raise "badge=#{badge}" unless badge == 'Privée' && solution.privee?
+
+  Verify.evidence(DOSSIER, page, 'badge-privee', "badge=#{badge} en_base=#{solution.privee?}")
 end
 
 def image(page, solution)
@@ -90,10 +84,7 @@ Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
   solution = creer_solution(nom)
   Verify.login(page)
-  Verify.check('Privée') do
-    privee_dans_la_liste(page, solution)
-    badge_privee(page, solution)
-  end
+  Verify.check('Privée') { badge_privee(page, solution) }
   Verify.check('Image') { image(page, solution) }
   Verify.check('Catégorie') do
     api_choisie(page)

@@ -6,46 +6,58 @@ def en_base = ActiveRecord::Base.uncached { [Demarche.en_brouillon.count, Soluti
 
 def liste_filtree(page)
   Verify.rubrique(page, 'Démarches')
-  page.click_link "Brouillons en cours (#{en_base.first})"
-  page.assert_current_path('/admin/demarches?brouillons=1')
+  page.select 'En brouillon', from: 'État'
+  page.click_button 'Filtrer'
+  page.assert_current_path(/etat=brouillons/, url: true)
 end
 
-def toutes_en_brouillon(page, colonne = 2)
-  cellules = page.all('tbody tr').map { it.all('td')[colonne].text }
-  raise "lignes sans Brouillon #{cellules}" unless cellules.all? { it.downcase.include?('brouillon') }
+LISTE = "nav[aria-label='Liste des %s']".freeze
 
-  cellules.size
+def lignes_de_la_liste(page, des) = page.all("#{format(LISTE, des)} li a")
+
+def toutes_en_brouillon(page, des)
+  lignes = lignes_de_la_liste(page, des).map(&:text)
+  raise "lignes sans Brouillon #{lignes}" unless lignes.all? { it.downcase.include?('brouillon') }
+
+  lignes.size
 end
+
+def comptage(page, des) = page.find("#{format(LISTE, des)} [role=status]").text
 
 def demarches_filtrees(page, nom)
   liste_filtree(page)
   total = en_base.first
-  page.assert_selector '[role=status]', text: "#{total} ligne"
-  page.assert_selector 'tbody a', text: nom
-  lignes = toutes_en_brouillon(page)
-  Verify.evidence(DOSSIER, page, 'demarches-filtrees', "lignes=#{lignes} statut=#{page.find('[role=status]').text} en_base=#{total}")
-  page.click_link 'Voir toutes les lignes'
-  page.assert_current_path('/admin/demarches')
+  page.assert_selector "#{format(LISTE, 'démarches')} [role=status]", text: "#{total} démarche"
+  page.assert_selector "#{format(LISTE, 'démarches')} li a", text: nom
+  raise "état #{page.find_field('État').value}" unless page.find_field('État').value == 'brouillons'
+
+  lignes = toutes_en_brouillon(page, 'démarches')
+  raise "lignes #{lignes} != #{total}" unless lignes == total
+
+  Verify.evidence(DOSSIER, page, 'demarches-filtrees', "lignes=#{lignes} statut=#{comptage(page, 'démarches')} en_base=#{total}")
+  raise 'Voir toutes les lignes subsiste' if page.has_link?('Voir toutes les lignes', wait: 0)
 end
 
 def recherche_filtree(page, nom)
-  page.click_link "Brouillons en cours (#{en_base.first})"
   Verify.rechercher(page, 'Vérif verify-map')
-  page.assert_current_path(/brouillons=1/, url: true)
-  noms = page.all('tbody tr').map { it.all('td')[1].text }
+  page.assert_current_path(/etat=brouillons/, url: true)
+  noms = lignes_de_la_liste(page, 'démarches').map { it.find('.fr-text--bold').text }
   raise "recherche #{noms}" unless noms == [nom]
 
-  toutes_en_brouillon(page)
+  toutes_en_brouillon(page, 'démarches')
   Verify.evidence(DOSSIER, page, 'recherche-filtree', "url=#{URI(page.current_url).request_uri} lignes=#{noms}")
 end
 
 def solutions_filtrees(page, nom)
   Verify.rubrique(page, 'Solutions')
   total = en_base.last
-  page.click_link "Brouillons en cours (#{total})"
-  page.assert_current_path('/admin/solutions?brouillons=1')
-  page.assert_selector 'tbody tr', text: nom
-  lignes = toutes_en_brouillon(page, 3)
+  page.select 'En brouillon', from: 'État'
+  page.click_button 'Filtrer'
+  page.assert_current_path(/etat=brouillons/, url: true)
+  page.assert_selector "#{format(LISTE, 'solutions')} li a", text: nom
+  lignes = toutes_en_brouillon(page, 'solutions')
+  raise "lignes #{lignes} != #{total}" unless lignes == total
+
   Verify.evidence(DOSSIER, page, 'solutions-filtrees', "lignes=#{lignes} en_base=#{total}")
 end
 

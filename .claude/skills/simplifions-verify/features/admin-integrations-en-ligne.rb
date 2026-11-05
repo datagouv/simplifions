@@ -232,21 +232,14 @@ def remettre_le_statut_en_base(ctx)
   ActiveRecord::Base.uncached { ctx[:integration].reload.update!(statut: ctx[:statut]) }
 end
 
-def cellule_integree_par(page, bouquet)
-  entetes = page.all('thead th').map(&:text)
-  ligne = page.find(:xpath, "//tbody/tr[td[1][normalize-space()='#{bouquet.id}']]")
-  ligne.all('td')[entetes.index('Intégrée par')].all('a').map(&:text)
-end
-
-def liste_du_bouquet(page, bouquet)
-  attendus = bouquet.integree_par.map(&:libelle_admin).sort_by(&:downcase)
+def bouquet_dans_la_liste(page, bouquet)
   Verify.login(page)
   Verify.rubrique(page, 'Solutions')
   Verify.rechercher(page, bouquet.nom)
-  cellule = cellule_integree_par(page, bouquet)
-  raise "Intégrée par #{cellule.size} != #{attendus.size}" unless cellule == attendus
-
-  Verify.evidence(DOSSIER, page, 'bouquet-integree-par', "bouquet=#{bouquet.id} integree_par=#{cellule.size} en_base=#{attendus.size} premieres=#{cellule.first(3)}")
+  page.find("nav[aria-label='Liste des solutions'] a[href^='/admin/solutions/#{bouquet.id}/edit']").click
+  page.assert_current_path("/admin/solutions/#{bouquet.id}/edit", ignore_query: true)
+  page.assert_selector "nav[aria-label='Liste des solutions'] a[aria-current=page]"
+  Verify.evidence(DOSSIER, page, 'bouquet-liste', "bouquet=#{bouquet.id} url=#{URI(page.current_url).request_uri}")
 end
 
 def onglet_du_bouquet(page, bouquet)
@@ -280,7 +273,7 @@ def lien_du_bouquet(page, bouquet, items)
 end
 
 def preuve_du_bouquet(page)
-  manquantes = %w[bouquet-integree-par bouquet-lignes-via bouquet-fiche-via].reject { Verify::ROOT.join(DOSSIER, "#{Verify.browser}-#{it}.png").exist? }
+  manquantes = %w[bouquet-liste bouquet-lignes-via bouquet-fiche-via].reject { Verify::ROOT.join(DOSSIER, "#{Verify.browser}-#{it}.png").exist? }
   raise "captures manquantes : #{manquantes}" if manquantes.any?
 
   Verify.logout(page)
@@ -298,7 +291,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Warning') { avertissements(page, ctx) }
   Verify.check('Proof') { preuve(page, ctx) }
   bouquet = Solution.all.max_by { it.integrations_de_ses_api.size }
-  Verify.check('Bouquet list') { liste_du_bouquet(page, bouquet) }
+  Verify.check('Bouquet list') { bouquet_dans_la_liste(page, bouquet) }
   items = Verify.check('Bouquet tab') { onglet_du_bouquet(page, bouquet) }
   Verify.check('Bouquet link') { lien_du_bouquet(page, bouquet, items) }
   Verify.check('Bouquet proof') { preuve_du_bouquet(page) }
