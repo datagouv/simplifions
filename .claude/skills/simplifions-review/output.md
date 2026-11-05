@@ -1,6 +1,6 @@
 # Output format
 
-The review is one list of findings, every one proven (`SKILL.md` § Rules), ranked by severity, most severe first. Its reader is the author or the next agent. Each finding says what is wrong; it may end with one sentence of direction in plain words (« Moving the rule into the model would solve it »), never code: a way to go, not the fix. A visual direction, pointing to a screen the site already shows (« comme sur les pages « modifier » »), comes with a capture of that screen taken with `simplifions-verify`, its local path given: the user attaches it to the comment by hand.
+The review is one list of findings, every one proven (`SKILL.md` § Rules), ranked by severity, most severe first. Its reader is the author or the next agent. Each finding says what is wrong; it may end with a direction in a few plain words, when there are two ways joined by « ou » (« Déplacer la règle dans le modèle réglerait le problème »), never code: a way to go, not the fix. A visual direction, pointing to a screen the site already shows (« comme sur les pages « modifier » »), comes with a capture of that screen taken with `simplifions-verify`, its local path given: the user attaches it to the comment by hand.
 
 ## Severity
 
@@ -14,7 +14,7 @@ One of: `ask` (a line of the ask missing, deviating or unclear, or an extra that
 
 ## Constat
 
-Written for the PR's author, who may be the product owner, not a developer: one or two sentences of 20 words at most, in French and in the site's own words (démarche, solution, cas d'usage, brouillon…), naming the behaviour, who meets it (a visitor, an admin, a developer) and when. A finding that only exists in the code (a missing index, an unrelated reformatting) names the page, the data or the change it touches. No code names (a constant, a field, a method) and no quotes from the spec or the code: they go on the `Reproduce:` line or in § Details. A `rule` row quotes the rule. File paths live on the `Where:` line of § Details and on the pasted `Reproduire :` line. Before handing out the text to paste, reread each constat as the author: a sentence that needs the code to be understood is rewritten.
+Written for the PR's author, who may be the product owner, not a developer: the risk, not its proof. What can happen, when, and what the visitor, the admin or the developer gets, in one sentence of about 20 words, in French and in the site's own words (démarche, solution, cas d'usage, brouillon…). A finding that only exists in the code (a missing index, an unrelated reformatting) names the page, the data or the change it touches. Product names (the site, a page, the admin, Grist) are welcome; code names (a constant, a field, a method), quotes from the spec or the code, and proof (timings, config, values, error text) go in § Details and in the pasted `Détails` block. A `rule` row quotes the rule. File paths live on the `Where:` line of § Details. Before handing out the text to paste, reread each constat as the author: a sentence that needs the code to be understood is rewritten.
 
 ## Verdict
 
@@ -34,7 +34,7 @@ Note: [what the review could not check: a feature not driven, an issue not paste
 ### Findings
 | # | Severity | Type | Constat |
 |---|---|---|---|
-| [n] | [critical / important / minor] | [type] | [constat, then its direction sentence if any] |
+| [n] | [critical / important / minor] | [type] | [constat, then its direction if any] |
 
 ### Details
 [n]. [the line of finding n's type, below]
@@ -55,4 +55,25 @@ A finding with a visual direction ends its line with `· Capture: [the capture's
 When the user asks for the review on a PR, give one block of text, all in French, labels translated, for them to paste as a comment on the PR's page (full link given with it); the agent itself posts nothing. Its content:
 
 - `**[Verdict]** · commit [short SHA]`, the verdict translated and starting with a capital letter (« **À corriger d'abord** » ; § Report keeps the English words), then the ask on its own lines: when the `Ask:` line carries a mark (`no source found` and `not run` carry none), `Demande : https://linear.app/pole-api/issue/SIM-<n>` and `Demande réalisée : oui | non | partielle` (from `delivered | off-target | partial`); when the report has a `Note:`, `Commentaire : [the Note:, as the review's own limit, never as a gap of the PR]`.
-- The findings, one line each, `- **[sévérité]** · [type] — [constat]` (a table squeezes the short columns next to a long constat). Under each, `Piste de correction : [the direction]` when it has one (a visual one: the user attaches its capture by hand, its path never goes in the text), and for a `bug` or `test` one `Reproduire :` line with the steps only (the constat already says the result) and the `path:line` where it starts.
+- The findings, as one table, most severe first:
+
+  ```
+  | # | | Constat |
+  |---|---|---|
+  | [n] | **[Sévérité]**&nbsp;·&nbsp;[type] | [constat] |
+  ```
+
+  The severity in French with a capital letter (`Critique`, `Important`, `Mineur`); `&nbsp;` keeps the label on one line.
+- Under the table, one block that GitHub shows folded, a blank line after `</summary>` so its markdown renders:
+
+  ```
+  <details><summary>Détails</summary>
+
+  [n]. [its proof]
+  Piste de correction : [the direction]
+  Reproduire : [the action]
+
+  </details>
+  ```
+
+  One paragraph per finding, a blank line between two. Per finding: its proof is its § Details line translated (`Where:` → `Où :`, `Result:` → `Résultat :`, `Class:` → `Classe :`, `Decision:` → `Décision :`, `missing` → `manquant`, `deviates:` → `s'écarte :`, `extra:` → `en plus :`, `unclear:` → `pas clair :`), without its `Reproduce:` part and without its `Capture:`, plus what the constat left out (timings, config, values, error text). `Piste de correction :` when it has one; a visual one gets its capture right under it, attached by the user by hand, its path never in the text. `Reproduire :` for a `bug`, `test` or `pre-existing`: the action only, no values and no error text.
