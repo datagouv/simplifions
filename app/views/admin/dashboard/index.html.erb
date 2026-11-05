@@ -70,8 +70,11 @@
         </ul>
       </section>
       <section class="fr-p-3w fr-background-alt--grey" aria-labelledby="import">
-        <h2 id="import" class="fr-h6">Rafraîchir le catalogue</h2>
+        <h2 id="import" class="fr-h6">Import depuis Grist et data.gouv</h2>
         <p class="fr-text--sm"><%= statut_rafraichissement(@dernier_rafraichissement) %></p>
+        <div class="fr-alert fr-alert--warning fr-alert--sm fr-mb-2w">
+          <p>L’import remplace les modifications faites ici par le contenu du Grist et supprime les fiches créées ici.</p>
+        </div>
         <% en_cours = rafraichissement_en_cours?(@dernier_rafraichissement) %>
         <%= button_to en_cours ? "Rafraîchissement en cours…" : "Rafraîchir depuis Grist et data.gouv", admin_rafraichissement_path,
           disabled: en_cours,

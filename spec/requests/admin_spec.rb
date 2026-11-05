@@ -174,6 +174,14 @@ RSpec.describe 'Administration' do
 
     before { sign_in admin }
 
+    it 'prévient sur la page que l’import remplace les saisies et supprime les fiches créées ici' do
+      get admin_root_path
+      import = response.parsed_body.at_css('section[aria-labelledby=import]')
+      expect(import.at_css('h2').text).to eq('Import depuis Grist et data.gouv')
+      expect(import.at_css('.fr-alert--warning').text.squish)
+        .to eq('L’import remplace les modifications faites ici par le contenu du Grist et supprime les fiches créées ici.')
+    end
+
     it 'propose de rafraîchir en prévenant que le Grist remplace les saisies' do
       get admin_root_path
       assert_select 'button:not([disabled])', text: 'Rafraîchir depuis Grist et data.gouv'
