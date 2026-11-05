@@ -157,23 +157,50 @@ RSpec.describe 'Administration' do
       response.parsed_body.css("nav[aria-label='#{nom}'] .fr-nav__link")
     end
 
-    it 'remplace la navigation du site par les rubriques de l’administration' do
+    def entrees_marquees
+      response.parsed_body.css("nav[aria-label='Menu de l’administration'] [aria-current]")
+        .map { |entree| [entree.text.strip, entree['aria-current']] }
+    end
+
+    it 'remplace la navigation du site par les quatre entrées de l’administration' do
       sign_in admin
       get admin_solutions_path
-      expect(rubriques('Menu de l’administration').map { |lien| lien.text.strip })
-        .to eq(['Démarches', 'Solutions', 'Recommandations', 'Intégrations', 'Organisations',
-                'Fournisseurs de services', 'Vocabulaires'])
-      expect(rubriques('Menu de l’administration').filter_map { |lien| [lien.text, lien['aria-current']] if lien['aria-current'] })
-        .to eq([%w[Solutions page]])
+      menu = response.parsed_body.at_css("nav[aria-label='Menu de l’administration']")
+      expect(menu.css('.fr-nav__list > .fr-nav__item > .fr-nav__link, .fr-nav__list > .fr-nav__item > .fr-nav__btn')
+                 .map { |entree| entree.text.strip })
+        .to eq(['À reprendre', 'Démarches', 'Solutions', 'Référentiels'])
+      expect(menu.css('.fr-menu .fr-nav__link').map { |lien| lien.text.strip })
+        .to eq(['Organisations', 'Fournisseurs de services', 'Vocabulaires'])
+      expect(entrees_marquees).to eq([%w[Solutions page]])
       expect(rubriques('Menu principal')).to be_empty
+    end
+
+    it 'mène « À reprendre » à l’accueil de l’administration et l’y marque' do
+      sign_in admin
+      get admin_root_path
+      expect(rubriques('Menu de l’administration').find { |lien| lien.text.strip == 'À reprendre' }['href']).to eq(admin_root_path)
+      expect(entrees_marquees).to eq([['À reprendre', 'page']])
+    end
+
+    it 'marque un référentiel et le bouton de son sous-menu' do
+      sign_in admin
+      get admin_vocabulaires_path
+      expect(entrees_marquees).to eq([%w[Référentiels true], %w[Vocabulaires page]])
     end
 
     it 'marque la rubrique de la fiche sur sa page d’historique' do
       sign_in admin
       solution = Solution.create!(nom: 'Solution suivie')
       get admin_historique_path(type: 'solutions', id: solution.id)
-      expect(rubriques('Menu de l’administration').filter_map { |lien| [lien.text, lien['aria-current']] if lien['aria-current'] })
-        .to eq([%w[Solutions true]])
+      expect(entrees_marquees).to eq([%w[Solutions true]])
+    end
+
+    it 'garde la liste des recommandations ouverte, sans entrée du menu marquée' do
+      sign_in admin
+      get admin_recommandations_path
+      expect(response).to have_http_status(:ok)
+      expect(rubriques('Menu de l’administration').map { |lien| lien.text.strip }).not_to include('Recommandations')
+      expect(entrees_marquees).to be_empty
     end
 
     it 'garde la navigation du site sur les pages publiques d’un admin connecté' do
