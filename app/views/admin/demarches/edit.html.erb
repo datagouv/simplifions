@@ -1,13 +1,41 @@
 <%= render "entete_page", titre: "Modifier — Démarche" %>
 
 <div class="fr-container fr-mb-6w">
-  <h1><%= nom_en_base %></h1>
-  <% en_brouillon = en_base.en_brouillon? %>
-  <%= render layout: "admin/fiche", locals: { page_publique: (demarche_path(en_base.slug) if en_base.page_publique?),
-    brouillon: en_brouillon, abandon: en_base.brouillon_abandonnable?, previsualisation: (previsualisation_admin_demarche_path(en_base) if en_brouillon),
-    consequences: [t("admin.suppression.recommandations", count: en_base.recommandations.count),
-      t("admin.suppression.integrations_detachees", count: en_base.integrations.count)],
-    en_brouillon: t("admin.recommandations_en_brouillon", count: en_base.recommandations_en_brouillon.count) } do %>
-    <%= render "form", demarche: @demarche %>
+  <% affichee = @demarche.errors.any? ? Demarche.find(@demarche.id).appliquer_brouillon : @demarche %>
+  <% lignes = [*en_base.recommandations.par_niveau_et_ordre.includes(:solution), Recommandation.new(demarche: en_base)] %>
+  <%= render "barre_d_etat", demarche: en_base %>
+  <% if @demarche.errors[:base].any? %>
+    <div class="fr-alert fr-alert--error fr-mb-4w" tabindex="-1" autofocus>
+      <h2 class="fr-alert__title"><%= t("admin.erreurs", count: @demarche.errors[:base].size) %></h2>
+      <ul>
+        <% @demarche.errors.full_messages_for(:base).each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
   <% end %>
+  <%= form_with model: [:admin, @demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(@demarche).merge(formulaire_modifie_fiche_value: (edit_admin_demarche_path(en_base, onglet: "fiche") if @demarche.errors.any?)) do |f| %>
+    <%= render "entete", f:, demarche: affichee %>
+    <%= render "admin/onglets", objet: @demarche, onglet_des_erreurs: { integration_hors_regle: "integrations", recommandation_refusee: "recommandations" }, onglets: {
+          "fiche" => ["Fiche", render("blocs", f:, demarche: affichee)],
+          "integrations" => ["Intégrations (#{@demarche.integration_ids.size})", render("integrations", f: f, enregistrer: true)],
+          "recommandations" => ["Recommandations (#{en_base.recommandations.count})", render("recommandations", lignes:)],
+          "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
+        } %>
+    <%= yield :fenetres %>
+  <% end %>
+  <div id="formulaires-recommandations">
+    <%= render partial: "admin/recommandations/formulaire_de_ligne", collection: lignes, as: :ligne %>
+  </div>
+  <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm fr-mt-4w">
+    <% if en_base.versions.any? %>
+      <li><%= link_to "Historique de la démarche", admin_historique_path("demarches", en_base), class: "fr-btn fr-btn--tertiary-no-outline fr-icon-time-line fr-btn--icon-left" %></li>
+    <% end %>
+    <% if en_base.visible? %>
+      <li><%= button_to "Masquer la démarche", [:admin, en_base], method: :patch, params: { "demarche[visible]" => "0" }, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-eye-off-line fr-btn--icon-left" %></li>
+    <% end %>
+    <li><%= button_to "Supprimer la démarche", [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-delete-line fr-btn--icon-left",
+        form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", t("admin.suppression.recommandations", count: en_base.recommandations.count),
+          t("admin.suppression.integrations_detachees", count: en_base.integrations.count)].compact_blank.join(" ") } } %></li>
+  </ul>
 </div>

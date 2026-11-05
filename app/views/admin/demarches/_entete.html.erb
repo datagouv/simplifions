@@ -1,0 +1,30 @@
+<%# locals: (f:, demarche:) -%>
+<section class="bloc-modifiable fr-background-alt--blue-france" aria-labelledby="titre-de-la-demarche">
+  <div class="bloc-modifiable__entete">
+    <p class="fr-text--sm fr-mb-0">
+      <% slug = en_base.page_publique? ? en_base.slug : demarche.slug %>
+      <% adresse = slug.present? ? demarche_url(slug).delete_prefix(request.protocol) : "Adresse de la page : à choisir" %>
+      <% if en_base.page_publique? %>
+        <%= link_to demarche_path(en_base.slug), class: "fr-link fr-link--sm", target: "_blank", rel: "noopener", title: "Voir la page publique de #{nom_en_base} - nouvelle fenêtre" do %><%= adresse %><span class="fr-sr-only"> - nouvelle fenêtre</span><% end %>
+      <% else %>
+        <%= adresse %>
+      <% end %>
+    </p>
+    <%= render layout: "fenetre", locals: { id: "entete", titre: "Modifier l’en-tête", attributs: %i[icone nom description_courte slug vocabulaire_ids] } do %>
+      <%= f.dsfr_text_field :icone %>
+      <%= f.dsfr_text_field :nom %>
+      <%= f.dsfr_text_area :description_courte %>
+      <%= f.dsfr_text_field :slug %>
+      <%= render "admin/vocabulaires", f: f, categories: %w[usager], legende: "Publics" %>
+    <% end %>
+  </div>
+  <h1 id="titre-de-la-demarche"><%= titre_demarche(demarche) %></h1>
+  <p class="fr-text--lead fr-mb-1w"><%= demarche.description_courte %></p>
+  <% if (usagers = demarche.usagers).any? %>
+    <ul class="fr-tags-group fr-mb-0" aria-label="Publics">
+      <% usagers.each do |usager| %>
+        <li><p class="fr-tag fr-tag--sm"><%= usager %></p></li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

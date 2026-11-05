@@ -220,3 +220,34 @@ form :target {
 body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="formulaire-fiche"][name="recommandation[visible]"] {
   display: none;
 }
+
+.barre-d-etat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.barre-d-etat .fr-btns-group {
+  margin: 0;
+}
+
+.bloc-modifiable {
+  border: 1px solid var(--border-default-grey);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.bloc-modifiable__entete {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.bloc-modifiable__entete > :is(h2, h3) {
+  margin: 0;
+}

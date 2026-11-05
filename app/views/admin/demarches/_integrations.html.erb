@@ -1,0 +1,13 @@
+<%# locals: (f:, enregistrer: false) -%>
+<% demarche = f.object %>
+<% proposees = demarche.integrations_proposees.includes(:integratrice, :integree).order(:id).load %>
+<% autorisees = demarche.integrations_autorisees.ids %>
+<% if proposees.any? %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: proposees, libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) }, legende: "Intégrations" %>
+  <% if enregistrer %>
+    <button type="submit" class="fr-btn" name="onglet" value="integrations" data-enregistrer>Enregistrer</button>
+  <% end %>
+<% else %>
+  <%= hidden_field_tag "demarche[integration_ids][]", "" %>
+  <p class="fr-hint-text">Intégrations : à cocher une fois que la démarche recommande l’API ou le jeu de données intégré.</p>
+<% end %>

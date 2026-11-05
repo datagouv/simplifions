@@ -688,7 +688,7 @@ RSpec.describe 'Administration' do
 
     def lien_public(chemin)
       get chemin
-      response.parsed_body.at_css('a:contains("Voir la page publique")')
+      response.parsed_body.at_css('a[title^="Voir la page publique"]')
     end
 
     it 'mène à la page publique d’une démarche ou d’une solution visible, annonce le nouvel onglet' do
@@ -700,13 +700,21 @@ RSpec.describe 'Administration' do
       expect(lien_public("/admin/solutions/#{solution.id}/edit")['href']).to eq('/solutions/bouquet')
     end
 
+    it 'affiche l’adresse en ligne d’une démarche publiée, même quand son brouillon la change' do
+      demarche = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true)
+      demarche.enregistrer('slug' => 'nouvelle')
+
+      lien = lien_public("/admin/demarches/#{demarche.id}/edit")
+      expect([lien['href'], lien.text]).to match(['/demarches/aides', a_string_including('/demarches/aides')])
+    end
+
     it 'ne propose aucun lien quand la page publique n’existe pas' do
       expect(lien_public("/admin/demarches/#{Demarche.create!(nom: 'Aides', slug: 'aides').id}/edit")).to be_nil
       expect(lien_public("/admin/solutions/#{Solution.create!(nom: 'API QF', categorie: 'api', visible: true).id}/edit")).to be_nil
 
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { slug: 'Mauvais slug', visible: '1' } }
-      expect(response.parsed_body.at_css('a:contains("Voir la page publique")')['href']).to eq('/demarches/cantine')
+      expect(response.parsed_body.at_css('a[title^="Voir la page publique"]')['href']).to eq('/demarches/cantine')
     end
   end
 
@@ -827,7 +835,7 @@ RSpec.describe 'Administration' do
       expect(ligne.at_css('a:contains("Modifier")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
     end
 
-    it 'réunit la publication et la date de modification dans une colonne État, pour tenir dans la largeur' do
+    it 'réunit la publication et la date de modification dans une etat_de_la_fiche État, pour tenir dans la largeur' do
       Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
       Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2')
       get "/admin/demarches/#{aides.id}/edit"
@@ -1127,7 +1135,7 @@ RSpec.describe 'Administration' do
 
     def panneau(chemin)
       get chemin
-      response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]').text.squish
+      response.parsed_body.at_css(ETAT_DE_LA_FICHE).text.squish
     end
 
     it 'dit dans le panneau qu’« Enregistrer » met en ligne tout de suite' do
@@ -1968,31 +1976,30 @@ RSpec.describe 'Administration' do
     end
   end
 
-  describe 'colonne d’état et d’actions' do
+  describe 'etat_de_la_fiche d’état et d’actions' do
     before { sign_in admin }
 
-    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+    def etat_de_la_fiche = response.parsed_body.at_css(ETAT_DE_LA_FICHE)
 
     def boutons_du_formulaire
       identifiant = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['id']
       response.parsed_body.css("button[type=submit][form=\"#{identifiant}\"]").map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
     end
 
-    it 'montre l’état, les dates et l’identifiant Grist d’une démarche, et l’enregistre depuis la colonne' do
+    it 'montre l’état, les dates et l’identifiant Grist d’une démarche, et l’enregistre depuis son état' do
       demarche = Demarche.create!(nom: 'Aides', grist_id: 'Cas_d_usages:1', cree_le: Time.zone.local(2026, 1, 2), modifie_le: Time.zone.local(2026, 10, 5))
       get "/admin/demarches/#{demarche.id}/edit"
 
-      expect(colonne.text.squish).to include('Masquée', 'Création 02/01/2026', 'Dernière modification 05/10/2026', 'Identifiant Grist : Cas_d_usages:1')
-      expect(boutons_du_formulaire).to eq([['Enregistrer', nil, nil], ['Publier', 'demarche[visible]', '1']])
-      expect(colonne.at_css('a:contains("Annuler")')['href']).to eq('/admin/demarches')
-      expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button:not([type=button]):not([form]), input[name="demarche[visible]"]')).to be_empty
+      expect(etat_de_la_fiche.text.squish).to include('Masquée', 'Création 02/01/2026', 'Dernière modification 05/10/2026', 'Identifiant Grist : Cas_d_usages:1')
+      expect(etat_de_la_fiche.css('button').map(&:text)).to eq(['Publier'])
+      expect(etat_de_la_fiche.at_css('input[name="demarche[visible]"]')['value']).to eq('1')
     end
 
     it 'désigne Enregistrer au script qui le grise tant que rien n’a changé, sans le griser côté serveur' do
-      demarche = Demarche.create!(nom: 'Aides')
-      get "/admin/demarches/#{demarche.id}/edit"
+      solution = Solution.create!(nom: 'Bouquet')
+      get "/admin/solutions/#{solution.id}/edit"
 
-      expect(colonne.css('button[data-enregistrer]').map { |bouton| [bouton.text.strip, bouton['disabled']] }).to eq([['Enregistrer', nil]])
+      expect(etat_de_la_fiche.css('button[data-enregistrer]').map { |bouton| [bouton.text.strip, bouton['disabled']] }).to eq([['Enregistrer', nil]])
     end
 
     it 'publie en enregistrant les autres champs, masque en les gardant en brouillon, et laisse l’état tel quel à l’enregistrement' do
@@ -2004,9 +2011,9 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides locales', slug: 'aides', visible: '1' } }
       expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides locales', 'visible' => true)
       follow_redirect!
-      expect(colonne.text).to include('Publiée')
-      expect(boutons_du_formulaire.last).to eq(['Masquer', 'demarche[visible]', '0'])
-      expect(colonne.at_css('a:contains("Voir la page publique")')['href']).to eq('/demarches/aides')
+      expect(etat_de_la_fiche.text).to include('Publiée')
+      expect(response.parsed_body.at_css('form:has(button:contains("Masquer la démarche")) input[name="demarche[visible]"]')['value']).to eq('0')
+      expect(response.parsed_body.at_css('a[title^="Voir la page publique"]')['href']).to eq('/demarches/aides')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides', visible: '0' } }
       expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides locales', 'visible' => false)
@@ -2018,21 +2025,22 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(colonne.text).to include('Masquée')
-      expect(boutons_du_formulaire.map(&:first)).to eq(%w[Enregistrer Publier])
+      expect(etat_de_la_fiche.text).to include('Masquée')
+      expect(etat_de_la_fiche.css('button').map(&:text)).to eq(['Publier'])
     end
 
-    it 'garde Supprimer dans la colonne, à part du formulaire, et rien d’autre qu’Enregistrer et Publier sur une nouvelle démarche' do
+    it 'garde Supprimer avec l’état de la fiche, à part du formulaire, et rien d’autre qu’Enregistrer et Publier sur une nouvelle démarche' do
       demarche = Demarche.create!(nom: 'Aides')
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.at_css('form:has(input[name=_method][value=delete])')['action']).to eq("/admin/demarches/#{demarche.id}")
+      expect(response.parsed_body.css('main form:has(input[name=_method][value=delete])').pluck('action')).to eq(["/admin/demarches/#{demarche.id}"])
+      expect(response.parsed_body.at_css('#formulaire-fiche form')).to be_nil
 
       get '/admin/demarches/new'
       expect(boutons_du_formulaire.map(&:first)).to eq(%w[Enregistrer Publier])
-      expect(colonne.text).not_to include('Supprimer', 'Création')
+      expect(etat_de_la_fiche.text).not_to include('Supprimer', 'Création')
     end
 
-    it 'range les actions de chaque table dans la colonne, Publier seulement pour les solutions et recommandations' do
+    it 'range les actions de chaque table avec l’état de la fiche, Publier seulement pour les solutions et recommandations' do
       travel_to(Time.zone.local(2026, 10, 7))
       bouquet = Solution.create!(nom: 'Bouquet', modifie_le: Time.current)
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
@@ -2049,9 +2057,9 @@ RSpec.describe 'Administration' do
         boutons = ligne.has_attribute?(:visible) ? [['Enregistrer', nil, nil], ['Publier', "#{ligne.model_name.param_key}[visible]", '1']] : [['Enregistrer', nil, nil]]
         get "/admin/#{chemin}/#{ligne.id}/edit"
         expect(boutons_du_formulaire).to eq(boutons), chemin
-        expect(colonne.text.squish).to include('Dernière modification 07/10/2026')
-        expect(colonne.at_css('a:contains("Annuler")')['href']).to eq("/admin/#{chemin}")
-        expect(colonne.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq('Supprimer')
+        expect(etat_de_la_fiche.text.squish).to include('Dernière modification 07/10/2026')
+        expect(etat_de_la_fiche.at_css('a:contains("Annuler")')['href']).to eq("/admin/#{chemin}")
+        expect(etat_de_la_fiche.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq('Supprimer')
         expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button[type=submit]:not([form])')).to be_empty
 
         get "/admin/#{chemin}/new"
@@ -2065,13 +2073,13 @@ RSpec.describe 'Administration' do
 
     before { sign_in admin }
 
-    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+    def etat_de_la_fiche = response.parsed_body.at_css(ETAT_DE_LA_FICHE)
     def page_publique = get('/demarches/aides').then { response.parsed_body.at_css('h1').text.squish }
     def nom_dans_le_formulaire = get("/admin/demarches/#{demarche.id}/edit").then { response.parsed_body.at_css('#demarche_nom')['value'] }
 
     def actions
       get "/admin/demarches/#{demarche.id}/edit"
-      colonne.css('button').map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
+      response.parsed_body.css('main form.button_to button').map { it.text.strip }
     end
 
     it 'garde Enregistrer en brouillon hors du site, rouvre le formulaire dessus, et le publie' do
@@ -2079,7 +2087,7 @@ RSpec.describe 'Administration' do
       expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
       follow_redirect!
       expect(response.body).to include('« Aides » : brouillon enregistré, non publié.')
-      expect(colonne.text.squish).to include('Publiée', 'Brouillon non publié')
+      expect(etat_de_la_fiche.text.squish).to include('Publiée', 'Brouillon non publié')
       expect(page_publique).to include('Aides')
       expect(page_publique).not_to include('sociales')
       expect(nom_dans_le_formulaire).to eq('Aides sociales')
@@ -2087,14 +2095,14 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales', visible: '1' } }
       expect(page_publique).to include('Aides sociales')
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text).not_to include('Brouillon')
+      expect(etat_de_la_fiche.text).not_to include('Brouillon')
     end
 
     it 'date le brouillon à part de la dernière modification, et versionne le brouillon puis la publication, au nom de l’admin' do
       demarche.update!(modifie_le: Time.zone.local(2026, 10, 5))
       travel_to(Time.zone.local(2026, 10, 7, 9, 30)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } } }
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text.squish).to include('Dernière modification 05/10/2026', 'Brouillon du 07/10/2026 à 09:30')
+      expect(etat_de_la_fiche.text.squish).to include('Dernière modification 05/10/2026', 'Brouillon du 07/10/2026 à 09:30')
       expect(demarche.versions.pluck(:event)).to contain_exactly('create', 'brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
@@ -2106,12 +2114,12 @@ RSpec.describe 'Administration' do
       travel_to(Time.zone.local(2026, 10, 7, 8)) { PaperTrail.request(whodunnit: 'Import Grist') { demarche.update!(contexte: 'Avant') } }
       travel_to(Time.zone.local(2026, 10, 7, 9, 30)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } } }
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.at_css('.fr-alert')).to be_nil
+      expect(etat_de_la_fiche.at_css('.fr-alert')).to be_nil
 
       travel_to(Time.zone.local(2026, 10, 7, 10)) { PaperTrail.request(whodunnit: 'Import Grist') { demarche.reload.update!(contexte: 'Après') } }
       travel_to(Time.zone.local(2026, 10, 7, 11)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales et familiales' } } }
       get "/admin/demarches/#{demarche.id}/edit"
-      alerte = colonne.at_css('.fr-alert')
+      alerte = etat_de_la_fiche.at_css('.fr-alert')
       expect(alerte.text.squish).to include('Le Grist a modifié cette fiche le 07/10/2026 à 10:00 : publier remplacera ces changements.')
       expect(alerte.at_css('a')['href']).to eq("/admin/historique/demarches/#{demarche.id}")
     end
@@ -2122,7 +2130,7 @@ RSpec.describe 'Administration' do
       patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
       expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
       expect(nom_dans_le_formulaire).to eq('Aides')
-      expect(colonne.text).not_to include('Brouillon')
+      expect(etat_de_la_fiche.text).not_to include('Brouillon')
     end
 
     it 'enregistre un brouillon incomplet et en refuse la publication avec l’erreur' do
@@ -2140,7 +2148,7 @@ RSpec.describe 'Administration' do
       follow_redirect!
 
       expect(response.body).to include('« Aides » enregistré.')
-      expect(colonne.text.squish).to include('Masquée', 'Brouillon non publié')
+      expect(etat_de_la_fiche.text.squish).to include('Masquée', 'Brouillon non publié')
     end
 
     it 'écrit directement une démarche masquée' do
@@ -2151,11 +2159,11 @@ RSpec.describe 'Administration' do
     end
 
     it 'propose Publier et Masquer sur une fiche publiée, Abandonner seulement avec un brouillon' do
-      expect(actions).to eq([['Enregistrer', nil, nil], ['Publier', 'demarche[visible]', '1'], ['Masquer', 'demarche[visible]', '0'], ['Supprimer', nil, nil]])
+      expect(actions).to eq(['Publier', 'Masquer la démarche', 'Supprimer la démarche'])
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
-      expect(actions.map(&:first)).to eq(['Enregistrer', 'Publier', 'Masquer', 'Abandonner le brouillon', 'Supprimer'])
-      expect(colonne.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to eq('Abandonner le brouillon de « Aides » ? Les modifications non publiées seront perdues.')
+      expect(actions).to eq(['Abandonner le brouillon', 'Publier', 'Masquer la démarche', 'Supprimer la démarche'])
+      expect(etat_de_la_fiche.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to eq('Abandonner le brouillon de « Aides » ? Les modifications non publiées seront perdues.')
     end
   end
 
@@ -2207,7 +2215,7 @@ RSpec.describe 'Administration' do
 
     before { sign_in admin }
 
-    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+    def etat_de_la_fiche = response.parsed_body.at_css(ETAT_DE_LA_FICHE)
     def cartes_publiques = get('/demarches/aides').then { response.parsed_body.css('.reco-card').map { it.text.squish } }
 
     def ajouter_bouquet
@@ -2225,25 +2233,25 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('#recommandation_donnees_utiles').text.strip).to eq('Revenu fiscal')
     end
 
-    it 'compte les recommandations en brouillon dans la colonne de la démarche et les publie avec elle' do
+    it 'compte les recommandations en brouillon dans la etat_de_la_fiche de la démarche et les publie avec elle' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
       ajouter_bouquet
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text.squish).to include('2 recommandations en brouillon')
+      expect(etat_de_la_fiche.text.squish).to include('2 recommandations en brouillon')
 
       expect { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides', visible: '1' } } }.to change(PaperTrail::Version, :count).by(2)
       expect(cartes_publiques.map { it[/Mes Aides|Bouquet/] }).to contain_exactly('Mes Aides', 'Bouquet')
       expect(cartes_publiques.join).to include('Revenu fiscal')
       expect(Recommandation.where.not(brouillon: nil)).to be_empty
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text).not_to include('en brouillon')
+      expect(etat_de_la_fiche.text).not_to include('en brouillon')
     end
 
-    it 'annonce dans sa colonne la recommandation qui paraîtra avec la démarche, la publie seule sur son Publier' do
+    it 'annonce dans sa etat_de_la_fiche la recommandation qui paraîtra avec la démarche, la publie seule sur son Publier' do
       ajouter_bouquet
       follow_redirect!
       expect(response.body).to include('« Aides → Bouquet (API) » : brouillon enregistré, non publié.')
-      expect(colonne.text.squish).to include('Masquée', 'Brouillon — sera publiée avec la démarche')
+      expect(etat_de_la_fiche.text.squish).to include('Masquée', 'Brouillon — sera publiée avec la démarche')
 
       patch "/admin/recommandations/#{nouvelle.id}", params: { recommandation: { niveau: 'niveau_2', visible: '1' } }
       expect(cartes_publiques.size).to eq(2)
@@ -2262,9 +2270,9 @@ RSpec.describe 'Administration' do
     it 'laisse masquée la recommandation masquée avec un brouillon quand on publie la démarche' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal', visible: '0' } }
       follow_redirect!
-      expect(colonne.text.squish).not_to include('sera publiée avec la démarche')
+      expect(etat_de_la_fiche.text.squish).not_to include('sera publiée avec la démarche')
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text).not_to include('en brouillon')
+      expect(etat_de_la_fiche.text).not_to include('en brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(publiee.reload.visible).to be(false)
@@ -2284,12 +2292,12 @@ RSpec.describe 'Administration' do
     it 'met la démarche en brouillon, à prévisualiser, dès qu’une recommandation attend sa publication, à abandonner si elle est ajoutée' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser')
-      expect(colonne.text).not_to include('Abandonner le brouillon')
+      expect(etat_de_la_fiche.text.squish).to include('Brouillon non publié', 'Prévisualiser')
+      expect(etat_de_la_fiche.text).not_to include('Abandonner le brouillon')
 
       ajouter_bouquet
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(colonne.text.squish).to include('Brouillon non publié', 'Prévisualiser', 'Abandonner le brouillon')
+      expect(etat_de_la_fiche.text.squish).to include('Brouillon non publié', 'Prévisualiser', 'Abandonner le brouillon')
     end
 
     it 'supprime à l’abandon du brouillon de la démarche les recommandations ajoutées depuis sa publication, et elles seules' do
@@ -2356,7 +2364,7 @@ RSpec.describe 'Administration' do
       expect(carte_publique).to include('Quotient du mois')
       expect(carte_publique).not_to include('Revenu du foyer')
       expect(etat_dans_la_demarche(utile).join(' ')).to include('Publiée', 'Brouillon')
-      expect(response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]').text.squish).to include('1 recommandation en brouillon')
+      expect(response.parsed_body.at_css(ETAT_DE_LA_FICHE).text.squish).to include('1 recommandation en brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('Revenu du foyer')
@@ -2450,7 +2458,7 @@ RSpec.describe 'Administration' do
 
     def lien_previsualiser(chemin)
       get "/admin/#{chemin}/edit"
-      response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"] a:contains("Prévisualiser")')
+      response.parsed_body.css(ETAT_DE_LA_FICHE).at_css('a:contains("Prévisualiser")')
     end
 
     def bandeau = response.parsed_body.at_css('.fr-notice')
@@ -2570,8 +2578,9 @@ RSpec.describe 'Administration' do
       get "/admin/demarches/#{demarche.id}/edit"
 
       expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
-      expect(panneau('Fiche').at_css('input[name="demarche[nom]"]')).to be_present
+      expect(panneau('Fiche').at_css('button[aria-controls="fenetre-contexte"]')).to be_present
       expect(panneau('Intégrations').css('input[name="demarche[integration_ids][]"][checked]').size).to eq(1)
+      expect(panneau('Intégrations').at_css('button[type=submit]').then { [it['name'], it['value']] }).to eq(%w[onglet integrations])
       expect(panneau('Recommandations').css('a').map(&:text)).to eq(['Modifier la recommandation API QF (API)'])
       expect(panneau('Historique').text).to include('Création')
       get '/admin/demarches/new'
@@ -2717,6 +2726,95 @@ RSpec.describe 'Administration' do
       bouquet = Solution.create!(nom: 'Bouquet')
       get '/admin/integrations/new', params: { integratrice_id: bouquet.id }
       expect(response.parsed_body.at_css('#integration_integratrice_id option[selected]').text).to eq('Bouquet')
+    end
+  end
+
+  describe 'fiche d’une démarche lue comme la page publique' do
+    let(:publics) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }
+    let(:dlnuf) { Vocabulaire.create!(nom: 'DLNUF', slug: 'dlnuf', categorie: 'type_simplification') }
+    let(:demarche) do
+      Demarche.create!(nom: 'Aides', icone: '💼', slug: 'aides', description_courte: 'Aider les entreprises.', contexte: 'Un **contexte**.',
+        visible: true, vocabulaires: [publics, dlnuf], types_acteurs: [TypeActeur.create!(nom: 'Communes')], cree_le: 1.day.ago, modifie_le: 1.day.ago)
+    end
+    let(:page) { response.parsed_body }
+
+    before { sign_in admin }
+
+    def fiche = get("/admin/demarches/#{demarche.id}/edit").then { page }
+    def fenetre(id) = page.at_css("dialog#fenetre-#{id}")
+    def champs(id) = fenetre(id).css('input:not([type=hidden]), textarea').pluck('name').uniq
+    def bouton(id) = page.at_css("button[aria-controls='fenetre-#{id}'].fr-icon-edit-line")
+
+    it 'montre l’en-tête et les blocs comme sur le site, sans etat_de_la_fiche d’état' do
+      fiche
+      expect(page.at_css('h1').text.squish).to eq('💼 Aides')
+      expect(page.at_css('.bloc-modifiable').text.squish).to include('/demarches/aides', 'Aider les entreprises.', 'Entreprises')
+      expect(page.at_css('.bloc-modifiable').text).not_to include('DLNUF')
+      expect(page.at_css('#onglet-fiche-panneau').css('h2, h3').map { it.text.squish }).to eq(
+        ['Contexte', 'Cadre juridique', 'Hors de la page publique', 'Title SEO', 'Mots-clés', 'Fournisseurs de services', 'Vocabulaires']
+      )
+      expect(page.at_css('#onglet-fiche-panneau strong').text).to eq('contexte')
+      expect(page.at_css('aside')).to be_nil
+    end
+
+    it 'ouvre pour chaque bloc une fenêtre avec ses seuls champs' do
+      fiche
+      expect(%w[entete contexte cadre-juridique titre-seo mots-clefs fournisseurs vocabulaires].to_h { [bouton(it).text, champs(it)] }).to eq(
+        'Modifier l’en-tête' => ['demarche[icone]', 'demarche[nom]', 'demarche[description_courte]', 'demarche[slug]', 'demarche[vocabulaire_ids][]'],
+        'Modifier le contexte' => ['demarche[contexte]'],
+        'Modifier le cadre juridique' => ['demarche[cadre_juridique]'],
+        'Modifier le title SEO' => ['demarche[titre_seo]'],
+        'Modifier les mots-clés' => ['demarche[mots_clefs]'],
+        'Modifier les fournisseurs de services' => ['demarche[type_acteur_ids][]'],
+        'Modifier les vocabulaires' => ['demarche[vocabulaire_ids][]']
+      )
+      expect(fenetre('entete').css('input[type=checkbox]').pluck('value')).to eq([publics.id.to_s])
+      expect(fenetre('vocabulaires').css('input[type=checkbox]').pluck('value')).to eq([dlnuf.id.to_s])
+      expect(fenetre('contexte').css('.fr-modal__footer button').map { [it.text, it['type']] }).to eq([%w[Annuler button], %w[Enregistrer submit]])
+    end
+
+    it 'met l’état, les dates et les actions en haut, Masquer et Supprimer en bas' do
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
+      fiche
+      barre = page.at_css('section[aria-label="État de la démarche"]')
+      expect(barre.css('.fr-badge').map(&:text)).to eq(['Publiée', 'Brouillon non publié'])
+      expect(barre.text.squish).to include('Création', 'Dernière modification', 'Brouillon du')
+      expect(barre.css('a, button').map { it.text.squish }).to eq(['Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon', 'Publier'])
+      expect(page.css('form:has(button:contains("Masquer la démarche")), form:has(button:contains("Supprimer la démarche"))').pluck('data-turbo-confirm')).to eq(
+        [nil, 'Supprimer « Aides » ?']
+      )
+    end
+
+    it 'ne propose pas de masquer une démarche déjà masquée' do
+      demarche.update!(visible: false)
+      fiche
+      expect(page.text).not_to include('Masquer la démarche')
+    end
+
+    it 'garde les intégrations et les vocabulaires d’un autre bloc quand on enregistre un bloc' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      Recommandation.create!(demarche:, solution: api, niveau: 'niveau_1')
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Logiciel'), integree: api, type_integration: 'expose')
+      demarche.update!(visible: false, integrations: [integration])
+      fiche
+      envoye = page.css('#formulaire-fiche input:not([type=submit]):not([type=checkbox]), #formulaire-fiche input[checked], #formulaire-fiche textarea')
+        .map { [it['name'], it['value'] || it.text] }.reject { it.first.nil? }
+      parametres = envoye.each_with_object({}) { |(nom, valeur), h| nom.end_with?('[]') ? (h[nom] ||= []) << valeur : h[nom] = valeur }
+      patch "/admin/demarches/#{demarche.id}", params: Rack::Utils.parse_nested_query(parametres.to_query).merge('onglet' => 'fiche').deep_merge('demarche' => { 'contexte' => 'Nouveau' })
+
+      expect(demarche.reload.slice(:contexte, :nom)).to eq('contexte' => 'Nouveau', 'nom' => 'Aides')
+      expect(demarche.vocabulaires).to contain_exactly(publics, dlnuf)
+      expect(demarche.integrations).to eq([integration])
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit?onglet=fiche")
+    end
+
+    it 'rouvre la fenêtre de l’en-tête sur un nom vide, le message sous le champ' do
+      demarche.update!(visible: false)
+      patch "/admin/demarches/#{demarche.id}", params: { onglet: 'fiche', demarche: { nom: '' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(page.css('dialog[data-controller="fenetre-rouverte"]').pluck('id')).to eq(['fenetre-entete'])
+      expect(fenetre('entete').at_css('.fr-input-group--error').text).to include('Nom', 'doit être rempli')
     end
   end
 end

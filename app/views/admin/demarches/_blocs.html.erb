@@ -1,0 +1,58 @@
+<%# locals: (f:, demarche:) -%>
+<% { "contexte" => ["Contexte", "le contexte", :contexte], "cadre-juridique" => ["Cadre juridique", "le cadre juridique", :cadre_juridique] }.each do |id, (titre, nom, attribut)| %>
+  <section class="bloc-modifiable" aria-labelledby="bloc-<%= id %>">
+    <div class="bloc-modifiable__entete">
+      <h2 id="bloc-<%= id %>" class="fr-h4"><%= titre %></h2>
+      <%= render layout: "fenetre", locals: { id:, titre: "Modifier #{nom}", attributs: [attribut] } do %>
+        <%= f.dsfr_text_area attribut %>
+      <% end %>
+    </div>
+    <% if (texte = demarche.public_send(attribut)).present? %>
+      <%= markdown(texte) %>
+    <% else %>
+      <p class="fr-text-mention--grey fr-mb-0">Vide : le bloc ne paraît pas sur le site.</p>
+    <% end %>
+  </section>
+<% end %>
+
+<h2 class="fr-h5 fr-mt-6w">Hors de la page publique</h2>
+
+<section class="bloc-modifiable" aria-labelledby="bloc-titre-seo">
+  <div class="bloc-modifiable__entete">
+    <h3 id="bloc-titre-seo" class="fr-h6"><%= Demarche.human_attribute_name(:titre_seo) %></h3>
+    <%= render layout: "fenetre", locals: { id: "titre-seo", titre: "Modifier le title SEO", attributs: %i[titre_seo] } do %>
+      <%= f.dsfr_text_field :titre_seo %>
+    <% end %>
+  </div>
+  <p class="fr-mb-0"><%= demarche.titre_seo.presence || "Cas d’usage - #{demarche.nom}" %></p>
+</section>
+
+<section class="bloc-modifiable" aria-labelledby="bloc-mots-clefs">
+  <div class="bloc-modifiable__entete">
+    <h3 id="bloc-mots-clefs" class="fr-h6"><%= Demarche.human_attribute_name(:mots_clefs) %></h3>
+    <%= render layout: "fenetre", locals: { id: "mots-clefs", titre: "Modifier les mots-clés", attributs: %i[mots_clefs] } do %>
+      <%= f.dsfr_text_area :mots_clefs %>
+    <% end %>
+  </div>
+  <%= render "liste_du_bloc", elements: demarche.mots_clefs %>
+</section>
+
+<section class="bloc-modifiable" aria-labelledby="bloc-fournisseurs">
+  <div class="bloc-modifiable__entete">
+    <h3 id="bloc-fournisseurs" class="fr-h6">Fournisseurs de services</h3>
+    <%= render layout: "fenetre", locals: { id: "fournisseurs", titre: "Modifier les fournisseurs de services", attributs: %i[type_acteur_ids] } do %>
+      <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
+    <% end %>
+  </div>
+  <%= render "liste_du_bloc", elements: demarche.acteurs %>
+</section>
+
+<section class="bloc-modifiable" aria-labelledby="bloc-vocabulaires">
+  <div class="bloc-modifiable__entete">
+    <h3 id="bloc-vocabulaires" class="fr-h6">Vocabulaires</h3>
+    <%= render layout: "fenetre", locals: { id: "vocabulaires", titre: "Modifier les vocabulaires", attributs: %i[vocabulaire_ids] } do %>
+      <%= render "admin/vocabulaires", f: f, categories: Vocabulaire.categories.keys - %w[usager] %>
+    <% end %>
+  </div>
+  <%= render "liste_du_bloc", elements: demarche.vocabulaires.reject(&:categorie_usager?).map(&:nom) %>
+</section>
