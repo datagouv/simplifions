@@ -45,29 +45,27 @@ end
 
 def enregistrer_depuis_integrations(page, demarche, cible)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  page.fill_in 'Nom', with: "#{demarche.nom} modifiée"
   cocher_l_integration(page, cible)
-  page.click_button 'Enregistrer'
-  page.assert_text "« #{demarche.nom} modifiée » enregistré."
+  page.find('#onglet-integrations-panneau').click_button 'Enregistrer'
+  page.assert_text "« #{demarche.nom} » enregistré."
   page.assert_current_path(/onglet=integrations/, url: true)
   page.assert_selector '[role=tab][aria-selected=true]', text: 'Intégrations (1)'
 end
 
 def enregistre_en_base(page, demarche, cible)
   base = ActiveRecord::Base.uncached { Demarche.find(demarche.id).then { [it.nom, it.integration_ids] } }
-  raise "enregistrement : base #{base}" unless base == ["#{demarche.nom} modifiée", [cible.id]]
+  raise "enregistrement : base #{base}" unless base == [demarche.nom, [cible.id]]
 
   Verify.evidence(DOSSIER, page, 'enregistre-depuis-integrations', "url=#{page.current_url.split('/admin').last} base=#{base}")
 end
 
 def erreur_ouvre_fiche(page, demarche)
-  Verify.onglet(page, 'Fiche')
-  page.fill_in 'Nom', with: ''
   Verify.onglet(page, 'Historique')
-  page.click_button 'Enregistrer'
-  page.assert_selector '.fr-alert--error', text: 'Nom doit être rempli'
-  page.assert_selector '[role=tab][aria-selected=true]', text: 'Fiche'
-  page.assert_selector '#demarche_nom', visible: true
+  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => '')
+  page.assert_selector 'dialog[open] .fr-input-group--error', text: 'doit être rempli'
+  page.assert_selector '[role=tab][aria-selected=true]', text: 'Fiche', visible: :all
+  page.assert_selector 'dialog[open] #demarche_nom'
+  page.find('dialog[open]').click_button 'Annuler'
   Verify.evidence(DOSSIER, page, 'erreur-ouvre-fiche', "onglet_ouvert=Fiche nom_en_base=#{ActiveRecord::Base.uncached { Demarche.find(demarche.id).nom }}")
 end
 

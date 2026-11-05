@@ -31,13 +31,24 @@ end
 
 def groupes_de_vocabulaires(page, demarche)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  categories = page.all('fieldset fieldset > legend').map(&:text)
-  raise "groupes de vocabulaires #{categories}" unless categories == ['Usager', 'Type de simplification', 'Catégorie de solution']
-
-  aides = Verify.liens_d_aide(page.find('fieldset', text: 'Vocabulaires', match: :first)).size
+  groupes = GROUPES_PAR_FENETRE.to_h { |bouton, attendus| [bouton, groupes_de_la_fenetre(page, bouton, attendus)] }
+  aides = groupes.values.sum(&:last)
   raise "#{aides} « ? » pour #{Vocabulaire.count} vocabulaires" unless aides == Vocabulaire.count
 
-  categories
+  groupes.values.flat_map(&:first)
+end
+
+GROUPES_PAR_FENETRE = { 'Modifier l’en-tête' => ['Usager'], 'Modifier les vocabulaires' => ['Type de simplification', 'Catégorie de solution'] }.freeze
+
+def groupes_de_la_fenetre(page, bouton, attendus)
+  fenetre = Verify.fenetre(page, bouton)
+  categories = fenetre.all('fieldset fieldset > legend').map(&:text)
+  raise "#{bouton} : groupes de vocabulaires #{categories}" unless categories == attendus
+
+  aides = Verify.liens_d_aide(fenetre).size
+  fenetre.click_button 'Annuler'
+  page.assert_no_selector 'dialog[open]'
+  [categories, aides]
 end
 
 def cochees_seules(page, total)
@@ -146,7 +157,7 @@ end
 
 def partir(page)
   page.find('fieldset', text: FILTRE).fill_in FILTRE, with: 'texte sans nom'
-  page.click_link 'Annuler'
+  page.find('.fr-breadcrumb').click_link 'Démarches'
   page.assert_selector 'h1', text: 'Démarches'
 end
 

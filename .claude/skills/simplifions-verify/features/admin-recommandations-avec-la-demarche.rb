@@ -18,7 +18,7 @@ def ajouter(page, demarche, solution)
   page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
 end
 
-def colonne(page) = page.find('aside[aria-labelledby="etat-et-actions"]')
+def colonne(page) = page.find(Verify::BARRE_DEMARCHE)
 def titres_des_cartes(page) = page.all('.reco-card h3').map { |titre| titre.text.squish }
 def en_base(demarche, api) = ActiveRecord::Base.uncached { demarche.recommandations.find_by!(solution: api) }
 

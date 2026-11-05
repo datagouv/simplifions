@@ -20,16 +20,15 @@ end
 def creee_par_l_import(page, nom)
   demarche = PaperTrail.request(whodunnit: 'Import Grist') { Demarche.create!(nom:) }
   Verify.ouvrir_fiche(page, nom)
-  page.assert_selector 'aside.admin-panneau', text: /Créée par Import Grist le/
-  Verify.evidence(DOSSIER, page, 'creee', "colonne=#{page.find('aside.admin-panneau').text.lines.grep(/par/).first&.strip}")
+  page.assert_selector Verify::BARRE_DEMARCHE, text: /Créée par Import Grist le/
+  Verify.evidence(DOSSIER, page, 'creee', "colonne=#{page.find(Verify::BARRE_DEMARCHE).text.lines.grep(/par/).first&.strip}")
   demarche
 end
 
 def renommee_par_l_admin(page, demarche, renommee)
-  page.fill_in 'Nom', with: renommee
-  page.click_button 'Enregistrer'
+  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => renommee)
   page.assert_text "« #{renommee} » enregistré."
-  page.assert_selector 'aside.admin-panneau', text: /Modifiée par #{ADMIN_EMAIL} le/
+  page.assert_selector Verify::BARRE_DEMARCHE, text: /Modifiée par #{ADMIN_EMAIL} le/
   auteurs = ActiveRecord::Base.uncached { demarche.versions.reload.map(&:whodunnit) }
   raise "auteurs #{auteurs}" unless auteurs == ['Import Grist', Admin.find_by(email: ADMIN_EMAIL).id.to_s]
 
@@ -45,7 +44,7 @@ def titres_de_l_historique(page)
 end
 
 def page_historique(page, demarche, nom, renommee)
-  page.click_link 'Historique'
+  page.click_link 'Historique de la démarche'
   page.assert_current_path("/admin/historique/demarches/#{demarche.id}")
   titres = titres_de_l_historique(page)
   ligne = page.first('main section tbody tr').all('th, td').map(&:text)
@@ -65,15 +64,14 @@ end
 
 def retour_a_la_fiche(page, renommee)
   page.click_link 'Retour à la fiche'
-  page.find_field('Nom', with: renommee)
+  page.assert_selector 'h1', exact_text: renommee
   Verify.evidence(DOSSIER, page, 'retour', "chemin=#{page.current_path}")
 end
 
 def brouillon(page, demarche, nom)
   demarche.update!(slug: "verif-verify-map-historique-#{Verify.browser}", visible: true)
   page.refresh
-  page.fill_in 'Nom', with: "#{nom} brouillon"
-  page.click_button 'Enregistrer'
+  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => "#{nom} brouillon")
   page.assert_text 'brouillon enregistré'
   premiere_version_de_l_onglet(page, demarche, nom, ['brouillon', 'Modification en brouillon'])
 end
@@ -85,8 +83,7 @@ def publication(page, demarche, nom)
 end
 
 def abandon(page, demarche, nom)
-  page.fill_in 'Nom', with: nom
-  page.click_button 'Enregistrer'
+  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => nom)
   page.accept_confirm { page.click_button 'Abandonner le brouillon' }
   page.assert_text 'abandonné'
   premiere_version_de_l_onglet(page, demarche, nom, ['abandon', 'Abandon du brouillon'])

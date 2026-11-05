@@ -9,7 +9,7 @@ end
 
 def trois_colonnes(page, attendues = 3)
   mesures = page.evaluate_script(<<~JS)
-    [...document.querySelectorAll('input[name="demarche[vocabulaire_ids][]"]:not([type=hidden])')].map((c) => {
+    [...document.querySelectorAll('dialog[open] input[name="demarche[vocabulaire_ids][]"]:not([type=hidden])')].map((c) => {
       const element = c.closest('.fr-fieldset__element')
       const [libelle, aide] = [element.querySelector('label'), element.querySelector('a')].map((n) => n.getBoundingClientRect())
       return [Math.round(element.getBoundingClientRect().top), aide.left >= libelle.right && aide.top < libelle.bottom]
@@ -24,6 +24,7 @@ end
 
 def zone_de_texte(page, demarche)
   page.visit("/admin/demarches/#{demarche.id}/edit")
+  Verify.fenetre(page, 'Modifier le contexte')
   zone = zone_sans_defilement(page, 'demarche_contexte')
   raise "contexte défile #{zone}" unless zone.last
 
@@ -31,6 +32,12 @@ def zone_de_texte(page, demarche)
   raise "aide #{aide}" unless aide == 'Markdown accepté'
 
   Verify.evidence(DOSSIER, page, 'zone-de-texte', "caracteres=#{demarche.contexte.size} rows,scrollHeight,clientHeight,sans_defilement=#{zone.join(',')} aide=#{aide}")
+  fermer(page)
+end
+
+def fermer(page)
+  page.find('dialog[open]').click_button 'Annuler'
+  page.assert_no_selector 'dialog[open]'
 end
 
 def page_publique(page, demarche)
@@ -68,17 +75,21 @@ def liens_des_fournisseurs(page, demarche)
   attendus = demarche.types_acteurs.map { |t| "Fiche de #{t.nom} (nouvel onglet)" }
   raise "liens #{liens} pour #{demarche.types_acteurs.map(&:nom)}" unless liens.sort == attendus.sort
 
-  Verify.evidence(DOSSIER, page, 'referentiel-trois-colonnes', "liens=#{liens.join(' | ')} #{trois_colonnes(page)}")
+  Verify.evidence(DOSSIER, page, 'referentiel-fournisseurs', "liens=#{liens.join(' | ')}")
   groupe
 end
 
 def referentiel(page, demarche)
   acteur = demarche.types_acteurs.order(:nom).first
-  groupe = liens_des_fournisseurs(page, demarche)
   formulaire = "/admin/demarches/#{demarche.id}/edit"
-  fiche_en_nouvel_onglet(page, groupe, acteur, "/admin/types_acteurs/#{acteur.id}", formulaire)
-  vocabulaire = Vocabulaire.order(:id).first
-  fiche_en_nouvel_onglet(page, page, vocabulaire, "/admin/vocabulaires/#{vocabulaire.id}", formulaire)
+  Verify.fenetre(page, 'Modifier les fournisseurs de services')
+  fiche_en_nouvel_onglet(page, liens_des_fournisseurs(page, demarche), acteur, "/admin/types_acteurs/#{acteur.id}", formulaire)
+  fermer(page)
+  vocabulaire = Vocabulaire.where.not(categorie: 'usager').order(:id).first
+  fenetre = Verify.fenetre(page, 'Modifier les vocabulaires')
+  Verify.evidence(DOSSIER, page, 'referentiel-trois-colonnes', trois_colonnes(page))
+  fiche_en_nouvel_onglet(page, fenetre, vocabulaire, "/admin/vocabulaires/#{vocabulaire.id}", formulaire)
+  fermer(page)
 end
 
 def afficher_a(page, demarche, largeur)
@@ -88,10 +99,12 @@ end
 
 def referentiel_etroit(page, demarche)
   afficher_a(page, demarche, 375)
+  Verify.fenetre(page, 'Modifier les vocabulaires')
   Verify.evidence(DOSSIER, page, 'referentiel-375', trois_colonnes(page, 1))
   afficher_a(page, demarche, 320)
   Verify.evidence(DOSSIER, page, 'etroit-320', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
-  groupe = page.find('fieldset', text: FILTRE)
+  Verify.fenetre(page, 'Modifier les fournisseurs de services')
+  groupe = page.find('dialog[open] fieldset', text: FILTRE)
   groupe.fill_in FILTRE, with: 'fiche de'
   filtre = Verify.cases_affichees(groupe).size
   raise "le filtre trouve le texte du lien (#{filtre})" unless filtre.zero?

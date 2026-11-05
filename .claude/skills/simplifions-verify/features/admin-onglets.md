@@ -22,7 +22,7 @@ Drive: `features/admin-onglets.rb` (SKILL.md § Drive).
 Mutation on a throwaway démarche only (`Vérif verify-map <browser>`, deleted at the end).
 
 - **Démarche 1.** Four tabs `Fiche`, `Intégrations`, `Recommandations`, `Historique`; page height read per tab; arrow right from `Fiche` selects `Intégrations` and the hidden `onglet` field follows.
-- **Save from Intégrations.** Throwaway démarche recommending the most integrated API: rename it in `Fiche`, check one intégration in `Intégrations`, `Enregistrer` → URL `?onglet=integrations`, `Intégrations (1)` selected, database has the new name and the intégration.
-- **Error opens Fiche.** Empty `Nom` in `Fiche`, switch to `Historique`, `Enregistrer` → error summary, `Fiche` selected, `Nom` visible.
+- **Save from Intégrations.** Throwaway démarche recommending the most integrated API: check one intégration in `Intégrations`, that tab's `Enregistrer` → URL `?onglet=integrations`, `Intégrations (1)` selected, database has the intégration and the name unchanged.
+- **Error opens Fiche.** From `Historique`, `Modifier l’en-tête`, empty `Nom`, `Enregistrer` → the modal open again with `doit être rempli` under `Nom`, `Fiche` selected; `Annuler`.
 - **375 px.** `?onglet=recommandations` opens that tab, no horizontal scroll.
 - **Proof.** `tmp/verify/admin-onglets/`.

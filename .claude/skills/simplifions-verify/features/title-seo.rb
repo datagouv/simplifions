@@ -7,8 +7,8 @@ def onglet_public(page, chemin)
   [page.title, page.find('h1').text, page.find('meta[property="og:title"]', visible: false)[:content]]
 end
 
-def title_seo_publie(page, etape, chemin, saisie)
-  page.fill_in 'Title SEO', with: saisie
+def title_seo_publie(page, etape, chemin, saisie = nil)
+  page.fill_in 'Title SEO', with: saisie if saisie
   Verify.evidence(DOSSIER, page, "#{etape}-saisie")
   page.click_button 'Publier'
   page.assert_text 'enregistré.'
@@ -29,7 +29,9 @@ end
 
 def publier_sur_la_demarche(page, ctx, saisie)
   Verify.ouvrir_fiche(page, ctx[:nom])
-  title_seo_publie(page, saisie.empty? ? 'demarche-videe' : 'demarche-publiee', "/demarches/#{ctx[:slug]}", saisie)
+  Verify.modifier_dans_la_fenetre(page, 'Modifier le title SEO', 'Title SEO' => saisie)
+  page.assert_text 'brouillon enregistré'
+  title_seo_publie(page, saisie.empty? ? 'demarche-videe' : 'demarche-publiee', "/demarches/#{ctx[:slug]}")
 end
 
 def sans_champ_sur_l_api(page, api)

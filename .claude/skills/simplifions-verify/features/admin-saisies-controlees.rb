@@ -51,13 +51,14 @@ def public_ou_prive(page, solution)
     "organisation=#{organisation.id} en_base=#{organisation.reload.public_ou_prive} privee=#{solution.reload.privee?}")
 end
 
-def slug_refuse(page)
-  demarche = Demarche.visibles.order(:id).first
+def slug_refuse(page, nom)
+  demarche = Demarche.create!(nom:, slug: "verif-verify-map-#{Verify.browser}", visible: true)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  page.fill_in 'Slug', with: 'Vérif avec espaces/et accents'
-  page.click_button 'Publier'
+  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Slug' => 'Vérif avec espaces/et accents')
+  page.assert_text 'brouillon enregistré'
+  page.find(Verify::BARRE_DEMARCHE).click_button 'Publier'
   page.assert_text SLUG_REFUSE
-  page.assert_selector :field, 'Slug', with: 'Vérif avec espaces/et accents'
+  page.find('dialog[open]').assert_selector :field, 'Slug', with: 'Vérif avec espaces/et accents'
   Verify.evidence(DOSSIER, page, 'slug-refuse', "demarche=#{demarche.id} en_base=#{demarche.reload.slug}")
   page_publique_intacte(page, demarche)
 end
@@ -116,7 +117,7 @@ Verify.drive(__FILE__) do |page|
   solution.update!(site_internet: site_avant)
   Verify.check('Statut') { statut_en_liste(page) }
   Verify.check('Public ou privé') { public_ou_prive(page, solution) }
-  Verify.check('Slug') { slug_refuse(page) }
+  Verify.check('Slug') { slug_refuse(page, nom) }
   Verify.check('Incohérences') do
     integration_elle_meme(page)
     vocabulaire_sans_slug(page, nom)
@@ -125,4 +126,5 @@ Verify.drive(__FILE__) do |page|
 ensure
   solution&.update!(site_internet: site_avant)
   Vocabulaire.where(nom:).destroy_all
+  Demarche.where(nom:).destroy_all
 end

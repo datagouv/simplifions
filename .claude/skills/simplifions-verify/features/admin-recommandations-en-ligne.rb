@@ -54,8 +54,8 @@ def preuve_du_brouillon(page, reco)
 end
 
 def fiche_gardee(page, ctx)
-  Verify.onglet(page, 'Fiche')
-  page.fill_in 'Description courte', with: "#{ctx[:demarche].description_courte} "
+  Verify.onglet(page, 'Intégrations')
+  page.find('#onglet-integrations-panneau').first('.fr-checkbox-group label').click
   Verify.onglet(page, 'Recommandations')
   enregistrer_l_ordre(page, ctx[:nom], '78')
   page.assert_selector '#message-recommandations .fr-valid-text'
@@ -95,7 +95,7 @@ def preuve_de_l_ajout(page, ctx)
 end
 
 def page_publique_inchangee(page, ctx)
-  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_link 'Annuler' }
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.find('.fr-breadcrumb').click_link 'Démarches' }
   page.assert_selector 'h1', text: 'Démarches'
   apres = cartes_publiques(page, ctx[:demarche])
   Verify.evidence(DOSSIER, page, 'page-publique', "inchangee=#{apres == ctx[:cartes]} cartes=#{apres.size}")

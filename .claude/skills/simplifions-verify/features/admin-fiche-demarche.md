@@ -1,6 +1,6 @@
 # La fiche démarche se lit comme la page publique
 
-The edit page of a saved démarche shows it as the public page does: a state bar (`Publiée` / `Masquée`, draft badge, dates, `Prévisualiser`, `Abandonner le brouillon`, `Publier`), the en-tête (page address, icon, name, short description, publics) above the tabs, then in the `Fiche` tab the blocks `Contexte`, `Cadre juridique` and, under `Hors de la page publique`, `Title SEO`, `Mots-clés`, `Fournisseurs de services`, `Vocabulaires`. Each block has a `Modifier …` button that opens a DSFR modal with that block's fields only. `Enregistrer` saves (a draft on a published démarche), closes the modal and shows the block updated on the same page; a refused field keeps the modal open with the message under the field; `Annuler` or Escape closes it and puts the fields back. `Masquer la démarche` (published only) and `Supprimer la démarche` sit at the bottom. The `Intégrations` tab keeps its boxes and its own `Enregistrer`. A new démarche keeps the plain form.
+The edit page of a saved démarche shows it as the public page does: a state bar (`Publiée` / `Masquée`, draft badge, dates, `Prévisualiser`, `Abandonner le brouillon`, `Publier`), the en-tête (page address, icon, name, short description, publics) above the tabs, then in the `Fiche` tab the blocks `Contexte`, `Cadre juridique` and, under `Hors de la page publique`, `Title SEO`, `Mots-clés`, `Fournisseurs de services`, `Vocabulaires`. Each block has a `Modifier …` button that opens a DSFR modal with that block's fields only. `Enregistrer` saves (a draft on a published démarche), closes the modal and shows the block updated on the same page; a refused field keeps the modal open with the message under the field; `Annuler` or Escape closes it and puts the fields back (after a refusal, the fiche reloads with the saved values). `Masquer la démarche` (published only) and `Supprimer la démarche` sit at the bottom. The `Intégrations` tab keeps its boxes and its own `Enregistrer`. A new démarche keeps the plain form.
 
 ## Sub-features
 
@@ -21,8 +21,8 @@ Preconditions: the drive creates a hidden démarche `Vérif fiche <browser>` (hi
 
 - **Reach the fiche.** Open it from the list: H1 is its name, no `État et actions` column, a `Modifier le contexte` button.
 - **Save a block.** `Modifier le contexte`, fill `Contexte`, `Enregistrer`: notice `« … » enregistré.`, no open modal, the `Contexte` block shows the text, base `contexte` holds it.
-- **Cancel with Escape.** `Modifier l’en-tête`, fill `Nom`, Escape: modal closed, base `nom` unchanged; reopen: `Nom` holds the saved name.
-- **Refused field.** `Modifier l’en-tête`, empty `Nom`, `Enregistrer`: the modal is open again with `doit être rempli`; `Annuler`, then the breadcrumb `Démarches` asks `Quitter sans enregistrer les modifications ?` (the refused entry is still in the form), accept.
+- **Cancel with Escape.** `Modifier l’en-tête`, fill `Nom`, Escape: modal closed, the fiche no longer counts as changed, base `nom` unchanged; reopen: `Nom` holds the saved name.
+- **Refused field.** `Modifier l’en-tête`, empty `Nom`, `Enregistrer`: the modal is open again with `doit être rempli`; `Annuler`: the fiche reloads with the saved values (`Nom` holds the saved name), and the breadcrumb `Démarches` leaves without a question.
 - **Proof.** Screenshots `bloc-enregistre`, `refuse`, read-backs.
 
 ## Gotchas

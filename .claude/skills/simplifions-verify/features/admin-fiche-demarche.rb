@@ -2,11 +2,6 @@ require_relative '../harness'
 
 DOSSIER = 'admin-fiche-demarche'.freeze
 
-def fenetre(page, bouton)
-  page.click_button bouton
-  page.find('dialog[open]')
-end
-
 def atteindre(page, nom)
   Verify.login(page)
   Verify.rubrique(page, 'Démarches')
@@ -17,7 +12,7 @@ def atteindre(page, nom)
 end
 
 def enregistrer_un_bloc(page, demarche)
-  fenetre(page, 'Modifier le contexte').fill_in 'Contexte', with: 'Contexte modifié par la vérif'
+  Verify.fenetre(page, 'Modifier le contexte').fill_in 'Contexte', with: 'Contexte modifié par la vérif'
   page.find('dialog[open]').click_button 'Enregistrer'
   page.assert_text "« #{demarche.nom} » enregistré."
   page.assert_no_selector 'dialog[open]'
@@ -29,13 +24,14 @@ def enregistrer_un_bloc(page, demarche)
 end
 
 def annuler_par_echap(page, demarche)
-  fenetre(page, 'Modifier l’en-tête').fill_in 'Nom', with: 'Nom abandonné'
+  Verify.fenetre(page, 'Modifier l’en-tête').fill_in 'Nom', with: 'Nom abandonné'
   page.find('dialog[open]').send_keys(:escape)
   page.assert_no_selector 'dialog[open]'
+  page.assert_selector '#formulaire-fiche[data-formulaire-modifie-modifie-value=false]'
   lu = ActiveRecord::Base.uncached { Demarche.find(demarche.id).nom }
   raise "nom en base : #{lu}" unless lu == demarche.nom
 
-  valeur = fenetre(page, 'Modifier l’en-tête').find_field('Nom').value
+  valeur = Verify.fenetre(page, 'Modifier l’en-tête').find_field('Nom').value
   raise "nom rouvert : #{valeur}" unless valeur == demarche.nom
 
   page.find('dialog[open]').click_button 'Annuler'
@@ -43,14 +39,16 @@ def annuler_par_echap(page, demarche)
   "nom_en_base=#{lu} nom_rouvert=#{valeur}"
 end
 
-def refuser(page)
-  fenetre(page, 'Modifier l’en-tête').fill_in 'Nom', with: ''
+def refuser(page, demarche)
+  Verify.fenetre(page, 'Modifier l’en-tête').fill_in 'Nom', with: ''
   page.find('dialog[open]').click_button 'Enregistrer'
   page.assert_selector 'dialog[open] .fr-input-group--error', text: 'doit être rempli'
   Verify.evidence(DOSSIER, page, 'refuse', 'fenetre=ouverte message=doit être rempli')
   page.find('dialog[open]').click_button 'Annuler'
   page.assert_no_selector 'dialog[open]'
-  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.find('.fr-breadcrumb').click_link 'Démarches' }
+  page.assert_selector "#demarche_nom[value='#{demarche.nom}']", visible: :all
+
+  page.find('.fr-breadcrumb').click_link 'Démarches'
   page.assert_selector 'h1', text: 'Démarches'
 end
 
@@ -61,7 +59,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Reach the fiche') { atteindre(page, nom) }
   Verify.check('Save a block') { enregistrer_un_bloc(page, demarche) }
   Verify.check('Cancel with Escape') { annuler_par_echap(page, demarche) }
-  Verify.check('Refused field') { refuser(page) }
+  Verify.check('Refused field') { refuser(page, demarche) }
   Verify.check('Proof') { Verify.logout(page) }
 ensure
   Demarche.where(nom:).destroy_all
