@@ -26,7 +26,7 @@ Read-only. Preconditions: logged in, catalogue imported (230 solutions on 2026-1
 - **Joined search.** Recommandations, search `<first word of the démarche> <last word of the solution>`: the recommandation's link is listed.
 - **Dashboard.** `/admin`: links under `Référentiels` are `Fournisseurs de services`, `Vocabulaires`.
 - **Organisations.** `click_link "Organisations"`: no `.fr-pagination`, rows = `Organisation.count`; the first organisation with a `nom_long` shows both names in its row.
-- **Intégrations.** `click_link "Intégrations"`: headers `Id`, `Solution`, `API ou jeu de données`, `Type d’intégration`, `Statut de l’intégration`; first row equals the first integration by id read from the database.
+- **Intégrations.** `/admin/integrations` (out of the menu, still routed): headers `Id`, `Solution`, `API ou jeu de données`, `Type d’intégration`, `Statut de l’intégration`; first row equals the first integration by id read from the database.
 - **Search without result.** Vocabulaires, search `zzz-introuvable`: status reads « Aucun vocabulaire ne contient « zzz-introuvable ». », no `table`; `click_link "Effacer la recherche"`: no `q` in the URL, rows = `[Vocabulaire.count, 50].min`.
 - **Démarches.** Search the first démarche with an `icone`: its name cell reads `<icone> <nom>`, the icon in an `aria-hidden` span.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-listes/`.

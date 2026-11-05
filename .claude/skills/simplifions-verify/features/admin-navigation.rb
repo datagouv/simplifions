@@ -1,15 +1,22 @@
 require_relative '../harness'
 
 DOSSIER = 'admin-navigation'.freeze
-RUBRIQUES_ADMIN = ['Démarches', 'Solutions', 'Recommandations', 'Intégrations', 'Organisations',
-                   'Fournisseurs de services', 'Vocabulaires'].freeze
+ENTREES_ADMIN = ['À reprendre', 'Démarches', 'Solutions', 'Référentiels'].freeze
+REFERENTIELS = ['Organisations', 'Fournisseurs de services', 'Vocabulaires'].freeze
 BARRE_PUBLIQUE = ['Accueil', "Cas d'usages", 'Articles', 'À propos'].freeze
 
 def barre(page, nom)
   page.all("nav[aria-label='#{nom}'] .fr-nav__link", visible: :all).map { |lien| [lien.text(:all).strip, lien['aria-current']] }
 end
 
-def rubrique_en_cours(page) = barre(page, 'Menu de l’administration').select(&:last)
+def entrees(page)
+  page.all("nav[aria-label='Menu de l’administration'] .fr-nav__list > .fr-nav__item > :is(.fr-nav__link, .fr-nav__btn)", visible: :all)
+    .map { |entree| entree.text(:all).strip }
+end
+
+def rubrique_en_cours(page)
+  page.all("nav[aria-label='Menu de l’administration'] [aria-current]", visible: :all).map { |entree| [entree.text(:all).strip, entree['aria-current']] }
+end
 
 def en_cours!(page, etape, attendu)
   en_cours = rubrique_en_cours(page)
@@ -23,11 +30,27 @@ def debord(page) = page.evaluate_script('document.documentElement.scrollWidth - 
 def tableau_de_bord(page)
   Verify.login(page)
   page.visit('/admin')
-  rubriques = barre(page, 'Menu de l’administration').map(&:first)
-  raise "rubriques #{rubriques}" unless rubriques == RUBRIQUES_ADMIN
+  raise "entrées #{entrees(page)}" unless entrees(page) == ENTREES_ADMIN
   raise 'barre publique sous /admin' unless barre(page, 'Menu principal').empty?
 
-  en_cours!(page, 'tableau-de-bord', [])
+  en_cours!(page, 'tableau-de-bord', [['À reprendre', 'page']])
+end
+
+def referentiels(page)
+  page.click_button 'Référentiels'
+  sous_menu = page.all('#menu-referentiels .fr-nav__link', count: REFERENTIELS.size).map(&:text)
+  raise "sous-menu #{sous_menu}" unless sous_menu == REFERENTIELS
+
+  Verify.evidence(DOSSIER, page, 'sous-menu-ouvert', "sous_menu=#{sous_menu}")
+  page.click_link 'Organisations'
+  page.assert_current_path('/admin/organisations')
+  en_cours!(page, 'organisations', [%w[Référentiels true], %w[Organisations page]])
+end
+
+def hors_menu(page)
+  page.visit('/admin/recommandations')
+  page.assert_selector 'h1'
+  en_cours!(page, 'recommandations-hors-menu', [])
 end
 
 def rubrique_solutions(page)
@@ -46,10 +69,10 @@ def menu_mobile(page)
   page.visit('/admin')
   page.click_button 'Menu'
   page.within('#modal-menu') do
-    visibles = page.all('.fr-nav__link').map(&:text)
-    raise "mobile #{visibles}" unless visibles == RUBRIQUES_ADMIN
+    raise "mobile #{entrees(page)}" unless entrees(page) == ENTREES_ADMIN
 
-    Verify.evidence(DOSSIER, page, 'menu-375', "rubriques=#{visibles.size}")
+    page.click_button 'Référentiels'
+    Verify.evidence(DOSSIER, page, 'menu-375', "entrees=#{entrees(page).size}")
     page.click_link 'Vocabulaires'
   end
 end
@@ -58,7 +81,7 @@ def vocabulaires_mobile(page)
   page.assert_current_path('/admin/vocabulaires')
   raise "375 px : débord #{debord(page)}" if debord(page).positive?
 
-  en_cours!(page, 'vocabulaires-375', [%w[Vocabulaires page]])
+  en_cours!(page, 'vocabulaires-375', [%w[Référentiels true], %w[Vocabulaires page]])
   page.current_window.resize_to(1280, 1024)
 end
 
@@ -74,6 +97,8 @@ end
 Verify.drive(__FILE__) do |page|
   Verify.check('Tableau de bord') { tableau_de_bord(page) }
   Verify.check('Rubrique') { rubrique_solutions(page) }
+  Verify.check('Référentiels') { referentiels(page) }
+  Verify.check('Hors menu') { hors_menu(page) }
   Verify.check('Mobile') { menu_mobile(page).then { vocabulaires_mobile(page) } }
   Verify.check('Site public') { site_public(page) }
   Verify.check('Proof') { raise 'aucune capture' if Dir[Verify::ROOT.join(DOSSIER, "#{Verify.browser}-*.png")].empty? }

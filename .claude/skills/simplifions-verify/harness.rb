@@ -109,7 +109,9 @@ module Verify
     SUPPRESSION_SANS_BROUILLON = 'La suppression est immédiate.'.freeze
 
     def rubrique(page, nom)
-      lien = page.find("nav[aria-label='Menu de l’administration']").find_link(nom)
+      menu = page.find("nav[aria-label='Menu de l’administration']")
+      menu.click_button('Référentiels') unless menu.has_link?(nom, wait: 0)
+      lien = menu.find_link(nom)
       chemin = URI(lien[:href]).path
       lien.click
       page.assert_current_path(chemin)
