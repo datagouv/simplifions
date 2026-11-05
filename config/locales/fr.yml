@@ -181,15 +181,35 @@ fr:
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
     brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
     sans_brouillon: "Pas de brouillon : « Enregistrer » met en ligne tout de suite."
-    brouillons_en_cours:
-      demarches:
-        zero: "0 démarche"
-        one: "1 démarche"
-        other: "%{count} démarches"
-      solutions:
-        zero: "0 solution"
-        one: "1 solution"
-        other: "%{count} solutions"
+    brouillons:
+      one: "1 brouillon"
+      other: "%{count} brouillons"
+    champs_pluriels: [mots_clefs]
+    champs_feminins: [description_courte, icone, slug, image, legende_image, url_demande_acces, categorie, integration_ids, organisation_ids, france_connectee]
+    modifies:
+      masculin:
+        one: "modifié"
+        other: "modifiés"
+      feminin:
+        one: "modifiée"
+        other: "modifiées"
+    libelles_du_brouillon:
+      slug: "Adresse de la page"
+    recommandations_du_brouillon:
+      niveau_2:
+        ajoutees:
+          one: "1 solution recommandée ajoutée"
+          other: "%{count} solutions recommandées ajoutées"
+        modifiees:
+          one: "1 solution recommandée modifiée"
+          other: "%{count} solutions recommandées modifiées"
+      niveau_1:
+        ajoutees:
+          one: "1 donnée utile ajoutée"
+          other: "%{count} données utiles ajoutées"
+        modifiees:
+          one: "1 donnée utile modifiée"
+          other: "%{count} données utiles modifiées"
     publiees:
       zero: "0 publiée"
       one: "1 publiée"

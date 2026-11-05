@@ -4,11 +4,25 @@
   <h1>Bonjour</h1>
   <div class="fr-grid-row fr-grid-row--gutters">
     <div class="fr-col-12 fr-col-md-8">
-      <h2 class="fr-h4">Brouillons en cours</h2>
-      <ul>
-        <li><%= link_to t("admin.brouillons_en_cours.demarches", count: @demarches_en_brouillon), admin_demarches_path(brouillons: 1), class: "fr-link" %></li>
-        <li><%= link_to t("admin.brouillons_en_cours.solutions", count: @solutions_en_brouillon), admin_solutions_path(brouillons: 1), class: "fr-link" %></li>
-      </ul>
+      <section aria-labelledby="a-reprendre">
+        <h2 id="a-reprendre" class="fr-h4">À reprendre
+          <% if @brouillons.any? %><span class="fr-badge fr-badge--new fr-badge--no-icon"><%= t("admin.brouillons", count: @brouillons.size) %></span><% end %>
+        </h2>
+        <% if @brouillons.none? %>
+          <p>Aucun brouillon en cours.</p>
+        <% else %>
+          <ul class="fr-raw-list">
+            <% @brouillons.each do |fiche, date| %>
+              <li class="fr-mb-2w">
+                <p class="fr-text--xs fr-mb-0 fr-text-mention--grey"><%= fiche.model_name.human %>
+                  <% if date %>· brouillon du <time datetime="<%= date.iso8601 %>"><%= l date.to_date %></time><% end %></p>
+                <p class="fr-text--lg fr-text--bold fr-mb-0"><%= link_to fiche_admin(fiche) do %><% if fiche.try(:icone).present? %><span aria-hidden="true"><%= fiche.icone %></span> <% end %><%= nom_de(fiche) %><% end %></p>
+                <p class="fr-text--sm fr-mb-0"><%= resume_du_brouillon(fiche) %></p>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      </section>
     </div>
     <div class="fr-col-12 fr-col-md-4">
       <section class="fr-p-3w fr-mb-3w admin-encadre" aria-labelledby="catalogue">

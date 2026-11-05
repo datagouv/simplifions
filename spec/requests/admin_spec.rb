@@ -51,24 +51,77 @@ RSpec.describe 'Administration' do
     end
   end
 
-  describe 'brouillons en cours sur le tableau de bord' do
+  describe 'À reprendre sur la page d’accueil' do
     before { sign_in admin }
 
-    def liens = response.parsed_body.css('a').to_h { [it.text.strip, it['href']] }
+    def a_reprendre = response.parsed_body.at_css('section[aria-labelledby=a-reprendre]')
+    def brouillons = a_reprendre.css('li').map { |brouillon| brouillon.css('p').map { it.text.squish } }
 
-    it 'compte les démarches et les solutions en brouillon, chaque nombre menant à la liste filtrée' do
-      Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, brouillon: { 'nom' => 'Aides v2' })
-      api_qf = Solution.create!(nom: 'API QF', categorie: 'api', visible: true, brouillon: { 'nom' => 'API QF v2' })
-      Demarche.create!(nom: 'Bourses').recommandations.create!(solution: api_qf, niveau: :niveau_1, brouillon: { 'visible' => '1' })
-      Demarche.create!(nom: 'Cantine')
+    it 'liste les démarches et les solutions en brouillon, la plus récente d’abord, avec ce qui a changé' do
+      aides = Demarche.create!(nom: 'Aides', icone: '🛟', slug: 'aides', visible: true)
+      aides.enregistrer('nom' => 'Aides', 'contexte' => 'Nouveau contexte', 'slug' => 'aides-sociales',
+        'modifie_le' => Time.zone.local(2026, 11, 3, 10))
+      annuaire = Solution.create!(nom: 'Annuaire', categorie: 'site_de_consultation', slug: 'annuaire', visible: true)
+      annuaire.enregistrer({ 'nom' => 'Annuaire', 'description_courte' => 'Trouver une entreprise',
+                             'modifie_le' => Time.zone.local(2026, 10, 28, 10) })
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
 
       get admin_root_path
-      expect(liens).to include('2 démarches' => '/admin/demarches?brouillons=1', '1 solution' => '/admin/solutions?brouillons=1')
+      expect(brouillons).to eq([
+        ['Démarche · brouillon du 03/11/2026', '🛟 Aides', 'Contexte et adresse de la page modifiés'],
+        ['Solution · brouillon du 28/10/2026', 'Annuaire (Portail de consultation)', 'Description courte modifiée']
+      ])
+      expect(a_reprendre.css('li a').pluck('href')).to eq(["/admin/demarches/#{aides.id}/edit", "/admin/solutions/#{annuaire.id}/edit"])
+      expect(a_reprendre.at_css('h2').text.squish).to eq('À reprendre 2 brouillons')
     end
 
-    it 'affiche zéro quand aucune fiche n’attend de publication' do
+    it 'compte les recommandations en brouillon d’une démarche par sorte, datée par la plus récente' do
+      bourses = Demarche.create!(nom: 'Bourses', slug: 'bourses', visible: true)
+      bourses.enregistrer('nom' => 'Bourses', 'contexte' => 'Nouveau contexte', 'modifie_le' => Time.zone.local(2026, 11, 1, 9))
+      ['API QF', 'API Bourses'].each do |nom|
+        solution = Solution.create!(nom:, categorie: 'api', visible: true)
+        bourses.recommandations.new(solution:, niveau: :niveau_2).enregistrer('modifie_le' => Time.zone.local(2026, 11, 2, 9))
+      end
+      utile = bourses.recommandations.create!(solution: Solution.create!(nom: 'API Revenus', categorie: 'api'), niveau: :niveau_1, visible: true)
+      utile.enregistrer('description' => 'Revenus du foyer', 'modifie_le' => Time.zone.local(2026, 10, 30, 9))
+
       get admin_root_path
-      expect(liens).to include('0 démarche' => '/admin/demarches?brouillons=1', '0 solution' => '/admin/solutions?brouillons=1')
+      expect(brouillons).to eq([['Démarche · brouillon du 02/11/2026', 'Bourses',
+                                 'Contexte modifié, 2 solutions recommandées ajoutées, 1 donnée utile modifiée']])
+    end
+
+    it 'nomme les liaisons changées par leur table' do
+      vocabulaire = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      aides = Demarche.create!(nom: 'Aides', visible: true, slug: 'aides')
+      aides.enregistrer('vocabulaire_ids' => [vocabulaire.id.to_s], 'modifie_le' => Time.zone.local(2026, 11, 3, 10))
+
+      get admin_root_path
+      expect(brouillons.first.last).to eq('Vocabulaires modifiés')
+    end
+
+    it 'accorde au féminin les champs féminins d’une solution' do
+      dinum = Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')
+      api = Solution.create!(nom: 'API QF', categorie: 'api', visible: true)
+      api.enregistrer({ 'organisation_ids' => [dinum.id.to_s], 'france_connectee' => '1', 'modifie_le' => Time.zone.local(2026, 11, 3, 10) })
+
+      get admin_root_path
+      expect(brouillons.first.last).to eq('API FranceConnectée et organisations modifiées')
+    end
+
+    it 'range une solution recommandée passée en donnée utile avec les données utiles' do
+      bourses = Demarche.create!(nom: 'Bourses', slug: 'bourses', visible: true)
+      recommandation = bourses.recommandations.new(solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_2)
+      recommandation.enregistrer('modifie_le' => Time.zone.local(2026, 11, 2, 9))
+      recommandation.enregistrer('niveau' => 'niveau_1', 'modifie_le' => Time.zone.local(2026, 11, 2, 10))
+
+      get admin_root_path
+      expect(brouillons.first.last).to eq('1 donnée utile ajoutée')
+    end
+
+    it 'dit qu’aucun brouillon n’attend' do
+      Demarche.create!(nom: 'Cantine')
+      get admin_root_path
+      expect(a_reprendre.text.squish).to eq('À reprendre Aucun brouillon en cours.')
     end
   end
 
