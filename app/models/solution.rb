@@ -66,7 +66,7 @@ class Solution < ApplicationRecord
   def acteurs = types_acteurs.map(&:nom).sort
 
   scope :recherche, ->(q) { chaque_mot_dans("unaccent(concat_ws(' ', nom, description_courte)) ILIKE unaccent(:motif)", q) }
-  def self.ransackable_attributes(_auth_object = nil) = %w[nom]
+  def self.ransackable_attributes(_auth_object = nil) = %w[nom visible]
   def self.ransackable_scopes(_auth_object = nil) = %w[recherche en_brouillon]
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
@@ -93,7 +93,6 @@ class Solution < ApplicationRecord
   def privee? = fiche? && organisations.none?(&:publique?)
 
   def fournies = [self, *exposees]
-  def integree_par = (integratrices + integrations_de_ses_api.map(&:integratrice)).uniq
 
   def api_fournies_dans_l_ordre
     exposees.order(Integration.ordre_public)

@@ -1,0 +1,9 @@
+<span class="fr-text--bold"><%= solution.nom %></span>
+<% if solution.categorie %>
+  <span class="fr-text--xs fr-text-mention--grey"><%= Solution.human_attribute_name("categorie.#{solution.categorie}") %></span>
+<% end %>
+<br>
+<span class="fr-badge fr-badge--sm fr-badge--no-icon <%= "fr-badge--success" if solution.visible? %>"><%= solution.visible? ? "Publiée" : "Masquée" %></span>
+<% if @en_brouillon.include?(solution.id) %>
+  <span class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--new">Brouillon</span>
+<% end %>

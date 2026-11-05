@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Modifier — Solution" %>
 
-<div class="fr-container fr-mb-6w">
+<%= render layout: "liste_et_fiche", locals: { lignes: @solutions } do %>
   <h1><%= nom_en_base %></h1>
   <% if en_base.privee? %>
     <p class="fr-badge fr-badge--sm fr-badge--no-icon">Privée</p>
@@ -11,4 +11,4 @@
       t("admin.suppression.integrations", count: en_base.integrations_comme_integratrice.count + en_base.integrations_comme_integree.count)] } do %>
     <%= render "form", solution: @solution %>
   <% end %>
-</div>
+<% end %>

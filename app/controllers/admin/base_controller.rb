@@ -2,7 +2,7 @@ class Admin::BaseController < ApplicationController
   default_form_builder DsfrFormBuilder
   before_action :authenticate_admin!
   before_action :set_paper_trail_whodunnit
-  helper_method :filtre_brouillons?, :filtres_de_la_liste, :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
+  helper_method :filtres_de_la_liste, :modele, :en_base, :nom_en_base, :nom_de, :fil_d_ariane, :message_d_enregistrement
 
   CRITERES_D_ETAT = { 'publiees' => { visible_true: 1 }, 'masquees' => { visible_false: 1 }, 'brouillons' => { en_brouillon: true } }.freeze
 
@@ -20,8 +20,6 @@ class Admin::BaseController < ApplicationController
   private
 
   def paginer(liste) = super(liste, 50)
-
-  def filtre_brouillons? = params[:brouillons] == '1'
 
   def filtres_de_la_liste = params.slice(:q, :etat).permit(:q, :etat).to_h.compact_blank.symbolize_keys
 

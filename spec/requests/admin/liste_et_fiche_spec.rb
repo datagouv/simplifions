@@ -85,4 +85,28 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(lignes.size).to eq(3)
     end
   end
+
+  describe 'page Solutions' do
+    def liste = page.at_css('nav[aria-label="Liste des solutions"]')
+
+    it 'liste les solutions avec leur catégorie et leur état, sans les démarches' do
+      api_qf.update!(visible: true, brouillon: { 'nom' => 'API QF v2' })
+      get '/admin/solutions'
+      expect(lignes).to eq(['API QF API Publiée Brouillon', 'API Sirene API Masquée'])
+      expect(liste.at_css('[role=status]').text.squish).to eq('2 solutions')
+      expect(liste.css('a').find { it.text.squish == 'Ajouter une solution' }['href']).to eq('/admin/solutions/new')
+      expect(page.css('main').text.squish).to include('Choisissez une solution dans la liste')
+    end
+
+    it 'filtre par état et garde la liste à gauche de la fiche, la solution ouverte signalée' do
+      api_qf.update!(visible: true)
+      get '/admin/solutions', params: { etat: 'masquees' }
+      expect(lignes).to eq(['API Sirene API Masquée'])
+
+      get liste.at_css('li a')['href']
+      expect(liste.at_css('a[aria-current=page]').text.squish).to eq('API Sirene API Masquée')
+      expect(liste.at_css('select[name=etat] option[selected]').text).to eq('Masquées')
+      expect(page.at_css('h1').text).to eq('API Sirene (API)')
+    end
+  end
 end

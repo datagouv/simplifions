@@ -171,6 +171,7 @@ RSpec.describe 'Administration' do
   end
 
   it_behaves_like 'un CRUD brut', Solution, 'solutions' do
+    let(:liens_de_la_liste) { '.liste-defilante a' }
     let(:aucun) { 'Aucune solution' }
     let(:collection) { 'Solutions' }
     let(:attributs) { { nom: 'Bouquet API Particulier' } }
@@ -225,7 +226,7 @@ RSpec.describe 'Administration' do
 
     def noms_listes(chemin, recherche)
       get "/admin/#{chemin}", params: { q: recherche }
-      return response.parsed_body.css('.liste-defilante .fr-text--bold').map { it.text.strip } if chemin == 'demarches'
+      return response.parsed_body.css('.liste-defilante .fr-text--bold').map { it.text.strip } if %w[demarches solutions].include?(chemin)
 
       response.parsed_body.css('tbody tr').map { |ligne| ligne.css('td')[1].text.strip }
     end
@@ -233,9 +234,9 @@ RSpec.describe 'Administration' do
     it 'cherche une solution par son nom' do
       ['Impôt particulier', 'Bouquet'].each { |nom| Solution.create!(nom:) }
       expect(noms_listes('solutions', 'impot')).to eq(['Impôt particulier'])
-      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('1 ligne')
+      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('1 solution')
       noms_listes('solutions', '')
-      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('2 lignes')
+      expect(response.parsed_body.at_css('[role=status]').text.strip).to eq('2 solutions')
     end
 
     it 'cherche une recommandation ou une intégration par les noms qu’elle relie, chaque mot quelque part' do
@@ -295,14 +296,13 @@ RSpec.describe 'Administration' do
   describe 'colonnes des listes' do
     before { sign_in admin }
 
-    it 'montre si la solution ou la recommandation est visible, et sa date de modification' do
+    it 'montre si la recommandation est visible, et sa date de modification' do
       aides = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true)
       api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
       Recommandation.create!(demarche: aides, solution: api_qf, niveau: :niveau_1, visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
 
       expect(colonnes('recommandations')).to eq([{ 'Ligne' => 'Aides → API QF (API)', 'Visible' => 'Oui', 'Modifié le' => '01/03/2026' }])
       expect(response.parsed_body.at_css('tbody time')['datetime']).to eq('2026-03-01T12:00:00+01:00')
-      expect(colonnes('solutions')).to eq([{ 'Nom' => 'API QF (API)', 'Privée' => 'Non', 'Visible' => 'Non', 'Modifié le' => '', 'Intégrée par' => '' }])
     end
 
     it 'titre les colonnes des intégrations avec les libellés du formulaire' do
@@ -316,28 +316,6 @@ RSpec.describe 'Administration' do
     it 'montre le nom court et le nom long des organisations' do
       Organisation.create!(nom: 'DINUM', nom_long: 'Direction interministérielle du numérique')
       expect(colonnes('organisations')).to eq([{ 'Nom court' => 'DINUM', 'Nom long' => 'Direction interministérielle du numérique' }])
-    end
-
-    it 'nomme les solutions qui intègrent chaque solution, avec un lien vers leur fiche' do
-      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
-      bouquet = Solution.create!(nom: 'Bouquet')
-      [[bouquet, 'consomme'], [bouquet, 'expose'], [Solution.create!(nom: 'Mes Aides'), 'consomme'], [Solution.create!(nom: 'eTicket'), 'consomme']].each do |integratrice, type_integration|
-        Integration.create!(integratrice:, integree: api_qf, type_integration:)
-      end
-
-      expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'API QF (API)' }['Intégrée par']).to eq('Bouquet, eTicket, Mes Aides')
-      expect(response.parsed_body.css('tbody td:last-child a').pluck('href')).to include("/admin/solutions/#{bouquet.id}/edit")
-    end
-
-    it 'nomme parmi les solutions qui intègrent un bouquet celles qui intègrent l’une de ses API' do
-      bouquet = Solution.create!(nom: 'Bouquet API Entreprise')
-      [['API Sirene', 'Mes Aides'], ['API Urssaf', 'eTicket']].each do |nom_api, nom_integratrice|
-        api = Solution.create!(nom: nom_api, categorie: 'api')
-        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
-        Integration.create!(integratrice: Solution.create!(nom: nom_integratrice), integree: api, type_integration: 'consomme', statut: '💡 en prospection')
-      end
-
-      expect(colonnes('solutions').find { |ligne| ligne['Nom'] == 'Bouquet API Entreprise' }['Intégrée par']).to eq('eTicket, Mes Aides')
     end
   end
 
@@ -355,29 +333,23 @@ RSpec.describe 'Administration' do
       Demarche.create!(nom: 'Déchets', slug: 'dechets', visible: true)
     end
 
-    def brouillons(chemin) = colonnes(chemin).to_h { [it['Nom'], it['Visible']] }
-
-    def etats_des_demarches
-      get '/admin/demarches'
+    def etats(chemin)
+      get "/admin/#{chemin}"
       response.parsed_body.css('.liste-defilante a').to_h { [it.at_css('.fr-text--bold').text.strip, it.css('.fr-badge').map(&:text).join(' ')] }
     end
 
     it 'marque « Brouillon » les démarches avec un brouillon ou une recommandation qui attend leur publication' do
-      expect(etats_des_demarches).to eq('Aides' => 'Publiée Brouillon', 'Bourses' => 'Publiée Brouillon', 'Cantine' => 'Publiée Brouillon', 'Déchets' => 'Publiée')
+      expect(etats('demarches')).to eq('Aides' => 'Publiée Brouillon', 'Bourses' => 'Publiée Brouillon', 'Cantine' => 'Publiée Brouillon', 'Déchets' => 'Publiée')
     end
 
     it 'marque « Brouillon » les solutions avec un brouillon' do
-      expect(brouillons('solutions')).to eq('API QF (API)' => 'Oui Brouillon', 'API Sirene (API)' => 'Oui', 'API Urssaf (API)' => 'Non')
+      expect(etats('solutions')).to eq('API QF' => 'Publiée Brouillon', 'API Sirene' => 'Publiée', 'API Urssaf' => 'Masquée')
     end
 
     def noms(chemin, params = {})
       get("/admin/#{chemin}", params:)
-      return response.parsed_body.css('.liste-defilante .fr-text--bold').map { it.text.strip } if chemin == 'demarches'
-
-      response.parsed_body.css('tbody tr').map { it.css('td')[1].text.strip }
+      response.parsed_body.css('.liste-defilante .fr-text--bold').map { it.text.strip }
     end
-
-    def lien(texte) = response.parsed_body.css('a').find { it.text.strip == texte }&.[]('href')
 
     it 'ne garde que les démarches en brouillon avec le filtre « En brouillon »' do
       expect(noms('demarches', etat: 'brouillons')).to eq(%w[Aides Bourses Cantine])
@@ -385,17 +357,8 @@ RSpec.describe 'Administration' do
       expect(noms('demarches', etat: '')).to eq(%w[Aides Bourses Cantine Déchets])
     end
 
-    it 'ne garde que les solutions en brouillon depuis le lien au-dessus de la liste' do
-      noms('solutions')
-      expect(lien('Brouillons en cours (1)')).to eq('/admin/solutions?brouillons=1')
-      expect(noms('solutions', brouillons: '1')).to eq(['API QF (API)'])
-    end
-
-    it 'garde le filtre dans la recherche et d’une page à l’autre' do
-      Solution.create!(Array.new(55) { |n| { nom: "API #{n}", brouillon: { 'nom' => 'Autre' } } })
-      get '/admin/solutions', params: { brouillons: '1', q: 'api' }
-      expect(response.parsed_body.at_css('form input[type=hidden][name=brouillons]')['value']).to eq('1')
-      expect(response.parsed_body.at_css('.fr-pagination a[title="Page 2"]')['href']).to eq('/admin/solutions?brouillons=1&page=2&q=api')
+    it 'ne garde que les solutions en brouillon avec le filtre « En brouillon »' do
+      expect(noms('solutions', etat: 'brouillons')).to eq(['API QF'])
     end
   end
 
@@ -556,8 +519,8 @@ RSpec.describe 'Administration' do
 
       Integration.create!(integratrice: fiche, integree: api, type_integration: 'consomme')
       Recommandation.create!(demarche: Demarche.create!(nom: 'Aides'), solution: api, niveau: :niveau_1)
-      expect(colonnes('solutions').map { |ligne| ligne.values_at('Nom', 'Intégrée par') })
-        .to contain_exactly(['API Impôt particulier (API)', 'API Impôt particulier (Logiciel métier)'], ['API Impôt particulier (Logiciel métier)', ''])
+      get '/admin/solutions'
+      expect(response.parsed_body.css('.liste-defilante a').map { it.text.squish }).to eq(['API Impôt particulier API Masquée', 'API Impôt particulier Logiciel métier Masquée'])
       expect(colonnes('recommandations').pluck('Ligne')).to eq(['Aides → API Impôt particulier (API)'])
 
       get "/admin/solutions/#{api.id}/edit"
@@ -1709,11 +1672,10 @@ RSpec.describe 'Administration' do
   describe 'solution privée' do
     before { sign_in admin }
 
-    it 'le signale sur la fiche et dans la liste, comme sur le site' do
+    it 'le signale sur la fiche, comme sur le site' do
       privee = Solution.create!(nom: 'Bouquet')
       publique = Solution.create!(nom: 'Mes Aides', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
 
-      expect(colonnes('solutions').to_h { |ligne| ligne.values_at('Nom', 'Privée') }).to eq('Bouquet' => 'Oui', 'Mes Aides' => 'Non')
       get "/admin/solutions/#{privee.id}/edit"
       expect(response.parsed_body.at_css('h1 + .fr-badge').text.strip).to eq('Privée')
       get "/admin/solutions/#{publique.id}/edit"
