@@ -125,6 +125,50 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'dernières modifications sur la page d’accueil' do
+    include ActiveSupport::Testing::TimeHelpers
+
+    before { sign_in admin }
+
+    def modifications = response.parsed_body.css('section[aria-labelledby=dernieres-modifications] tbody tr').map { |ligne| ligne.css('td').map { it.text.squish } }
+    def liens = response.parsed_body.css('section[aria-labelledby=dernieres-modifications] tbody a').pluck('href')
+
+    it 'donne la dernière modification de chaque fiche, la plus récente d’abord, sans lien vers une fiche supprimée' do
+      travel_to(Time.zone.local(2026, 11, 1, 9)) { Organisation.create!(nom: 'AIFE').destroy! }
+      cantine = travel_to(Time.zone.local(2026, 11, 2, 9)) { Demarche.create!(nom: 'Cantine') }
+      travel_to(Time.zone.local(2026, 11, 3, 14, 12)) { cantine.update!(nom: 'Cantine scolaire') }
+      communes = travel_to(Time.zone.local(2026, 11, 3, 15)) { TypeActeur.create!(nom: 'Communes') }
+
+      get admin_root_path
+      expect(modifications).to eq([
+        ['Fournisseur de services', 'Communes', 'Ajouté', '03/11/2026 à 15:00'],
+        ['Démarche', 'Cantine scolaire', 'Modifiée', '03/11/2026 à 14:12'],
+        ['Organisation', 'AIFE', 'Supprimée', '01/11/2026 à 09:00']
+      ])
+      expect(liens).to eq(["/admin/types_acteurs/#{communes.id}", "/admin/demarches/#{cantine.id}/edit"])
+    end
+
+    it 'nomme une recommandation supprimée avec sa démarche supprimée' do
+      api_qf = Solution.create!(nom: 'API QF', categorie: 'api')
+      Demarche.create!(nom: 'Bourses').tap { it.recommandations.create!(solution: api_qf, niveau: :niveau_1) }.destroy!
+
+      get admin_root_path
+      expect(modifications.map { it.first(3) }).to include(['Recommandation', 'Bourses → API QF (API)', 'Supprimée'])
+    end
+
+    it 'dit qu’aucune modification n’est enregistrée' do
+      get admin_root_path
+      expect(response.parsed_body.at_css('section[aria-labelledby=dernieres-modifications]').text.squish)
+        .to eq('Dernières modifications Aucune modification enregistrée.')
+    end
+
+    it 's’arrête à dix fiches' do
+      11.times { Vocabulaire.create!(nom: "Vocabulaire #{it}", slug: "vocabulaire-#{it}", categorie: 'usager') }
+      get admin_root_path
+      expect(modifications.size).to eq(10)
+    end
+  end
+
   describe 'dernier rafraîchissement sur le tableau de bord' do
     let(:passage) { SolidQueue::Job.create!(class_name: 'RafraichirCatalogueJob', queue_name: 'default') }
 

@@ -5,6 +5,15 @@ module Admin::DashboardHelper
     [champs_modifies(fiche), *recommandations_du_brouillon(fiche)].compact.join(', ')
   end
 
+  def evenement_de_fiche(version)
+    evenement = version.event.presence_in(%w[create destroy]) || 'update'
+    t("admin.evenements_de_fiche.#{version.item_type.underscore}.#{evenement}", default: :"admin.evenements_de_fiche.#{evenement}")
+  end
+
+  def fiche_de_version(version)
+    version.item || version.reify.avec_les_parents_supprimes
+  end
+
   private
 
   def champs_modifies(fiche)

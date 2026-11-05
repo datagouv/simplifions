@@ -23,6 +23,37 @@
           </ul>
         <% end %>
       </section>
+      <section class="fr-mt-4w" aria-labelledby="dernieres-modifications">
+        <h2 id="dernieres-modifications" class="fr-h4">Dernières modifications</h2>
+        <% if @versions.none? %>
+          <p>Aucune modification enregistrée.</p>
+        <% else %>
+          <div class="fr-table fr-table--sm">
+            <table>
+              <caption class="fr-sr-only">Dernières modifications</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Type</th>
+                  <th scope="col">Fiche</th>
+                  <th scope="col">Modification</th>
+                  <th scope="col">Quand</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @versions.each do |version| %>
+                  <% fiche = fiche_de_version(version) %>
+                  <tr>
+                    <td><%= fiche.model_name.human %></td>
+                    <td><%= version.item ? link_to(nom_de(fiche), fiche_admin(fiche)) : nom_de(fiche) %></td>
+                    <td><%= evenement_de_fiche(version) %></td>
+                    <td><time datetime="<%= version.created_at.iso8601 %>"><%= l version.created_at, format: :court %></time></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </section>
     </div>
     <div class="fr-col-12 fr-col-md-4">
       <section class="fr-p-3w fr-mb-3w admin-encadre" aria-labelledby="catalogue">

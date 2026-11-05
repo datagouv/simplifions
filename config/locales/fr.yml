@@ -193,6 +193,18 @@ fr:
       feminin:
         one: "modifiée"
         other: "modifiées"
+    evenements_de_fiche:
+      create: "Ajoutée"
+      update: "Modifiée"
+      destroy: "Supprimée"
+      type_acteur:
+        create: "Ajouté"
+        update: "Modifié"
+        destroy: "Supprimé"
+      vocabulaire:
+        create: "Ajouté"
+        update: "Modifié"
+        destroy: "Supprimé"
     libelles_du_brouillon:
       slug: "Adresse de la page"
     recommandations_du_brouillon:

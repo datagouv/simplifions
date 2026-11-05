@@ -13,6 +13,15 @@ class ApplicationRecord < ActiveRecord::Base
 
   ransacker(:nom) { |parent| Arel::Nodes::NamedFunction.new('unaccent', [parent.table[:nom]]) }
 
+  def avec_les_parents_supprimes
+    self.class.reflect_on_all_associations(:belongs_to).each do |liaison|
+      next if public_send(liaison.name)
+
+      association(liaison.name).target = PaperTrail::Version.where(item_type: liaison.klass.name, item_id: self[liaison.foreign_key]).last&.reify
+    end
+    self
+  end
+
   def self.ransackable_attributes(_auth_object = nil) = []
   def self.ransackable_associations(_auth_object = nil) = []
 end
