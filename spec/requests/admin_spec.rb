@@ -11,11 +11,11 @@ RSpec.describe 'Administration' do
       expect(response.body).to include('Vous devez vous connecter pour accéder à cette page.')
     end
 
-    it 'affiche le tableau de bord une fois connecté' do
+    it 'dit bonjour une fois connecté' do
       sign_in admin
       get admin_root_path
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('<h1>Administration</h1>')
+      expect(response.parsed_body.at_css('h1').text).to eq('Bonjour')
       expect(response.parsed_body.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }).to eq(['Administration'])
     end
 
@@ -25,6 +25,29 @@ RSpec.describe 'Administration' do
       %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
         expect(response.body).to include("href=\"/admin/#{chemin}\"")
       end
+    end
+  end
+
+  describe 'catalogue sur la page d’accueil' do
+    before { sign_in admin }
+
+    def catalogue = response.parsed_body.css('section[aria-labelledby=catalogue] li').map { it.text.squish }
+
+    it 'compte chaque table, les démarches et les solutions avec leurs publiées' do
+      Demarche.create!(nom: 'Aides', slug: 'aides', visible: true)
+      Demarche.create!(nom: 'Bourses')
+      Solution.create!(nom: 'API QF', categorie: 'api', visible: true)
+      Organisation.create!(nom: 'DINUM')
+
+      get admin_root_path
+      expect(catalogue).to eq(['Démarches 2 · 1 publiée', 'Solutions 1 · 1 publiée', 'Organisations 1',
+                               'Fournisseurs de services 0', 'Vocabulaires 0'])
+    end
+
+    it 'mène chaque nombre à sa liste' do
+      get admin_root_path
+      expect(response.parsed_body.css('section[aria-labelledby=catalogue] a').pluck('href'))
+        .to eq(%w[/admin/demarches /admin/solutions /admin/organisations /admin/types_acteurs /admin/vocabulaires])
     end
   end
 

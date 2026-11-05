@@ -190,6 +190,10 @@ fr:
         zero: "0 solution"
         one: "1 solution"
         other: "%{count} solutions"
+    publiees:
+      zero: "0 publiée"
+      one: "1 publiée"
+      other: "%{count} publiées"
     previsualisation:
       demarche: "Les recommandations y paraissent telles qu’elles seront publiées avec la démarche ; les intégrations, dans leur version publiée."
     recommandations_en_brouillon:

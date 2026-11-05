@@ -1,33 +1,38 @@
 <%= render "entete_page", titre: "Administration" %>
 
 <div class="fr-container fr-mb-6w">
-  <h1>Administration</h1>
-  <h2>Catalogue</h2>
-  <ul>
-    <li><%= link_to "Démarches", admin_demarches_path, class: "fr-link" %></li>
-    <li><%= link_to "Solutions", admin_solutions_path, class: "fr-link" %></li>
-    <li><%= link_to "Recommandations", admin_recommandations_path, class: "fr-link" %></li>
-    <li><%= link_to "Intégrations", admin_integrations_path, class: "fr-link" %></li>
-    <li><%= link_to "Organisations", admin_organisations_path, class: "fr-link" %></li>
-  </ul>
-
-  <h2>Brouillons en cours</h2>
-  <ul>
-    <li><%= link_to t("admin.brouillons_en_cours.demarches", count: @demarches_en_brouillon), admin_demarches_path(brouillons: 1), class: "fr-link" %></li>
-    <li><%= link_to t("admin.brouillons_en_cours.solutions", count: @solutions_en_brouillon), admin_solutions_path(brouillons: 1), class: "fr-link" %></li>
-  </ul>
-
-  <h2>Référentiels</h2>
-  <ul>
-    <li><%= link_to "Fournisseurs de services", admin_types_acteurs_path, class: "fr-link" %></li>
-    <li><%= link_to "Vocabulaires", admin_vocabulaires_path, class: "fr-link" %></li>
-  </ul>
-
-  <h2>Rafraîchir le catalogue</h2>
-  <p><%= statut_rafraichissement(@dernier_rafraichissement) %></p>
-  <% en_cours = rafraichissement_en_cours?(@dernier_rafraichissement) %>
-  <%= button_to en_cours ? "Rafraîchissement en cours…" : "Rafraîchir depuis Grist et data.gouv", admin_rafraichissement_path,
-    disabled: en_cours,
-    class: "fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-refresh-line",
-    form: { data: { turbo_confirm: "Rafraîchir le catalogue depuis Grist et data.gouv ? Le contenu du Grist remplacera les modifications faites dans l’administration." } } %>
+  <h1>Bonjour</h1>
+  <div class="fr-grid-row fr-grid-row--gutters">
+    <div class="fr-col-12 fr-col-md-8">
+      <h2 class="fr-h4">Brouillons en cours</h2>
+      <ul>
+        <li><%= link_to t("admin.brouillons_en_cours.demarches", count: @demarches_en_brouillon), admin_demarches_path(brouillons: 1), class: "fr-link" %></li>
+        <li><%= link_to t("admin.brouillons_en_cours.solutions", count: @solutions_en_brouillon), admin_solutions_path(brouillons: 1), class: "fr-link" %></li>
+      </ul>
+    </div>
+    <div class="fr-col-12 fr-col-md-4">
+      <section class="fr-p-3w fr-mb-3w admin-encadre" aria-labelledby="catalogue">
+        <h2 id="catalogue" class="fr-h6">Catalogue</h2>
+        <ul class="fr-raw-list">
+          <% @catalogue.each do |modele, nombre| %>
+            <li class="fr-mb-1w">
+              <%= link_to modele.model_name.human(count: 2), [:admin, modele] %> <%= nombre %>
+              <% if (publiees = @publiees[modele]) %>
+                <span class="fr-text--xs fr-text-mention--grey">· <%= t("admin.publiees", count: publiees) %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+      <section class="fr-p-3w fr-background-alt--grey" aria-labelledby="import">
+        <h2 id="import" class="fr-h6">Rafraîchir le catalogue</h2>
+        <p class="fr-text--sm"><%= statut_rafraichissement(@dernier_rafraichissement) %></p>
+        <% en_cours = rafraichissement_en_cours?(@dernier_rafraichissement) %>
+        <%= button_to en_cours ? "Rafraîchissement en cours…" : "Rafraîchir depuis Grist et data.gouv", admin_rafraichissement_path,
+          disabled: en_cours,
+          class: "fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-refresh-line",
+          form: { data: { turbo_confirm: "Rafraîchir le catalogue depuis Grist et data.gouv ? Le contenu du Grist remplacera les modifications faites dans l’administration." } } %>
+      </section>
+    </div>
+  </div>
 </div>
