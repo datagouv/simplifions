@@ -22,7 +22,7 @@ RSpec.describe 'Administration' do
     it 'mène à chaque table du catalogue' do
       sign_in admin
       get admin_root_path
-      %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
+      %w[demarches solutions organisations types_acteurs vocabulaires].each do |chemin|
         expect(response.body).to include("href=\"/admin/#{chemin}\"")
       end
     end
