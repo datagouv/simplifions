@@ -34,6 +34,17 @@ RSpec.describe Demarche do
     end
   end
 
+  describe '#suppression_sans_retour_a_annoncer?' do
+    it 'annonce la suppression sans retour sur une démarche masquée dès qu’une recommandation publiée a un brouillon' do
+      demarche = described_class.create!(nom: 'Cantine')
+      recommandation = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_2, visible: true)
+      expect(demarche.suppression_sans_retour_a_annoncer?).to be(false)
+
+      recommandation.enregistrer('description' => 'Le quotient familial.')
+      expect(demarche.suppression_sans_retour_a_annoncer?).to be(true)
+    end
+  end
+
   describe '#recommandations_publiees' do
     it 'liste les solutions recommandées visibles dans l’ordre éditorial, sans les données utiles' do
       demarche = described_class.create!(nom: 'Cantine')
