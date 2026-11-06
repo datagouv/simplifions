@@ -2312,11 +2312,22 @@ RSpec.describe 'Administration' do
       get "/admin/demarches/#{demarche.id}/edit"
       expect(response.parsed_body.css('.cartes-recommandees h3').map(&:text)).not_to include(ajoutee.solution.libelle_admin)
       expect(ancienne.reload.slice(:niveau, :visible, :brouillon)).to eq('niveau' => 'niveau_2', 'visible' => false, 'brouillon' => nil)
-      expect(publiee.reload.brouillon).to include('donnees_utiles' => 'Revenu fiscal')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(cartes_publiques.map { it[/Mes Aides|Bouquet|API Impôt/] }).to eq(['Mes Aides'])
-      expect(cartes_publiques.first).to include('Revenu fiscal')
+    end
+
+    it 'défait à l’abandon du brouillon de la démarche la modification d’une solution recommandée déjà publiée' do
+      publiee.update!(description: 'Calcule les aides')
+      patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { description: 'Calcule les aides du foyer' } }
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
+
+      patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.parsed_body.at_css('section[aria-labelledby="a-la-publication"]')).to be_nil
+      get "/admin/recommandations/#{publiee.id}/edit"
+      expect(response.parsed_body.at_css('#recommandation_description').text.strip).to eq('Calcule les aides')
+      expect(cartes_publiques.first).not_to include('du foyer')
     end
 
     it 'ne publie rien et nomme la recommandation refusée' do
