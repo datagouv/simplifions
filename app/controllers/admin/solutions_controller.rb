@@ -1,10 +1,8 @@
 class Admin::SolutionsController < Admin::BaseController
   before_action :set_solution, only: %i[edit update destroy]
+  before_action :charger_la_liste, only: %i[index new edit create update]
 
-  def index
-    @solutions = paginer(Solution.ransack(recherche: params[:q].to_s, en_brouillon: filtre_brouillons?).result.preload(:integratrices, :organisations, integrations_de_ses_api: :integratrice).order(:id))
-    @en_brouillon = Solution.en_brouillon.ids.to_set
-  end
+  def index; end
 
   def new
     @solution = Solution.new
@@ -40,6 +38,11 @@ class Admin::SolutionsController < Admin::BaseController
   end
 
   private
+
+  def charger_la_liste
+    @solutions = liste(Solution).par_libelle_admin
+    @en_brouillon = Solution.en_brouillon.ids.to_set
+  end
 
   def set_solution
     @solution = Solution.find(params.expect(:id))

@@ -121,12 +121,20 @@ module Verify
     def rechercher(page, texte)
       page.fill_in 'Rechercher', with: texte
       page.click_button 'Rechercher'
-      page.assert_current_path(/[?&]q=/, url: true)
+      page.assert_current_path(/[?&]q=/, url: true) { |uri| URI.decode_www_form(uri.query.to_s).to_h['q'] == texte }
     end
 
     def ouvrir_depuis_la_liste(page, nom)
       rechercher(page, nom)
-      page.within('tbody') { page.click_link nom, exact_text: true }
+      return page.within('tbody') { page.click_link nom, exact_text: true } if page.has_css?('tbody', wait: 0)
+
+      ligne_de_la_liste(page, nom).click
+    end
+
+    def ligne_de_la_liste(page, nom)
+      gras = "span[contains(@class, 'fr-text--bold')]"
+      texte = "normalize-space(.//#{gras})"
+      page.find(:xpath, "//nav[starts-with(@aria-label, 'Liste des')]//li/a[#{texte} = #{nom.inspect} or substring(#{texte}, string-length(#{texte}) - #{nom.length}) = #{" #{nom}".inspect}]", match: :first)
     end
 
     def ouvrir_fiche(page, nom)

@@ -32,22 +32,23 @@ def cases_filtrees(page, options)
   Verify.evidence(DOSSIER, page, 'cases-filtrables', "cases=#{cases.join(' | ')}")
 end
 
-def colonne_integree_par(page)
+def categories_dans_la_liste(page)
   page.visit('/admin/solutions')
   Verify.rechercher(page, 'impot particulier')
-  integree_par = page.all('tbody tr').map { |ligne| ligne.all('td').last.text }.reject(&:empty?)
-  raise "intégrée par #{integree_par}" unless integree_par.any? { |cellule| cellule.include?("#{NOM} (") }
+  lignes = page.all("nav[aria-label='Liste des solutions'] li a").map { it.text.squish }.select { it.start_with?(NOM) }.map { it.delete_prefix(NOM).strip }
+  categories = Solution.where(nom: NOM).map { Solution.human_attribute_name("categorie.#{it.categorie}") }
+  raise "lignes #{lignes}" unless lignes.size == 2 && categories.all? { |categorie| lignes.one? { it.start_with?(categorie) } }
 
-  integree_par
+  lignes
 end
 
 Verify.drive(__FILE__) do |page|
   Verify.login(page)
   options = Verify.check('Selects') { options_des_selects(page) }
   Verify.check('Checkbox list') { cases_filtrees(page, options) }
-  integree_par = Verify.check('Intégrée par') { colonne_integree_par(page) }
+  lignes = Verify.check('Categories in the list') { categories_dans_la_liste(page) }
   Verify.check('Proof') do
-    Verify.evidence(DOSSIER, page, 'integree-par', "integree_par=#{integree_par.join(' / ')}")
+    Verify.evidence(DOSSIER, page, 'liste-categories', "lignes=#{lignes.join(' / ')}")
     Verify.logout(page)
   end
 end

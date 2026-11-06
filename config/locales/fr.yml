@@ -168,6 +168,9 @@ fr:
       last: "Dernière page"
       truncate: "…"
   admin:
+    nombre_de_recommandations:
+      one: "%{count} recommandation"
+      other: "%{count} recommandations"
     aucun_resultat:
       demarche: "Aucune démarche ne contient « %{q} »."
       solution: "Aucune solution ne contient « %{q} »."

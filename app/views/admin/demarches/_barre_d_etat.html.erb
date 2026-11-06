@@ -36,6 +36,6 @@
       <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, demarche], method: :patch, class: "fr-btn fr-btn--secondary",
           form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_en_base} » ? Les modifications non publiées seront perdues." } } %></li>
     <% end %>
-    <li><%= button_to "Publier", [:admin, demarche], method: :patch, params: { "demarche[visible]" => "1" }, class: "fr-btn" %></li>
+    <li><%= button_to "Publier", [:admin, demarche], method: :patch, params: { "demarche[visible]" => "1", **filtres_de_la_liste }, class: "fr-btn" %></li>
   </ul>
 </section>

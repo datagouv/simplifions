@@ -1,0 +1,6 @@
+<span class="fr-text--bold"><%= avec_icone(demarche.icone, demarche.nom) %></span><br>
+<span class="fr-badge fr-badge--sm fr-badge--no-icon <%= "fr-badge--success" if demarche.visible? %>"><%= demarche.visible? ? "Publiée" : "Masquée" %></span>
+<% if @en_brouillon.include?(demarche.id) %>
+  <span class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--new">Brouillon</span>
+<% end %>
+<span class="fr-text--xs fr-text-mention--grey"><%= t("admin.nombre_de_recommandations", count: @nombre_de_recommandations.fetch(demarche.id, 0)) %></span>
