@@ -53,7 +53,7 @@ end
 def ordre(page, ordres)
   demarche = Demarche.order(:id).first!
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  page.assert_selector :field, 'Mots-clés'
+  page.assert_selector :field, 'Mots-clés', visible: :all
   ordres[:demarche] = libelles_de(page).first(8)
   aucun_formulaire_vide(ordres)
   Verify.evidence(DOSSIER, page, 'demarche', "demarche=#{demarche.id} ordre=#{ordres[:demarche].join(' | ')}")

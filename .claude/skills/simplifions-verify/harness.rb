@@ -6,6 +6,7 @@ module Verify
   PORT = 3101
   ROOT = Rails.root.join('tmp/verify')
   ADMIN = { email: 'verif@simplifions.local', password: 'verif-simplifions-2026' }.freeze
+  BARRE_DEMARCHE = 'section[aria-label="État de la démarche"]'.freeze
   CONTAINER_IP = Socket.ip_address_list.find(&:ipv4_private?).ip_address
 
   def self.chrome(app, javascript: true)
@@ -131,7 +132,23 @@ module Verify
     def ouvrir_fiche(page, nom)
       rubrique(page, 'Démarches')
       ouvrir_depuis_la_liste(page, nom)
+      page.assert_selector 'h1', text: nom
+    end
+
+    def ouvrir_solution(page, nom)
+      rubrique(page, 'Solutions')
+      ouvrir_depuis_la_liste(page, nom)
       page.find_field('Nom', with: nom)
+    end
+
+    def fenetre(page, bouton)
+      page.click_button bouton
+      page.find('dialog[open]')
+    end
+
+    def modifier_dans_la_fenetre(page, bouton, champs)
+      fenetre(page, bouton).then { |dialog| champs.each { |champ, valeur| dialog.fill_in champ, with: valeur } }
+      page.find('dialog[open]').click_button 'Enregistrer'
     end
 
     def onglet(page, libelle)

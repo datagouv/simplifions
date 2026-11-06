@@ -1,61 +1,14 @@
-<% lignes = [*en_base.recommandations.par_niveau_et_ordre.includes(:solution), Recommandation.new(demarche: en_base)] if en_base %>
 <%= form_with model: [:admin, demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(demarche) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <% fiche = capture do %>
-    <%= f.dsfr_text_field :icone %>
-    <%= f.dsfr_text_field :nom %>
-    <%= f.dsfr_text_field :titre_seo %>
-    <%= f.dsfr_text_field :slug %>
-    <%= f.dsfr_text_area :description_courte %>
-    <%= f.dsfr_text_area :contexte %>
-    <%= f.dsfr_text_area :cadre_juridique %>
-    <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
-    <%= f.dsfr_text_area :mots_clefs %>
-    <%= render "admin/vocabulaires", f: f %>
-  <% end %>
-  <% integrations = capture do %>
-    <% proposees = demarche.integrations_proposees.includes(:integratrice, :integree).order(:id).load %>
-    <% autorisees = demarche.integrations_autorisees.ids %>
-    <% if proposees.any? %>
-      <%= render "admin/cases_filtrables", f: f, attribut: :integration_ids, collection: proposees, libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) }, legende: "Intégrations" %>
-    <% else %>
-      <%= hidden_field_tag "demarche[integration_ids][]", "" %>
-      <p class="fr-hint-text">Intégrations : à cocher une fois que la démarche recommande l’API ou le jeu de données intégré.</p>
-    <% end %>
-  <% end %>
-  <% if en_base %>
-    <% recommandations = capture do %>
-      <div id="message-recommandations" role="status"></div>
-      <div class="fr-table"><div class="fr-table__wrapper"><div class="fr-table__container"><div class="fr-table__content">
-        <table class="lignes-modifiables" aria-labelledby="onglet-recommandations">
-          <thead>
-            <tr>
-              <th scope="col">Solution (obligatoire)</th>
-              <th scope="col"><%= Recommandation.human_attribute_name(:niveau) %> (obligatoire)</th>
-              <th scope="col"><%= Recommandation.human_attribute_name(:ordre) %></th>
-              <th scope="col">État</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= render partial: "admin/recommandations/ligne", collection: lignes %>
-          </tbody>
-        </table>
-      </div></div></div></div>
-    <% end %>
-    <%= render "admin/onglets", objet: demarche, onglet_des_erreurs: { integration_hors_regle: "integrations", recommandation_refusee: "recommandations" }, onglets: {
-          "fiche" => ["Fiche", fiche],
-          "integrations" => ["Intégrations (#{demarche.integration_ids.size})", integrations],
-          "recommandations" => ["Recommandations (#{en_base.recommandations.count})", recommandations],
-          "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
-        } %>
-  <% else %>
-    <%= fiche %>
-    <%= integrations %>
-  <% end %>
-<% end %>
-<% if lignes %>
-  <div id="formulaires-recommandations">
-    <%= render partial: "admin/recommandations/formulaire_de_ligne", collection: lignes, as: :ligne %>
-  </div>
+  <%= f.dsfr_text_field :icone %>
+  <%= f.dsfr_text_field :nom %>
+  <%= f.dsfr_text_field :titre_seo %>
+  <%= f.dsfr_text_field :slug %>
+  <%= f.dsfr_text_area :description_courte %>
+  <%= f.dsfr_text_area :contexte %>
+  <%= f.dsfr_text_area :cadre_juridique %>
+  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
+  <%= f.dsfr_text_area :mots_clefs %>
+  <%= render "admin/vocabulaires", f: f %>
+  <%= render "integrations", f: f %>
 <% end %>

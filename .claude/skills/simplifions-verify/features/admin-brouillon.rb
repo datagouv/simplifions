@@ -28,22 +28,19 @@ end
 
 def publier_la_demarche(page, demarche, brouillons)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  page.assert_selector 'aside.admin-panneau', text: brouillons
+  page.assert_selector Verify::BARRE_DEMARCHE, text: brouillons
   page.click_button 'Publier'
   page.assert_text "« #{demarche.nom} » enregistré."
 end
 
-def enregistrer_le_nom(page, nom)
-  page.fill_in 'Nom', with: nom
-  page.click_button 'Enregistrer'
-end
+def enregistrer_le_nom(page, nom) = Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => nom)
 
 def brouillon_de_demarche(page, demarche)
   Verify.ouvrir_fiche(page, demarche.nom)
   enregistrer_le_nom(page, "#{demarche.nom} brouillon")
   page.assert_text "« #{demarche.nom} » : brouillon enregistré, non publié."
-  page.assert_selector 'aside.admin-panneau', text: DRAFT_BADGE
-  page.assert_selector 'aside.admin-panneau', text: %r{Brouillon du \d\d/\d\d/\d{4} à \d\d:\d\d}
+  page.assert_selector Verify::BARRE_DEMARCHE, text: DRAFT_BADGE
+  page.assert_selector Verify::BARRE_DEMARCHE, text: %r{Brouillon du \d\d/\d\d/\d{4} à \d\d:\d\d}
   base = lu { demarche.reload.slice(:nom, :visible) }
   raise "brouillon : base #{base}" unless base == { 'nom' => demarche.nom, 'visible' => true }
 
@@ -60,10 +57,10 @@ end
 def rouvrir_et_publier(page, nom)
   Verify.rubrique(page, 'Démarches')
   Verify.ouvrir_depuis_la_liste(page, nom)
-  page.find_field('Nom', with: "#{nom} brouillon")
+  page.assert_selector 'h1', exact_text: "#{nom} brouillon"
   page.click_button 'Publier'
   page.assert_text "« #{nom} brouillon » enregistré."
-  page.assert_no_selector 'aside.admin-panneau', text: /Brouillon/i
+  page.assert_no_selector Verify::BARRE_DEMARCHE, text: /Brouillon/i
 end
 
 def page_publique_publiee(page, demarche, nom)
@@ -76,11 +73,11 @@ end
 def abandonner(page, publie)
   Verify.ouvrir_fiche(page, publie)
   enregistrer_le_nom(page, "#{publie} à jeter")
-  page.assert_selector 'aside.admin-panneau', text: DRAFT_BADGE
+  page.assert_selector Verify::BARRE_DEMARCHE, text: DRAFT_BADGE
   question = "Abandonner le brouillon de « #{publie} » ? Les modifications non publiées seront perdues."
   page.accept_confirm(question) { page.click_button 'Abandonner le brouillon' }
   page.assert_text "Brouillon de « #{publie} » abandonné."
-  page.find_field('Nom', with: publie)
+  page.assert_selector 'h1', exact_text: publie
 end
 
 def abandon_en_base(page, demarche, publie)
@@ -149,7 +146,7 @@ end
 
 def cartes_apres_publication(page, demarche)
   publier_la_demarche(page, demarche, '2 recommandations en brouillon')
-  page.assert_no_selector 'aside.admin-panneau', text: 'en brouillon'
+  page.assert_no_selector Verify::BARRE_DEMARCHE, text: 'en brouillon'
   cartes = cartes_publiques(page, demarche.slug)
   raise "page publique après : #{cartes}" unless cartes.size == 2 && cartes.join.include?('Après')
 
@@ -243,11 +240,13 @@ def brouillon_type_choisi(page, demarche, nom)
   end
 end
 
-def phrase_du_panneau(page) = page.find('aside[aria-labelledby="etat-et-actions"]').all('p').map { it.text.squish }.include?(SANS_BROUILLON)
+PANNEAU = "aside[aria-labelledby='etat-et-actions'], #{Verify::BARRE_DEMARCHE}".freeze
+
+def phrase_du_panneau(page) = page.find(PANNEAU).all('p').map { it.text.squish }.include?(SANS_BROUILLON)
 
 def panneau_sans_brouillon(page, etape, chemin, attendu)
   page.visit(chemin)
-  page.assert_selector 'aside[aria-labelledby="etat-et-actions"]'
+  page.assert_selector PANNEAU
   dit = phrase_du_panneau(page)
   raise "#{etape} : phrase #{dit ? 'présente' : 'absente'} du panneau" unless dit == attendu
 

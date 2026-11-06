@@ -2,9 +2,19 @@ import { Controller } from "@hotwired/stimulus"
 
 const QUESTION = "Quitter sans enregistrer les modifications ?"
 const enregistreSurPlace = (formulaire) => "enregistreSurPlace" in formulaire.dataset
+const coche = (champ) => champ.type === "checkbox" || champ.type === "radio"
+const options = (champ) => (champ.tagName === "SELECT" ? [...champ.options] : [])
+const differe = (champ) =>
+  coche(champ) ? champ.checked !== champ.defaultChecked
+    : options(champ).some((option) => option.selected !== option.defaultSelected) || ("defaultValue" in champ && champ.value !== champ.defaultValue)
+const remettre = (champ) => {
+  if (coche(champ)) champ.checked = champ.defaultChecked
+  else if (champ.tagName === "SELECT") options(champ).forEach((option) => (option.selected = option.defaultSelected))
+  else champ.value = champ.defaultValue
+}
 
 export default class extends Controller {
-  static values = { modifie: Boolean }
+  static values = { modifie: Boolean, fiche: String }
 
   connect() {
     document.addEventListener("submit", this.soumettre, true)
@@ -39,6 +49,15 @@ export default class extends Controller {
     this.element.reset()
     this.modifieValue = false
     return true
+  }
+
+  annuler({ currentTarget }) {
+    if (this.ficheValue) {
+      this.modifieValue = false
+      return window.Turbo.visit(this.ficheValue, { action: "replace" })
+    }
+    currentTarget.querySelectorAll("input, textarea, select").forEach(remettre)
+    this.modifieValue = [...this.element.elements].some((champ) => champ.name && differe(champ))
   }
 
   soumettre = (event) => {

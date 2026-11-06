@@ -24,8 +24,7 @@ end
 def brouillon_de_demarche(page, nom)
   Verify.ouvrir_fiche(page, nom)
   page.assert_no_selector :link, 'Prévisualiser'
-  page.fill_in 'Nom', with: "#{nom} brouillon"
-  page.click_button 'Enregistrer'
+  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => "#{nom} brouillon")
 end
 
 def demarche_previsualisee(page, nom)

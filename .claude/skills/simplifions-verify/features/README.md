@@ -32,6 +32,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [article-cartes.md](article-cartes.md) — the solution and cas d'usage cards cited in an article come from the base; a hidden record's card is skipped, the article still renders.
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
+- [admin-fiche-demarche.md](admin-fiche-demarche.md) — a saved démarche reads like its public page; each block opens a modal with its fields (save, Escape, refused field).
 - [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete from the edit page: the confirmation names the row and what goes with it (démarche drive created, organisation cancelled).
 - [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused.
 - [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.

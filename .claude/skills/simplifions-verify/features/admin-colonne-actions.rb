@@ -9,7 +9,7 @@ def visible_a_l_ecran?(page, bouton)
   JS
 end
 
-def etat_en_base(demarche) = ActiveRecord::Base.uncached { demarche.reload.slice(:nom, :visible) }
+def etat_en_base(solution) = ActiveRecord::Base.uncached { solution.reload.slice(:nom, :visible) }
 
 def defiler_jusqu_au_pied_de_page(page, bouton)
   page.document.synchronize do
@@ -19,16 +19,16 @@ def defiler_jusqu_au_pied_de_page(page, bouton)
 end
 
 def colle_en_bas(page)
-  longue = Demarche.find(1)
-  page.visit("/admin/demarches/#{longue.id}/edit")
+  longue = Solution.where(visible: true).max_by { |solution| solution.attributes.values.sum { it.to_s.size } }
+  page.visit("/admin/solutions/#{longue.id}/edit")
   hauteur = page.evaluate_script('document.documentElement.scrollHeight')
   page.assert_selector PANNEAU, text: /Publiée/i
   defiler_jusqu_au_pied_de_page(page, page.find_button('Enregistrer', disabled: true))
-  Verify.evidence(DOSSIER, page, 'defile', "demarche=#{longue.id} hauteur=#{hauteur} scrollY=#{page.evaluate_script('window.scrollY')} enregistrer_a_l_ecran=true")
+  Verify.evidence(DOSSIER, page, 'defile', "solution=#{longue.id} hauteur=#{hauteur} scrollY=#{page.evaluate_script('window.scrollY')} enregistrer_a_l_ecran=true")
 end
 
 def grise(page, nom)
-  Verify.ouvrir_fiche(page, nom)
+  Verify.ouvrir_solution(page, nom)
   page.find_button('Enregistrer', disabled: true)
   page.find_button('Publier', disabled: false)
   Verify.evidence(DOSSIER, page, 'enregistrer-grise', 'enregistrer=desactive publier=actif')
@@ -37,10 +37,10 @@ def grise(page, nom)
   Verify.evidence(DOSSIER, page, 'enregistrer-actif', 'enregistrer=actif apres_saisie')
 end
 
-def entree(page, demarche, nom)
+def entree(page, solution, nom)
   page.find_field('Nom').send_keys(:enter)
   page.assert_text "« #{nom} saisie » enregistré."
-  etat = etat_en_base(demarche)
+  etat = etat_en_base(solution)
   raise "entrée #{etat}" unless etat == { 'nom' => "#{nom} saisie", 'visible' => false }
 
   page.assert_selector PANNEAU, text: /Masquée/i
@@ -56,13 +56,13 @@ def erreurs(page)
   Verify.evidence(DOSSIER, page, 'erreur-enregistrer-actif', 'enregistrer=actif sur_formulaire_en_erreur')
 end
 
-def publier(page, demarche, nom)
+def publier(page, solution, nom)
   page.fill_in 'Nom', with: nom
   page.scroll_to(0, 2_000)
   page.click_button 'Publier'
   page.assert_text "« #{nom} » enregistré."
   page.assert_selector PANNEAU, text: /Publiée/i
-  etat = etat_en_base(demarche)
+  etat = etat_en_base(solution)
   raise "publier #{etat}" unless etat == { 'nom' => nom, 'visible' => true }
 
   Verify.evidence(DOSSIER, page, 'publiee', "base=#{etat}")
@@ -71,17 +71,17 @@ end
 def page_publique(page, slug)
   publique = page.window_opened_by { page.click_link 'Voir la page publique' }
   titre = page.within_window(publique) do
-    page.assert_current_path("/demarches/#{slug}")
+    page.assert_current_path("/solutions/#{slug}")
     page.find('h1').text
   end
   publique.close
   Verify.evidence(DOSSIER, page, 'page-publique', "h1=#{titre}")
 end
 
-def masquer(page, demarche)
+def masquer(page, solution)
   page.click_button 'Masquer'
   page.assert_selector PANNEAU, text: /Masquée/i
-  visible = etat_en_base(demarche)['visible']
+  visible = etat_en_base(solution)['visible']
   raise "masquer #{visible}" if visible
 
   Verify.evidence(DOSSIER, page, 'masquee', "visible=#{visible}")
@@ -99,7 +99,7 @@ ensure
 end
 
 def supprimee(page, nom)
-  reste = ActiveRecord::Base.uncached { Demarche.where(nom:).count }
+  reste = ActiveRecord::Base.uncached { Solution.where(nom:).count }
   raise "reste_en_base=#{reste}" unless reste.zero?
 
   Verify.evidence(DOSSIER, page, 'supprimee', "reste_en_base=#{reste}")
@@ -110,15 +110,15 @@ Verify.drive(__FILE__) do |page|
   slug = "verif-verify-map-#{Verify.browser}"
   Verify.login(page)
   Verify.check('Sticky') { colle_en_bas(page) }
-  demarche = Demarche.create!(nom:, slug:)
+  solution = Solution.create!(nom:, slug:)
   Verify.check('Greyed') { grise(page, nom) }
-  Verify.check('Enter') { entree(page, demarche, nom) }
+  Verify.check('Enter') { entree(page, solution, nom) }
   Verify.check('Errors') { erreurs(page) }
   Verify.check('Publish') do
-    publier(page, demarche, nom)
+    publier(page, solution, nom)
     page_publique(page, slug)
   end
-  Verify.check('Hide') { masquer(page, demarche) }
+  Verify.check('Hide') { masquer(page, solution) }
   Verify.check('Mobile') { mobile(page) }
   Verify.check('Delete') do
     page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer' }
@@ -126,5 +126,5 @@ Verify.drive(__FILE__) do |page|
   end
   Verify.check('Proof') { supprimee(page, nom) }
 ensure
-  Demarche.where(slug:).destroy_all
+  Solution.where(slug:).destroy_all
 end

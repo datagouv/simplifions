@@ -63,8 +63,9 @@ RSpec.describe 'Historique des fiches' do
     end
   end
 
-  describe 'colonne de droite' do
-    def colonne = response.parsed_body.at_css('aside[aria-labelledby="etat-et-actions"]')
+  describe 'etat_de_la_fiche de droite' do
+    def etat_de_la_fiche = response.parsed_body.at_css(ETAT_DE_LA_FICHE)
+    def lien_historique = response.parsed_body.at_css('main a:contains("Historique")')
 
     it 'dit qui a modifié chaque fiche en dernier et mène à son historique' do
       lignes = PaperTrail.request(whodunnit: admin.id.to_s) do
@@ -80,8 +81,8 @@ RSpec.describe 'Historique des fiches' do
       lignes.each do |chemin, ligne|
         get "/admin/#{chemin}/#{ligne.id}/edit"
         auteur = chemin == 'demarches' ? 'Modifiée par Import Grist le' : 'Créée par dorine@example.gouv.fr le'
-        expect(colonne.text.squish).to include(auteur), chemin
-        expect(colonne.at_css('a:contains("Historique")')['href']).to eq("/admin/historique/#{chemin}/#{ligne.id}"), chemin
+        expect(etat_de_la_fiche.text.squish).to include(auteur), chemin
+        expect(lien_historique['href']).to eq("/admin/historique/#{chemin}/#{ligne.id}"), chemin
       end
     end
 
@@ -89,7 +90,8 @@ RSpec.describe 'Historique des fiches' do
       demarche = PaperTrail.request(enabled: false) { Demarche.create!(nom: 'Aides') }
       get "/admin/demarches/#{demarche.id}/edit"
 
-      expect(colonne.text).not_to include('Modifiée par', 'Historique')
+      expect(etat_de_la_fiche.text).not_to include('Modifiée par')
+      expect(lien_historique).to be_nil
     end
   end
 end

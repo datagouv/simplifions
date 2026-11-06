@@ -1,0 +1,10 @@
+<%# locals: (elements:) -%>
+<% if elements.any? %>
+  <ul class="fr-tags-group fr-mb-0">
+    <% elements.each do |element| %>
+      <li><p class="fr-tag fr-tag--sm"><%= element %></p></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="fr-text-mention--grey fr-mb-0">Aucun.</p>
+<% end %>

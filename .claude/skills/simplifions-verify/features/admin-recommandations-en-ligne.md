@@ -23,10 +23,10 @@ Drive: `features/admin-recommandations-en-ligne.rb` (SKILL.md § Drive).
 Preconditions: logged in; the drive mutates then undoes; a masked démarche `Vérif verify-map <browser>` with one recommandation is created for the Warning step and deleted at the end. Démarche: the visible one with a slug and the most recommandations; row: its first visible recommandation; solution: the first public API it does not recommend yet.
 
 - **Row.** `Ordre de la recommandation <solution>` = 77 → fiche `Enregistrer` stays greyed; `Enregistrer la recommandation <solution>` → `brouillon enregistré`, badge `Brouillon`, focus stays on the button, ordre unchanged in base, 77 in the draft.
-- **Fiche kept.** Change `Description courte`, save a row → no confirmation, fiche `Enregistrer` still active.
+- **Fiche kept.** Tick or untick a box of the `Intégrations` tab (the fiche's blocks edit in modals), save a row → no confirmation, that tab's `Enregistrer` still active.
 - **Error.** Blank row with only a type → `Choisissez une solution` on the row, button described by it, focus on it.
 - **Add.** Blank row with the solution and ordre 99 → new row above, blank row again, count +1, `visible` false.
-- **Public page.** `Annuler` (accept the leave question) → `/demarches/<slug>` cards unchanged.
+- **Public page.** Breadcrumb `Démarches` (accept the leave question) → `/demarches/<slug>` cards unchanged.
 - **Width.** At 1280 and 1024 px, `.fr-table__content` `scrollWidth <= clientWidth`.
 - **Undo.** `Modifier la recommandation <solution>` → `Abandonner le brouillon`; the added one → its trash button: dismiss the confirmation (it reads `Supprimer la recommandation <solution> ? <avertissement>`, the démarche being published; row stays, still in base), accept it (row gone, `supprimé` in `#message-recommandations`, which takes the focus through Turbo's stream `autofocus`, still on the démarche). Count and draft back.
 - **Warning.** `Supprimer la recommandation <solution>` of the published démarche's row and `Supprimer` of its recommandation page (`/admin/recommandations/<id>/edit`): confirmation ends with the warning. Same two on the masked démarche's recommandation: confirmation without it. Dismissed each time, both recommandations still in base.

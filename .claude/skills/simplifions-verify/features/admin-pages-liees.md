@@ -5,14 +5,14 @@ On an admin form, each text area is as tall as its content (rows computed server
 ## Sub-features
 
 - `pages-liees-texte` each text area as tall as its content; Markdown fields say `Markdown accepté`.
-- `pages-liees-publique` `Voir la page publique` in `État et actions` opens the public page in a new tab.
+- `pages-liees-publique` `Voir la page publique` (on a démarche, the page address above its H1) opens the public page in a new tab.
 - `pages-liees-referentiel` a `?` beside each vocabulaire and fournisseur opens its read page in a new tab; three columns from 992 px.
 - `pages-liees-recommandation` `Voir la fiche <solution>` on a recommandation opens the solution's form.
 - `pages-liees-cases` `Voir la fiche <libellé>` beside each checked catalogue box and the intégration's two solutions (spec only).
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit` of a visible démarche: `Contexte`, `Voir la page publique`, `Fournisseurs de services` checked boxes.
+- `/admin/demarches/<id>/edit` of a visible démarche: the page address, then the `Modifier le contexte`, `Modifier les fournisseurs de services` and `Modifier les vocabulaires` modals.
 - `/admin/recommandations/<id>/edit`: link next to `Solution`. Admin only.
 
 ## Driving it with Capybara
@@ -21,9 +21,9 @@ Drive: `features/admin-pages-liees.rb` (SKILL.md § Drive).
 
 Read-only. Precondition: catalogue imported (démarche 23 has a 2 947-character contexte on 2026-10-05).
 
-- **Text area.** The longest visible contexte: `scrollHeight <= clientHeight`, hint `Markdown accepté`.
+- **Text area.** The longest visible contexte, `Modifier le contexte` modal: `scrollHeight <= clientHeight`, hint `Markdown accepté`.
 - **Public page.** `Voir la page publique` opens `/demarches/<slug>` in a new window.
-- **Référentiel.** One `?` per checked fournisseur de services (list closed), named `Fiche de <nom> (nouvel onglet)`; at 1280 px 3 vocabulaires per row, each `?` right of its label (`trois_colonnes`). The first fournisseur's and the first vocabulaire's `?` open `/admin/types_acteurs/<id>` and `/admin/vocabulaires/<id>` (button `Modifier`) in a new window, the form stays open. At 375 px, one per row. Filtering on `fiche de` (the hidden link text) shows no box.
+- **Référentiel.** `Modifier les fournisseurs de services` modal: one `?` per checked fournisseur de services (list closed), named `Fiche de <nom> (nouvel onglet)`; `Modifier les vocabulaires` modal: at 1280 px 3 vocabulaires per row, each `?` right of its label (`trois_colonnes`). The first fournisseur's and the first non-usager vocabulaire's `?` open `/admin/types_acteurs/<id>` and `/admin/vocabulaires/<id>` (button `Modifier`) in a new window, the form stays open. At 375 px, one per row. Filtering on `fiche de` (the hidden link text) shows no box.
 - **Recommandation.** `Voir la fiche <solution>` opens the solution's form.
 - **Proof.** `tmp/verify/admin-pages-liees/`, including `referentiel-trois-colonnes`, `referentiel-375` and `etroit-320` (no horizontal scroll).
 
