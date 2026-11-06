@@ -1,0 +1,10 @@
+<%# locals: (demarche:, changements:) -%>
+<section class="fr-callout fr-mb-4w" aria-labelledby="a-la-publication">
+  <p id="a-la-publication" class="fr-callout__title fr-h5"><%= t("admin.a_la_publication.titre", count: changements.size) %></p>
+  <ul class="fr-mb-3w">
+    <% changements.each do |libelle, ancre| %>
+      <li><%= link_to libelle, "##{ancre}", class: "fr-link" %></li>
+    <% end %>
+  </ul>
+  <%= render "admin/demarches/actions_du_brouillon", demarche:, publier: t("admin.a_la_publication.publier", count: changements.size) %>
+</section>

@@ -236,6 +236,13 @@ fr:
       zero: ""
       one: "1 recommandation en brouillon"
       other: "%{count} recommandations en brouillon"
+    a_la_publication:
+      titre:
+        one: "À la publication, 1 changement partira"
+        other: "À la publication, %{count} changements partiront"
+      publier:
+        one: "Publier ce changement"
+        other: "Publier ces %{count} changements"
     integrations_cochees:
       zero: "0 cochée"
       one: "1 cochée"
