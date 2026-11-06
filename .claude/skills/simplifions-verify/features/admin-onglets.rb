@@ -1,77 +1,57 @@
 require_relative '../harness'
 
 DOSSIER = 'admin-onglets'.freeze
-ONGLETS = %w[Fiche Intégrations Historique].freeze
-
-def hauteur(page) = page.evaluate_script('document.documentElement.scrollHeight')
+ONGLETS = ['Fiche', 'API fournies', 'API intégrées', 'Solutions qui l’intègrent', 'Recommandée dans', 'Historique'].freeze
+ATTENTE_ENREGISTREMENT = 15
 
 def onglet_retenu(page) = page.find('input[name=onglet]', visible: false).value
 
-def trois_onglets(page)
-  page.visit('/admin/demarches/1/edit')
-  libelles = page.all('[role=tab]').map(&:text)
-  raise "onglets #{libelles}" unless libelles.map { it.split(' (').first } == ONGLETS
-
-  libelles
-end
-
-def hauteurs_par_onglet(page)
-  libelles = trois_onglets(page)
-  hauteurs = libelles.to_h { |libelle| Verify.onglet(page, libelle.split(' (').first).then { [libelle, hauteur(page)] } }
-  Verify.evidence(DOSSIER, page, 'hauteurs-demarche-1', "hauteurs=#{hauteurs} recos_en_base=#{Demarche.find(1).recommandations.count}")
-end
-
-def fleche_droite(page)
-  Verify.onglet(page, 'Fiche')
-  page.find('[role=tab][aria-selected=true]').send_keys(:right)
-  page.assert_selector '[role=tab][aria-selected=true]', text: /\AIntégrations/
-  raise "flèche : onglet retenu #{onglet_retenu(page)}" unless onglet_retenu(page) == 'integrations'
-end
-
-def demarche_et_integration(nom)
-  api = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
-  demarche = Demarche.create!(nom:)
-  Recommandation.create!(demarche:, solution_id: api, niveau: :niveau_1)
-  [demarche, Integration.where(integree_id: api).order(:id).first]
-end
-
-def cocher_l_integration(page, cible)
-  Verify.onglet(page, 'Intégrations')
-  groupe = page.find('fieldset', text: 'Filtrer les intégrations')
-  groupe.fill_in 'Filtrer les intégrations', with: I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ')
-  groupe.find("label[for=demarche_integration_ids_#{cible.id}]").click
-  raise 'case cible non cochée' unless groupe.find("#demarche_integration_ids_#{cible.id}", visible: :all).checked?
-end
-
-def enregistrer_depuis_integrations(page, demarche, cible)
+def demarche_sans_onglet(page, demarche)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  cocher_l_integration(page, cible)
-  page.find('#onglet-integrations-panneau').click_button 'Enregistrer'
-  page.assert_text "« #{demarche.nom} » enregistré."
-  page.assert_current_path(/onglet=integrations/, url: true)
-  page.assert_selector '[role=tab][aria-selected=true]', text: 'Intégrations (1)'
+  page.assert_selector :button, 'Choisir les intégrations'
+  page.assert_no_selector '[role=tablist]'
+  Verify.evidence(DOSSIER, page, 'demarche-sans-onglet', "onglets=#{page.all('[role=tab]').size}")
 end
 
-def enregistre_en_base(page, demarche, cible)
-  base = ActiveRecord::Base.uncached { Demarche.find(demarche.id).then { [it.nom, it.integration_ids] } }
-  raise "enregistrement : base #{base}" unless base == [demarche.nom, [cible.id]]
+def onglets_de_la_solution(page, solution)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  libelles = page.all('[role=tab]').map { it.text.split(' (').first }
+  raise "onglets #{libelles}" unless libelles == ONGLETS
 
-  Verify.evidence(DOSSIER, page, 'enregistre-depuis-integrations', "url=#{page.current_url.split('/admin').last} base=#{base}")
+  page.find('[role=tab][aria-selected=true]').send_keys(:right)
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\AAPI fournies/
+  raise "flèche : onglet retenu #{onglet_retenu(page)}" unless onglet_retenu(page) == 'api-fournies'
+
+  Verify.evidence(DOSSIER, page, 'onglets-solution', "onglets=#{libelles}")
 end
 
-def erreur_ouvre_fiche(page, demarche)
+def enregistrer_depuis_historique(page, solution)
+  Verify.onglet(page, 'Fiche')
+  page.fill_in 'Nom', with: "#{solution.nom} modifiée"
   Verify.onglet(page, 'Historique')
-  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => '')
-  page.assert_selector 'dialog[open] .fr-input-group--error', text: 'doit être rempli'
-  page.assert_selector '[role=tab][aria-selected=true]', text: 'Fiche', visible: :all
-  page.assert_selector 'dialog[open] #demarche_nom'
-  page.find('dialog[open]').click_button 'Annuler'
-  Verify.evidence(DOSSIER, page, 'erreur-ouvre-fiche', "onglet_ouvert=Fiche nom_en_base=#{ActiveRecord::Base.uncached { Demarche.find(demarche.id).nom }}")
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{solution.nom} modifiée » enregistré.", wait: ATTENTE_ENREGISTREMENT
+  page.assert_current_path(/onglet=historique/, url: true)
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\AHistorique/
+  lu = ActiveRecord::Base.uncached { Solution.find(solution.id).nom }
+  raise "nom en base : #{lu}" unless lu == "#{solution.nom} modifiée"
+
+  Verify.evidence(DOSSIER, page, 'enregistre-depuis-historique', "url=#{page.current_url.split('/admin').last} nom=#{lu}")
 end
 
-def etroit(page, demarche)
+def erreur_ouvre_fiche(page, solution)
+  Verify.onglet(page, 'Fiche')
+  page.fill_in 'Nom', with: ''
+  Verify.onglet(page, 'Historique')
+  page.click_button 'Enregistrer'
+  page.assert_selector '.fr-input-group--error', text: 'doit être rempli', wait: ATTENTE_ENREGISTREMENT
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\AFiche/
+  Verify.evidence(DOSSIER, page, 'erreur-ouvre-fiche', "onglet_ouvert=Fiche nom_en_base=#{ActiveRecord::Base.uncached { Solution.find(solution.id).nom }}")
+end
+
+def etroit(page, solution)
   page.current_window.resize_to(375, 812)
-  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=historique")
+  page.visit("/admin/solutions/#{solution.id}/edit?onglet=historique")
   page.assert_selector '[role=tab][aria-selected=true]', text: /\AHistorique/
   defilement = page.evaluate_script('document.documentElement.scrollWidth > innerWidth')
   raise 'défilement horizontal à 375 px' if defilement
@@ -83,17 +63,17 @@ end
 Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
   Verify.login(page)
-  demarche, cible = demarche_et_integration(nom)
+  demarche = Demarche.create!(nom:)
+  solution = Solution.create!(nom:)
 
-  Verify.check('Démarche 1') { hauteurs_par_onglet(page).then { fleche_droite(page) } }
-  Verify.check('Save from Intégrations') do
-    enregistrer_depuis_integrations(page, demarche, cible)
-    enregistre_en_base(page, demarche, cible)
-  end
-  Verify.check('Error opens Fiche') { erreur_ouvre_fiche(page, demarche) }
-  Verify.check('375 px') { etroit(page, demarche) }
+  Verify.check('Démarche without tabs') { demarche_sans_onglet(page, demarche) }
+  Verify.check('Solution tabs') { onglets_de_la_solution(page, solution) }
+  Verify.check('Save from Historique') { enregistrer_depuis_historique(page, solution) }
+  Verify.check('Error opens Fiche') { erreur_ouvre_fiche(page, solution) }
+  Verify.check('375 px') { etroit(page, solution) }
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   page.current_window.resize_to(1280, 1024)
-  Demarche.where(nom: [nom, "#{nom} modifiée"]).destroy_all
+  Demarche.where(nom:).destroy_all
+  Solution.where(nom: [nom, "#{nom} modifiée"]).destroy_all
 end

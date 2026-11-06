@@ -52,8 +52,7 @@ def groupes_de_la_fenetre(page, bouton, attendus)
 end
 
 def cochees_seules(page, total)
-  Verify.onglet(page, 'Intégrations')
-  groupe = page.find('fieldset', text: FILTRE)
+  groupe = Verify.fenetre(page, 'Choisir les intégrations').find('fieldset', text: FILTRE)
   coches = Verify.cases_affichees(groupe)
   raise "cases visibles sans filtre #{coches.size}" unless coches.size == 2 && coches.all?(&:checked?)
   raise "compte #{compte(groupe)}" unless compte(groupe) == "2 cochés sur #{total}"
@@ -69,7 +68,7 @@ def tabs_pour_sortir(page, groupe)
 end
 
 def traversee_au_clavier(page, groupe)
-  page.execute_script("document.getElementById('onglet-integrations-panneau').focus()")
+  page.execute_script("document.querySelector('dialog[open] .fr-btn--close').focus()")
   page.send_keys :tab
   raise 'Tab n’entre pas dans le filtre' unless Verify.focus_sur(page) == CHAMP
   raise 'Tab a ouvert la liste' unless nb_visibles(groupe) == 2
@@ -147,8 +146,9 @@ def integrations_en_base(demarche) = ActiveRecord::Base.uncached { Demarche.find
 
 def enregistrer(page, groupe, demarche, cible)
   cible_reste_affichee(groupe, cible)
-  page.click_button 'Enregistrer'
+  page.find('dialog[open]').click_button 'Enregistrer'
   page.assert_text "« #{demarche.nom} » enregistré."
+  page.assert_no_selector 'dialog[open]'
   en_base = integrations_en_base(demarche)
   raise "en base #{en_base}, cible #{cible.id}" unless en_base.size == 3 && en_base.include?(cible.id)
 
@@ -156,7 +156,10 @@ def enregistrer(page, groupe, demarche, cible)
 end
 
 def partir(page)
-  page.find('fieldset', text: FILTRE).fill_in FILTRE, with: 'texte sans nom'
+  Verify.fenetre(page, 'Choisir les intégrations').find('fieldset', text: FILTRE).fill_in FILTRE, with: 'texte sans nom'
+  page.assert_selector '#formulaire-fiche[data-formulaire-modifie-modifie-value=false]'
+  page.find('dialog[open]').click_button 'Annuler'
+  page.assert_no_selector 'dialog[open]'
   page.find('.fr-breadcrumb').click_link 'Démarches'
   page.assert_selector 'h1', text: 'Démarches'
 end

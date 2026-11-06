@@ -1,10 +1,10 @@
 # Gérer les recommandations depuis la démarche
 
-A démarche's `Fiche` tab shows its recommandations in two blocks, `Solutions recommandées (<n>)` as cards and `Données disponibles (<n>)` as a list, each edited in a window on the page (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). A recommandation's own page stays at its address, `/admin/recommandations/<id>/edit`, with no link from the démarche. `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Ordre, Visible, Modifié le).
+A démarche's fiche shows its recommandations in two blocks, `Solutions recommandées (<n>)` as cards and `Données disponibles (<n>)` as a list, each edited in a window on the page (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). A recommandation's own page stays at its address, `/admin/recommandations/<id>/edit`, with no link from the démarche. `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Ordre, Visible, Modifié le).
 
 ## Sub-features
 
-- `recos-demarche-blocs` the `Fiche` tab shows every recommandation: a card under `Solutions recommandées`, or a line under `Données disponibles`.
+- `recos-demarche-blocs` the fiche shows every recommandation: a card under `Solutions recommandées`, or a line under `Données disponibles`.
 - `recos-demarche-nouvelle` `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche.
 - `recos-demarche-encart` a recommandation's form opens on `Démarche : <nom>`, `Voir la fiche <nom>`, accordion `Autres recommandations de la démarche (<n>)`.
 - `recos-demarche-modifier` `/admin/recommandations/<id>/edit` still opens the recommandation, whose `Supprimer` removes it.

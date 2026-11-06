@@ -4,7 +4,7 @@ The démarches of an intégration are those that recommend its API or jeu de don
 
 ## Sub-features
 
-- `integrations-api-demarche` a démarche's `Intégrations` tab offers only intégrations of APIs it recommends.
+- `integrations-api-demarche` a démarche's `Choisir les intégrations` window offers only intégrations of APIs it recommends.
 - `integrations-api-integration` an intégration offers only démarches recommending its API.
 - `integrations-api-hors-regle` an out-of-rule link stays checked, labelled `(hors règle)`.
 - `integrations-api-refus` the server refuses an out-of-rule link, names the démarche, saves nothing.
@@ -14,7 +14,7 @@ The démarches of an intégration are those that recommend its API or jeu de don
 
 ## How to get to it (user POV)
 
-- `Démarches` → a démarche → `Intégrations (<n>)` tab; `Intégrations` → a fiche → `Démarches` group; `Intégrations` → `Ajouter`.
+- `Démarches` → a démarche → `Choisir les intégrations`; `Intégrations` → a fiche → `Démarches` group; `Intégrations` → `Ajouter`.
 
 ## Driving it with Capybara
 
@@ -22,7 +22,7 @@ Drive: `features/admin-integrations-de-l-api.rb` (SKILL.md § Drive).
 
 Preconditions: logged in, catalogue imported. The drive makes its own out-of-rule link: a throwaway démarche `Vérif verify-map <browser>` recommends the API of the first intégration, is linked to it, then loses the recommandation; the démarche and its link are deleted at the end. The forged save is refused, so nothing else changes.
 
-- **Démarche 1.** Checkboxes in `Intégrations` = `integrations_proposees.count`, fewer than all intégrations (474 before); `(hors règle)` labels = checked links outside the rule.
+- **Démarche 1.** Checkboxes in the `Choisir les intégrations` window = `integrations_proposees.count`, fewer than all intégrations (474 before); `(hors règle)` labels = checked links outside the rule.
 - **Intégration.** The first intégration, now linked to the throwaway démarche out of the rule: checkboxes = `demarches_proposees.count`, at least one `(hors règle)`.
 - **Refus serveur.** A hidden `integration[demarche_ids][]` for a démarche outside the list is injected, `Enregistrer`: error alert naming it, join table unchanged.
 - **Nouvelle intégration.** `/admin/integrations/new`: no démarche checkbox, the hint `Démarches : à cocher une fois l’API ou le jeu de données enregistré…`.
