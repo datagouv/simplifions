@@ -13,7 +13,7 @@ Fiches without a draft (intégration, organisation, fournisseur de services, voc
 - `brouillon-publication-refusee` an incomplete draft saves, its `Publier` is refused with the error (spec only).
 - `brouillon-masquer` `Masquer` hides the fiche and keeps the draft; a hidden fiche saves directly (spec only).
 - `brouillon-abandonner` `Abandonner le brouillon`, after a confirm, returns to the published version.
-- `ce-qui-partira` on a published démarche with a draft, a box at the top of the fiche lists what `Publier` will put online, each line a link to its block, and carries the draft's actions; moving solutions recommandées, however many cards shift, gives one line `Ordre des solutions recommandées modifié`.
+- `ce-qui-partira` on a published démarche with a draft, a box at the top of the fiche lists what `Publier` will put online, each line a link to its block, and carries the draft's actions; moving solutions recommandées, however many cards shift, gives one line `Ordre des solutions recommandées modifié` (données utiles: `Ordre des données utiles modifié`, request spec only).
 - `brouillon-image` a new image waits in the draft until `Publier`.
 - `brouillon-recommandations` recommandations of a published démarche wait as drafts, counted in its column, published by its `Publier`.
 - `brouillon-donnees-utiles` a `Donnée utile` waits for the démarche's `Publier`; choosing that type removes `Publier` and `Masquer`.
