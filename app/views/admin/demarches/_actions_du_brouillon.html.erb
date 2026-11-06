@@ -1,0 +1,11 @@
+<%# locals: (demarche:, publier: "Publier") -%>
+<ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm">
+  <% if demarche.en_brouillon? %>
+    <li><%= link_to previsualisation_admin_demarche_path(demarche), class: "fr-btn fr-btn--tertiary", target: "_blank", rel: "noopener", title: "Prévisualiser le brouillon de #{nom_de(demarche)} - nouvelle fenêtre" do %>Prévisualiser<span class="fr-sr-only"> le brouillon - nouvelle fenêtre</span><% end %></li>
+  <% end %>
+  <% if demarche.brouillon_abandonnable? %>
+    <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, demarche], method: :patch, class: "fr-btn fr-btn--secondary",
+        form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_de(demarche)} » ? Les modifications non publiées seront perdues." } } %></li>
+  <% end %>
+  <li><%= button_to publier, [:admin, demarche], method: :patch, params: { "demarche[visible]" => "1", **filtres_de_la_liste }, class: "fr-btn" %></li>
+</ul>
