@@ -2377,6 +2377,25 @@ RSpec.describe 'Administration' do
       expect(page.css('.reco-card').map { it.text.squish }.join).not_to include('Mes Aides')
       expect(autre.reload.brouillon).to be_nil
     end
+
+    it 'garde en ligne la donnée utile retirée, barrée dans « Données disponibles » et dans sa fenêtre avec « Retirée · à publier » et « Remettre »' do
+      utile = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1, visible: true)
+
+      delete "/admin/recommandations/#{utile.id}", params: { ligne: 1, fenetre: 'donnees-utiles' }
+      expect(Recommandation.exists?(utile.id)).to be(true)
+
+      fiche
+      disponible = page.at_css('.donnees-disponibles li.retiree')
+      expect(disponible.at_css('s').text).to eq('API QF (API)')
+      expect(disponible.at_css('.fr-badge.fr-badge--warning').text.squish).to eq('Retirée · à publier')
+      expect(disponible.css('button').map { it.text.squish }).to eq(['Remettre API QF (API)'])
+      ligne = page.at_css("form##{ActionView::RecordIdentifier.dom_id(utile, :donnee_utile)}")
+      expect(ligne.at_css('legend s').text).to eq('API QF (API)')
+      expect(ligne.at_css('.fr-badge.fr-badge--warning').text.squish).to eq('Retirée · à publier')
+      expect(ligne.css('button').map { it.text.squish }).to eq(['Remettre API QF (API)'])
+      expect(ligne.css('select, input:not([type=hidden]), textarea')).to be_empty
+      expect(changements).to eq(['Donnée utile retirée : API QF (API)'])
+    end
   end
 
   describe 'données utiles d’une démarche publiée' do
