@@ -48,13 +48,24 @@
       <% if controller_path.start_with?("admin/") %>
         <nav class="fr-nav" role="navigation" aria-label="Menu de l’administration">
           <ul class="fr-nav__list">
-            <% Admin::HistoriquesController::MODELES.each do |rubrique, modele| %>
-              <% liste = polymorphic_path([:admin, modele]) %>
-              <li class="fr-nav__item">
-                <%= link_to modele.model_name.human(count: 2), liste, class: "fr-nav__link",
-                      aria: { current: ((current_page?(liste) ? "page" : "true") if (params[:type] || controller_name) == rubrique) } %>
-              </li>
+            <li class="fr-nav__item">
+              <%= link_to "À reprendre", admin_root_path, class: "fr-nav__link", aria: { current: ("page" if current_page?(admin_root_path)) } %>
+            </li>
+            <% [Demarche, Solution].each do |modele| %>
+              <li class="fr-nav__item"><%= lien_rubrique_admin(modele) %></li>
             <% end %>
+            <% referentiels = [Organisation, TypeActeur, Vocabulaire] %>
+            <li class="fr-nav__item">
+              <%= tag.button "Référentiels", type: "button", class: "fr-nav__btn",
+                    aria: { expanded: false, controls: "menu-referentiels", current: ("true" if referentiels.any? { rubrique_admin_ouverte?(it) }) } %>
+              <div class="fr-collapse fr-menu" id="menu-referentiels">
+                <ul class="fr-menu__list">
+                  <% referentiels.each do |modele| %>
+                    <li><%= lien_rubrique_admin(modele) %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </li>
           </ul>
         </nav>
       <% else %>

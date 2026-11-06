@@ -44,7 +44,7 @@ end
 def recherche_croisee(reco) = "#{reco.demarche.nom.split.first} #{reco.solution.nom.split.last}"
 
 def recherche_jointe(page)
-  Verify.rubrique(page, 'Recommandations')
+  page.visit('/admin/recommandations')
   reco = Recommandation.includes(:demarche, :solution).order(:id).first
   Verify.rechercher(page, recherche_croisee(reco))
   page.assert_selector 'tbody a', text: reco.libelle
@@ -86,7 +86,7 @@ def ligne_attendue(integration)
 end
 
 def integrations(page)
-  Verify.rubrique(page, 'Intégrations')
+  page.visit('/admin/integrations')
   attendu = ligne_attendue(Integration.includes(:integratrice, :integree).order(:id).first)
   raise "entetes #{entetes(page)}" unless entetes(page) == ENTETES_INTEGRATIONS
 

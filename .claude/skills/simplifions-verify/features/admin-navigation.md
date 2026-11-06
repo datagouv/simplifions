@@ -1,12 +1,12 @@
 # Naviguer dans l'administration depuis l'en-tête
 
-Under `/admin`, the header's navigation bar (`Menu de l’administration`) lists the seven rubriques — Démarches, Solutions, Recommandations, Intégrations, Organisations, Fournisseurs de services, Vocabulaires — instead of the public one (`Menu principal`: Accueil, Cas d'usages, Articles, À propos). The rubrique of the page is marked: `aria-current="page"` on its list, `aria-current="true"` on its sub-pages (new, edit, read page, a fiche's history), as the DSFR asks for a parent section. Public pages and the login page keep the public bar, even for a logged-in admin.
+Under `/admin`, the header's navigation bar (`Menu de l’administration`) has four entries — À reprendre (the dashboard `/admin`), Démarches, Solutions, and the button Référentiels, whose sub-menu holds Organisations, Fournisseurs de services, Vocabulaires — instead of the public one (`Menu principal`: Accueil, Cas d'usages, Articles, À propos). The rubrique of the page is marked: `aria-current="page"` on its list (or on À reprendre on `/admin`), `aria-current="true"` on its sub-pages (new, edit, read page, a fiche's history), as the DSFR asks for a parent section; a référentiel also marks the button Référentiels `true`. Recommandations and Intégrations are out of the menu, their lists still routed (`/admin/recommandations`, `/admin/integrations`), with no entry marked. Public pages and the login page keep the public bar, even for a logged-in admin.
 
 ## Sub-features
 
-- `admin-nav-barre` under `/admin`, the bar `Menu de l’administration` lists the seven rubriques, no `Menu principal`.
-- `admin-nav-courante` the rubrique is `aria-current="page"` on its list, `"true"` on its edit and history pages.
-- `admin-nav-mobile` at 375 px, header button `Menu` opens the seven rubriques.
+- `admin-nav-barre` under `/admin`, the bar `Menu de l’administration` has the four entries, the sub-menu Référentiels its three links, no `Menu principal`.
+- `admin-nav-courante` the rubrique is `aria-current="page"` on its list, `"true"` on its edit and history pages; a référentiel marks its button `true` too.
+- `admin-nav-mobile` at 375 px, header button `Menu` opens the four entries; Référentiels opens its sub-menu.
 - `admin-nav-public` public pages keep `Menu principal`, even for a logged-in admin.
 - `admin-nav-connexion` the login page keeps `Menu principal` (spec only).
 
@@ -20,8 +20,10 @@ Drive: `features/admin-navigation.rb` (SKILL.md § Drive).
 
 Read-only.
 
-- **Tableau de bord.** `/admin`: the admin bar lists the seven rubriques in order, none current; no `Menu principal`.
+- **Tableau de bord.** `/admin`: the admin bar shows À reprendre, Démarches, Solutions, Référentiels in order, À reprendre `page`; no `Menu principal`.
+- **Référentiels.** Click the button Référentiels: the sub-menu shows Organisations, Fournisseurs de services, Vocabulaires; click Organisations: `/admin/organisations`, Référentiels `true`, Organisations `page`.
+- **Hors menu.** `/admin/recommandations` answers, no entry marked.
 - **Rubrique.** Click `Solutions` in the bar: `/admin/solutions`, `Solutions` is `page`. Open a solution's edit page, then its history: `Solutions` is `true`.
-- **Mobile.** At 375 px, `Menu` opens the modal with the seven rubriques; `Vocabulaires` leads to `/admin/vocabulaires`, current; no horizontal scroll.
+- **Mobile.** At 375 px, `Menu` opens the modal with the four entries; Référentiels, then `Vocabulaires`, leads to `/admin/vocabulaires`, current; no horizontal scroll.
 - **Site public.** `/` as a logged-in admin: `Menu principal` only.
 - **Proof.** `tmp/verify/admin-navigation/`.
