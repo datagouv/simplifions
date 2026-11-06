@@ -6,7 +6,7 @@ module Verify
   PORT = 3101
   ROOT = Rails.root.join('tmp/verify')
   ADMIN = { email: 'verif@simplifions.local', password: 'verif-simplifions-2026' }.freeze
-  BARRE_DEMARCHE = 'section[aria-label="État de la démarche"]'.freeze
+  BARRE_DEMARCHE = '#etat-de-la-demarche'.freeze
   CONTAINER_IP = Socket.ip_address_list.find(&:ipv4_private?).ip_address
 
   def self.chrome(app, javascript: true)
