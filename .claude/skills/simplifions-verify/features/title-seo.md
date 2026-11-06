@@ -1,6 +1,6 @@
 # Title SEO d'une fiche
 
-A démarche or solution can carry a « Title SEO », typed in its admin form under `Nom` (on a démarche, in the `Title SEO` block of the `Fiche` tab). Once published, it is the whole browser tab title and `og:title` (what Google and a shared link show), without ` | Simplifions.data.gouv.fr`, instead of `Cas d'usage - <titre> | Simplifions.data.gouv.fr` or `Solution - <nom> | …`. The H1 and the description stay as they were. Left empty, the title is the usual one. An API or a jeu de données has no page: the field is hidden like the other page fields. The Grist import does not touch it.
+A démarche or solution can carry a « Title SEO », typed in its admin form under `Nom` (on a démarche, in the `Title SEO` block of the fiche). Once published, it is the whole browser tab title and `og:title` (what Google and a shared link show), without ` | Simplifions.data.gouv.fr`, instead of `Cas d'usage - <titre> | Simplifions.data.gouv.fr` or `Solution - <nom> | …`. The H1 and the description stay as they were. Left empty, the title is the usual one. An API or a jeu de données has no page: the field is hidden like the other page fields. The Grist import does not touch it.
 
 ## Sub-features
 

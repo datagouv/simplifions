@@ -20,7 +20,7 @@ def lien_hors_regle(nom, integration)
   demarche = Demarche.create!(nom:)
   recommandation = Recommandation.create!(demarche:, solution_id: integration.integree_id, niveau: :niveau_1)
   demarche.integrations << integration
-  Recommandation.where(id: recommandation.id).delete_all
+  recommandation.destroy!
   demarche
 end
 

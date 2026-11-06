@@ -32,7 +32,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [article-cartes.md](article-cartes.md) — the solution and cas d'usage cards cited in an article come from the base; a hidden record's card is skipped, the article still renders.
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
-- [admin-fiche-demarche.md](admin-fiche-demarche.md) — a saved démarche reads like its public page; each block opens a modal with its fields (save, Escape, refused field).
+- [admin-fiche-demarche.md](admin-fiche-demarche.md) — a saved démarche reads like its public page; each block opens a modal with its fields (save, Escape, refused field), intégrations chosen in a modal, no tabs.
 - [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete from the edit page: the confirmation names the row and what goes with it (démarche drive created, organisation cancelled).
 - [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused.
 - [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.
@@ -71,7 +71,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-brouillons-en-cours.md](admin-brouillons-en-cours.md) — the démarches and solutions lists mark their drafts `Brouillon` and filter them with `État` `En brouillon`.
 - [admin-accueil.md](admin-accueil.md) — `/admin` says `Bonjour`, lists the drafts to resume with what changed, the last modified fiches, the catalogue counts and the import with its warning.
 - [admin-image-refusee.md](admin-image-refusee.md) — a solution image whose content is not png, jpg or webp is refused, on a hidden and on a published solution, with no file or draft kept.
-- [admin-onglets.md](admin-onglets.md) — démarche and solution edit pages in tabs inside one form; a save reopens its tab, an error opens the tab of the first error.
+- [admin-onglets.md](admin-onglets.md) — solution edit page in tabs inside one form (a démarche has none); a save reopens its tab, an error opens `Fiche`.
 - [contact.md](contact.md) — reach /contact/<besoin> from a cas d'usage page: the page is preselected and cited in the subject and the e-mail, another démarche chosen without reload, copy works, the answer-only steps give no address.
 - [matomo.md](matomo.md) — one Matomo hit per page shown, Turbo visits included; a new catalogue search is measured as a search (keyword, catalogue, result count) instead of a page view; every click to another site or on a file link is measured, on every page.
 - [depot-direct-ferme.md](depot-direct-ferme.md) — nobody, visitor or admin, can create a file through Active Storage's direct upload address; admin images go through the solution form.

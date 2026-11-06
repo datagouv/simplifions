@@ -5,16 +5,19 @@ ADMIN_EMAIL = Verify::ADMIN[:email]
 
 def evenements(demarche) = ActiveRecord::Base.uncached { demarche.versions.reload.map(&:event) }
 
-def premiere_version_de_l_onglet(page, demarche, nom, (etape, titre))
-  Verify.onglet(page, 'Historique')
-  version = page.first('#onglet-historique-panneau section')
+def premiere_version_de_l_historique(page, demarche, nom, (etape, titre))
+  page.click_link 'Historique de la démarche'
+  page.assert_current_path("/admin/historique/demarches/#{demarche.id}")
+  version = page.first('main section')
   titre_lu = version.find('h2').text
   ligne = version.first('tbody tr').all('th, td').map(&:text)
   raise "#{etape} : titre #{titre_lu}" unless titre_lu.start_with?("#{titre} par #{ADMIN_EMAIL} le ")
   raise "#{etape} : ligne #{ligne}" unless ligne == ['Nom', nom, "#{nom} brouillon"]
 
   Verify.evidence(DOSSIER, page, etape, "titre=#{titre_lu} ligne=#{ligne} evenements=#{evenements(demarche)}")
-  Verify.onglet(page, 'Fiche')
+  page.click_link 'Retour à la fiche'
+  page.assert_selector :button, 'Modifier l’en-tête'
+  page.assert_no_selector 'html[data-turbo-preview]'
 end
 
 def creee_par_l_import(page, nom)
@@ -73,20 +76,20 @@ def brouillon(page, demarche, nom)
   page.refresh
   Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => "#{nom} brouillon")
   page.assert_text 'brouillon enregistré'
-  premiere_version_de_l_onglet(page, demarche, nom, ['brouillon', 'Modification en brouillon'])
+  premiere_version_de_l_historique(page, demarche, nom, ['brouillon', 'Modification en brouillon'])
 end
 
 def publication(page, demarche, nom)
   page.click_button 'Publier'
   page.assert_text "« #{nom} brouillon » enregistré."
-  premiere_version_de_l_onglet(page, demarche, nom, ['publication', 'Publication du brouillon'])
+  premiere_version_de_l_historique(page, demarche, nom, ['publication', 'Publication du brouillon'])
 end
 
 def abandon(page, demarche, nom)
   Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => nom)
   page.accept_confirm { page.click_button 'Abandonner le brouillon' }
   page.assert_text 'abandonné'
-  premiere_version_de_l_onglet(page, demarche, nom, ['abandon', 'Abandon du brouillon'])
+  premiere_version_de_l_historique(page, demarche, nom, ['abandon', 'Abandon du brouillon'])
 end
 
 Verify.drive(__FILE__) do |page|

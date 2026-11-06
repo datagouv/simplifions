@@ -7,7 +7,7 @@ Every create, update and delete on the seven admin tables is kept by paper_trail
 - `historique-colonne` `Créée par …` / `Modifiée par … le …` and link `Historique` in the column; on a démarche, in its state bar, and the link `Historique de la démarche` at the bottom of the fiche.
 - `historique-sans-version` nothing said on a row without version (spec only).
 - `historique-page` versions newest first, `Champ / Avant / Après`, no horizontal scroll at 375 px, `Retour à la fiche`.
-- `historique-brouillon` lines `Modification en brouillon`, `Publication du brouillon`, `Abandon du brouillon` in the `Historique` tab.
+- `historique-brouillon` lines `Modification en brouillon`, `Publication du brouillon`, `Abandon du brouillon` on the history page.
 - `historique-data-gouv` author `data.gouv` for the data.gouv refresh (spec only).
 
 ## How to get to it (user POV)
@@ -19,16 +19,16 @@ Every create, update and delete on the seven admin tables is kept by paper_trail
 
 Drive: `features/admin-historique.rb` (SKILL.md § Drive).
 
-The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it from the en-tête modal, reads the state bar and the history page, publishes it to read the draft lines in the `Historique` tab, then deletes the démarche and its versions.
+The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it from the en-tête modal, reads the state bar and the history page, publishes it to read the draft lines on the history page, then deletes the démarche and its versions.
 
 - **Created.** State bar: `Créée par Import Grist le …`.
 - **Updated.** `Modifier l’en-tête`, rename, `Enregistrer`: state bar `Modifiée par verif@simplifions.local le …`; base versions `['Import Grist', <admin id>]`.
 - **History.** `Historique de la démarche` → two `h2`, newest first; first row `Nom | <old> | <new>`.
 - **Mobile.** 375 px: no horizontal scroll.
 - **Back.** `Retour à la fiche` → the edit page.
-- **Draft.** The drive publishes the démarche, renames it in the en-tête modal, `Enregistrer`: tab `Historique`, first `h2` `Modification en brouillon par verif@simplifions.local le …`, first row `Nom | <published> | <draft>`.
+- **Draft.** The drive publishes the démarche, renames it in the en-tête modal, `Enregistrer`, `Historique de la démarche`: first `h2` `Modification en brouillon par verif@simplifions.local le …`, first row `Nom | <published> | <draft>`.
 - **Publication.** `Publier`: first `h2` `Publication du brouillon par …`, same row.
-- **Abandon.** Rename back in the en-tête modal, `Enregistrer`, `Abandonner le brouillon` (confirm): first `h2` `Abandon du brouillon par …`, same row; base events end with `brouillon, publication, brouillon, abandon`.
+- **Abandon.** Rename back in the en-tête modal, `Enregistrer`, `Abandonner le brouillon` (confirm): first `h2` `Abandon du brouillon par …`, same row, then `Retour à la fiche`; base events end with `brouillon, publication, brouillon, abandon`.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-historique/`.
 
 ## Gotchas

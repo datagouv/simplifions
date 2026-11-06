@@ -11,7 +11,7 @@ A list of 10 linked rows or fewer in an admin form shows every box on load, chec
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit` (Fournisseurs de services, Intégrations), solutions (Organisations, Fournisseurs de services), intégrations (Démarches), organisations (Solutions), fournisseurs de services and vocabulaires (Démarches, Solutions). Admin only.
+- `/admin/demarches/<id>/edit` (the `Modifier les fournisseurs de services` and `Choisir les intégrations` windows), solutions (Organisations, Fournisseurs de services), intégrations (Démarches), organisations (Solutions), fournisseurs de services and vocabulaires (Démarches, Solutions). Admin only.
 
 ## Driving it with Capybara
 
@@ -21,14 +21,14 @@ Preconditions: logged in. The drive creates `Vérif verify-map <browser>`, recom
 
 - **Short list.** The first intégration with 1 to 10 proposed démarches: under `Démarches`, every box shown, no `Filtrer les démarches` field.
 - **Groups.** On a démarche, the `Modifier l’en-tête` modal holds the `Usager` group (legend `Publics`), the `Modifier les vocabulaires` modal the two other categories in order; one `?` per vocabulaire across both.
-- **Checked only.** Under `Intégrations`, 2 boxes shown, both checked; live line `2 cochés sur <that API's intégrations>`.
-- **Tab passes through.** Open tab `Intégrations`, focus its panel, Tab: focus lands in `Filtrer les intégrations`, still 2 boxes; 6 more Tab (cross, 2 boxes, 2 `Voir la fiche`) leave the list.
+- **Checked only.** `Choisir les intégrations`: 2 boxes shown, both checked; live line `2 cochés sur <that API's intégrations>`.
+- **Tab passes through.** Focus the window's `Fermer`, Tab: focus lands in `Filtrer les intégrations`, still 2 boxes; 6 more Tab (cross, 2 boxes, 2 `Voir la fiche`) leave the list.
 - **Click shows all, framed.** Click the field: every box shown, live line unchanged, `resultats` background no longer transparent.
 - **Cross.** Type, click `Effacer le filtre des intégrations`: field empty, 2 boxes, no frame, focus back in the field.
 - **ArrowDown, then leave.** ArrowDown shows all; Shift+Tab out of the fieldset: 2 boxes, no frame.
 - **Filter and keyboard.** Fill `Filtrer les intégrations` with the last intégration's libelle, transliterated and upcased; Enter does not save; Tab until its box has focus, Space; live line `1 résultat sur …, 3 cochés`.
-- **Save.** Clear the filter: the new box is still shown, checked. `Enregistrer`: `integration_ids` in base has 3 ids, the target among them.
-- **Leave.** Type in the filter, breadcrumb `Démarches`: no confirm, back on `Démarches`.
+- **Save.** Clear the filter: the new box is still shown, checked. The window's `Enregistrer`: window closed, `integration_ids` in base has 3 ids, the target among them.
+- **Leave.** Reopen the window, type in the filter: the fiche does not count as changed; `Annuler`, breadcrumb `Démarches`: no confirm, back on `Démarches`.
 - **Proof.** `tmp/verify/admin-liste-filtrable/`.
 
 ## Gotchas
