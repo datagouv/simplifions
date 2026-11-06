@@ -20,13 +20,21 @@ module AdminHelper
   end
 
   def changements_a_publier(demarche)
-    return [] unless demarche.visible? && demarche.brouillon?
+    return [] unless demarche.visible?
 
-    champs = champs_a_publier(demarche)
-    BLOCS_DE_LA_DEMARCHE.filter_map { |libelle, (ancre, champs_du_bloc)| [libelle, ancre] if champs.intersect?(champs_du_bloc) }
+    champs = demarche.brouillon? ? champs_a_publier(demarche) : []
+    blocs = BLOCS_DE_LA_DEMARCHE.filter_map { |libelle, (ancre, champs_du_bloc)| [libelle, ancre] if champs.intersect?(champs_du_bloc) }
+    blocs + demarche.recommandations_en_brouillon.includes(:solution).map { recommandation_a_publier(it.appliquer_brouillon) }
   end
 
   private
+
+  def recommandation_a_publier(recommandation)
+    quoi = recommandation.niveau_2? ? 'Solution recommandée' : 'Donnée utile'
+    comment = recommandation.ajoutee_au_brouillon? ? 'ajoutée' : 'modifiée'
+    ancre = recommandation.niveau_2? ? dom_id(recommandation) : 'bloc-donnees-disponibles'
+    ["#{quoi} #{comment} : #{recommandation.solution.libelle_admin}", ancre]
+  end
 
   def champs_a_publier(demarche)
     champs = demarche.champs_du_brouillon

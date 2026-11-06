@@ -2887,6 +2887,22 @@ RSpec.describe 'Administration' do
                                          'Fournisseurs de services modifiés', 'Vocabulaires modifiés'])
     end
 
+    it 'nomme chaque recommandation ajoutée ou modifiée, liée à sa carte ou aux données disponibles, et pas celle retirée' do
+      inclusion = Solution.create!(nom: 'API Marché de l’inclusion', categorie: 'api')
+      Recommandation.new(demarche:, solution: inclusion, niveau: :niveau_2).enregistrer({})
+      utile = Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
+      utile.enregistrer('description' => 'Le quotient familial.')
+      Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Retirée', categorie: 'api'), niveau: :niveau_1, visible: true).destroy!
+      fiche
+      carte = demarche.recommandations.find_by(solution: inclusion)
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 2 changements partiront')
+      expect(lignes).to eq([
+        ["Solution recommandée ajoutée : #{inclusion.libelle_admin}", "#recommandation_#{carte.id}"],
+        ["Donnée utile modifiée : #{api.libelle_admin}", '#bloc-donnees-disponibles']
+      ])
+    end
+
     it 'publie depuis l’encadré' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
       fiche
