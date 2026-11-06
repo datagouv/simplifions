@@ -122,6 +122,32 @@ def ce_qui_partira(page, demarche, nom)
   ajoutee.destroy!
 end
 
+def glisser_par_capybara(source, cible, _page) = source.drag_to(cible)
+def glisser_par_actions(source, cible, page) = page.driver.browser.action.click_and_hold(source.native).move_to(cible.native).move_by(0, -5).release.perform
+
+def glisser_la_derniere_carte_en_tete(page, demarche)
+  %i[glisser_par_capybara glisser_par_actions].find do |methode|
+    page.visit("/admin/demarches/#{demarche.id}/edit")
+    page.click_button 'Changer l’ordre'
+    poignees = page.all('.cartes-recommandees [data-poignee]', minimum: 3)
+    page.execute_script('arguments[0].scrollIntoView({ block: "center" })', poignees.first)
+    send(methode, poignees[2], poignees.first, page)
+    page.has_selector?('#message-recommandations .fr-valid-text', text: 'déplacée en position 1', wait: 5)
+  end || raise('glisser-déposer sans effet (drag_to et actions Selenium)')
+end
+
+def une_ligne_d_ordre(page, demarche, nom)
+  %w[h i j].each.with_index(1) { |lettre, ordre| Recommandation.create!(demarche:, solution: Solution.create!(nom: "#{nom} #{lettre}", categorie: 'api'), niveau: :niveau_2, ordre:, visible: true) }
+  methode = glisser_la_derniere_carte_en_tete(page, demarche)
+  decalees = lu { demarche.recommandations_en_brouillon.count }
+  lignes = lignes_de_l_encadre(page, 'À la publication, 1 changement partira')
+  raise "encadré après le déplacement de #{decalees} cartes : #{lignes}" unless decalees >= 3 && lignes == ['Ordre des solutions recommandées modifié']
+
+  page.find(ENCADRE).click_link 'Ordre des solutions recommandées modifié'
+  page.document.synchronize { page.evaluate_script('location.hash').tap { raise Capybara::ExpectationNotMet, "lien de l’ordre : #{it}" unless it == '#bloc-solutions-recommandees' } }
+  Verify.evidence(DOSSIER, page, 'une-ligne-d-ordre', "methode=#{methode} cartes_decalees=#{decalees} lignes=#{lignes}")
+end
+
 def envoyer_l_image(page, solution)
   Verify.rubrique(page, 'Solutions')
   Verify.ouvrir_depuis_la_liste(page, solution.nom)
@@ -337,10 +363,11 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Données utiles') { brouillon_donnees_utiles(page, demarche, nom) }
   Verify.check('Type chosen') { brouillon_type_choisi(page, demarche, nom) }
   Verify.check('No draft') { brouillon_fiches_sans_brouillon(page, demarche, nom) }
+  Verify.check('One order line') { une_ligne_d_ordre(page, demarche, nom) }
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g", "#{nom} h", "#{nom} i", "#{nom} j"])).destroy_all
   Organisation.where(nom: "#{nom} org").destroy_all
   TypeActeur.where(nom: "#{nom} fournisseur").destroy_all
   Vocabulaire.where(nom: "#{nom} voc").destroy_all
