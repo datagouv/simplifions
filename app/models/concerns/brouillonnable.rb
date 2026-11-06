@@ -8,7 +8,7 @@ module Brouillonnable
 
     def changements_du_brouillon(version)
       publiee = version.reify(dup: true)
-      champs = column_names - %w[id brouillon modifie_le created_at updated_at]
+      champs = attribute_names - %w[id brouillon modifie_le created_at updated_at]
       avant, apres = version.changeset['brouillon'].map { publiee.dup.appliquer_brouillon(it.to_h.slice(*champs)) }
       champs.index_with { [avant.public_send(it), apres.public_send(it)] }.reject { |_, (ancien, nouveau)| ancien == nouveau }
     end

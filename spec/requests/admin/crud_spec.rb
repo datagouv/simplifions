@@ -2185,6 +2185,14 @@ RSpec.describe 'Administration' do
       end
     end
 
+    it 'inscrit le retrait d’une recommandation et sa remise' do
+      recommandation = fiches['recommandations'].first
+      delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }
+      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { retiree: '0' } }
+
+      expect(versions('recommandations', recommandation).first(2).map(&:last)).to eq([[%w[Retirée Oui Non]], [%w[Retirée Non Oui]]])
+    end
+
     it 'inscrit la publication et l’abandon du brouillon, chacun sur sa ligne' do
       fiches.each do |chemin, (ligne, champ, libelle, avant, apres)|
         cle = ligne.model_name.param_key
@@ -2395,6 +2403,60 @@ RSpec.describe 'Administration' do
       expect(ligne.css('button').map { it.text.squish }).to eq(['Remettre API QF (API)'])
       expect(ligne.css('select, input:not([type=hidden]), textarea')).to be_empty
       expect(changements).to eq(['Donnée utile retirée : API QF (API)'])
+    end
+
+    def formulaire_de_remise(recommandation)
+      bouton = fiche.css('button').find { it.text.squish == "Remettre #{recommandation.solution.libelle_admin}" }
+      page.at_css("form##{bouton['form']}")
+    end
+
+    def remettre(recommandation, **params)
+      formulaire = formulaire_de_remise(recommandation)
+      patch formulaire['action'], params: formulaire.css('input[type=hidden]').to_h { [it['name'], it['value']] }.merge(params), as: :turbo_stream
+    end
+
+    it 'remet la solution recommandée retirée avec « Remettre », sans rien laisser à publier' do
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+
+      remettre(carte)
+      expect(response).to have_http_status(:ok)
+      expect(carte.reload.brouillon).to be_nil
+
+      fiche
+      expect(carte_de_la_fiche(carte)['class']).not_to include('retiree')
+      expect(carte_de_la_fiche(carte).css('button').map { it.text.squish }).to eq(['Modifier Mes Aides (API)', 'Retirer Mes Aides (API)'])
+      expect(encadre).to be_nil
+    end
+
+    it 'garde à la remise les autres changements du brouillon de la recommandation' do
+      patch "/admin/recommandations/#{carte.id}", params: { ligne: 1, recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+
+      remettre(carte)
+      expect(carte.reload.brouillon).to include('donnees_utiles' => 'Revenu fiscal')
+      fiche
+      expect(changements).to eq(['Solution recommandée modifiée : Mes Aides (API)'])
+    end
+
+    it 'garde le retrait quand l’autre changement de la recommandation revient à sa valeur en ligne' do
+      patch "/admin/recommandations/#{carte.id}", params: { ligne: 1, recommandation: { donnees_utiles: 'Revenu fiscal' } }
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+
+      patch "/admin/recommandations/#{carte.id}", params: { recommandation: { donnees_utiles: 'Quotient' } }
+      fiche
+      expect(changements).to eq(['Solution recommandée retirée : Mes Aides (API)'])
+    end
+
+    it 'remet la donnée utile retirée depuis sa fenêtre, en le disant dans la fenêtre' do
+      utile = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1, visible: true)
+      delete "/admin/recommandations/#{utile.id}", params: { ligne: 1, fenetre: 'donnees-utiles' }
+
+      remettre(utile, fenetre: 'donnees-utiles')
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'message-donnees-utiles' }
+      expect(flux.text.squish).to eq('« Aides → API QF (API) » enregistré.')
+      expect(utile.reload.brouillon).to be_nil
+      fiche
+      expect(page.at_css('.donnees-disponibles li.retiree')).to be_nil
     end
   end
 
