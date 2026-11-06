@@ -173,6 +173,14 @@ module Verify
       page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
     end
 
+    def glisser(page, message, texte)
+      %w[drag_to actions].find do |methode|
+        source, cible = yield
+        methode == 'drag_to' ? source.drag_to(cible) : page.driver.browser.action.click_and_hold(source.native).move_to(cible.native).move_by(0, -5).release.perform
+        page.has_selector?(message, text: texte, wait: 5)
+      end || raise('glisser-déposer sans effet (drag_to et actions Selenium)')
+    end
+
     def cartes_de_la_fiche(page) = page.all('.cartes-recommandees li[id^="recommandation_"]')
 
     def onglet(page, libelle)

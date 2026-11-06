@@ -75,22 +75,13 @@ def poignees(page, ctx)
   [3, 1].map { page.find("tr#integration_#{ctx[:ids][it]} [data-poignee]", visible: :all) }
 end
 
-def glisser_par_capybara(page, ctx) = poignees(page, ctx).then { |source, cible| source.drag_to(cible) }
-
-def glisser_par_actions(page, ctx)
-  source, cible = poignees(page, ctx)
-  page.driver.browser.action.click_and_hold(source.native).move_to(cible.native).move_by(0, -5).release.perform
-end
-
 def glisser(page, ctx)
   ouvrir_l_onglet(page, ctx)
   bouge = Integration.find(ctx[:ids][3])
-  methode = %i[glisser_par_capybara glisser_par_actions].find do |nom|
+  methode = Verify.glisser(page, '#message-integrations .fr-valid-text', /déplacée en position \d+\./) do
     ouvrir_l_onglet(page, ctx)
-    send(nom, page, ctx)
-    page.has_selector?('#message-integrations .fr-valid-text', text: /déplacée en position \d+\./, wait: 5)
+    poignees(page, ctx)
   end
-  raise 'glisser-déposer sans effet (drag_to et actions Selenium)' unless methode
 
   verifier_le_glisser(page, ctx, bouge, methode)
 end

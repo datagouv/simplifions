@@ -52,11 +52,8 @@ def ajouter(page, ctx)
   Verify.evidence(DOSSIER, page, 'ajoutee', "titre=#{compte} visible=#{ctx[:ajoutee].visible} brouillon=#{ctx[:ajoutee].brouillon.slice('visible')}")
 end
 
-def glisser_par_capybara(source, cible, _page) = source.drag_to(cible)
-def glisser_par_actions(source, cible, page) = page.driver.browser.action.click_and_hold(source.native).move_to(cible.native).move_by(0, -5).release.perform
-
 def changer_l_ordre(page, ctx)
-  methode = %i[glisser_par_capybara glisser_par_actions].find do |nom|
+  methode = Verify.glisser(page, '#message-recommandations .fr-valid-text', 'déplacée en position 1') do
     page.visit("/admin/demarches/#{ctx[:demarche].id}/edit")
     page.assert_no_text 'Glissez une carte par sa poignée'
     page.click_button 'Changer l’ordre'
@@ -65,10 +62,8 @@ def changer_l_ordre(page, ctx)
     poignees = page.all('.cartes-recommandees [data-poignee]', minimum: 2)
     ctx[:glissee] = poignees[1].find(:xpath, 'ancestor::li[1]')[:id]
     page.execute_script('arguments[0].scrollIntoView({ block: "center" })', poignees.first)
-    send(nom, poignees[1], poignees.first, page)
-    page.has_selector?('#message-recommandations .fr-valid-text', text: 'déplacée en position 1', wait: 5)
+    [poignees[1], poignees.first]
   end
-  raise 'glisser-déposer sans effet (drag_to et actions Selenium)' unless methode
   raise 'mode « Changer l’ordre » refermé après le glisser' unless page.has_selector?('#changer-l-ordre[aria-expanded=true]') && page.has_selector?('.cartes-recommandees [data-poignee]')
 
   premiere = Verify.cartes_de_la_fiche(page).first[:id]
