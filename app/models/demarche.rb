@@ -46,8 +46,7 @@ class Demarche < ApplicationRecord
 
   def en_brouillon? = brouillon? || recommandations_en_brouillon.exists?
   def date_du_brouillon = [super, *recommandations_en_brouillon.map(&:date_du_brouillon)].compact.max
-  def brouillon_abandonnable? = brouillon? || recommandations.a_publier_avec_la_demarche.exists?
-  def suppression_sans_retour_a_annoncer? = visible? || brouillon_abandonnable?
+  def suppression_sans_retour_a_annoncer? = visible? || en_brouillon?
 
   def enregistrer(attributs)
     return super unless publication_demandee?(attributs)

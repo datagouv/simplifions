@@ -2280,13 +2280,8 @@ RSpec.describe 'Administration' do
       expect(nouvelle.reload.slice(:visible, :brouillon)).to eq('visible' => true, 'brouillon' => nil)
     end
 
-    it 'met la démarche en brouillon, à prévisualiser, dès qu’une recommandation attend sa publication, à abandonner si elle est ajoutée' do
+    it 'met la démarche en brouillon, à prévisualiser et à abandonner, dès qu’une recommandation attend sa publication' do
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { donnees_utiles: 'Revenu fiscal' } }
-      get "/admin/demarches/#{demarche.id}/edit"
-      expect(etat_de_la_fiche.text.squish).to include('Brouillon non publié', 'Prévisualiser')
-      expect(etat_de_la_fiche.text).not_to include('Abandonner le brouillon')
-
-      ajouter_bouquet
       get "/admin/demarches/#{demarche.id}/edit"
       expect(etat_de_la_fiche.text.squish).to include('Brouillon non publié', 'Prévisualiser', 'Abandonner le brouillon')
     end
@@ -2944,6 +2939,20 @@ RSpec.describe 'Administration' do
       flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
 
       expect(flux.at_css('form:has(button:contains("Publier"))').css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
+    end
+
+    it 'propose d’abandonner un brouillon qui ne fait que déplacer des cartes publiées, et remet chaque carte à sa place' do
+      cartes = %w[A B].map { Recommandation.create!(demarche:, solution: Solution.create!(nom: it, categorie: 'api'), niveau: :niveau_2, visible: true) }
+      fiche
+      deplacement = page.at_css("form#deplacement_recommandation_#{cartes.last.id}")
+      patch deplacement['action'], params: deplacement.css('input[type=hidden]').to_h { [it['name'], it['value']] }.merge('position' => '1')
+      fiche
+      abandon = encadre.at_css('form:has(button:contains("Abandonner le brouillon"))')
+
+      patch abandon['action']
+      fiche
+      expect(page.css('.cartes-recommandees h3').map(&:text)).to eq(cartes.map { it.solution.libelle_admin })
+      expect(cartes.map { it.reload.brouillon }).to eq([nil, nil])
     end
 
     it 'publie depuis l’encadré' do
