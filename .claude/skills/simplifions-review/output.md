@@ -1,6 +1,13 @@
 # Output format
 
-The review is one list of findings, every one proven (`SKILL.md` § Rules), ranked by severity, most severe first. Its reader is the author or the next agent. Each finding says what is wrong; it may end with a direction in a few plain words, when there are two ways joined by « ou » (« Déplacer la règle dans le modèle réglerait le problème »), never code: a way to go, not the fix. A visual direction, pointing to a screen the site already shows (« comme sur les pages « modifier » »), comes with a capture of that screen taken with `simplifions-verify`, its local path given: the user attaches it to the comment by hand.
+The review is one list of findings, every one proven (`SKILL.md` § Rules), ranked by severity, most severe first. Its reader is the author or the next agent. Each finding says what is wrong; it may end with a direction in a few plain words, when there are two ways joined by « ou » (« Déplacer la règle dans le modèle réglerait le problème »), never code: a way to go, not the fix.
+
+A **capture** goes with a finding when it shows its constat faster than words, framed on what it shows (the element scrolled into view, the window sized to it):
+
+- **Seen on screen**: a display bug, a broken layout, a wrong text or state, a page the PR changes where it should stay the same, captured in the review's own drive (`SKILL.md` step 3), or in a one-off drive (`simplifions-verify` § Drive) when that page is outside the mapped feature.
+- **Visual direction**: the page or pattern the site already shows (« comme sur les pages « modifier » »), captured with `simplifions-verify`.
+
+An ask delivered on a page gets one capture of that page. On the PR, the captures go in a comment of their own (§ Captures on the PR).
 
 ## Severity
 
@@ -27,7 +34,7 @@ Constats and bracketed text in French. Labels, type, severity and verdict words,
 ```
 ## Code Review: [PR title or branch] — [verdict]
 Author: [PR author login, or the branch owner] · Model: [the model this review ran on] · Head: [the commit SHA reviewed]
-Ask: [SIM-ID and title, "no source found", or "not run — <reason>"] — delivered | partial | off-target
+Ask: [SIM-ID and title, "no source found", or "not run — <reason>"] — delivered | partial | off-target · Capture: [local path, when delivered on a page]
 Drive: [the evidence path under tmp/verify/ of each drive]
 Note: [what the review could not check: a feature not driven, an issue not pasted]
 
@@ -48,7 +55,7 @@ Details item N is finding N, in the line of its type:
 - `rule`: `[the rule, quoted] — [its file] · Where: [path:line]`
 - `ask`: `[the ask line] — missing | deviates: [how] | extra: [the limit it crosses] · Result: [what the visitor gets] · Decision: [what the product owner decides]`, or `[the ask line] — unclear: [what would settle it]`
 
-A finding with a visual direction ends its line with `· Capture: [the capture's local path]`.
+A finding with a capture ends its line with `· Capture: [local path]`, once per capture.
 
 ## To paste on the PR
 
@@ -76,4 +83,8 @@ When the user asks for the review on a PR, give one block of text, all in French
   </details>
   ```
 
-  One paragraph per finding, a blank line between two. Per finding: its proof is its § Details line translated (`Where:` → `Où :`, `Result:` → `Résultat :`, `Class:` → `Classe :`, `Decision:` → `Décision :`, `missing` → `manquant`, `deviates:` → `s'écarte :`, `extra:` → `en plus :`, `unclear:` → `pas clair :`), without its `Reproduce:` part and without its `Capture:`, plus what the constat left out (timings, config, values, error text). `Piste de correction :` when it has one; a visual one gets its capture right under it, attached by the user by hand, its path never in the text. `Reproduire :` for a `bug`, `test` or `pre-existing`: the action only, no values and no error text.
+  One paragraph per finding, a blank line between two. Per finding: its proof is its § Details line translated (`Where:` → `Où :`, `Result:` → `Résultat :`, `Class:` → `Classe :`, `Decision:` → `Décision :`, `missing` → `manquant`, `deviates:` → `s'écarte :`, `extra:` → `en plus :`, `unclear:` → `pas clair :`), without its `Reproduce:` part and without its `Capture:`, plus what the constat left out (timings, config, values, error text). `Piste de correction :` when it has one. `Reproduire :` for a `bug`, `test` or `pre-existing`: the action only, no values and no error text.
+
+## Captures on the PR
+
+When the review holds a capture, its captures go in one PR comment of their own, right after the pasted review, all in French: per finding `[n]. [constat]` and its captures, the ask's under `Demande réalisée :`. The agent gives its text to paste, and, outside that text, the local path of each capture under its finding's number; the user attaches each capture to the comment by hand. The text holds no local path (`tmp/verify/…`): the PR's reader cannot open it, and it is gone with the worktree.
