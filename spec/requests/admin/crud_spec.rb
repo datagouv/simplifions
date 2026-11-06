@@ -771,7 +771,7 @@ RSpec.describe 'Administration' do
       Recommandation.create!(demarche: Demarche.create!(nom: 'Autre'), solution: solution('Ailleurs'), niveau: :niveau_2)
 
       fiche
-      expect(page.at_css('#onglet-fiche-panneau').css('h2').map { it.text.squish }).to start_with('Contexte', 'Cadre juridique', 'Solutions recommandées (4)', 'Données disponibles (2)')
+      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title)').map { it.text.squish }).to start_with('Contexte', 'Cadre juridique', 'Solutions recommandées (4)', 'Données disponibles (2)')
       expect(cartes(page)).to eq([
         ['Position 1', 'Aides Locales (API)', 'Masquée'], ['Position 2', 'Mes Aides (API)'], ['Position 3', 'Aide Rangée (API)'],
         ['Sans position', 'Nouvelle Aide (API)', 'Ajoutée au brouillon']
@@ -2560,24 +2560,6 @@ RSpec.describe 'Administration' do
       response.parsed_body.at_css("form#formulaire-fiche ##{onglet['aria-controls']}[role=tabpanel]")
     end
 
-    it 'range la démarche en quatre onglets d’un seul formulaire, la fiche ouverte' do
-      api = Solution.create!(nom: 'API QF', categorie: 'api')
-      demarche = Demarche.create!(nom: 'Aides')
-      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
-      demarche.integrations << Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
-
-      get "/admin/demarches/#{demarche.id}/edit"
-
-      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
-      expect(panneau('Fiche').at_css('button[aria-controls="fenetre-contexte"]')).to be_present
-      expect(panneau('Intégrations').css('input[name="demarche[integration_ids][]"][checked]').size).to eq(1)
-      expect(panneau('Intégrations').at_css('button[type=submit]').then { [it['name'], it['value']] }).to eq(%w[onglet integrations])
-      expect(panneau('Fiche').text).to include('Données disponibles (1)')
-      expect(panneau('Historique').text).to include('Création')
-      get '/admin/demarches/new'
-      expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
-    end
-
     def lignes_par_titre(libelle)
       panneau(libelle).css('h2').to_h do |titre|
         tableau = response.parsed_body.at_css("table[aria-labelledby=\"#{titre['id']}\"]")
@@ -2685,32 +2667,39 @@ RSpec.describe 'Administration' do
 
     def onglet_ouvert = response.parsed_body.at_css('[role=tab][aria-selected=true]').text.squish
 
-    it 'rouvre après l’enregistrement l’onglet où l’on était, et la fiche pour un onglet inconnu' do
-      demarche = Demarche.create!(nom: 'Aides')
-      get "/admin/demarches/#{demarche.id}/edit"
+    it 'rouvre après l’enregistrement l’onglet de la solution où l’on était, et la fiche pour un onglet inconnu' do
+      solution = Solution.create!(nom: 'Bouquet')
+      get "/admin/solutions/#{solution.id}/edit"
       expect(response.parsed_body.at_css('#formulaire-fiche input[type=hidden][name=onglet]')['value']).to eq('fiche')
 
-      patch "/admin/demarches/#{demarche.id}", params: { onglet: 'historique', demarche: { nom: 'Aides sociales' } }
-      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit?onglet=historique")
+      patch "/admin/solutions/#{solution.id}", params: { onglet: 'historique', solution: { nom: 'Bouquet API' } }
+      expect(response).to redirect_to("/admin/solutions/#{solution.id}/edit?onglet=historique")
       follow_redirect!
       expect(onglet_ouvert).to eq('Historique')
       expect(response.parsed_body.at_css('input[name=onglet]')['value']).to eq('historique')
 
-      get "/admin/demarches/#{demarche.id}/edit", params: { onglet: 'inconnu' }
+      get "/admin/solutions/#{solution.id}/edit", params: { onglet: 'inconnu' }
       expect(onglet_ouvert).to eq('Fiche')
     end
 
-    it 'ouvre sur une saisie refusée l’onglet de la première erreur' do
+    it 'ouvre la fiche de la solution sur une saisie refusée' do
+      solution = Solution.create!(nom: 'Bouquet')
+      patch "/admin/solutions/#{solution.id}", params: { onglet: 'historique', solution: { nom: '' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(onglet_ouvert).to eq('Fiche')
+    end
+
+    it 'refuse sur la démarche une intégration hors règle, nommée dans l’alerte du haut, sans rien enregistrer' do
       api = Solution.create!(nom: 'API QF', categorie: 'api')
       fraude = Demarche.create!(nom: 'Fraude')
       integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
 
-      patch "/admin/demarches/#{fraude.id}", params: { onglet: 'historique', demarche: { integration_ids: [integration.id] } }
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(onglet_ouvert).to eq('Intégrations (0)')
+      patch "/admin/demarches/#{fraude.id}", params: { demarche: { integration_ids: [integration.id] } }
 
-      patch "/admin/demarches/#{fraude.id}", params: { onglet: 'integrations', demarche: { nom: '', integration_ids: [integration.id] } }
-      expect(onglet_ouvert).to eq('Fiche')
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.at_css('.fr-alert--error').text).to include("L’intégration « #{integration.libelle} » porte sur une API")
+      expect(fraude.reload.integrations).to be_empty
     end
 
     it 'pré-remplit l’intégratrice d’une nouvelle intégration' do
@@ -2741,11 +2730,32 @@ RSpec.describe 'Administration' do
       expect(page.at_css('h1').text.squish).to eq('💼 Aides')
       expect(page.at_css('.bloc-modifiable').text.squish).to include('/demarches/aides', 'Aider les entreprises.', 'Entreprises')
       expect(page.at_css('.bloc-modifiable').text).not_to include('DLNUF')
-      expect(page.at_css('#onglet-fiche-panneau').css('h2, h3').map { it.text.squish }).to eq(
-        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Données disponibles (0)', 'Hors de la page publique', 'Title SEO', 'Mots-clés', 'Fournisseurs de services', 'Vocabulaires']
+      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title), h3').map { it.text.squish }).to eq(
+        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Données disponibles (0)', 'Intégrations', 'Hors de la page publique', 'Title SEO', 'Mots-clés',
+         'Fournisseurs de services', 'Vocabulaires']
       )
-      expect(page.at_css('#onglet-fiche-panneau strong').text).to eq('contexte')
+      expect(page.at_css('#formulaire-fiche .bloc-modifiable strong').text).to eq('contexte')
       expect(page.at_css('aside')).to be_nil
+      expect(page.at_css('[role=tablist]')).to be_nil
+    end
+
+    def bloc_integrations = response.parsed_body.at_css('section[aria-labelledby="bloc-integrations"]').text.squish
+
+    it 'dit combien d’intégrations sont cochées sur combien proposées, à choisir dans une fenêtre, le choix gardé au brouillon' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      cochee, libre = %w[Logiciel Portail].map { Integration.create!(integratrice: Solution.create!(nom: it), integree: api, type_integration: 'consomme') }
+      demarche.integrations << cochee
+      fiche
+      expect(bloc_integrations).to include('1 cochée sur 2 proposées par les solutions recommandées.')
+      expect(bouton('integrations').text).to eq('Choisir les intégrations')
+      expect(champs('integrations')).to eq(['demarche[integration_ids][]'])
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { integration_ids: ['', cochee.id, libre.id] } }
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
+      expect(demarche.reload.integrations).to eq([cochee])
+      fiche
+      expect(bloc_integrations).to include('2 cochées sur 2 proposées')
     end
 
     it 'ouvre pour chaque bloc une fenêtre avec ses seuls champs' do
@@ -2776,6 +2786,13 @@ RSpec.describe 'Administration' do
       )
     end
 
+    it 'mène à l’historique de la démarche depuis le bas de la fiche, à côté de « Supprimer la démarche »' do
+      fiche
+      bas = page.css('ul.fr-btns-group').find { it.text.include?('Supprimer la démarche') }
+      expect(bas.css('li').map { it.text.squish }).to eq(['Historique de la démarche', 'Masquer la démarche', 'Supprimer la démarche'])
+      expect(bas.at_css('a')['href']).to eq("/admin/historique/demarches/#{demarche.id}")
+    end
+
     it 'ne propose pas de masquer une démarche déjà masquée' do
       demarche.update!(visible: false)
       fiche
@@ -2791,12 +2808,12 @@ RSpec.describe 'Administration' do
       envoye = page.css('#formulaire-fiche input:not([type=submit]):not([type=checkbox]), #formulaire-fiche input[checked], #formulaire-fiche textarea')
         .map { [it['name'], it['value'] || it.text] }.reject { it.first.nil? }
       parametres = envoye.each_with_object({}) { |(nom, valeur), h| nom.end_with?('[]') ? (h[nom] ||= []) << valeur : h[nom] = valeur }
-      patch "/admin/demarches/#{demarche.id}", params: Rack::Utils.parse_nested_query(parametres.to_query).merge('onglet' => 'fiche').deep_merge('demarche' => { 'contexte' => 'Nouveau' })
+      patch "/admin/demarches/#{demarche.id}", params: Rack::Utils.parse_nested_query(parametres.to_query).deep_merge('demarche' => { 'contexte' => 'Nouveau' })
 
       expect(demarche.reload.slice(:contexte, :nom)).to eq('contexte' => 'Nouveau', 'nom' => 'Aides')
       expect(demarche.vocabulaires).to contain_exactly(publics, dlnuf)
       expect(demarche.integrations).to eq([integration])
-      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit?onglet=fiche")
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
     end
 
     it 'rouvre la fenêtre de l’en-tête sur un nom vide, le message sous le champ' do

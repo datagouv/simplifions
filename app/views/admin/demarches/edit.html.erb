@@ -14,13 +14,9 @@
       </ul>
     </div>
   <% end %>
-  <%= form_with model: [:admin, @demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(@demarche).merge(formulaire_modifie_fiche_value: (edit_admin_demarche_path(en_base, onglet: "fiche") if @demarche.errors.any?)) do |f| %>
+  <%= form_with model: [:admin, @demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(@demarche).merge(formulaire_modifie_fiche_value: (edit_admin_demarche_path(en_base) if @demarche.errors.any?)) do |f| %>
     <%= render "entete", f:, demarche: affichee %>
-    <%= render "admin/onglets", objet: @demarche, onglet_des_erreurs: { integration_hors_regle: "integrations" }, onglets: {
-          "fiche" => ["Fiche", render("blocs", f:, demarche: affichee, recommandations: fiche)],
-          "integrations" => ["Intégrations (#{@demarche.integration_ids.size})", render("integrations", f: f, enregistrer: true)],
-          "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
-        } %>
+    <%= render "blocs", f:, demarche: affichee, recommandations: fiche %>
     <%= yield :fenetres %>
   <% end %>
   <%= render "admin/recommandations/formulaires", demarche: en_base, lignes: fiche, nouvelle_carte: Recommandation.new(demarche: en_base, niveau: :niveau_2) %>
