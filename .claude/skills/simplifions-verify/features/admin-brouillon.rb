@@ -196,6 +196,35 @@ def brouillon_recommandations(page, demarche, nom)
   cartes_apres_publication(page, demarche)
 end
 
+def reco_publiee_modifiee(page, demarche, nom)
+  solution = Solution.create!(nom: "#{nom} h", categorie: 'api')
+  reco = Recommandation.create!(demarche:, solution:, niveau: :niveau_2, description: 'Description d’origine', visible: true)
+  page.visit("/admin/recommandations/#{reco.id}/edit")
+  page.fill_in CHAMP_UTILE, with: 'Description à jeter'
+  page.click_button 'Enregistrer'
+  page.assert_selector 'aside.admin-panneau', text: RECO_EN_BROUILLON
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  lignes = lignes_de_l_encadre(page, 'À la publication, 1 changement partira')
+  raise "encadré de la reco modifiée : #{lignes}" unless lignes == ["Solution recommandée modifiée : #{solution.libelle_admin}"]
+
+  Verify.evidence(DOSSIER, page, 'reco-publiee-modifiee', "lignes=#{lignes}")
+  reco
+end
+
+def abandon_d_une_reco_publiee(page, demarche, nom)
+  reco = reco_publiee_modifiee(page, demarche, nom)
+  question = "Abandonner le brouillon de « #{demarche.nom} » ? Les modifications non publiées seront perdues."
+  page.accept_confirm(question) { page.find(ENCADRE).click_button 'Abandonner le brouillon' }
+  page.assert_text "Brouillon de « #{demarche.nom} » abandonné."
+  page.assert_no_selector ENCADRE
+  page.visit("/admin/recommandations/#{reco.id}/edit")
+  champ = page.find_field(CHAMP_UTILE).value
+  base = lu { reco.reload.slice(:description, :brouillon) }
+  raise "abandon de la reco : champ #{champ}, base #{base}" unless champ == 'Description d’origine' && base == { 'description' => 'Description d’origine', 'brouillon' => nil }
+
+  Verify.evidence(DOSSIER, page, 'reco-publiee-abandonnee', "champ=#{champ} base=#{base}")
+end
+
 def donnee_utile_publiee(demarche, nom)
   bouquet = Solution.create!(nom: "#{nom} bouquet", categorie: 'brique_logicielle', organisations: [Organisation.find_by!(public_ou_prive: 'Public')])
   api = Solution.create!(nom: "#{nom} c", categorie: 'api')
@@ -334,13 +363,14 @@ Verify.drive(__FILE__) do |page|
     image_en_brouillon(page, solution).then { image_publiee(page, solution) }
   end
   Verify.check('Recommandations') { brouillon_recommandations(page, demarche.reload, nom) }
+  Verify.check('Abandon of a published recommandation') { abandon_d_une_reco_publiee(page, demarche.reload, nom) }
   Verify.check('Données utiles') { brouillon_donnees_utiles(page, demarche, nom) }
   Verify.check('Type chosen') { brouillon_type_choisi(page, demarche, nom) }
   Verify.check('No draft') { brouillon_fiches_sans_brouillon(page, demarche, nom) }
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g", "#{nom} h"])).destroy_all
   Organisation.where(nom: "#{nom} org").destroy_all
   TypeActeur.where(nom: "#{nom} fournisseur").destroy_all
   Vocabulaire.where(nom: "#{nom} voc").destroy_all
