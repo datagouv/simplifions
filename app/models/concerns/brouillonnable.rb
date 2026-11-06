@@ -4,6 +4,8 @@ module Brouillonnable
   included { after_destroy_commit { purger_les_fichiers(brouillon.to_h) } }
 
   class_methods do
+    def liaisons_du_brouillon = reflect_on_all_associations(:has_and_belongs_to_many).index_by { "#{it.name.to_s.singularize}_ids" }
+
     def changements_du_brouillon(version)
       publiee = version.reify(dup: true)
       champs = column_names - %w[id brouillon modifie_le created_at updated_at]
@@ -15,6 +17,11 @@ module Brouillonnable
   def brouillon? = brouillon.present?
 
   def date_du_brouillon = brouillon&.dig('modifie_le')&.to_time
+
+  def champs_du_brouillon(attributs = brouillon)
+    copie = self.class.find(id).appliquer_brouillon(attributs)
+    champs_changes(copie) + copie.attachment_changes.keys + liaisons_changees(copie, attributs.to_h.keys.grep(/_ids\z/))
+  end
 
   def passe_par_un_brouillon? = visible? || brouillon.to_h['visible'] == '1'
 
@@ -33,9 +40,8 @@ module Brouillonnable
   end
 
   def appliquer_brouillon(attributs = brouillon)
-    liaisons = self.class.reflect_on_all_associations(:has_and_belongs_to_many).index_by { "#{it.name.to_s.singularize}_ids" }
     sans_date_de_debut(attributs).each do |cle, valeur|
-      liaison = liaisons[cle]
+      liaison = self.class.liaisons_du_brouillon[cle]
       liaison ? association(liaison.name).target = liaison.klass.where(id: valeur).to_a : public_send("#{cle}=", valeur)
     end
     self
@@ -74,7 +80,7 @@ module Brouillonnable
 
     remplaces = brouillon.to_h.slice(*attributs.keys)
     attributs = { 'commence_le' => Time.current }.merge(brouillon.to_h, attributs.transform_values { en_valeur_de_brouillon(it) })
-    ecrire_le_brouillon((attributs if differe_du_publie?(attributs)), 'brouillon')
+    ecrire_le_brouillon((attributs if champs_du_brouillon(attributs).any?), 'brouillon')
     purger_les_fichiers(remplaces)
     true
   end
@@ -110,13 +116,8 @@ module Brouillonnable
     false
   end
 
-  def differe_du_publie?(attributs)
-    copie = self.class.find(id).appliquer_brouillon(attributs)
-    copie.changes.except('modifie_le').any? { |_, valeurs| valeurs.any?(&:present?) } || copie.attachment_changes.any? ||
-      liaisons_changees?(copie, attributs.keys.grep(/_ids\z/))
-  end
-
-  def liaisons_changees?(copie, cles) = cles.any? { |cle| copie.public_send(cle).sort != public_send(cle).sort }
+  def champs_changes(copie) = copie.changes.except('modifie_le').reject { |_, valeurs| valeurs.all?(&:blank?) }.keys
+  def liaisons_changees(copie, cles) = cles.reject { copie.public_send(it).sort == public_send(it).sort }
 
   def en_valeur_de_brouillon(valeur)
     return valeur.gsub("\r\n", "\n") if valeur.is_a?(String)

@@ -67,7 +67,8 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-navigation.md](admin-navigation.md) — under `/admin` the header bar lists the seven admin rubriques, the current one marked; the public bar elsewhere.
 - [admin-integrations-de-l-api.md](admin-integrations-de-l-api.md) — an intégration only offers the démarches that recommend its API, and the reverse; an out-of-rule link is marked, refused by the server, dropped by the import.
 - [admin-brouillon.md](admin-brouillon.md) — on a published démarche or solution, Enregistrer keeps a draft off the public site; Publier puts it online, Abandonner le brouillon drops it.
-- [admin-brouillons-en-cours.md](admin-brouillons-en-cours.md) — the démarches and solutions lists mark their drafts `Brouillon` and filter them with `Brouillons en cours (N)`; the dashboard counts them, each number leading to the filtered list.
+- [admin-brouillons-en-cours.md](admin-brouillons-en-cours.md) — the démarches and solutions lists mark their drafts `Brouillon` and filter them with `Brouillons en cours (N)`.
+- [admin-accueil.md](admin-accueil.md) — `/admin` says `Bonjour`, lists the drafts to resume with what changed, the last modified fiches, the catalogue counts and the import with its warning.
 - [admin-image-refusee.md](admin-image-refusee.md) — a solution image whose content is not png, jpg or webp is refused, on a hidden and on a published solution, with no file or draft kept.
 - [admin-onglets.md](admin-onglets.md) — démarche and solution edit pages in tabs inside one form; a save reopens its tab, an error opens the tab of the first error.
 - [contact.md](contact.md) — reach /contact/<besoin> from a cas d'usage page: the page is preselected and cited in the subject and the e-mail, another démarche chosen without reload, copy works, the answer-only steps give no address.

@@ -18,7 +18,7 @@ class Integration < ApplicationRecord
   validate { demarches_hors_regle.each { errors.add(:base, :demarche_hors_regle, nom: it.nom) } }
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
-  def libelle = "#{integratrice.libelle_admin} → #{integree.libelle_admin} (#{type_libelle.downcase})"
+  def libelle = "#{integratrice&.libelle_admin} → #{integree&.libelle_admin} (#{type_libelle.downcase})"
   def type_libelle = self.class.human_attribute_name("type_integration.#{type_integration}")
 
   def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]

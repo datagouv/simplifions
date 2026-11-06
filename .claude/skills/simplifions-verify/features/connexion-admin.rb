@@ -8,7 +8,7 @@ Verify.drive(__FILE__) do |page|
 
   Verify.check('Log in') do
     Verify.login(page)
-    page.assert_selector 'h1', text: 'Administration'
+    page.assert_selector 'h1', text: 'Bonjour'
     page.assert_selector :link, 'Administration'
     Verify.evidence('connexion-admin', page, 'tableau-de-bord', "path=#{page.current_path}")
   end

@@ -203,6 +203,10 @@ form :target {
   border-top: 1px solid var(--border-default-grey);
 }
 
+.admin-encadre {
+  border: 1px solid var(--border-default-grey);
+}
+
 .contact-bloc-a-copier {
   display: flow-root;
 }

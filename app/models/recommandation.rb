@@ -18,7 +18,7 @@ class Recommandation < ApplicationRecord
   scope :parues, -> { where.not(id: a_publier_avec_la_demarche) }
   scope :en_brouillon, -> { where.not(brouillon: nil).where(visible: true).or(a_publier_avec_la_demarche) }
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
-  def libelle = "#{demarche.nom} → #{solution.libelle_admin}"
+  def libelle = "#{demarche&.nom} → #{solution&.libelle_admin}"
 
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 
