@@ -1,5 +1,5 @@
-<%# locals: (objet:, onglets:, onglet_des_erreurs: {}) -%>
-<% actif = onglet_ouvert(objet, onglets.keys, onglet_des_erreurs) %>
+<%# locals: (objet:, onglets:) -%>
+<% actif = onglet_ouvert(objet, onglets.keys) %>
 <div class="fr-tabs fr-mt-2w" data-controller="onglets" data-action="dsfr.disclose->onglets#choisir">
   <%= hidden_field_tag :onglet, actif, id: nil, data: { onglets_target: "champ" } %>
   <ul class="fr-tabs__list" role="tablist" aria-label="Rubriques de la fiche">

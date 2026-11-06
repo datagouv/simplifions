@@ -32,9 +32,8 @@ module ApplicationHelper
       input_group_options: { data: { champ_fiche: true, rempli_en_base: rempli_en_base?(solution, champ) } } }
   end
 
-  def onglet_ouvert(objet, onglets, onglet_des_erreurs)
-    erreur = objet.errors.first
-    choisi = erreur ? onglet_des_erreurs[erreur.type] : params[:onglet]
+  def onglet_ouvert(objet, onglets)
+    choisi = params[:onglet] unless objet.errors.any?
     choisi.presence_in(onglets) || onglets.first
   end
 
