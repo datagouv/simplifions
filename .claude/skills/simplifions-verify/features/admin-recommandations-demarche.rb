@@ -4,13 +4,13 @@ DOSSIER = 'admin-recommandations-demarche'.freeze
 
 def compte(demarche) = ActiveRecord::Base.uncached { demarche.recommandations.count }
 
-def table_de_la_demarche(page, demarche, avant)
+def blocs_de_la_demarche(page, demarche, avant)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-  lignes = page.find('table[aria-labelledby=onglet-recommandations]').all('tbody tr').size
-  raise "#{lignes} lignes pour #{avant} recommandations et la ligne vide" unless lignes == avant + 1
+  cartes = Verify.cartes_de_la_fiche(page).size
+  donnees = page.all('.donnees-disponibles li').size
+  raise "#{cartes} cartes et #{donnees} données utiles pour #{avant} recommandations" unless cartes + donnees == avant
 
-  Verify.evidence(DOSSIER, page, 'demarche', "lignes=#{lignes} en_base=#{avant}")
+  Verify.evidence(DOSSIER, page, 'demarche', "cartes=#{cartes} donnees=#{donnees} en_base=#{avant}")
 end
 
 def nouvelle(page, demarche)
@@ -25,7 +25,7 @@ end
 def enregistrer(page, demarche, solution, avant)
   page.select solution.libelle_admin, from: 'Solution (obligatoire)'
   page.select 'Donnée utile (API ou jeu de données)', from: 'Type de recommandation'
-  page.fill_in 'Ordre', with: '99'
+  page.fill_in 'Position', with: '99'
   page.click_button 'Enregistrer'
   page.assert_text 'enregistré'
   creee = ActiveRecord::Base.uncached { demarche.recommandations.find_by!(solution:) }
@@ -45,15 +45,15 @@ end
 
 def retour_sur_la_demarche(page, demarche, solution, creee)
   page.assert_current_path("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-  derniere = page.find("tr#recommandation_#{creee.id}").all('select, input').map(&:value)
-  raise 'nouvelle recommandation absente de la démarche' unless derniere.first == solution.id.to_s
+  ligne = page.find('.donnees-disponibles li', text: solution.libelle_admin).text.squish
+  raise "nouvelle donnée utile #{ligne.inspect}" unless ligne.end_with?('99')
+  raise 'nouvelle recommandation absente de la fenêtre des données utiles' unless page.has_selector?("form#donnee_utile_recommandation_#{creee.id}", visible: :all)
 
-  Verify.evidence(DOSSIER, page, 'retour-demarche', "ligne=#{derniere.join(' | ')}")
+  Verify.evidence(DOSSIER, page, 'retour-demarche', "donnee_utile=#{ligne}")
 end
 
-def supprimer(page, demarche, solution, avant)
-  page.click_link "Modifier la recommandation #{solution.libelle_admin}"
+def supprimer(page, demarche, creee, avant)
+  page.visit("/admin/recommandations/#{creee.id}/edit")
   page.accept_confirm { page.click_button 'Supprimer' }
   page.assert_current_path('/admin/recommandations')
   raise "#{compte(demarche)} recommandations, attendu #{avant}" unless compte(demarche) == avant
@@ -73,7 +73,7 @@ Verify.drive(__FILE__) do |page|
   solution = Solution.where(categorie: 'api').where.not(id: demarche.recommandations.select(:solution_id)).reject(&:privee?).first
   avant = demarche.recommandations.count
   Verify.login(page)
-  Verify.check('Table') { table_de_la_demarche(page, demarche, avant) }
+  Verify.check('Blocks') { blocs_de_la_demarche(page, demarche, avant) }
   creee = Verify.check('Add') do
     nouvelle(page, demarche)
     enregistrer(page, demarche, solution, avant)
@@ -82,7 +82,7 @@ Verify.drive(__FILE__) do |page|
     ouvrir_encart(page, demarche)
     retour_sur_la_demarche(page, demarche, solution, creee)
   end
-  Verify.check('Undo') { supprimer(page, demarche, solution, avant) }
+  Verify.check('Undo') { supprimer(page, demarche, creee, avant) }
   Verify.check('Proof') do
     etroit(page, demarche)
     Verify.logout(page)

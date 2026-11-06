@@ -11,11 +11,7 @@ end
 
 def ajouter(page, demarche, solution)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-  page.select solution.libelle_admin, from: 'Solution de la nouvelle recommandation (obligatoire)'
-  page.select 'Solution recommandée', from: 'Type de recommandation de la nouvelle recommandation (obligatoire)'
-  page.click_button 'Ajouter la nouvelle recommandation'
-  page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
+  Verify.ajouter_une_solution_recommandee(page, solution)
 end
 
 def colonne(page) = page.find(Verify::BARRE_DEMARCHE)
@@ -55,8 +51,7 @@ def lignes_apres_abandon(page, demarche)
   page.visit("/admin/demarches/#{demarche.id}/edit")
   page.accept_confirm { colonne(page).click_button 'Abandonner le brouillon' }
   page.assert_text 'abandonné'
-  Verify.onglet(page, 'Recommandations')
-  page.all('tr[id^="recommandation_"]').size
+  Verify.cartes_de_la_fiche(page).size
 end
 
 def abandonnee(page, demarche, apis)
@@ -76,10 +71,7 @@ end
 
 def remontee_en_brouillon(page, demarche, api)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-  page.fill_in "Ordre de la recommandation #{api.libelle_admin}", with: '0'
-  page.click_button "Enregistrer la recommandation #{api.libelle_admin}"
-  page.assert_selector '#message-recommandations .fr-valid-text', text: api.libelle_admin
+  Verify.modifier_la_carte(page, api, 'Position' => '0')
 end
 
 def apercu_comme_publie(page, demarche, apis)

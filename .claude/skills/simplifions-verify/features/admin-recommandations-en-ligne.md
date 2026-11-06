@@ -1,38 +1,42 @@
-# Modifier les recommandations ligne à ligne dans la démarche
+# Gérer les solutions recommandées et les données utiles dans la fiche démarche
 
-In a démarche's `Recommandations (<n>)` tab, each recommandation is a table row with three fields (`Solution`, `Type de recommandation`, `Ordre`), an `État` cell (`Publiée`/`Masquée`, then the modification date), a `Brouillon` badge when it has a draft, a button `Enregistrer la recommandation <solution>`, a link `Modifier la recommandation <solution>` (long texts stay on that page) and a trash button `Supprimer la recommandation <solution>` (confirmation `Supprimer la recommandation <solution> ?`, followed by `La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas.` when the démarche is published, or hidden with a draft to abandon; then `destroy!` as on the recommandation page, the row and its two hidden forms removed by turbo-stream). The table fits the page width from 1024 px up (no horizontal scroll in `.fr-table__content`). A last blank row adds one (`Ajouter la nouvelle recommandation`). A row saves alone, in place (turbo-stream): the message goes to `#message-recommandations` (role=status), an error stays on its row (`fr-error-text`, `aria-describedby` from the row's fields and button). Draft rules are the recommandation page's: in a published démarche, a change is a draft; a new one, in a hidden or published démarche, waits for the démarche's next `Publier` (`admin-recommandations-avec-la-demarche.md`).
+In a démarche's `Fiche` tab, under `Contexte` and `Cadre juridique`, the block `Solutions recommandées (<n>)` shows each `niveau_2` recommandation as a card: `Position <n>` (or `Sans position`), the solution, a badge `Masquée` (not online) or `Ajoutée au brouillon` (goes online with the démarche's `Publier`), `Modifier <solution>` and `Retirer <solution>`; a last card `Ajouter une solution recommandée`. Positions, types and texts are read from the draft. The block `Données disponibles (<n>)` lists the `niveau_1` recommandations with their position or `—`, and `Modifier les données utiles` opens a window of one line per donnée utile (`Solution`, `Position`, `En quoi cette API ou ce jeu de données est utile`, `Enregistrer`, `Retirer`) plus a blank line `Ajouter une donnée utile`. `Modifier <solution>` opens a window with `Solution`, `Type de recommandation`, `Position`, the three long texts and `URL de demande d’accès pour cette démarche`; `Enregistrer` closes it and updates the card in place (turbo-stream, message in `#message-recommandations`), a refused save reopens it with the error under its field. `Changer l’ordre` shows a handle on each card: dragging a card saves its new position among the cards (through the draft on a published démarche). `Retirer` asks `Supprimer la recommandation <solution> ?`, followed by `La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas.` when the démarche is published or hidden with a draft to abandon, then deletes at once. Draft rules are the recommandation page's (`admin-recommandations-avec-la-demarche.md`).
 
 ## Sub-features
 
-- `recos-ligne-enregistrer` a row saves alone with `Enregistrer la recommandation <solution>`: draft and badge `Brouillon` on a published démarche, focus kept.
-- `recos-ligne-fiche` saving a row keeps the fiche's unsaved changes, no leave question.
-- `recos-ligne-erreur` an error stays on its row (`Choisissez une solution`), described by the row's button.
-- `recos-ligne-ajouter` the last blank row adds one (`Ajouter la nouvelle recommandation`), hidden until the démarche's `Publier`.
-- `recos-ligne-supprimer` trash `Supprimer la recommandation <solution>`, confirmation, row gone, focus on `supprimé`.
-- `recos-ligne-avertissement` the confirmation warns that deleting is immediate on a published démarche (row trash and `Supprimer` of the recommandation page), not on a masked one.
-- `recos-ligne-largeur` the table fits the page at 1280 and 1024 px.
+- `recos-cartes` cards with position, solution and badge; count in the heading; données utiles listed with their position.
+- `recos-fenetre-modifier` `Modifier <solution>` → window, `Enregistrer` → window closed, card updated, draft on a published démarche, focus back on `Modifier`.
+- `recos-fenetre-erreur` a refused save reopens the window, `Choisissez une solution` under `Solution`.
+- `recos-ajouter` `Ajouter une solution recommandée` → the same window, empty; the new card `Ajoutée au brouillon`.
+- `recos-changer-l-ordre` `Changer l’ordre` shows the handles; a dragged card saves its position, the mode stays open; a refused neighbour stops the whole move (`Recommandation non déplacée : …`, request spec only).
+- `recos-donnees-utiles` `Modifier les données utiles` → window; a line saves alone, the window stays open, the list follows.
+- `recos-retirer` `Retirer <solution>`: confirmation with the warning on a published démarche, card gone, focus on `supprimé`.
+- `recos-etroit` no page-level horizontal scroll at 375 px.
 
 ## How to get to it (user POV)
 
-`/admin/demarches/<id>/edit`, tab `Recommandations (<n>)`. Admin only.
+`/admin/demarches/<id>/edit`, tab `Fiche` (the default), blocks `Solutions recommandées (<n>)` and `Données disponibles (<n>)`. Admin only.
 
 ## Driving it with Capybara
 
 Drive: `features/admin-recommandations-en-ligne.rb` (SKILL.md § Drive).
 
-Preconditions: logged in; the drive mutates then undoes; a masked démarche `Vérif verify-map <browser>` with one recommandation is created for the Warning step and deleted at the end. Démarche: the visible one with a slug and the most recommandations; row: its first visible recommandation; solution: the first public API it does not recommend yet.
+Preconditions: logged in; the drive mutates then puts back every recommandation of the démarche as it found it (order and draft), and deletes what it added. Démarche: the visible one with a slug and the most cards; card: its first one; solution to add: the first public API it does not recommend yet.
 
-- **Row.** `Ordre de la recommandation <solution>` = 77 → fiche `Enregistrer` stays greyed; `Enregistrer la recommandation <solution>` → `brouillon enregistré`, badge `Brouillon`, focus stays on the button, ordre unchanged in base, 77 in the draft.
-- **Fiche kept.** Tick or untick a box of the `Intégrations` tab (the fiche's blocks edit in modals), save a row → no confirmation, that tab's `Enregistrer` still active.
-- **Error.** Blank row with only a type → `Choisissez une solution` on the row, button described by it, focus on it.
-- **Add.** Blank row with the solution and ordre 99 → new row above, blank row again, count +1, `visible` false.
-- **Public page.** Breadcrumb `Démarches` (accept the leave question) → `/demarches/<slug>` cards unchanged.
-- **Width.** At 1280 and 1024 px, `.fr-table__content` `scrollWidth <= clientWidth`.
-- **Undo.** `Modifier la recommandation <solution>` → `Abandonner le brouillon`; the added one → its trash button: dismiss the confirmation (it reads `Supprimer la recommandation <solution> ? <avertissement>`, the démarche being published; row stays, still in base), accept it (row gone, `supprimé` in `#message-recommandations`, which takes the focus through Turbo's stream `autofocus`, still on the démarche). Count and draft back.
-- **Warning.** `Supprimer la recommandation <solution>` of the published démarche's row and `Supprimer` of its recommandation page (`/admin/recommandations/<id>/edit`): confirmation ends with the warning. Same two on the masked démarche's recommandation: confirmation without it. Dismissed each time, both recommandations still in base.
-- **Proof.** `tmp/verify/admin-recommandations-en-ligne/`, including `etroit-375` (no page-level horizontal scroll; the table scrolls inside its container).
+- **Cards.** `Solutions recommandées (<n>)` and `Données disponibles (<n>)` match the base read through the drafts; first card `Position <n>`.
+- **Modify.** `Modifier <solution>` of the first card, `Position` 77, `Enregistrer` → no open window, card `Position 77`, `brouillon enregistré` in `#message-recommandations`, focus on `Modifier <solution>`, base ordre unchanged, 77 in the draft.
+- **Error.** `Ajouter une solution recommandée`, `Enregistrer` with no solution → the window open again, `Choisissez une solution` under `Solution`.
+- **Add.** Same window: the solution, `Enregistrer` → a new card `Ajoutée au brouillon`, count +1, base `visible` false.
+- **Order.** The hint `Glissez une carte par sa poignée…` hidden; `Changer l’ordre` (`aria-expanded` true) shows it and the handles; drag the second card's handle onto the first card → `déplacée en position 1`, the card first in the grid and in base (draft order), the mode still open (handles shown) for the next drag.
+- **Données utiles.** `Modifier les données utiles` opens with no message left by the cards; first line `Position` 55, its `Enregistrer` → message naming that line's solution in the window (and none behind it), window still open, focus on that line's `Enregistrer`, list line `55`.
+- **Remove.** `Retirer <added solution>`: dismiss the confirmation (it reads `Supprimer la recommandation <solution> ? <avertissement>`, card stays), accept it → card gone, `supprimé` in `#message-recommandations`, which takes the focus.
+- **Public page.** `/demarches/<slug>` cards unchanged.
+- **Narrow.** At 375 px, no page-level horizontal scroll.
+- **Proof.** `tmp/verify/admin-recommandations-en-ligne/`.
 
 ## Gotchas
 
-- A row of a hidden recommandation saves directly (no draft): the drive only saves rows of visible ones, so its undo is the draft's abandon.
-- Turbo disables a form's submitter during a submission by default, which drops focus to `<body>`: `application.js` sets `Turbo.config.forms.submitter = "aria-disabled"`, and rows are replaced with `method: :morph`, so focus stays on the row's button.
+- Firefox ignores Capybara's `drag_to` on SortableJS: the drive falls back to Selenium actions (`click_and_hold`, `move_to`, `release`), as `ordre-api-fournies.rb` does. Actions need both handles in the viewport: the drive drags the second card onto the first, scrolled to the centre.
+- A modal button needs `data-fr-opened` for DSFR; a turbo-stream that replaces the button of an open window closes it. The windows of the cards close on `Enregistrer` (`aria-controls`) before the stream lands; the données utiles window stays open because its button and its lines are updated in place.
+- Each answer writes its message in the zone that acted (`#message-recommandations` for the cards, `#message-donnees-utiles` for the window) and empties the other: a check waits for the message naming its own solution, never for any message.
+- Reordering writes the order of every card of the démarche (in its draft when it is published): the drive saves every recommandation's `ordre` and `brouillon` first and puts them back in its `ensure`.

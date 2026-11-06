@@ -1,17 +1,17 @@
 # Gérer les recommandations depuis la démarche
 
-A démarche's admin form lists, in its `Recommandations (<n>)` tab, its recommandations as editable rows (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)), sorted by type then ordre, each with `Modifier la recommandation <solution>` linking to the recommandation, then a blank row (the only way to add one from the démarche). `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Ordre, Visible, Modifié le).
+A démarche's `Fiche` tab shows its recommandations in two blocks, `Solutions recommandées (<n>)` as cards and `Données disponibles (<n>)` as a list, each edited in a window on the page (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). A recommandation's own page stays at its address, `/admin/recommandations/<id>/edit`, with no link from the démarche. `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Ordre, Visible, Modifié le).
 
 ## Sub-features
 
-- `recos-demarche-tableau` the `Recommandations (<n>)` tab lists every recommandation as a row, then a blank row to add one.
+- `recos-demarche-blocs` the `Fiche` tab shows every recommandation: a card under `Solutions recommandées`, or a line under `Données disponibles`.
 - `recos-demarche-nouvelle` `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche.
 - `recos-demarche-encart` a recommandation's form opens on `Démarche : <nom>`, `Voir la fiche <nom>`, accordion `Autres recommandations de la démarche (<n>)`.
-- `recos-demarche-modifier` `Modifier la recommandation <solution>` opens the recommandation, whose `Supprimer` removes it.
+- `recos-demarche-modifier` `/admin/recommandations/<id>/edit` still opens the recommandation, whose `Supprimer` removes it.
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit`, tab `Recommandations (<n>)`.
+- `/admin/demarches/<id>/edit`, tab `Fiche`, blocks `Solutions recommandées (<n>)` and `Données disponibles (<n>)`.
 - `/admin/recommandations/new?demarche_id=<id>` and `/admin/recommandations/<id>/edit`: the encart above the form. Admin only.
 
 ## Driving it with Capybara
@@ -20,10 +20,10 @@ Drive: `features/admin-recommandations-demarche.rb` (SKILL.md § Drive).
 
 Preconditions: logged in; mutating then undone. Démarche: the visible one with the most recommandations (41 on 2026-10-05); solution: the first public API it does not recommend yet.
 
-- **Table.** Rows on the démarche page = `demarche.recommandations.count` + the blank row.
-- **Add.** `/admin/recommandations/new?demarche_id=<id>` → démarche selected, encart lists all its recommandations; save with `Ordre` 99 → stays on `/admin/recommandations/<id>/edit`, database count +1.
-- **Context.** Open the accordion: table visible; `Voir la fiche <démarche>` opens the démarche, whose table shows the new row (`tr#recommandation_<id>`, solution selected).
-- **Undo.** `Modifier la recommandation <solution>`, `Supprimer` → count back to its start.
+- **Blocks.** Cards plus lines of `Données disponibles` on the démarche page = `demarche.recommandations.count`.
+- **Add.** `/admin/recommandations/new?demarche_id=<id>` → démarche selected, encart lists all its recommandations; save as `Donnée utile` with `Position` 99 → stays on `/admin/recommandations/<id>/edit`, database count +1.
+- **Context.** Open the accordion: table visible; `Voir la fiche <démarche>` opens the démarche, whose `Données disponibles` list the new one with position 99, and whose `Modifier les données utiles` window has its line.
+- **Undo.** `/admin/recommandations/<id>/edit`, `Supprimer` → count back to its start.
 - **Proof.** `tmp/verify/admin-recommandations-demarche/`, including `etroit-320` (no horizontal scroll).
 
 ## Gotchas

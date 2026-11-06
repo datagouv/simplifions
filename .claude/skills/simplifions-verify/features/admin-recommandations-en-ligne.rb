@@ -2,214 +2,138 @@ require_relative '../harness'
 
 DOSSIER = 'admin-recommandations-en-ligne'.freeze
 
-def api_a_recommander(demarche)
-  Solution.where(categorie: 'api').where.not(id: demarche.recommandations.select(:solution_id)).reject(&:privee?).first
-end
-
 def contexte
-  demarche = Demarche.visibles.where.not(slug: [nil, '']).max_by { |ligne| ligne.recommandations.count }
-  reco = demarche.recommandations.visibles.par_niveau_et_ordre.first
-  { demarche:, reco:, solution: api_a_recommander(demarche), nom: "la recommandation #{reco.solution.libelle_admin}",
-    avant: demarche.recommandations.count, nom_masquee: "Vérif verify-map #{Verify.browser}" }
+  demarche = Demarche.visibles.where.not(slug: [nil, '']).max_by { |ligne| ligne.recommandations.niveau_2.count }
+  solution = Solution.where(categorie: 'api').where.not(id: demarche.recommandations.select(:solution_id)).reject(&:privee?).first
+  { demarche:, solution:, avant: demarche.recommandations.to_h { [it.id, it.attributes.slice('ordre', 'brouillon')] } }
 end
 
-def demarche_masquee(ctx)
-  masquee = Demarche.create!(nom: ctx[:nom_masquee])
-  raise 'la démarche de vérif est publiée' if masquee.visible?
+def lu(&) = ActiveRecord::Base.uncached(&)
+def fiche(ctx) = lu { ctx[:demarche].recommandations.sur_la_fiche }
+def cartes_publiques(page, demarche) = page.visit("/demarches/#{demarche.slug}").then { page.all('.reco-card').map(&:text) }
+def titre(page, id) = page.find("##{id}").text.squish
 
-  ctx[:reco_masquee] = Recommandation.create!(demarche: masquee, solution: ctx[:reco].solution, niveau: :niveau_1)
-  masquee
+def cartes(page, ctx)
+  page.visit("/admin/demarches/#{ctx[:demarche].id}/edit")
+  attendu = fiche(ctx).partition(&:niveau_2?).map(&:size)
+  lu_ = [titre(page, 'bloc-solutions-recommandees'), titre(page, 'bloc-donnees-disponibles')]
+  raise "titres #{lu_} pour #{attendu}" unless lu_ == ["Solutions recommandées (#{attendu.first})", "Données disponibles (#{attendu.last})"]
+
+  ctx[:carte] = fiche(ctx).find(&:niveau_2?)
+  Verify.evidence(DOSSIER, page, 'cartes', "titres=#{lu_} premiere=#{Verify.cartes_de_la_fiche(page).first.find('p').text}")
 end
 
-def cartes_publiques(page, demarche)
-  page.visit("/demarches/#{demarche.slug}")
-  page.all('.reco-card').map(&:text)
+def modifier(page, ctx)
+  carte = ctx[:carte]
+  Verify.modifier_la_carte(page, carte.solution, 'Position' => '77')
+  page.find("#recommandation_#{carte.id}").assert_text 'Position 77'
+  focus = Verify.focus_sur(page)
+  base = lu { carte.reload.slice(:ordre, :brouillon) }
+  raise "focus #{focus}" unless focus == "modifier_recommandation_#{carte.id}"
+  raise "base #{base}" unless base['ordre'] == ctx[:avant][carte.id]['ordre'] && base['brouillon']&.dig('ordre').to_s == '77'
+
+  Verify.evidence(DOSSIER, page, 'modifiee', "message=#{page.find('#message-recommandations').text} focus=#{focus} ordre_en_base=#{base['ordre']} brouillon=#{base['brouillon']['ordre']}")
 end
 
-def onglet_recommandations(page, demarche)
-  page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-end
-
-def enregistrer_l_ordre(page, nom, ordre)
-  page.find_field("Ordre de #{nom}").fill_in(with: ordre)
-  yield if block_given?
-  page.click_button "Enregistrer #{nom}"
-end
-
-def ligne_en_brouillon(page, ctx)
-  reco = ctx[:reco]
-  onglet_recommandations(page, ctx[:demarche])
-  enregistrer_l_ordre(page, ctx[:nom], '77') { raise 'la ligne a marqué la fiche' unless Verify.enregistrer_desactive?(page) }
-  page.assert_selector '#message-recommandations .fr-valid-text', text: 'brouillon enregistré'
-  page.find("tr#recommandation_#{reco.id}").assert_selector '.fr-badge--new', text: /brouillon/i
-  preuve_du_brouillon(page, reco)
-end
-
-def preuve_du_brouillon(page, reco)
-  ActiveRecord::Base.uncached do
-    Verify.evidence(DOSSIER, page, 'ligne-modifiee', "focus=#{Verify.focus_sur(page)} fiche_grisee=#{Verify.enregistrer_desactive?(page)} " \
-                                                     "ordre_en_base=#{reco.reload.ordre} ordre_du_brouillon=#{reco.brouillon&.dig('ordre')}")
-  end
-end
-
-def fiche_gardee(page, ctx)
-  Verify.onglet(page, 'Intégrations')
-  page.find('#onglet-integrations-panneau').first('.fr-checkbox-group label').click
-  Verify.onglet(page, 'Recommandations')
-  enregistrer_l_ordre(page, ctx[:nom], '78')
-  page.assert_selector '#message-recommandations .fr-valid-text'
-  raise 'la fiche modifiée a été oubliée' if Verify.enregistrer_desactive?(page)
-
-  Verify.evidence(DOSSIER, page, 'fiche-modifiee-garde', "confirmation=aucune fiche_grisee=#{Verify.enregistrer_desactive?(page)}")
-end
-
-def erreur_de_ligne(page)
-  page.select 'Solution recommandée', from: 'Type de recommandation de la nouvelle recommandation (obligatoire)'
-  page.click_button 'Ajouter la nouvelle recommandation'
-  erreur = page.find('#erreurs_recommandation', text: 'Choisissez une solution')
-  Verify.evidence(DOSSIER, page, 'erreur-ligne', "erreur=#{erreur.text} focus=#{Verify.focus_sur(page)} " \
-                                                 "decrit_par=#{page.find('#enregistrer_recommandation')['aria-describedby']}")
-end
-
-def remplir_la_nouvelle(page, solution)
-  page.select solution.libelle_admin, from: 'Solution de la nouvelle recommandation (obligatoire)'
-  page.find_field('Ordre de la nouvelle recommandation').fill_in(with: '99')
-  page.click_button 'Ajouter la nouvelle recommandation'
+def erreur(page)
+  Verify.fenetre(page, 'Ajouter une solution recommandée').click_button 'Enregistrer'
+  erreur = page.find('dialog[open] .fr-message--error', text: 'Choisissez une solution')
+  Verify.evidence(DOSSIER, page, 'erreur', "fenetre=#{page.find('dialog[open] h2').text} erreur=#{erreur.text}")
 end
 
 def ajouter(page, ctx)
-  solution = ctx[:solution]
-  remplir_la_nouvelle(page, solution)
-  page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
-  ctx[:creee] = ActiveRecord::Base.uncached { ctx[:demarche].recommandations.find_by!(solution:) }
-  page.assert_selector "tr#recommandation_#{ctx[:creee].id}"
-  preuve_de_l_ajout(page, ctx)
+  dialog = page.find('dialog[open]')
+  dialog.select ctx[:solution].libelle_admin, from: 'Solution (obligatoire)'
+  dialog.click_button 'Enregistrer'
+  page.assert_selector '#message-recommandations .fr-valid-text', text: ctx[:solution].libelle_admin
+  ctx[:ajoutee] = lu { ctx[:demarche].recommandations.find_by!(solution: ctx[:solution]) }
+  page.find("#recommandation_#{ctx[:ajoutee].id}").assert_text(/Ajoutée au brouillon/i)
+  compte = titre(page, 'bloc-solutions-recommandees')
+  Verify.evidence(DOSSIER, page, 'ajoutee', "titre=#{compte} visible=#{ctx[:ajoutee].visible} brouillon=#{ctx[:ajoutee].brouillon.slice('visible')}")
 end
 
-def preuve_de_l_ajout(page, ctx)
-  vide = page.find('tr#new_recommandation select[name="recommandation[solution_id]"]').value
-  en_base = ActiveRecord::Base.uncached { ctx[:demarche].recommandations.count }
-  Verify.evidence(DOSSIER, page, 'ajoutee', "lignes=#{page.all('tbody tr').size} en_base=#{en_base} avant=#{ctx[:avant]} " \
-                                            "visible=#{ctx[:creee].visible} ligne_vide=#{vide.inspect} focus=#{Verify.focus_sur(page)}")
+def glisser_par_capybara(source, cible, _page) = source.drag_to(cible)
+def glisser_par_actions(source, cible, page) = page.driver.browser.action.click_and_hold(source.native).move_to(cible.native).move_by(0, -5).release.perform
+
+def changer_l_ordre(page, ctx)
+  methode = %i[glisser_par_capybara glisser_par_actions].find do |nom|
+    page.visit("/admin/demarches/#{ctx[:demarche].id}/edit")
+    page.assert_no_text 'Glissez une carte par sa poignée'
+    page.click_button 'Changer l’ordre'
+    page.assert_text 'Glissez une carte par sa poignée'
+    page.assert_selector '#changer-l-ordre[aria-expanded=true]'
+    poignees = page.all('.cartes-recommandees [data-poignee]', minimum: 2)
+    ctx[:glissee] = poignees[1].find(:xpath, 'ancestor::li[1]')[:id]
+    page.execute_script('arguments[0].scrollIntoView({ block: "center" })', poignees.first)
+    send(nom, poignees[1], poignees.first, page)
+    page.has_selector?('#message-recommandations .fr-valid-text', text: 'déplacée en position 1', wait: 5)
+  end
+  raise 'glisser-déposer sans effet (drag_to et actions Selenium)' unless methode
+  raise 'mode « Changer l’ordre » refermé après le glisser' unless page.has_selector?('#changer-l-ordre[aria-expanded=true]') && page.has_selector?('.cartes-recommandees [data-poignee]')
+
+  premiere = Verify.cartes_de_la_fiche(page).first[:id]
+  en_base = "recommandation_#{fiche(ctx).find(&:niveau_2?).id}"
+  raise "première carte #{premiere}, en base #{en_base}, glissée #{ctx[:glissee]}" unless [premiere, en_base].uniq == [ctx[:glissee]]
+
+  Verify.evidence(DOSSIER, page, 'ordre-change', "methode=#{methode} message=#{page.find('#message-recommandations').text}")
 end
 
-def page_publique_inchangee(page, ctx)
-  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.find('.fr-breadcrumb').click_link 'Démarches' }
-  page.assert_selector 'h1', text: 'Démarches'
+def donnees_utiles(page, ctx)
+  dialog = Verify.fenetre(page, 'Modifier les données utiles')
+  raise "message des cartes dans la fenêtre : #{dialog.find('#message-donnees-utiles').text}" unless dialog.find('#message-donnees-utiles', visible: :all).text.strip.empty?
+  ligne = dialog.first('fieldset')
+  nom = ligne.find('legend').text.delete_prefix('Donnée utile : ')
+  ligne.fill_in 'Position', with: '55'
+  ligne.click_button 'Enregistrer'
+  page.assert_selector '#message-donnees-utiles .fr-valid-text', text: nom
+  raise 'message aussi derrière la fenêtre' unless page.find('#message-recommandations', visible: :all).text(:all).strip.empty?
+  page.assert_selector 'dialog[open]#fenetre-donnees-utiles'
+  focus = page.evaluate_script("document.activeElement.closest('form')?.id")
+  utile = fiche(ctx).find { it.niveau_1? && it.ordre == 55 }
+  raise "donnée utile à la position 55 absente en base, focus #{focus}" unless utile && focus == "donnee_utile_recommandation_#{utile.id}"
+
+  page.find('dialog[open]').click_button 'Fermer'
+  page.find('.donnees-disponibles li', text: utile.solution.libelle_admin).assert_text '55'
+  Verify.evidence(DOSSIER, page, 'donnees-utiles', "focus=#{focus} ligne=#{page.find('.donnees-disponibles li', text: utile.solution.libelle_admin).text.squish}")
+end
+
+def retirer(page, ctx)
+  bouton = "Retirer #{ctx[:solution].libelle_admin}"
+  attendue = Verify.question_de_suppression("Supprimer la recommandation #{ctx[:solution].libelle_admin} ?", true)
+  Verify.refuser_la_suppression(page, bouton, attendue)
+  page.assert_selector "#recommandation_#{ctx[:ajoutee].id}"
+  page.accept_confirm(attendue) { page.click_button bouton }
+  page.assert_selector '#message-recommandations .fr-valid-text', text: 'supprimé'
+  page.assert_no_selector "#recommandation_#{ctx[:ajoutee].id}"
+  focus = page.evaluate_script("document.activeElement.closest('#message-recommandations')?.textContent?.trim()")
+  raise "focus perdu après suppression (#{Verify.focus_sur(page).inspect})" unless focus&.include?('supprimé')
+  raise 'recommandation encore en base' if lu { Recommandation.exists?(ctx[:ajoutee].id) }
+
+  Verify.evidence(DOSSIER, page, 'retiree', "confirmation=#{attendue.inspect} focus=#{focus}")
+end
+
+def page_publique(page, ctx)
   apres = cartes_publiques(page, ctx[:demarche])
-  Verify.evidence(DOSSIER, page, 'page-publique', "inchangee=#{apres == ctx[:cartes]} cartes=#{apres.size}")
   raise "page publique changée : #{ctx[:cartes].size} cartes avant, #{apres.size} après" unless apres == ctx[:cartes]
+
+  Verify.evidence(DOSSIER, page, 'page-publique', "inchangee=true cartes=#{apres.size}")
 end
 
-def mesurer_a(page, demarche, largeur)
-  page.current_window.resize_to(largeur, 1024)
-  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
-  defilement = page.evaluate_script("(c => [c.scrollWidth, c.clientWidth])(document.querySelector('.fr-table__content'))")
-  raise "tableau à #{largeur} px : #{defilement.join(' > ')}" if defilement.first > defilement.last
-
-  Verify.evidence(DOSSIER, page, "largeur-#{largeur}", "tableau_defilable=#{defilement.first} visible=#{defilement.last}")
-end
-
-def largeurs(page, demarche)
-  [1280, 1024].each { mesurer_a(page, demarche, it) }
+def etroit(page, ctx)
   page.current_window.resize_to(375, 812)
-  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
-  Verify.evidence(DOSSIER, page, 'etroit-375', "defilement_horizontal=#{page.evaluate_script('document.documentElement.scrollWidth > innerWidth')}")
+  page.visit("/admin/demarches/#{ctx[:demarche].id}/edit")
+  defilement = page.evaluate_script('document.documentElement.scrollWidth > innerWidth')
+  raise 'défilement horizontal à 375 px' if defilement
+
+  Verify.evidence(DOSSIER, page, 'etroit-375', "defilement_horizontal=#{defilement}")
+ensure
   page.current_window.resize_to(1280, 1024)
 end
 
-def abandonner_le_brouillon(page, ctx)
-  page.click_link "Modifier #{ctx[:nom]}"
-  page.accept_confirm { page.click_button 'Abandonner le brouillon' }
-  page.assert_text 'abandonné'
-  page.visit("/admin/demarches/#{ctx[:demarche].id}/edit?onglet=recommandations")
-end
-
-def refuser_puis_garder(page, ctx, poubelle)
-  attendue = Verify.question_de_suppression("#{poubelle} ?", ctx[:demarche].visible?)
-  Verify.refuser_la_suppression(page, poubelle, attendue)
-  page.assert_selector "tr#recommandation_#{ctx[:creee].id}"
-  raise 'refuser la confirmation a supprimé' unless ActiveRecord::Base.uncached { Recommandation.exists?(ctx[:creee].id) }
-
-  attendue
-end
-
-def supprimer_l_ajoutee(page, ctx)
-  poubelle = "Supprimer la recommandation #{ctx[:solution].libelle_admin}"
-  attendue = refuser_puis_garder(page, ctx, poubelle)
-  page.accept_confirm(attendue) { page.click_button poubelle }
-  page.assert_selector '#message-recommandations .fr-valid-text', text: 'supprimé'
-  page.assert_no_selector "tr#recommandation_#{ctx[:creee].id}"
-end
-
-def focus_apres_suppression(page)
-  focus = page.evaluate_script("document.activeElement.closest('#message-recommandations')?.textContent?.trim()")
-  raise "focus perdu après suppression (#{Verify.focus_sur(page).inspect})" unless focus&.include?('supprimé')
-
-  focus
-end
-
-def avertissement_de_la_ligne(page, demarche, reco, publiee)
-  onglet_recommandations(page, demarche)
-  poubelle = "Supprimer la recommandation #{reco.solution.libelle_admin}"
-  attendue = Verify.question_de_suppression("#{poubelle} ?", publiee)
-  Verify.refuser_la_suppression(page, poubelle, attendue)
-  attendue
-end
-
-def avertissement_de_la_fiche(page, reco, publiee)
-  page.visit("/admin/recommandations/#{reco.id}/edit")
-  Verify.refuser_la_suppression_de_la_fiche(page, publiee)
-end
-
-def toujours_en_base(*recos)
-  raise 'recommandation supprimée par une confirmation refusée' unless ActiveRecord::Base.uncached { Recommandation.where(id: recos).count == recos.size }
-end
-
-def lire_les_avertissements(page, ctx, masquee)
-  {
-    ligne_publiee: avertissement_de_la_ligne(page, ctx[:demarche], ctx[:reco], true),
-    fiche_publiee: avertissement_de_la_fiche(page, ctx[:reco], true),
-    ligne_masquee: avertissement_de_la_ligne(page, masquee, ctx[:reco_masquee], false),
-    fiche_masquee: avertissement_de_la_fiche(page, ctx[:reco_masquee], false)
-  }
-end
-
-def avertissements(page, ctx)
-  lu = lire_les_avertissements(page, ctx, demarche_masquee(ctx))
-  toujours_en_base(ctx[:reco], ctx[:reco_masquee])
-  Verify.evidence(DOSSIER, page, 'avertissement', lu.map { |cle, texte| "#{cle}=#{texte.inspect}" }.join(' '))
-end
-
-def etat_revenu(ctx)
-  ActiveRecord::Base.uncached do
-    compte = ctx[:demarche].recommandations.count
-    raise "#{compte} recommandations au lieu de #{ctx[:avant]}" unless compte == ctx[:avant]
-    raise "brouillon resté : #{ctx[:reco].reload.brouillon.inspect}" if ctx[:reco].reload.brouillon?
-  end
-end
-
-def defaire(page, ctx)
-  abandonner_le_brouillon(page, ctx)
-  supprimer_l_ajoutee(page, ctx)
-  ctx[:focus] = focus_apres_suppression(page)
-  etat_revenu(ctx)
-end
-
-def preuve(page, ctx)
-  ActiveRecord::Base.uncached do
-    Verify.evidence(DOSSIER, page, 'defait', "url=#{page.current_path} en_base=#{ctx[:demarche].recommandations.count} avant=#{ctx[:avant]} " \
-                                             "brouillon=#{ctx[:reco].reload.brouillon.inspect} focus=#{ctx[:focus]}")
-  end
-  Verify.logout(page)
-end
-
-def nettoyer(ctx)
-  ActiveRecord::Base.uncached do
-    Demarche.where(nom: ctx[:nom_masquee]).destroy_all
-    ctx[:demarche].recommandations.where(ordre: 99, grist_id: nil, solution: ctx[:solution]).destroy_all
-    ctx[:reco].reload.abandonner_brouillon! if ctx[:reco].reload.brouillon?
+def remettre(ctx)
+  lu do
+    ctx[:demarche].recommandations.where.not(id: ctx[:avant].keys).destroy_all
+    ctx[:avant].each { |id, attributs| Recommandation.where(id:).update_all(attributs) }
   end
 end
 
@@ -217,15 +141,16 @@ Verify.drive(__FILE__) do |page|
   ctx = contexte
   ctx[:cartes] = cartes_publiques(page, ctx[:demarche])
   Verify.login(page)
-  Verify.check('Row') { ligne_en_brouillon(page, ctx) }
-  Verify.check('Fiche kept') { fiche_gardee(page, ctx) }
-  Verify.check('Error') { erreur_de_ligne(page) }
+  Verify.check('Cards') { cartes(page, ctx) }
+  Verify.check('Modify') { modifier(page, ctx) }
+  Verify.check('Error') { erreur(page) }
   Verify.check('Add') { ajouter(page, ctx) }
-  Verify.check('Public page') { page_publique_inchangee(page, ctx) }
-  Verify.check('Width') { largeurs(page, ctx[:demarche]) }
-  Verify.check('Undo') { defaire(page, ctx) }
-  Verify.check('Warning') { avertissements(page, ctx) }
-  Verify.check('Proof') { preuve(page, ctx) }
+  Verify.check('Order') { changer_l_ordre(page, ctx) }
+  Verify.check('Données utiles') { donnees_utiles(page, ctx) }
+  Verify.check('Remove') { retirer(page, ctx) }
+  Verify.check('Public page') { page_publique(page, ctx) }
+  Verify.check('Narrow') { etroit(page, ctx) }
+  Verify.check('Proof') { Verify.logout(page) }
 ensure
-  nettoyer(ctx) if ctx
+  remettre(ctx) if ctx
 end
