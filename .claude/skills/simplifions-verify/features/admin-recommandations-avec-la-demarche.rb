@@ -82,7 +82,7 @@ def apercu_comme_publie(page, demarche, apis)
   abandon = colonne(page).has_button?('Abandonner le brouillon', wait: 0)
   avant = cartes_publiques(page, demarche)
   apres = publier(page, demarche).then { cartes_publiques(page, demarche) }
-  raise "aperçu #{apercu} avant #{avant} après #{apres} abandon #{abandon}" if abandon || [avant, apres] != [apercu.reverse, apercu]
+  raise "aperçu #{apercu} avant #{avant} après #{apres} abandon #{abandon}" if !abandon || [avant, apres] != [apercu.reverse, apercu]
 
   Verify.evidence(DOSSIER, page, 'apercu-comme-publie', "apercu=#{apercu} avant=#{avant} apres=#{apres} abandon_propose=#{abandon}")
 end
