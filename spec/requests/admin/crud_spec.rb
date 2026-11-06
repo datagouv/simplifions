@@ -755,7 +755,7 @@ RSpec.describe 'Administration' do
     def fiche = get("/admin/demarches/#{aides.id}/edit").then { page }
     def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
     def flux_vers(cible) = flux.find { it['target'] == cible }.at_css('template')
-    def cartes(dans) = dans.css('.cartes-recommandees li[id^=recommandation_]').map { |carte| carte.css('p:not(.fr-badge), h3, .fr-badge').map { it.text.squish } }
+    def cartes(dans) = dans.css('li[id^=recommandation_]').map { |carte| carte.css('p:not(.fr-badge), h3, .fr-badge').map { it.text.squish } }
     def donnees(dans) = dans.css('.donnees-disponibles li').map { it.text.squish }
     def fenetre(dans, recommandation) = dans.at_css("dialog#fenetre-#{ActionView::RecordIdentifier.dom_id(recommandation)}")
     def ligne_de_donnee(dans, recommandation) = dans.at_css("form##{ActionView::RecordIdentifier.dom_id(recommandation, :donnee_utile)}")
@@ -807,10 +807,11 @@ RSpec.describe 'Administration' do
       patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { ordre: '3', description: 'Aide du mois' } }
 
       expect(response.media_type).to eq('text/vnd.turbo-stream.html')
-      expect(cartes(flux_vers('solutions-recommandees'))).to eq([['Position 3', 'Mes Aides (API)']])
+      expect(cartes(flux_vers('cartes-recommandees'))).to eq([['Position 3', 'Mes Aides (API)']])
       expect(choisi(fenetre(flux_vers('formulaires-recommandations'), recommandation), :description)).to eq('Aide du mois')
       expect(fenetre(flux_vers('formulaires-recommandations'), recommandation)['data-controller']).to be_nil
       expect(flux_vers('message-recommandations').text.squish).to eq('« Aides → Mes Aides (API) » : brouillon enregistré, non publié.')
+      expect(flux_vers('message-donnees-utiles').text.strip).to be_empty
       expect(recommandation.reload.slice(:ordre, :description)).to eq('ordre' => 1, 'description' => nil)
     end
 
@@ -832,7 +833,7 @@ RSpec.describe 'Administration' do
       post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, solution_id: solution('Mes Aides').id, niveau: 'niveau_2' } }
       nouvelle = Recommandation.last
 
-      expect(cartes(flux_vers('solutions-recommandees'))).to eq([['Sans position', 'Mes Aides (API)', 'Ajoutée au brouillon']])
+      expect(cartes(flux_vers('cartes-recommandees'))).to eq([['Sans position', 'Mes Aides (API)', 'Ajoutée au brouillon']])
       expect(fenetre(flux_vers('formulaires-recommandations'), nouvelle).at_css('form')['action']).to eq("/admin/recommandations/#{nouvelle.id}")
       expect(choisi(flux_vers('formulaires-recommandations').at_css('dialog#fenetre-new_recommandation'), :solution_id)).to be_nil
       expect(nouvelle.slice(:demarche_id, :visible)).to eq('demarche_id' => aides.id, 'visible' => false)
@@ -856,9 +857,34 @@ RSpec.describe 'Administration' do
 
       delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }, as: :turbo_stream
 
-      expect(cartes(flux_vers('solutions-recommandees'))).to be_empty
+      expect(cartes(flux_vers('cartes-recommandees'))).to be_empty
       expect(flux_vers('message-recommandations').text.squish).to eq('« Aides → Mes Aides (API) » supprimé.')
       expect(Recommandation.exists?(recommandation.id)).to be(false)
+    end
+
+    it 'range une carte parmi les solutions recommandées, en brouillon sur une démarche publiée' do
+      premiere, deuxieme, troisieme = %w[Un Deux Trois].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche: aides, solution: solution(nom), niveau: :niveau_2, ordre:, visible: true) }
+      utile = Recommandation.create!(demarche: aides, solution: solution('API QF'), niveau: :niveau_1, ordre: 1, visible: true)
+
+      patch "/admin/recommandations/#{troisieme.id}/position", params: { position: 1 }, as: :turbo_stream
+
+      expect(cartes(flux_vers('cartes-recommandees')).map { it.first(2) }).to eq([['Position 1', 'Trois (API)'], ['Position 2', 'Un (API)'], ['Position 3', 'Deux (API)']])
+      expect(flux_vers('message-recommandations').text.squish).to eq('« Aides → Trois (API) » déplacée en position 1.')
+      expect([premiere, deuxieme, troisieme, utile].map { it.reload.ordre }).to eq([1, 2, 3, 1])
+      expect([premiere, deuxieme, troisieme].map { it.brouillon['ordre'] }).to eq([2, 3, 1])
+      expect(utile.brouillon).to be_nil
+    end
+
+    it 'ne range aucune carte quand une recommandation voisine est refusée, et le dit' do
+      aides.update!(visible: false)
+      premiere, deuxieme, troisieme = %w[Un Deux Trois].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche: aides, solution: solution(nom), niveau: :niveau_2, ordre:) }
+      deuxieme.solution.update!(categorie: (Solution.categories.keys - Solution::HORS_FICHES).first)
+
+      patch "/admin/recommandations/#{troisieme.id}/position", params: { position: 1 }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(flux_vers('message-recommandations').text.squish).to start_with('Recommandation non déplacée :')
+      expect([premiere, deuxieme, troisieme].map { it.reload.ordre }).to eq([1, 2, 3])
     end
 
     it 'modifie, ajoute et retire les données utiles dans leur fenêtre, une ligne à la fois' do
@@ -876,7 +902,8 @@ RSpec.describe 'Administration' do
 
       patch "/admin/recommandations/#{utile.id}", params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { niveau: 'niveau_1', ordre: '1' } }
       expect(donnees(flux_vers('liste-des-donnees-disponibles'))).to eq(['API QF (API) Position 1'])
-      expect(flux.pluck('target')).to include('lignes-des-donnees-utiles', 'message-donnees-utiles')
+      expect(flux_vers('message-donnees-utiles').text.squish).to eq('« Aides → API QF (API) » enregistré.')
+      expect(flux_vers('message-recommandations').text.strip).to be_empty
 
       post '/admin/recommandations', params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { demarche_id: aides.id, niveau: 'niveau_1', ordre: '5' } }
       vide = flux_vers('lignes-des-donnees-utiles').css('form').last
@@ -886,6 +913,11 @@ RSpec.describe 'Administration' do
       post '/admin/recommandations', params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { demarche_id: aides.id, solution_id: solution('API Impôt').id, niveau: 'niveau_1' } }
       expect(donnees(flux_vers('liste-des-donnees-disponibles'))).to eq(['API QF (API) Position 1', 'API Impôt (API) —Sans position'])
       expect(flux_vers('lignes-des-donnees-utiles').css('legend').map { it.text.squish }).to eq(['Donnée utile : API QF (API)', 'Donnée utile : API Impôt (API)', 'Ajouter une donnée utile'])
+
+      retirer = ligne.at_css('button[data-turbo-confirm]')
+      delete "/admin/recommandations/#{utile.id}", params: { ligne: 1, retirer['name'] => retirer['value'] }, as: :turbo_stream
+      expect(flux_vers('message-donnees-utiles').text.squish).to eq('« Aides → API QF (API) » supprimé.')
+      expect(flux_vers('message-recommandations').text.strip).to be_empty
     end
 
     it 'pré-remplit la démarche d’une nouvelle recommandation' do

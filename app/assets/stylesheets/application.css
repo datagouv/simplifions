@@ -299,6 +299,14 @@ body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="f
   padding: 1rem;
 }
 
+.cartes-recommandees .poignee {
+  display: none;
+}
+
+#solutions-recommandees:has(#changer-l-ordre[aria-expanded="true"]) .poignee {
+  display: inline-block;
+}
+
 .carte-ajout {
   width: 100%;
   height: 100%;

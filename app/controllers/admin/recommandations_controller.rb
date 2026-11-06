@@ -1,5 +1,5 @@
 class Admin::RecommandationsController < Admin::BaseController
-  before_action :set_recommandation, only: %i[edit update destroy]
+  before_action :set_recommandation, only: %i[edit update destroy position]
 
   def index
     @recommandations = paginer(Recommandation.rechercher(params[:q], :demarche_nom_sans_accent_cont, :solution_nom_sans_accent_cont).includes(:demarche, :solution).order(:id))
@@ -27,6 +27,11 @@ class Admin::RecommandationsController < Admin::BaseController
     return render :destroy, formats: :turbo_stream if params[:ligne]
 
     redirect_to admin_recommandations_path, notice: t('admin.supprime', nom: nom_de(@recommandation)), status: :see_other
+  end
+
+  def position
+    @deplacee = @recommandation.appliquer_brouillon.deplacer_a(params.expect(:position).to_i)
+    render :position, formats: :turbo_stream, status: @deplacee ? :ok : :unprocessable_content
   end
 
   private

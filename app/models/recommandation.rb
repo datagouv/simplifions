@@ -1,5 +1,6 @@
 class Recommandation < ApplicationRecord
   include Brouillonnable
+  include Rangeable
 
   has_paper_trail ignore: %i[modifie_le brouillon]
 
@@ -21,6 +22,7 @@ class Recommandation < ApplicationRecord
   def libelle = "#{demarche&.nom} → #{solution&.libelle_admin}"
 
   def self.sur_la_fiche = includes(:solution).map(&:appliquer_brouillon).sort_by { [it.ordre ? 0 : 1, it.ordre.to_i, it.id] }
+  def rangees = demarche.recommandations.sur_la_fiche.select { it.niveau == niveau }
   def ajoutee_au_brouillon? = brouillon.to_h['visible'] == '1'
   def masquee? = !visible_in_database && !ajoutee_au_brouillon?
 
@@ -94,6 +96,15 @@ class Recommandation < ApplicationRecord
 
     uri.query = [uri.query, "use_case=#{demarche.slug}"].compact.join('&')
     uri.to_s
+  end
+
+  protected
+
+  def ranger_a(rang)
+    return if ordre == rang
+
+    en_base = Recommandation.find(id)
+    en_base.enregistrer('ordre' => rang, 'modifie_le' => Time.current) || raise(ActiveRecord::RecordInvalid, en_base)
   end
 
   private

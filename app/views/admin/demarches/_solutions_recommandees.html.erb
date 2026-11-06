@@ -1,13 +1,13 @@
 <%# locals: (recommandations:) -%>
 <% cartes = recommandations.select(&:niveau_2?) %>
-<section id="solutions-recommandees" class="bloc-modifiable" aria-labelledby="bloc-solutions-recommandees">
+<section id="solutions-recommandees" class="bloc-modifiable" aria-labelledby="bloc-solutions-recommandees" data-controller="section-depliable">
   <div class="bloc-modifiable__entete">
-    <h2 id="bloc-solutions-recommandees" class="fr-h4">Solutions recommandées <span class="fr-text-mention--grey">(<%= cartes.size %>)</span></h2>
+    <h2 id="bloc-solutions-recommandees" class="fr-h4">Solutions recommandées <span id="compte-des-solutions-recommandees" class="fr-text-mention--grey">(<%= cartes.size %>)</span></h2>
+    <button type="button" id="changer-l-ordre" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-arrow-up-down-line fr-btn--icon-left" aria-expanded="false" aria-controls="consigne-de-rangement"
+            data-section-depliable-target="bouton" data-action="section-depliable#basculer">Changer l’ordre</button>
   </div>
-  <ul class="cartes-recommandees fr-grid-row fr-grid-row--gutters">
-    <%= render partial: "admin/recommandations/carte", collection: cartes %>
-    <li class="fr-col-12 fr-col-md-6 fr-col-lg-3">
-      <button type="button" class="carte-ajout fr-btn fr-btn--tertiary fr-icon-add-line fr-btn--icon-left" aria-controls="fenetre-<%= dom_id(Recommandation) %>" data-fr-opened="false">Ajouter une solution recommandée</button>
-    </li>
+  <p id="consigne-de-rangement" class="fr-text--sm fr-text-mention--grey" hidden data-section-depliable-target="contenu">Glissez une carte par sa poignée pour la déplacer. Au clavier : « Modifier », puis le champ Position.</p>
+  <ul id="cartes-recommandees" class="cartes-recommandees fr-grid-row fr-grid-row--gutters" data-controller="rangement">
+    <%= render "admin/demarches/cartes_recommandees", cartes: %>
   </ul>
 </section>

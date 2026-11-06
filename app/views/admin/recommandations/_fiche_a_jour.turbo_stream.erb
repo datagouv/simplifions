@@ -1,10 +1,12 @@
-<%# locals: (message:, refusee: nil, focus: false) -%>
+<%# locals: (message:, refusee: nil, erreur: refusee.present?, focus: false) -%>
 <% demarche = @recommandation.demarche %>
 <% fiche = demarche.recommandations.sur_la_fiche %>
 <% lignes = fiche.map { refusee&.id == it.id ? refusee : it } %>
 <% nouvelle = refusee if refusee&.new_record? %>
 <% depuis_les_donnees_utiles = params[:fenetre] == "donnees-utiles" %>
-<%= turbo_stream.replace "solutions-recommandees", partial: "admin/demarches/solutions_recommandees", locals: { recommandations: fiche }, method: :morph %>
+<% cartes = fiche.select(&:niveau_2?) %>
+<%= turbo_stream.update "compte-des-solutions-recommandees", "(#{cartes.size})" %>
+<%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes: }, method: :morph %>
 <% donnees = fiche.select(&:niveau_1?) %>
 <%= turbo_stream.update "compte-des-donnees-disponibles", "(#{donnees.size})" %>
 <%= turbo_stream.update "liste-des-donnees-disponibles", partial: "admin/demarches/liste_des_donnees_disponibles", locals: { donnees: } %>
@@ -12,8 +14,8 @@
       locals: { demarche:, lignes:, nouvelle_carte: (nouvelle unless depuis_les_donnees_utiles) || Recommandation.new(demarche:, niveau: :niveau_2) } %>
 <%= turbo_stream.update "lignes-des-donnees-utiles", partial: "ligne_de_donnee_utile",
       collection: [*lignes.select(&:niveau_1?), (nouvelle if depuis_les_donnees_utiles) || Recommandation.new(demarche:, niveau: :niveau_1)], as: :ligne, method: :morph %>
-<% %w[message-recommandations message-donnees-utiles].each do |cible| %>
-  <%= turbo_stream.update cible do %>
-    <%= tag.p message, class: [refusee ? "fr-error-text" : "fr-valid-text", "fr-mb-2w"], tabindex: (-1 if focus), autofocus: focus && cible == "message-recommandations" %>
-  <% end %>
+<% zone, autre_zone = %w[message-recommandations message-donnees-utiles].then { depuis_les_donnees_utiles ? it.reverse : it } %>
+<%= turbo_stream.update autre_zone, "" %>
+<%= turbo_stream.update zone do %>
+  <%= tag.p message, class: [erreur ? "fr-error-text" : "fr-valid-text", "fr-mb-2w"], tabindex: (-1 if focus), autofocus: focus %>
 <% end %>

@@ -1,0 +1,2 @@
+<% message = @deplacee ? t("admin.deplacee", nom: nom_de(@recommandation), position: @recommandation.rang) : t("admin.recommandation_non_deplacee", erreurs: @recommandation.errors.full_messages.to_sentence) %>
+<%= render "fiche_a_jour", message:, erreur: !@deplacee %>

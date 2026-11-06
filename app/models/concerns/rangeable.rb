@@ -12,5 +12,8 @@ module Rangeable
   def renumeroter(liste)
     transaction { liste.each.with_index(1) { |rangee, rang| rangee.ranger_a(rang) } }
     true
+  rescue ActiveRecord::RecordInvalid => e
+    errors.merge!(e.record.errors)
+    false
   end
 end

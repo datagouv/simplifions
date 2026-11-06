@@ -1,6 +1,22 @@
 require 'rails_helper'
 
 RSpec.describe Recommandation do
+  describe '#deplacer_a' do
+    let(:demarche) { Demarche.create!(nom: 'Cantine') }
+
+    def recommander(nom, **attributs) = described_class.create!(demarche:, solution: Solution.create!(nom:, categorie: 'api'), **attributs)
+
+    it 'écrit l’ordre des recommandations masquées, parmi celles du même type, la position lue dans le brouillon' do
+      une = recommander('Une', niveau: :niveau_2, ordre: 1)
+      passee = recommander('Passée en carte', niveau: :niveau_1, ordre: 2, brouillon: { 'visible' => '1', 'niveau' => 'niveau_2', 'ordre' => '2' })
+      utile = recommander('Utile', niveau: :niveau_1, ordre: 3)
+
+      une.appliquer_brouillon.deplacer_a(2)
+
+      expect([une.reload.ordre, passee.reload.brouillon['ordre'], utile.reload.ordre]).to eq([2, 1, 3])
+    end
+  end
+
   describe '#lien_demande_acces' do
     it 'préfère l’URL de la recommandation à celle de la solution et scope la démarche' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine')
