@@ -1,0 +1,13 @@
+<%# locals: (donnees:) -%>
+<% if donnees.any? %>
+  <ul class="donnees-disponibles">
+    <% donnees.each do |donnee| %>
+      <li>
+        <span><%= donnee.solution&.libelle_admin %></span>
+        <span class="fr-text--xs fr-text-mention--grey"><% if donnee.ordre %><span class="fr-sr-only">Position </span><%= donnee.ordre %><% else %><span aria-hidden="true">—</span><span class="fr-sr-only">Sans position</span><% end %></span>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="fr-text-mention--grey fr-mb-0">Aucune.</p>
+<% end %>

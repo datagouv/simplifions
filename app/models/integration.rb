@@ -1,4 +1,6 @@
 class Integration < ApplicationRecord
+  include Rangeable
+
   has_paper_trail
 
   STATUT_EN_PRODUCTION = '✅ en production'.freeze
@@ -28,30 +30,22 @@ class Integration < ApplicationRecord
   def self.ordre_public = [arel_table[:ordre].asc.nulls_last, Arel.sql("COALESCE(NULLIF(BTRIM(solutions.datagouv_titre), ''), solutions.nom)")]
   scope :dans_l_ordre_public, -> { joins(:integree).order(ordre_public) }
 
-  def deplacer_a(position)
-    return refuser_le_rangement unless expose?
-
-    rangees = integratrice.integrations_qu_elle_expose.dans_l_ordre_public.where.not(id:).to_a
-    renumeroter(rangees.insert(position.clamp(1, rangees.size + 1) - 1, self))
-  end
-
-  def deplacer_d_un_rang(sens) = deplacer_a(rang + (sens == 'monter' ? -1 : 1))
-  def rang = integratrice.integrations_qu_elle_expose.dans_l_ordre_public.ids.index(id).to_i + 1
+  def deplacer_a(position) = expose? ? super : refuser_le_rangement
+  def rangees = integratrice.integrations_qu_elle_expose.dans_l_ordre_public
 
   def demarches_autorisees = Demarche.where(id: Recommandation.where(solution_id: integree_id).select(:demarche_id))
   def autorisee_pour?(demarche) = Recommandation.exists?(demarche:, solution_id: integree_id)
   def demarches_proposees = demarches_autorisees.or(Demarche.where(id: demarche_ids))
+
+  protected
+
+  def ranger_a(rang) = (update!(ordre: rang) unless ordre == rang)
 
   private
 
   def refuser_le_rangement
     errors.add(:base, :pas_fournie)
     false
-  end
-
-  def renumeroter(rangees)
-    transaction { rangees.each.with_index(1) { |fournie, rang| fournie.update!(ordre: rang) unless fournie.ordre == rang } }
-    true
   end
 
   def demarches_ecartees = @demarches_ecartees ||= []

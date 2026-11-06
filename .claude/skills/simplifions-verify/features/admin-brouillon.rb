@@ -22,8 +22,8 @@ end
 
 def etat_de_la_ligne(page, demarche, reco)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-  page.find("#recommandation_#{reco.id}").all('td')[3..].map { it.text.squish }.join(' ')
+  badge = page.find("form#donnee_utile_recommandation_#{reco.id}", visible: :all).all('.fr-badge', visible: :all).map { it.text(:all).squish }
+  [*badge, ('brouillon' if lu { reco.reload.brouillon? })].compact.join(' ')
 end
 
 def publier_la_demarche(page, demarche, brouillons)
@@ -113,10 +113,8 @@ def image_publiee(page, solution)
   Verify.evidence(DOSSIER, page, 'image-publiee', "image=#{fichier} brouillon=#{solution.reload.brouillon.inspect}")
 end
 
-def modifier_une_reco_publiee(page, demarche, reco)
-  page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.onglet(page, 'Recommandations')
-  page.click_link "Modifier la recommandation #{reco.solution.libelle_admin}"
+def modifier_une_reco_publiee(page, reco)
+  page.visit("/admin/recommandations/#{reco.id}/edit")
   page.fill_in 'Données utiles disponibles', with: 'Après'
   page.click_button 'Enregistrer'
   page.assert_selector 'aside.admin-panneau', text: RECO_EN_BROUILLON
@@ -156,7 +154,7 @@ end
 def brouillon_recommandations(page, demarche, nom)
   modifiee, ajoutee = %w[a b].map { Solution.create!(nom: "#{nom} #{it}", categorie: 'api') }
   reco = Recommandation.create!(demarche:, solution: modifiee, niveau: :niveau_2, donnees_utiles: 'Avant', visible: true)
-  modifier_une_reco_publiee(page, demarche, reco)
+  modifier_une_reco_publiee(page, reco)
   ajouter_une_reco(page, demarche, ajoutee)
   reco_ajoutee_en_base(page, demarche, ajoutee)
   cartes_avant_publication(page, demarche)
@@ -173,13 +171,13 @@ end
 
 def ligne_publiee(page, demarche, utile, etape)
   etat = etat_de_la_ligne(page, demarche, utile)
-  raise "#{etape} : état #{etat}" unless etat.match?(/\Apubliée/i) && !etat.match?(/brouillon/i)
+  raise "#{etape} : état #{etat}" unless etat.empty?
 
   Verify.evidence(DOSSIER, page, etape, "état=#{etat}")
 end
 
 def sans_publier_ni_masquer(page, utile)
-  page.click_link "Modifier la recommandation #{utile.solution.libelle_admin}"
+  page.visit("/admin/recommandations/#{utile.id}/edit")
   page.find_field CHAMP_UTILE
   actions = page.find('aside.admin-panneau').all('button').map(&:text)
   raise "donnée utile : actions #{actions}" if actions.intersect?(%w[Publier Masquer])

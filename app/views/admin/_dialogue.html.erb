@@ -1,0 +1,33 @@
+<%# locals: (id:, titre:, ouverte:, formulaire: nil, hors_fiche: formulaire.present?, pied: true) -%>
+<% fermer = { "aria-controls" => "fenetre-#{id}" } %>
+<%= tag.dialog id: "fenetre-#{id}", class: "fr-modal", aria: { labelledby: "fenetre-#{id}-titre" },
+      data: { action: ("dsfr.conceal->formulaire-modifie#annuler" unless hors_fiche), controller: ("fenetre-rouverte" if ouverte) } do %>
+  <div class="fr-container fr-container--fluid fr-container-md">
+    <div class="fr-grid-row fr-grid-row--center">
+      <div class="fr-col-12 fr-col-md-10 fr-col-lg-8">
+        <div class="fr-modal__body">
+          <div class="fr-modal__header">
+            <button type="button" class="fr-btn--close fr-btn" aria-controls="fenetre-<%= id %>">Fermer</button>
+          </div>
+          <div class="fr-modal__content">
+            <h2 id="fenetre-<%= id %>-titre" class="fr-modal__title"><%= titre %></h2>
+            <%= yield %>
+          </div>
+          <% if pied %>
+          <div class="fr-modal__footer">
+            <ul class="fr-btns-group fr-btns-group--right fr-btns-group--inline-lg">
+              <% if formulaire %>
+                <li><%= tag.button "Annuler", type: "reset", form: formulaire, class: "fr-btn fr-btn--secondary", **fermer %></li>
+                <li><%= tag.button "Enregistrer", type: "submit", form: formulaire, class: "fr-btn", **fermer %></li>
+              <% else %>
+                <li><%= tag.button "Annuler", type: "button", class: "fr-btn fr-btn--secondary", **fermer %></li>
+                <li><button type="submit" class="fr-btn" name="onglet" value="fiche">Enregistrer</button></li>
+              <% end %>
+            </ul>
+          </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

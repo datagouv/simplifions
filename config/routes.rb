@@ -15,7 +15,7 @@ Rails.application.routes.draw do
       get :previsualisation, on: :member
     end
     resources :integrations, :organisations, except: :show
-    resources :integrations, only: [] do
+    resources :integrations, :recommandations, only: [] do
       patch :position, on: :member
     end
     resources :types_acteurs, :vocabulaires

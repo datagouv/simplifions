@@ -159,6 +159,22 @@ module Verify
       page.find('dialog[open]').click_button 'Enregistrer'
     end
 
+    def ajouter_une_solution_recommandee(page, solution, champs = {})
+      dialog = fenetre(page, 'Ajouter une solution recommandée')
+      dialog.select solution.libelle_admin, from: 'Solution (obligatoire)'
+      champs.each { |champ, valeur| dialog.fill_in champ, with: valeur }
+      dialog.click_button 'Enregistrer'
+      page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
+    end
+
+    def modifier_la_carte(page, solution, champs)
+      modifier_dans_la_fenetre(page, "Modifier #{solution.libelle_admin}", champs)
+      page.assert_no_selector 'dialog[open]'
+      page.assert_selector '#message-recommandations .fr-valid-text', text: solution.libelle_admin
+    end
+
+    def cartes_de_la_fiche(page) = page.all('.cartes-recommandees li[id^="recommandation_"]')
+
     def onglet(page, libelle)
       page.find('[role=tab]', text: /\A#{libelle}/).click
       page.assert_selector '[role=tab][aria-selected=true]', text: /\A#{libelle}/

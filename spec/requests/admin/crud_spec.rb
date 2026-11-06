@@ -745,164 +745,202 @@ RSpec.describe 'Administration' do
     end
   end
 
-  describe 'recommandations depuis la démarche' do
-    let(:aides) { Demarche.create!(nom: 'Aides') }
+  describe 'solutions recommandées et données utiles dans la fiche démarche' do
+    let!(:aides) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let(:page) { response.parsed_body }
 
     before { sign_in admin }
 
-    def recommandations_de(chemin)
-      get chemin
-      tableau = response.parsed_body.at_css('table[aria-labelledby]')
-      entetes = tableau.css('thead th').map { it.text.delete_suffix(' (obligatoire)') }
-      tableau.css('tbody tr:not(#new_recommandation)').map { |ligne| entetes.zip(ligne.css('td').map { valeur(it) }).to_h.slice('Solution', 'Type de recommandation', 'Ordre') }
-    end
+    def solution(nom) = Solution.create!(nom:, categorie: 'api')
+    def fiche = get("/admin/demarches/#{aides.id}/edit").then { page }
+    def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
+    def flux_vers(cible) = flux.find { it['target'] == cible }.at_css('template')
+    def cartes(dans) = dans.css('li[id^=recommandation_]').map { |carte| carte.css('p:not(.fr-badge), h3, .fr-badge').map { it.text.squish } }
+    def donnees(dans) = dans.css('.donnees-disponibles li').map { it.text.squish }
+    def fenetre(dans, recommandation) = dans.at_css("dialog#fenetre-#{ActionView::RecordIdentifier.dom_id(recommandation)}")
+    def ligne_de_donnee(dans, recommandation) = dans.at_css("form##{ActionView::RecordIdentifier.dom_id(recommandation, :donnee_utile)}")
+    def choisi(dans, champ) = dans.at_css("[name=\"recommandation[#{champ}]\"]").then { it.name == 'select' ? it.at_css('option[selected]')&.text : it['value'] || it.text.strip }
 
-    def valeur(cellule) = cellule.at_css('option[selected]')&.text || cellule.at_css('input')&.[]('value') || cellule.text.squish
+    it 'montre sous les blocs de texte les solutions recommandées en cartes et les données utiles en liste, avec leur nombre' do
+      Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, ordre: 2, visible: true)
+      Recommandation.create!(demarche: aides, solution: solution('Aides Locales'), niveau: :niveau_2, ordre: 1)
+      Recommandation.create!(demarche: aides, solution: solution('Nouvelle Aide'), niveau: :niveau_2, brouillon: { 'visible' => '1' })
+      Recommandation.create!(demarche: aides, solution: solution('Aide Rangée'), niveau: :niveau_2, ordre: 9, visible: true, brouillon: { 'ordre' => '3' })
+      Recommandation.create!(demarche: aides, solution: solution('API QF'), niveau: :niveau_1, ordre: 1, visible: true)
+      Recommandation.create!(demarche: aides, solution: solution('API Impôt'), niveau: :niveau_1, visible: true)
+      Recommandation.create!(demarche: Demarche.create!(nom: 'Autre'), solution: solution('Ailleurs'), niveau: :niveau_2)
 
-    it 'liste les recommandations de la démarche par type puis ordre, l’ajout se faisant sur la ligne vide' do
-      recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2', ordre: 1)
-      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', ordre: 2)
-      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API Impôt', categorie: 'api'), niveau: 'niveau_1', ordre: 1)
-      Recommandation.create!(demarche: Demarche.create!(nom: 'Autre'), solution: Solution.create!(nom: 'Ailleurs', categorie: 'api'), niveau: :niveau_1)
-
-      expect(recommandations_de("/admin/demarches/#{aides.id}/edit")).to eq([
-        { 'Solution' => 'API Impôt (API)', 'Type de recommandation' => 'Donnée utile (API ou jeu de données)', 'Ordre' => '1' },
-        { 'Solution' => 'API QF (API)', 'Type de recommandation' => 'Donnée utile (API ou jeu de données)', 'Ordre' => '2' },
-        { 'Solution' => 'Mes Aides (API)', 'Type de recommandation' => 'Solution recommandée', 'Ordre' => '1' }
+      fiche
+      expect(page.at_css('#onglet-fiche-panneau').css('h2').map { it.text.squish }).to start_with('Contexte', 'Cadre juridique', 'Solutions recommandées (4)', 'Données disponibles (2)')
+      expect(cartes(page)).to eq([
+        ['Position 1', 'Aides Locales (API)', 'Masquée'], ['Position 2', 'Mes Aides (API)'], ['Position 3', 'Aide Rangée (API)'],
+        ['Sans position', 'Nouvelle Aide (API)', 'Ajoutée au brouillon']
       ])
-      expect(response.parsed_body.at_css('a:contains("Mes Aides")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
-      expect(response.parsed_body.at_css('button:contains("Ajouter la nouvelle recommandation")')).to be_present
-      expect(response.parsed_body.at_css('a:contains("Ajouter une recommandation")')).to be_nil
+      expect(page.at_css("#recommandation_#{Recommandation.find_by!(ordre: 2).id}").css('button').map { it.text.squish }).to eq(['Modifier Mes Aides (API)', 'Retirer Mes Aides (API)'])
+      expect(donnees(page)).to eq(['API QF (API) Position 1', 'API Impôt (API) —Sans position'])
+      expect(page.at_css('button[aria-controls="fenetre-new_recommandation"]').text.squish).to eq('Ajouter une solution recommandée')
+      expect(page.css('[role=tab]').map { it.text.squish }).not_to include(a_string_starting_with('Recommandations'))
     end
 
-    it 'propose de modifier chaque recommandation sur sa ligne, dans un formulaire de ligne hors de celui de la fiche' do
-      recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', ordre: 2)
-      get "/admin/demarches/#{aides.id}/edit"
-      ligne = response.parsed_body.at_css("#onglet-recommandations-panneau tr#recommandation_#{recommandation.id}")
-      formulaire = response.parsed_body.at_css("form#formulaire_recommandation_#{recommandation.id}")
+    it 'ouvre pour chaque carte une fenêtre « Modifier » à son propre formulaire, hors de celui de la fiche, et une fenêtre vide pour ajouter' do
+      recommandation = Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, ordre: 2, description: 'Aide du mois')
+      fiche
+      dialogue = fenetre(page, recommandation)
+      formulaire = dialogue.at_css('form')
 
-      expect(ligne.css('select, input').map { [it['name'], it['form']] }.uniq(&:last)).to eq([['recommandation[solution_id]', formulaire['id']]])
+      expect(page.at_css("##{ActionView::RecordIdentifier.dom_id(recommandation, :modifier)}")['aria-controls']).to eq(dialogue['id'])
+      expect(dialogue.at_css('h2').text).to eq('Modifier la solution recommandée')
       expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'patch', 0])
-      expect(ligne.at_css("label[for=\"#{ligne.at_css('select')['id']}\"].fr-sr-only").text).to eq('Solution de la recommandation API QF (API) (obligatoire)')
-      expect(ligne.at_css('button[type=submit]').then { [it['form'], it.text.squish] }).to eq([formulaire['id'], 'Enregistrer la recommandation API QF (API)'])
-      expect(ligne.at_css('a:contains("Modifier")')['href']).to eq("/admin/recommandations/#{recommandation.id}/edit")
+      expect(formulaire.css('select, input:not([type=hidden]), textarea').pluck('name')).to eq(
+        %w[solution_id niveau ordre description donnees_utiles parametres_a_saisir url_demande_acces].map { "recommandation[#{it}]" }
+      )
+      expect([choisi(formulaire, :solution_id), choisi(formulaire, :ordre), choisi(formulaire, :description)]).to eq(['Mes Aides (API)', '2', 'Aide du mois'])
+      expect(dialogue.css('.fr-modal__footer button').map { [it.text, it['type'], it['form']] }).to eq([['Annuler', 'reset', formulaire['id']], ['Enregistrer', 'submit', formulaire['id']]])
+
+      vide = page.at_css('dialog#fenetre-new_recommandation')
+      expect([vide.at_css('h2').text, choisi(vide, :niveau), choisi(vide, :solution_id), vide.at_css('input[name="recommandation[demarche_id]"]')['value']])
+        .to eq(['Ajouter une solution recommandée', 'Solution recommandée', nil, aides.id.to_s])
     end
 
-    it 'réunit la publication et la date de modification dans une etat_de_la_fiche État, pour tenir dans la largeur' do
-      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1', visible: true, modifie_le: Time.zone.local(2026, 3, 1, 12))
-      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2')
-      get "/admin/demarches/#{aides.id}/edit"
-      tableau = response.parsed_body.at_css('table[aria-labelledby]')
+    it 'enregistre la fenêtre sur place : la carte à jour, en brouillon tant que la démarche publiée n’est pas publiée à nouveau' do
+      recommandation = Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, ordre: 1, visible: true)
+      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { ordre: '3', description: 'Aide du mois' } }
 
-      expect(tableau.css('thead th').map(&:text)).to eq(['Solution (obligatoire)', 'Type de recommandation (obligatoire)', 'Ordre', 'État', 'Actions'])
-      expect(tableau.css('tbody tr').map { it.css('td')[3].text.squish }).to eq(['Publiée 01/03/2026', 'Masquée', ''])
+      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+      expect(cartes(flux_vers('cartes-recommandees'))).to eq([['Position 3', 'Mes Aides (API)']])
+      expect(choisi(fenetre(flux_vers('formulaires-recommandations'), recommandation), :description)).to eq('Aide du mois')
+      expect(fenetre(flux_vers('formulaires-recommandations'), recommandation)['data-controller']).to be_nil
+      expect(flux_vers('message-recommandations').text.squish).to eq('« Aides → Mes Aides (API) » : brouillon enregistré, non publié.')
+      expect(flux_vers('message-donnees-utiles').text.strip).to be_empty
+      expect(recommandation.reload.slice(:ordre, :description)).to eq('ordre' => 1, 'description' => nil)
+    end
+
+    it 'rouvre la fenêtre refusée avec l’erreur sous son champ' do
+      aides.update!(visible: false)
+      recommandation = Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2)
+      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { solution_id: '' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      dialogue = fenetre(flux_vers('formulaires-recommandations'), recommandation)
+      expect(dialogue['data-controller']).to eq('fenetre-rouverte')
+      erreur = dialogue.at_css('.fr-messages-group')
+      expect(erreur.text.squish).to eq('Choisissez une solution')
+      expect(dialogue.at_css('select[name="recommandation[solution_id]"]')['aria-describedby']).to eq(erreur['id'])
+      expect(recommandation.reload.solution).to be_present
+    end
+
+    it 'ajoute une solution recommandée depuis la fenêtre vide, qui suit le brouillon de la démarche, puis remet une fenêtre vide' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, solution_id: solution('Mes Aides').id, niveau: 'niveau_2' } }
+      nouvelle = Recommandation.last
+
+      expect(cartes(flux_vers('cartes-recommandees'))).to eq([['Sans position', 'Mes Aides (API)', 'Ajoutée au brouillon']])
+      expect(fenetre(flux_vers('formulaires-recommandations'), nouvelle).at_css('form')['action']).to eq("/admin/recommandations/#{nouvelle.id}")
+      expect(choisi(flux_vers('formulaires-recommandations').at_css('dialog#fenetre-new_recommandation'), :solution_id)).to be_nil
+      expect(nouvelle.slice(:demarche_id, :visible)).to eq('demarche_id' => aides.id, 'visible' => false)
+    end
+
+    it 'garde l’erreur d’un ajout dans la fenêtre vide, rouverte' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, niveau: 'niveau_2', ordre: '4' } }
+
+      vide = flux_vers('formulaires-recommandations').at_css('dialog#fenetre-new_recommandation')
+      expect([vide['data-controller'], vide.at_css('.fr-messages-group').text.squish, choisi(vide, :ordre)]).to eq(['fenetre-rouverte', 'Choisissez une solution', '4'])
+      expect(flux_vers('message-recommandations').text.squish).to eq('Recommandation non enregistrée : Choisissez une solution')
+    end
+
+    it 'retire la carte après la même confirmation qu’avant, la suppression restant immédiate' do
+      recommandation = Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, visible: true)
+      fiche
+      retirer = page.at_css("#recommandation_#{recommandation.id} button[data-turbo-confirm]")
+      formulaire = page.at_css("form##{retirer['form']}")
+      expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'delete', 0])
+      expect([retirer.text.squish, retirer['data-turbo-confirm']]).to eq(['Retirer Mes Aides (API)', "Supprimer la recommandation Mes Aides (API) ? #{I18n.t('admin.suppression.immediate')}"])
+
+      delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }, as: :turbo_stream
+
+      expect(cartes(flux_vers('cartes-recommandees'))).to be_empty
+      expect(flux_vers('message-recommandations').text.squish).to eq('« Aides → Mes Aides (API) » supprimé.')
+      expect(Recommandation.exists?(recommandation.id)).to be(false)
+    end
+
+    it 'range une carte parmi les solutions recommandées, en brouillon sur une démarche publiée' do
+      premiere, deuxieme, troisieme = %w[Un Deux Trois].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche: aides, solution: solution(nom), niveau: :niveau_2, ordre:, visible: true) }
+      utile = Recommandation.create!(demarche: aides, solution: solution('API QF'), niveau: :niveau_1, ordre: 1, visible: true)
+
+      patch "/admin/recommandations/#{troisieme.id}/position", params: { position: 1 }, as: :turbo_stream
+
+      expect(cartes(flux_vers('cartes-recommandees')).map { it.first(2) }).to eq([['Position 1', 'Trois (API)'], ['Position 2', 'Un (API)'], ['Position 3', 'Deux (API)']])
+      expect(flux_vers('message-recommandations').text.squish).to eq('« Aides → Trois (API) » déplacée en position 1.')
+      expect([premiere, deuxieme, troisieme, utile].map { it.reload.ordre }).to eq([1, 2, 3, 1])
+      expect([premiere, deuxieme, troisieme].map { it.brouillon['ordre'] }).to eq([2, 3, 1])
+      expect(utile.brouillon).to be_nil
+    end
+
+    it 'ne range aucune carte quand une recommandation voisine est refusée, et le dit' do
+      aides.update!(visible: false)
+      premiere, deuxieme, troisieme = %w[Un Deux Trois].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche: aides, solution: solution(nom), niveau: :niveau_2, ordre:) }
+      deuxieme.solution.update!(categorie: (Solution.categories.keys - Solution::HORS_FICHES).first)
+
+      patch "/admin/recommandations/#{troisieme.id}/position", params: { position: 1 }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(flux_vers('message-recommandations').text.squish).to start_with('Recommandation non déplacée :')
+      expect([premiere, deuxieme, troisieme].map { it.reload.ordre }).to eq([1, 2, 3])
+    end
+
+    it 'modifie, ajoute et retire les données utiles dans leur fenêtre, une ligne à la fois' do
+      utile = Recommandation.create!(demarche: aides, solution: solution('API QF'), niveau: :niveau_1, ordre: 2, description: 'Quotient')
+      Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2)
+      fiche
+      dialogue = page.at_css('dialog#fenetre-donnees-utiles')
+      ligne = ligne_de_donnee(dialogue, utile)
+
+      expect(page.at_css('button[aria-controls="fenetre-donnees-utiles"]').text.squish).to eq('Modifier les données utiles')
+      expect(dialogue.css('form fieldset legend').map { it.text.squish }).to eq(['Donnée utile : API QF (API)', 'Ajouter une donnée utile'])
+      expect(ligne.css('select, input:not([type=hidden]), textarea').pluck('name')).to eq(%w[solution_id ordre description].map { "recommandation[#{it}]" })
+      expect([ligne['action'], ligne.ancestors('form').size, choisi(ligne, :ordre), choisi(ligne, :description)]).to eq(["/admin/recommandations/#{utile.id}", 0, '2', 'Quotient'])
+      expect(ligne.css('button').map { it.text.squish }).to eq(['Enregistrer la donnée utile API QF (API)', 'Retirer API QF (API)'])
+
+      patch "/admin/recommandations/#{utile.id}", params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { niveau: 'niveau_1', ordre: '1' } }
+      expect(donnees(flux_vers('liste-des-donnees-disponibles'))).to eq(['API QF (API) Position 1'])
+      expect(flux_vers('message-donnees-utiles').text.squish).to eq('« Aides → API QF (API) » enregistré.')
+      expect(flux_vers('message-recommandations').text.strip).to be_empty
+
+      post '/admin/recommandations', params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { demarche_id: aides.id, niveau: 'niveau_1', ordre: '5' } }
+      vide = flux_vers('lignes-des-donnees-utiles').css('form').last
+      expect([vide.at_css('.fr-messages-group').text.squish, choisi(vide, :ordre)]).to eq(['Choisissez une solution', '5'])
+      expect(flux_vers('formulaires-recommandations').at_css('dialog#fenetre-new_recommandation')['data-controller']).to be_nil
+
+      post '/admin/recommandations', params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { demarche_id: aides.id, solution_id: solution('API Impôt').id, niveau: 'niveau_1' } }
+      expect(donnees(flux_vers('liste-des-donnees-disponibles'))).to eq(['API QF (API) Position 1', 'API Impôt (API) —Sans position'])
+      expect(flux_vers('lignes-des-donnees-utiles').css('legend').map { it.text.squish }).to eq(['Donnée utile : API QF (API)', 'Donnée utile : API Impôt (API)', 'Ajouter une donnée utile'])
+
+      retirer = ligne.at_css('button[data-turbo-confirm]')
+      delete "/admin/recommandations/#{utile.id}", params: { ligne: 1, retirer['name'] => retirer['value'] }, as: :turbo_stream
+      expect(flux_vers('message-donnees-utiles').text.squish).to eq('« Aides → API QF (API) » supprimé.')
+      expect(flux_vers('message-recommandations').text.strip).to be_empty
     end
 
     it 'pré-remplit la démarche d’une nouvelle recommandation' do
       get '/admin/recommandations/new', params: { demarche_id: aides.id }
-      expect(response.parsed_body.at_css('#recommandation_demarche_id option[selected]').text).to eq('Aides')
+      expect(page.at_css('#recommandation_demarche_id option[selected]').text).to eq('Aides')
     end
 
     it 'garde la démarche et ses autres recommandations sous les yeux pendant l’édition d’une recommandation' do
       aides.update!(description_courte: 'Demander une aide sociale')
-      recommandation = Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: 'niveau_1')
-      Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: 'niveau_2', ordre: 4)
+      recommandation = Recommandation.create!(demarche: aides, solution: solution('API QF'), niveau: 'niveau_1')
+      Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: 'niveau_2', ordre: 4)
 
-      expect(recommandations_de("/admin/recommandations/#{recommandation.id}/edit"))
-        .to eq([{ 'Solution' => 'Mes Aides (API)', 'Type de recommandation' => 'Solution recommandée', 'Ordre' => '4' }])
-      encart = response.parsed_body.at_css('aside.fr-callout')
+      get "/admin/recommandations/#{recommandation.id}/edit"
+      expect(page.css('#tableau-autres-recommandations tbody tr').map { it.css('td').first(3).map { it.text.squish } }).to eq([['Mes Aides (API)', 'Solution recommandée', '4']])
+      encart = page.at_css('aside.fr-callout')
       expect(encart.text.squish).to include('Démarche : Aides', 'Demander une aide sociale')
       expect(encart.at_css('a[aria-label="Voir la fiche Aides"]')['href']).to eq("/admin/demarches/#{aides.id}/edit")
-
-      expect(recommandations_de("/admin/recommandations/new?demarche_id=#{aides.id}").size).to eq(2)
-    end
-  end
-
-  describe 'recommandation enregistrée depuis sa ligne dans la démarche' do
-    let!(:aides) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
-    let!(:recommandation) { Recommandation.create!(demarche: aides, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1, ordre: 1, visible: true) }
-
-    before { sign_in admin }
-
-    def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
-    def ligne_renvoyee = flux.find { it['action'] == 'replace' }.at_css('template tr')
-    def choisi(ligne, champ) = ligne.at_css("[name=\"recommandation[#{champ}]\"]").then { it.at_css('option[selected]')&.text || it['value'] }
-
-    it 'renvoie la ligne enregistrée, en brouillon tant que la démarche publiée n’est pas publiée à nouveau' do
-      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_2', ordre: '3' } }
-
-      expect(response.media_type).to eq('text/vnd.turbo-stream.html')
-      expect(flux.pluck('target')).to eq(['message-recommandations', "recommandation_#{recommandation.id}"])
-      expect([choisi(ligne_renvoyee, :niveau), choisi(ligne_renvoyee, :ordre)]).to eq(['Solution recommandée', '3'])
-      expect(ligne_renvoyee.text).to include('Brouillon')
-      expect(flux.find { it['target'] == 'message-recommandations' }.text.squish).to eq('« Aides → API QF (API) » : brouillon enregistré, non publié.')
-      expect(recommandation.reload.ordre).to eq(1)
-      get "/admin/demarches/#{aides.id}/edit"
-      expect(choisi(response.parsed_body.at_css("tr#recommandation_#{recommandation.id}"), :ordre)).to eq('3')
     end
 
-    it 'renvoie l’erreur sur la ligne, reliée à ses champs' do
-      aides.update!(visible: false)
-      recommandation.update!(visible: false)
-      patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { solution_id: '' } }
-
-      expect(response).to have_http_status(:unprocessable_content)
-      erreur = ligne_renvoyee.at_css('.fr-error-text')
-      expect(erreur.text).to eq('Choisissez une solution')
-      expect(ligne_renvoyee.css('select, input, button:not([data-turbo-confirm])').pluck('aria-describedby').uniq).to eq([erreur['id']])
-      expect(ligne_renvoyee.at_css('button').text.squish).to eq('Enregistrer la recommandation API QF (API)')
-      expect(recommandation.reload.solution).to be_present
-    end
-
-    it 'ajoute la recommandation de la ligne vide, puis remet une ligne vide' do
-      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'api')
-      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, solution_id: bouquet.id, niveau: 'niveau_2' } }
-      nouvelle = Recommandation.find_by!(solution: bouquet)
-
-      expect(flux.map { [it['action'], it['target']] }).to eq([
-        %w[update message-recommandations], %w[before new_recommandation], %w[append formulaires-recommandations], %w[replace new_recommandation]
-      ])
-      expect(choisi(flux[1].at_css('tr'), :solution_id)).to eq('Bouquet (API)')
-      expect(flux[2].at_css('form')['action']).to eq("/admin/recommandations/#{nouvelle.id}")
-      expect(choisi(flux[3].at_css('tr'), :solution_id)).to be_nil
-      expect(flux[3].at_css('tr').text).not_to include('Choisissez')
-      expect(nouvelle.slice(:demarche_id, :visible)).to eq('demarche_id' => aides.id, 'visible' => false)
-    end
-
-    it 'garde l’erreur d’un ajout sur la ligne vide' do
-      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: aides.id, niveau: 'niveau_2' } }
-
-      expect(flux.pluck('target')).to eq(%w[message-recommandations new_recommandation])
-      expect(ligne_renvoyee.at_css('.fr-error-text').text).to eq('Choisissez une solution')
-      expect(choisi(ligne_renvoyee, :niveau)).to eq('Solution recommandée')
-      expect(ligne_renvoyee.text).not_to include('Brouillon')
-      expect(flux.first.text.squish).to eq('Recommandation non enregistrée : Choisissez une solution')
-    end
-
-    it 'garde la redirection vers la fiche hors de la ligne' do
+    it 'garde la redirection vers la fiche de la recommandation hors de la démarche' do
+      recommandation = Recommandation.create!(demarche: aides, solution: solution('API QF'), niveau: :niveau_1)
       patch "/admin/recommandations/#{recommandation.id}", params: { recommandation: { ordre: '3' } }
       expect(response).to redirect_to("/admin/recommandations/#{recommandation.id}/edit")
-    end
-
-    it 'supprime la recommandation depuis sa ligne, après confirmation, et retire la ligne de la démarche' do
-      get "/admin/demarches/#{aides.id}/edit"
-      poubelle = response.parsed_body.at_css("tr#recommandation_#{recommandation.id} button[data-turbo-confirm]")
-      formulaire = response.parsed_body.at_css("form##{poubelle['form']}")
-      expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'delete', 0])
-      expect([poubelle.text.squish, poubelle['data-turbo-confirm']]).to eq(['Supprimer la recommandation API QF (API)', "Supprimer la recommandation API QF (API) ? #{I18n.t('admin.suppression.immediate')}"])
-      expect(response.parsed_body.css('tr#new_recommandation button[data-turbo-confirm]')).to be_empty
-
-      delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }, as: :turbo_stream
-
-      expect(flux.map { [it['action'], it['target']] }).to eq([
-        ['remove', "recommandation_#{recommandation.id}"], ['remove', "formulaire_recommandation_#{recommandation.id}"],
-        ['remove', "suppression_recommandation_#{recommandation.id}"], %w[update message-recommandations]
-      ])
-      expect(flux.last.at_css('[autofocus][tabindex="-1"]').text.squish).to eq('« Aides → API QF (API) » supprimé.')
-      expect(Recommandation.exists?(recommandation.id)).to be(false)
-    end
-
-    it 'garde la redirection vers la liste quand on supprime depuis la page de la recommandation' do
       delete "/admin/recommandations/#{recommandation.id}"
       expect(response).to redirect_to('/admin/recommandations')
     end
@@ -1158,7 +1196,8 @@ RSpec.describe 'Administration' do
 
       def poubelle(chemin, ligne)
         get chemin
-        response.parsed_body.at_css("tr##{ActionView::RecordIdentifier.dom_id(ligne)} button[data-turbo-confirm]")['data-turbo-confirm']
+        ligne_de_la_fiche = ligne.is_a?(Recommandation) ? "form##{ActionView::RecordIdentifier.dom_id(ligne, :donnee_utile)}" : "tr##{ActionView::RecordIdentifier.dom_id(ligne)}"
+        response.parsed_body.at_css("#{ligne_de_la_fiche} button[data-turbo-confirm]")['data-turbo-confirm']
       end
 
       it 'le dit en supprimant une recommandation d’une démarche publiée ou masquée avec un brouillon, pas masquée sans brouillon' do
@@ -1419,7 +1458,7 @@ RSpec.describe 'Administration' do
                         'Catégorie de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
                         'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
-                              'Type de recommandation (obligatoire)', 'Ordre', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
+                              'Type de recommandation (obligatoire)', 'Position', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
         'integrations' => ['API ou jeu de données (obligatoire)', 'Solution (obligatoire)', 'Type d’intégration (obligatoire)', 'Statut de l’intégration']
       }.each { |chemin, attendus| expect(libelles(chemin) & attendus).to eq(attendus) }
@@ -2262,7 +2301,7 @@ RSpec.describe 'Administration' do
 
       patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(response.parsed_body.css("tr#recommandation_#{ajoutee.id}")).to be_empty
+      expect(response.parsed_body.css('.cartes-recommandees h3').map(&:text)).not_to include(ajoutee.solution.libelle_admin)
       expect(ancienne.reload.slice(:niveau, :visible, :brouillon)).to eq('niveau' => 'niveau_2', 'visible' => false, 'brouillon' => nil)
       expect(publiee.reload.brouillon).to include('donnees_utiles' => 'Revenu fiscal')
 
@@ -2307,7 +2346,7 @@ RSpec.describe 'Administration' do
     end
 
     def carte_publique = get('/demarches/aides').then { response.parsed_body.at_css('.reco-card').text.squish }
-    def etat_dans_la_demarche(ligne) = get("/admin/demarches/#{demarche.id}/edit").then { response.parsed_body.at_css("tr#recommandation_#{ligne.id}").css('td')[3..].map { it.text.squish } }
+    def badge_dans_la_demarche(ligne) = get("/admin/demarches/#{demarche.id}/edit").then { response.parsed_body.at_css("form#donnee_utile_recommandation_#{ligne.id} .fr-badge")&.text }
 
     it 'garde hors du site la description modifiée jusqu’à la publication de la démarche, en comptant le brouillon' do
       patch "/admin/recommandations/#{utile.id}", params: { recommandation: { description: 'Revenu du foyer' } }
@@ -2315,12 +2354,12 @@ RSpec.describe 'Administration' do
       expect(response.body).to include('« Aides → API QF (API) » : brouillon enregistré, non publié.')
       expect(carte_publique).to include('Quotient du mois')
       expect(carte_publique).not_to include('Revenu du foyer')
-      expect(etat_dans_la_demarche(utile).join(' ')).to include('Publiée', 'Brouillon')
+      expect([badge_dans_la_demarche(utile), utile.reload.brouillon?]).to eq([nil, true])
       expect(response.parsed_body.at_css(ETAT_DE_LA_FICHE).text.squish).to include('1 recommandation en brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('Revenu du foyer')
-      expect(etat_dans_la_demarche(utile).join(' ')).not_to include('Brouillon')
+      expect(utile.reload.brouillon?).to be(false)
     end
 
     it 'garde hors du site la donnée utile ajoutée, publiée ensuite avec la démarche' do
@@ -2329,7 +2368,7 @@ RSpec.describe 'Administration' do
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('API Impôt')
-      expect(etat_dans_la_demarche(ajoutee).first).to start_with('Publiée')
+      expect([badge_dans_la_demarche(ajoutee), ajoutee.reload.visible?]).to eq([nil, true])
     end
 
     it 'garde hors du site la recommandation masquée passée en donnée utile, jusqu’à la publication de la démarche ou l’abandon' do
@@ -2345,7 +2384,7 @@ RSpec.describe 'Administration' do
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('API Impôt')
-      expect(etat_dans_la_demarche(masquee).first).to start_with('Publiée')
+      expect([badge_dans_la_demarche(masquee), masquee.reload.visible?]).to eq([nil, true])
     end
 
     it 'garde en brouillon la recommandation masquée avec un brouillon, passée en donnée utile, jusqu’à la publication de la démarche' do
@@ -2357,11 +2396,11 @@ RSpec.describe 'Administration' do
 
       patch "/admin/recommandations/#{masquee.id}", params: { ligne: 1, recommandation: { niveau: 'niveau_1' } }
       expect(carte_publique).not_to include('API Impôt')
-      expect(etat_dans_la_demarche(masquee).join(' ')).to include('Masquée', 'Brouillon')
+      expect(badge_dans_la_demarche(masquee)).to eq('Ajoutée au brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('API Impôt')
-      expect(etat_dans_la_demarche(masquee).first).to start_with('Publiée')
+      expect([badge_dans_la_demarche(masquee), masquee.reload.visible?]).to eq([nil, true])
     end
 
     it 'garde hors du site la donnée utile publiée depuis sa fiche de création, jusqu’à la publication de la démarche' do
@@ -2388,7 +2427,7 @@ RSpec.describe 'Administration' do
       publiee = Recommandation.create!(demarche:, solution: api, niveau: :niveau_2, visible: true)
       patch "/admin/recommandations/#{publiee.id}", params: { recommandation: { niveau: 'niveau_1', visible: '1' } }
       expect(carte_publique).not_to include('API Impôt')
-      expect(etat_dans_la_demarche(publiee).join(' ')).to include('Publiée', 'Brouillon')
+      expect([badge_dans_la_demarche(publiee), publiee.reload.brouillon?]).to eq([nil, true])
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('API Impôt')
@@ -2400,7 +2439,7 @@ RSpec.describe 'Administration' do
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
       expect(carte_publique).to include('API Impôt')
-      expect(etat_dans_la_demarche(ajoutee).first).to start_with('Publiée')
+      expect([badge_dans_la_demarche(ajoutee), ajoutee.reload.visible?]).to eq([nil, true])
     end
   end
 
@@ -2529,11 +2568,11 @@ RSpec.describe 'Administration' do
 
       get "/admin/demarches/#{demarche.id}/edit"
 
-      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Recommandations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
+      expect(onglets).to eq([['Fiche', 'button', 'true'], ['Intégrations (1)', 'button', 'false'], ['Historique', 'button', 'false']])
       expect(panneau('Fiche').at_css('button[aria-controls="fenetre-contexte"]')).to be_present
       expect(panneau('Intégrations').css('input[name="demarche[integration_ids][]"][checked]').size).to eq(1)
       expect(panneau('Intégrations').at_css('button[type=submit]').then { [it['name'], it['value']] }).to eq(%w[onglet integrations])
-      expect(panneau('Recommandations').css('a').map(&:text)).to eq(['Modifier la recommandation API QF (API)'])
+      expect(panneau('Fiche').text).to include('Données disponibles (1)')
       expect(panneau('Historique').text).to include('Création')
       get '/admin/demarches/new'
       expect(response.parsed_body.at_css('[role=tablist]')).to be_nil
@@ -2651,11 +2690,11 @@ RSpec.describe 'Administration' do
       get "/admin/demarches/#{demarche.id}/edit"
       expect(response.parsed_body.at_css('#formulaire-fiche input[type=hidden][name=onglet]')['value']).to eq('fiche')
 
-      patch "/admin/demarches/#{demarche.id}", params: { onglet: 'recommandations', demarche: { nom: 'Aides sociales' } }
-      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
+      patch "/admin/demarches/#{demarche.id}", params: { onglet: 'historique', demarche: { nom: 'Aides sociales' } }
+      expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit?onglet=historique")
       follow_redirect!
-      expect(onglet_ouvert).to eq('Recommandations (0)')
-      expect(response.parsed_body.at_css('input[name=onglet]')['value']).to eq('recommandations')
+      expect(onglet_ouvert).to eq('Historique')
+      expect(response.parsed_body.at_css('input[name=onglet]')['value']).to eq('historique')
 
       get "/admin/demarches/#{demarche.id}/edit", params: { onglet: 'inconnu' }
       expect(onglet_ouvert).to eq('Fiche')
@@ -2703,7 +2742,7 @@ RSpec.describe 'Administration' do
       expect(page.at_css('.bloc-modifiable').text.squish).to include('/demarches/aides', 'Aider les entreprises.', 'Entreprises')
       expect(page.at_css('.bloc-modifiable').text).not_to include('DLNUF')
       expect(page.at_css('#onglet-fiche-panneau').css('h2, h3').map { it.text.squish }).to eq(
-        ['Contexte', 'Cadre juridique', 'Hors de la page publique', 'Title SEO', 'Mots-clés', 'Fournisseurs de services', 'Vocabulaires']
+        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Données disponibles (0)', 'Hors de la page publique', 'Title SEO', 'Mots-clés', 'Fournisseurs de services', 'Vocabulaires']
       )
       expect(page.at_css('#onglet-fiche-panneau strong').text).to eq('contexte')
       expect(page.at_css('aside')).to be_nil

@@ -1,13 +1,13 @@
 require_relative '../harness'
 
 DOSSIER = 'admin-onglets'.freeze
-ONGLETS = %w[Fiche Intégrations Recommandations Historique].freeze
+ONGLETS = %w[Fiche Intégrations Historique].freeze
 
 def hauteur(page) = page.evaluate_script('document.documentElement.scrollHeight')
 
 def onglet_retenu(page) = page.find('input[name=onglet]', visible: false).value
 
-def quatre_onglets(page)
+def trois_onglets(page)
   page.visit('/admin/demarches/1/edit')
   libelles = page.all('[role=tab]').map(&:text)
   raise "onglets #{libelles}" unless libelles.map { it.split(' (').first } == ONGLETS
@@ -16,7 +16,7 @@ def quatre_onglets(page)
 end
 
 def hauteurs_par_onglet(page)
-  libelles = quatre_onglets(page)
+  libelles = trois_onglets(page)
   hauteurs = libelles.to_h { |libelle| Verify.onglet(page, libelle.split(' (').first).then { [libelle, hauteur(page)] } }
   Verify.evidence(DOSSIER, page, 'hauteurs-demarche-1', "hauteurs=#{hauteurs} recos_en_base=#{Demarche.find(1).recommandations.count}")
 end
@@ -71,8 +71,8 @@ end
 
 def etroit(page, demarche)
   page.current_window.resize_to(375, 812)
-  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=recommandations")
-  page.assert_selector '[role=tab][aria-selected=true]', text: /\ARecommandations/
+  page.visit("/admin/demarches/#{demarche.id}/edit?onglet=historique")
+  page.assert_selector '[role=tab][aria-selected=true]', text: /\AHistorique/
   defilement = page.evaluate_script('document.documentElement.scrollWidth > innerWidth')
   raise 'défilement horizontal à 375 px' if defilement
 

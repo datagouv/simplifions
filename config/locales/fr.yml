@@ -62,6 +62,7 @@ fr:
         demarche: "Démarche"
         demarche_id: "Démarche"
         niveau: "Type de recommandation"
+        ordre: "Position"
         description: "En quoi cette API ou ce jeu de données est utile"
         donnees_utiles: "Données utiles disponibles"
         parametres_a_saisir: "Paramètres à saisir pour récupérer les données"
@@ -246,6 +247,7 @@ fr:
     supprime: "« %{nom} » supprimé."
     deplacee: "« %{nom} » déplacée en position %{position}."
     non_deplacee: "Intégration non déplacée : %{erreurs}"
+    recommandation_non_deplacee: "Recommandation non déplacée : %{erreurs}"
     rafraichissement_lance: "Rafraîchissement lancé."
     suppression:
       immediate: "La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas."

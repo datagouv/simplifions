@@ -1,0 +1,3 @@
+<%# locals: (recommandation:, nom:, fenetre: nil) -%>
+<% confirmation = ["Supprimer la recommandation #{nom} ?", (t("admin.suppression.immediate") if recommandation.demarche.suppression_sans_retour_a_annoncer?)].compact.join(" ") %>
+<%= tag.button type: "submit", form: dom_id(recommandation, :suppression), class: "fr-btn fr-btn--tertiary-no-outline", name: ("fenetre" if fenetre), value: fenetre, data: { turbo_confirm: confirmation } do %>Retirer<span class="fr-sr-only"> <%= nom %></span><% end %>

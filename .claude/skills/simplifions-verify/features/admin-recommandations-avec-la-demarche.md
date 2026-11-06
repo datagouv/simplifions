@@ -11,7 +11,7 @@ A recommandation added to a démarche, hidden or published, waits for the démar
 
 ## How to get to it (user POV)
 
-`/admin/demarches/<id>/edit`, tab `Recommandations (<n>)`, last blank row, then the state bar above the fiche. Admin only.
+`/admin/demarches/<id>/edit`, tab `Fiche`, block `Solutions recommandées (<n>)`, `Ajouter une solution recommandée`, then the state bar above the fiche. Admin only.
 
 ## Driving it with Capybara
 
@@ -19,10 +19,10 @@ Drive: `features/admin-recommandations-avec-la-demarche.rb` (SKILL.md § Drive).
 
 Preconditions: logged in. Creates its own hidden démarche `Vérif reco-demarche <browser>` (slug `verif-reco-demarche-<browser>`) and deletes it with its recommandations; solutions: the first two public APIs.
 
-- **Hidden démarche.** Tab `Recommandations`, blank row: first API, `Solution recommandée`, `Ajouter la nouvelle recommandation` → state bar `Publier` → `/demarches/<slug>` shows one card, the first API's; in base the recommandation is visible, without draft.
-- **Preview.** Same blank row with the second API → the state bar shows `Brouillon non publié` and `Prévisualiser`; the preview window shows two cards, the public page still one.
-- **Abandon.** `Abandonner le brouillon`, accept the confirmation → the second API's row is gone, still one card on the public page, the first recommandation still in base.
-- **Preview as published.** Add the second API again, state bar `Publier` (two cards, first API first); row `Ordre de la recommandation <second API>` `0`, `Enregistrer la recommandation <second API>` → state bar `Brouillon non publié`, `Prévisualiser`, no `Abandonner le brouillon`; the preview's cards, second API first, differ from the public page's, then equal them after `Publier`.
+- **Hidden démarche.** `Ajouter une solution recommandée`, window: `Solution` first API (type `Solution recommandée` already chosen), `Enregistrer` → state bar `Publier` → `/demarches/<slug>` shows one card, the first API's; in base the recommandation is visible, without draft.
+- **Preview.** Same window with the second API → the state bar shows `Brouillon non publié` and `Prévisualiser`; the preview window shows two cards, the public page still one.
+- **Abandon.** `Abandonner le brouillon`, accept the confirmation → the second API's card is gone, still one card on the public page, the first recommandation still in base.
+- **Preview as published.** Add the second API again, state bar `Publier` (two cards, first API first); `Modifier <second API>`, window `Position` `0`, `Enregistrer` → state bar `Brouillon non publié`, `Prévisualiser`, no `Abandonner le brouillon`; the preview's cards, second API first, differ from the public page's, then equal them after `Publier`.
 - **Proof.** `tmp/verify/admin-recommandations-avec-la-demarche/`.
 
 ## Gotchas
