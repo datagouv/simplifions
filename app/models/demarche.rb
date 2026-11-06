@@ -57,7 +57,7 @@ class Demarche < ApplicationRecord
 
   def abandonner_brouillon!
     transaction do
-      recommandations.a_publier_avec_la_demarche.each(&:abandonner_avec_la_demarche!)
+      recommandations_en_brouillon.each { it.ajoutee_au_brouillon? ? it.abandonner_avec_la_demarche! : it.abandonner_brouillon! }
       super
     end
   end
