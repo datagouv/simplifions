@@ -87,6 +87,41 @@ def abandon_en_base(page, demarche, publie)
   Verify.evidence(DOSSIER, page, 'abandonne', "base=#{base}")
 end
 
+ENCADRE = 'section[aria-labelledby="a-la-publication"]'.freeze
+
+def lignes_de_l_encadre(page, titre)
+  page.assert_selector '#a-la-publication', exact_text: titre
+  page.find(ENCADRE).all('li a.fr-link').map { it.text.squish }
+end
+
+def ce_qui_partira(page, demarche, nom)
+  ajoutee = Solution.create!(nom: "#{nom} g", categorie: 'api')
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.assert_no_selector ENCADRE
+  Verify.modifier_dans_la_fenetre(page, 'Modifier le contexte', 'Contexte' => 'Vérif ce qui partira')
+  lignes = lignes_de_l_encadre(page, 'À la publication, 1 changement partira')
+  raise "encadré après le contexte : #{lignes}" unless lignes == ['Contexte modifié']
+
+  Verify.ajouter_une_solution_recommandee(page, ajoutee)
+  lignes = lignes_de_l_encadre(page, 'À la publication, 2 changements partiront')
+  raise "encadré après l’ajout sur place : #{lignes}" unless lignes == ['Contexte modifié', "Solution recommandée ajoutée : #{ajoutee.libelle_admin}"]
+
+  page.find(ENCADRE).click_link 'Contexte modifié'
+  ancre = page.document.synchronize do
+    page.evaluate_script('location.hash').tap { raise Capybara::ExpectationNotMet, "lien du contexte : #{it}" unless it == '#bloc-contexte' }
+  end
+
+  Verify.evidence(DOSSIER, page, 'ce-qui-partira', "lignes=#{lignes} ancre=#{ancre}")
+  page.find(ENCADRE).click_button 'Publier ces 2 changements'
+  page.assert_text "« #{demarche.nom} » enregistré."
+  page.assert_no_selector ENCADRE
+  base = lu { [demarche.reload.slice(:contexte, :brouillon), demarche.recommandations.find_by!(solution: ajoutee).visible] }
+  raise "publication de l’encadré : base #{base}" unless base == [{ 'contexte' => 'Vérif ce qui partira', 'brouillon' => nil }, true]
+
+  Verify.evidence(DOSSIER, page, 'ce-qui-partira-publie', "base=#{base}")
+  ajoutee.destroy!
+end
+
 def envoyer_l_image(page, solution)
   Verify.rubrique(page, 'Solutions')
   Verify.ouvrir_depuis_la_liste(page, solution.nom)
@@ -293,6 +328,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Public page unchanged') { page_publique_inchangee(page, nom, slug) }
   Verify.check('Reopen and publish') { rouvrir_et_publier(page, nom).then { page_publique_publiee(page, demarche, nom) } }
   Verify.check('Abandon') { abandonner(page, publie).then { abandon_en_base(page, demarche, publie) } }
+  Verify.check('What will go out') { ce_qui_partira(page, demarche, nom) }
   Verify.check('Image') do
     solution = Solution.create!(nom:, slug:, visible: true)
     image_en_brouillon(page, solution).then { image_publiee(page, solution) }
@@ -304,7 +340,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g"])).destroy_all
   Organisation.where(nom: "#{nom} org").destroy_all
   TypeActeur.where(nom: "#{nom} fournisseur").destroy_all
   Vocabulaire.where(nom: "#{nom} voc").destroy_all

@@ -1,41 +1,40 @@
 <%# locals: (demarche:) -%>
-<section class="barre-d-etat fr-mb-4w" aria-label="État de la démarche">
-  <div>
-    <ul class="fr-badges-group">
-      <li><p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if demarche.visible? %>"><%= demarche.visible? ? "Publiée" : "Masquée" %></p></li>
-      <% if demarche.en_brouillon? %>
-        <li><p class="fr-badge fr-badge--no-icon fr-badge--new"><%= demarche.passe_par_un_brouillon? ? t("admin.badge_brouillon.demarche", default: "Brouillon non publié") : "Brouillon non publié" %></p></li>
+<% changements = changements_a_publier(demarche) %>
+<div id="etat-de-la-demarche">
+  <section class="barre-d-etat fr-mb-4w" aria-label="État de la démarche">
+    <div>
+      <ul class="fr-badges-group">
+        <li><p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if demarche.visible? %>"><%= demarche.visible? ? "Publiée" : "Masquée" %></p></li>
+        <% if demarche.en_brouillon? %>
+          <li><p class="fr-badge fr-badge--no-icon fr-badge--new"><%= demarche.passe_par_un_brouillon? ? t("admin.badge_brouillon.demarche", default: "Brouillon non publié") : "Brouillon non publié" %></p></li>
+        <% end %>
+      </ul>
+      <p class="fr-text--sm fr-mb-0">
+        <% { "Création" => demarche.cree_le&.to_date, "Dernière modification" => demarche.modifie_le&.to_date, "Brouillon du" => demarche.date_du_brouillon }.compact.each_with_index do |(terme, date), rang| %>
+          <%= " · " if rang.positive? %><%= terme %> <time datetime="<%= date.iso8601 %>"><%= date.is_a?(Date) ? l(date) : l(date, format: :court) %></time>
+        <% end %>
+        <% if (en_brouillon = demarche.recommandations_en_brouillon.count).positive? %>
+          · <%= t("admin.recommandations_en_brouillon", count: en_brouillon) %>
+        <% end %>
+        <% if (version = demarche.versions.last) %>
+          · <%= titre_de_version(version, version.event == "create" ? "Créée" : "Modifiée") %>
+        <% end %>
+        <% if demarche.grist_id.present? %>
+          · Identifiant Grist : <%= demarche.grist_id %>
+        <% end %>
+      </p>
+      <% if (import = demarche.import_grist_depuis_le_brouillon) %>
+        <div class="fr-alert fr-alert--warning fr-alert--sm fr-mt-1w">
+          <p>Le Grist a modifié cette fiche le <time datetime="<%= import.created_at.iso8601 %>"><%= l import.created_at, format: :court %></time> : publier remplacera ces changements.
+            <%= link_to "Voir l’historique", admin_historique_path("demarches", demarche), class: "fr-link fr-link--sm" %></p>
+        </div>
       <% end %>
-    </ul>
-    <p class="fr-text--sm fr-mb-0">
-      <% { "Création" => demarche.cree_le&.to_date, "Dernière modification" => demarche.modifie_le&.to_date, "Brouillon du" => demarche.date_du_brouillon }.compact.each_with_index do |(terme, date), rang| %>
-        <%= " · " if rang.positive? %><%= terme %> <time datetime="<%= date.iso8601 %>"><%= date.is_a?(Date) ? l(date) : l(date, format: :court) %></time>
-      <% end %>
-      <% if (en_brouillon = demarche.recommandations_en_brouillon.count).positive? %>
-        · <%= t("admin.recommandations_en_brouillon", count: en_brouillon) %>
-      <% end %>
-      <% if (version = demarche.versions.last) %>
-        · <%= titre_de_version(version, version.event == "create" ? "Créée" : "Modifiée") %>
-      <% end %>
-      <% if demarche.grist_id.present? %>
-        · Identifiant Grist : <%= demarche.grist_id %>
-      <% end %>
-    </p>
-    <% if (import = demarche.import_grist_depuis_le_brouillon) %>
-      <div class="fr-alert fr-alert--warning fr-alert--sm fr-mt-1w">
-        <p>Le Grist a modifié cette fiche le <time datetime="<%= import.created_at.iso8601 %>"><%= l import.created_at, format: :court %></time> : publier remplacera ces changements.
-          <%= link_to "Voir l’historique", admin_historique_path("demarches", demarche), class: "fr-link fr-link--sm" %></p>
-      </div>
+    </div>
+    <% if changements.none? %>
+      <%= render "admin/demarches/actions_du_brouillon", demarche: %>
     <% end %>
-  </div>
-  <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm">
-    <% if demarche.en_brouillon? %>
-      <li><%= link_to previsualisation_admin_demarche_path(demarche), class: "fr-btn fr-btn--tertiary", target: "_blank", rel: "noopener", title: "Prévisualiser le brouillon de #{nom_en_base} - nouvelle fenêtre" do %>Prévisualiser<span class="fr-sr-only"> le brouillon - nouvelle fenêtre</span><% end %></li>
-    <% end %>
-    <% if demarche.brouillon_abandonnable? %>
-      <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, demarche], method: :patch, class: "fr-btn fr-btn--secondary",
-          form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_en_base} » ? Les modifications non publiées seront perdues." } } %></li>
-    <% end %>
-    <li><%= button_to "Publier", [:admin, demarche], method: :patch, params: { "demarche[visible]" => "1", **filtres_de_la_liste }, class: "fr-btn" %></li>
-  </ul>
-</section>
+  </section>
+  <% if changements.any? %>
+    <%= render "admin/demarches/a_la_publication", demarche:, changements: %>
+  <% end %>
+</div>

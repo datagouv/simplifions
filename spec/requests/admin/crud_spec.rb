@@ -2153,7 +2153,7 @@ RSpec.describe 'Administration' do
       expect(actions).to eq(['Publier', 'Masquer la démarche', 'Supprimer la démarche'])
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
-      expect(actions).to eq(['Abandonner le brouillon', 'Publier', 'Masquer la démarche', 'Supprimer la démarche'])
+      expect(actions).to eq(['Publier ce changement', 'Abandonner le brouillon', 'Masquer la démarche', 'Supprimer la démarche'])
       expect(etat_de_la_fiche.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to eq('Abandonner le brouillon de « Aides » ? Les modifications non publiées seront perdues.')
     end
   end
@@ -2780,7 +2780,7 @@ RSpec.describe 'Administration' do
       barre = page.at_css('section[aria-label="État de la démarche"]')
       expect(barre.css('.fr-badge').map(&:text)).to eq(['Publiée', 'Brouillon non publié'])
       expect(barre.text.squish).to include('Création', 'Dernière modification', 'Brouillon du')
-      expect(barre.css('a, button').map { it.text.squish }).to eq(['Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon', 'Publier'])
+      expect(page.at_css('#etat-de-la-demarche').css('a.fr-btn, button').map { it.text.squish }).to eq(['Publier ce changement', 'Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon'])
       expect(page.css('form:has(button:contains("Masquer la démarche")), form:has(button:contains("Supprimer la démarche"))').pluck('data-turbo-confirm')).to eq(
         [nil, 'Supprimer « Aides » ?']
       )
@@ -2823,6 +2823,137 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
       expect(page.css('dialog[data-controller="fenetre-rouverte"]').pluck('id')).to eq(['fenetre-entete'])
       expect(fenetre('entete').at_css('.fr-input-group--error').text).to include('Nom', 'doit être rempli')
+    end
+  end
+
+  describe 'ce qui partira à la publication d’une démarche' do
+    let(:api) { Solution.create!(nom: 'API QF', categorie: 'api') }
+    let(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true, cree_le: 1.day.ago, modifie_le: 1.day.ago) }
+
+    before { sign_in admin }
+
+    def page = response.parsed_body
+
+    def fiche = get("/admin/demarches/#{demarche.id}/edit").then { page }
+    def encadre = page.at_css('section[aria-labelledby="a-la-publication"]')
+    def lignes = encadre.css('li a.fr-link').map { [it.text.squish, it['href']] }
+    def barre = page.at_css('section[aria-label="État de la démarche"]')
+
+    it 'liste chaque bloc changé dans l’ordre de la fiche, chacun lié à son bloc, avec les actions du brouillon à la place de la barre' do
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Logiciel'), integree: api, type_integration: 'consomme')
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau', slug: 'aides-sociales', nom: 'Aides sociales', integration_ids: ['', integration.id] } }
+      fiche
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 4 changements partiront')
+      expect(lignes).to eq([
+        ['En-tête modifié', '#titre-de-la-demarche'],
+        ['Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche', '#titre-de-la-demarche'],
+        ['Contexte modifié', '#bloc-contexte'],
+        ['Intégrations modifiées', '#bloc-integrations']
+      ])
+      expect(lignes.map { |_libelle, ancre| page.at_css(ancre) }).to all(be_present)
+      expect(encadre.css('a.fr-btn, button').map { it.text.squish }).to eq(['Publier ces 4 changements', 'Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon'])
+      expect(barre.css('a, button')).to be_empty
+    end
+
+    it 'nomme un seul changement au singulier, et range un vocabulaire dans le bloc qui le montre' do
+      dlnuf, publics = { 'DLNUF' => 'type_simplification', 'Entreprises' => 'usager' }.map { |nom, categorie| Vocabulaire.create!(nom:, slug: nom.downcase, categorie:) }
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { vocabulaire_ids: ['', dlnuf.id] } }
+      fiche
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 1 changement partira')
+      expect(lignes).to eq([['Vocabulaires modifiés', '#bloc-vocabulaires']])
+      expect(encadre.at_css('button').text.squish).to eq('Publier ce changement')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { vocabulaire_ids: ['', publics.id] } }
+      fiche
+      expect(lignes).to eq([['En-tête modifié', '#titre-de-la-demarche']])
+    end
+
+    it 'nomme le bloc de chaque champ de la fiche' do
+      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
+      champs = {
+        icone: '💼', nom: 'Aides sociales', description_courte: 'Court', slug: 'aides-sociales', contexte: 'Contexte', cadre_juridique: 'Loi', titre_seo: 'SEO',
+        mots_clefs: 'aide', type_acteur_ids: ['', TypeActeur.create!(nom: 'Communes').id],
+        integration_ids: ['', Integration.create!(integratrice: Solution.create!(nom: 'Logiciel'), integree: api, type_integration: 'consomme').id],
+        vocabulaire_ids: ['', *{ 'DLNUF' => 'type_simplification', 'Entreprises' => 'usager' }.map { |nom, categorie| Vocabulaire.create!(nom:, slug: nom.downcase, categorie:).id }]
+      }
+      champs.each { |champ, valeur| patch "/admin/demarches/#{demarche.id}", params: { demarche: { champ => valeur } } }
+      fiche
+
+      expect(lignes.map(&:first)).to eq(['En-tête modifié', 'Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche', 'Contexte modifié',
+                                         'Cadre juridique modifié', 'Intégrations modifiées', 'Title SEO modifié', 'Mots-clés modifiés',
+                                         'Fournisseurs de services modifiés', 'Vocabulaires modifiés'])
+    end
+
+    it 'nomme chaque recommandation ajoutée ou modifiée, liée à sa carte ou aux données disponibles, et pas celle retirée' do
+      inclusion = Solution.create!(nom: 'API Marché de l’inclusion', categorie: 'api')
+      Recommandation.new(demarche:, solution: inclusion, niveau: :niveau_2).enregistrer({})
+      utile = Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
+      utile.enregistrer('description' => 'Le quotient familial.')
+      Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Retirée', categorie: 'api'), niveau: :niveau_1, visible: true).destroy!
+      fiche
+      carte = demarche.recommandations.find_by(solution: inclusion)
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 2 changements partiront')
+      expect(lignes).to eq([
+        ["Solution recommandée ajoutée : #{inclusion.libelle_admin}", "#recommandation_#{carte.id}"],
+        ["Donnée utile modifiée : #{api.libelle_admin}", '#bloc-donnees-disponibles']
+      ])
+    end
+
+    it 'se met à jour quand on ajoute une solution recommandée depuis la fiche' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } }
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
+
+      expect(flux['action']).to eq('replace')
+      expect(flux.at_css('section[aria-labelledby="a-la-publication"] li a.fr-link').text.squish).to eq("Solution recommandée ajoutée : #{api.libelle_admin}")
+      expect(flux.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to include('« Aides »')
+    end
+
+    it 'garde les filtres de la liste dans « Publier » après une recommandation ajoutée sur place' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } },
+        headers: { 'Referer' => "http://www.example.com/admin/demarches/#{demarche.id}/edit?q=Aides&etat=brouillon" }
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
+      publier = flux.at_css('form:has(button:contains("Publier"))')
+
+      expect(publier.css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
+
+      patch "/admin/recommandations/#{Recommandation.last.id}", params: { ligne: 1, recommandation: { ordre: '2' } }, headers: { 'Referer' => 'http://www.example.com/admin?q=%zz' }
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'garde les filtres de la liste dans « Publier » après une carte déplacée' do
+      cartes = %w[A B].map { Recommandation.create!(demarche:, solution: Solution.create!(nom: it, categorie: 'api'), niveau: :niveau_2, visible: true) }
+      fiche
+      deplacement = page.at_css("form#deplacement_recommandation_#{cartes.last.id}")
+      patch deplacement['action'], params: deplacement.css('input[type=hidden]').to_h { [it['name'], it['value']] }.merge('position' => '1'),
+        headers: { 'Referer' => "http://www.example.com/admin/demarches/#{demarche.id}/edit?q=Aides&etat=brouillon" }
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
+
+      expect(flux.at_css('form:has(button:contains("Publier"))').css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
+    end
+
+    it 'publie depuis l’encadré' do
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
+      fiche
+      formulaire = encadre.at_css('form:has(button:contains("Publier"))')
+      patch formulaire['action'], params: formulaire.css('input[type=hidden]').to_h { [it['name'], it['value']] }
+
+      expect(demarche.reload.slice(:contexte, :brouillon)).to eq('contexte' => 'Nouveau', 'brouillon' => nil)
+    end
+
+    it 'ne paraît pas sans brouillon ni sur une démarche masquée' do
+      fiche
+      expect(encadre).to be_nil
+      expect(barre.css('button').map(&:text)).to eq(['Publier'])
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '0' } }
+      fiche
+      expect(demarche.reload).to have_attributes(visible: false, brouillon?: true)
+      expect(encadre).to be_nil
     end
   end
 end

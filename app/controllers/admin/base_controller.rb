@@ -21,7 +21,7 @@ class Admin::BaseController < ApplicationController
 
   def paginer(liste) = super(liste, 50)
 
-  def filtres_de_la_liste = params.slice(:q, :etat).permit(:q, :etat).to_h.compact_blank.symbolize_keys
+  def filtres_de_la_liste(source = params) = source.slice(:q, :etat).permit(:q, :etat).to_h.compact_blank.symbolize_keys
 
   def liste(relation) = relation.ransack(recherche: params[:q].to_s, **CRITERES_D_ETAT.fetch(params[:etat].to_s, {})).result
 

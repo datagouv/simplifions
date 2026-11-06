@@ -4,6 +4,7 @@
 <% lignes = fiche.map { refusee&.id == it.id ? refusee : it } %>
 <% nouvelle = refusee if refusee&.new_record? %>
 <% depuis_les_donnees_utiles = params[:fenetre] == "donnees-utiles" %>
+<%= turbo_stream.replace "etat-de-la-demarche", partial: "admin/demarches/barre_d_etat", locals: { demarche: } %>
 <% cartes = fiche.select(&:niveau_2?) %>
 <%= turbo_stream.update "compte-des-solutions-recommandees", "(#{cartes.size})" %>
 <%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes: }, method: :morph %>

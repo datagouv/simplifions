@@ -36,6 +36,14 @@ class Admin::RecommandationsController < Admin::BaseController
 
   private
 
+  def filtres_de_la_liste(source = params)
+    return super unless params[:ligne] && super.empty?
+
+    super(ActionController::Parameters.new(Rack::Utils.parse_query(request.referer.to_s.partition('?').last)))
+  rescue Rack::QueryParser::InvalidParameterError
+    {}
+  end
+
   def enregistrer_puis_repondre(page)
     enregistree = @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
     if params[:ligne]
