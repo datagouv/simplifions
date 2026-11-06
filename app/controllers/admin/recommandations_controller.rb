@@ -1,5 +1,6 @@
 class Admin::RecommandationsController < Admin::BaseController
   before_action :set_recommandation, only: %i[edit update destroy position]
+  helper_method :message_de_retrait
 
   def index
     @recommandations = paginer(Recommandation.rechercher(params[:q], :demarche_nom_sans_accent_cont, :solution_nom_sans_accent_cont).includes(:demarche, :solution).order(:id))
@@ -23,10 +24,10 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   def destroy
-    @recommandation.destroy!
+    @recommandation.retirer
     return render :destroy, formats: :turbo_stream if params[:ligne]
 
-    redirect_to admin_recommandations_path, notice: t('admin.supprime', nom: nom_de(@recommandation)), status: :see_other
+    redirect_to admin_recommandations_path, notice: message_de_retrait, status: :see_other
   end
 
   def position
@@ -35,6 +36,8 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   private
+
+  def message_de_retrait = @recommandation.destroyed? ? t('admin.supprime', nom: nom_de(@recommandation)) : message_d_enregistrement(@recommandation)
 
   def filtres_de_la_liste(source = params)
     return super unless params[:ligne] && super.empty?
@@ -46,7 +49,9 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def enregistrer_puis_repondre(page)
     enregistree = @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
-    if params[:ligne]
+    if @recommandation.destroyed?
+      redirect_to admin_recommandations_path, notice: message_de_retrait, status: :see_other
+    elsif params[:ligne]
       render :ligne, formats: :turbo_stream, status: enregistree ? :ok : :unprocessable_content
     elsif enregistree
       redirige_vers_la_fiche(@recommandation)
@@ -60,6 +65,6 @@ class Admin::RecommandationsController < Admin::BaseController
   end
 
   def recommandation_params
-    params.expect(recommandation: %i[demarche_id solution_id niveau ordre description donnees_utiles parametres_a_saisir url_demande_acces visible])
+    params.expect(recommandation: %i[demarche_id solution_id niveau ordre description donnees_utiles parametres_a_saisir url_demande_acces visible retiree])
   end
 end

@@ -122,6 +122,64 @@ def ce_qui_partira(page, demarche, nom)
   ajoutee.destroy!
 end
 
+def carte_retiree(page, reco)
+  carte = page.find("#recommandation_#{reco.id}")
+  [carte[:class].include?('retiree'), carte.all('s').map(&:text), carte.all('.fr-badge').map { it.text.squish.downcase }, carte.all('button').map { it.text.squish }]
+end
+
+def retirer_la_carte(page, demarche, reco)
+  nom = reco.solution.libelle_admin
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  page.accept_confirm("Supprimer la recommandation #{nom} ?") { page.click_button "Retirer #{nom}" }
+  page.assert_selector '#message-recommandations .fr-valid-text', text: 'brouillon enregistré, non publié'
+  page.assert_selector "#recommandation_#{reco.id}.retiree"
+end
+
+def retrait_barre(page, demarche, reco)
+  nom = reco.solution.libelle_admin
+  retirer_la_carte(page, demarche, reco)
+  vu = carte_retiree(page, reco)
+  raise "carte retirée : #{vu}" unless vu == [true, [nom], ['retirée · à publier'], ["Remettre #{nom}"]]
+
+  lignes = lignes_de_l_encadre(page, 'À la publication, 1 changement partira')
+  raise "encadré du retrait : #{lignes}" unless lignes == ["Solution recommandée retirée : #{nom}"]
+
+  Verify.evidence(DOSSIER, page, 'retrait-barre', "carte=#{vu} lignes=#{lignes} brouillon=#{lu { reco.reload.brouillon&.slice('retiree') }}")
+  publique = cartes_publiques(page, demarche.slug).join
+  raise 'retrait déjà en ligne' unless publique.include?(reco.solution.nom) && lu { Recommandation.exists?(reco.id) }
+
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+end
+
+def retrait_remis(page, reco)
+  page.click_button "Remettre #{reco.solution.libelle_admin}"
+  page.assert_no_selector "#recommandation_#{reco.id}.retiree"
+  page.assert_no_selector ENCADRE
+  vu = carte_retiree(page, reco)
+  brouillon = lu { reco.reload.brouillon }
+  raise "remise : carte #{vu} brouillon #{brouillon}" unless vu.first == false && vu.last.first == "Modifier #{reco.solution.libelle_admin}" && brouillon.nil?
+
+  Verify.evidence(DOSSIER, page, 'retrait-remis', "carte=#{vu} brouillon=#{brouillon.inspect}")
+end
+
+def retrait_publie(page, demarche, reco)
+  retirer_la_carte(page, demarche, reco)
+  page.find(ENCADRE).click_button 'Publier ce changement'
+  page.assert_text "« #{demarche.nom} » enregistré."
+  page.assert_no_selector "#recommandation_#{reco.id}"
+  publique = cartes_publiques(page, demarche.slug).join
+  raise 'retrait publié : encore sur le site ou en base' if publique.include?(reco.solution.nom) || lu { Recommandation.exists?(reco.id) }
+
+  Verify.evidence(DOSSIER, page, 'retrait-publie', "en_base=false cartes_publiques=#{publique.first(80)}")
+end
+
+def retrait_en_brouillon(page, demarche, nom)
+  reco = Recommandation.create!(demarche:, solution: Solution.create!(nom: "#{nom} h", categorie: 'api'), niveau: :niveau_2, visible: true)
+  retrait_barre(page, demarche, reco)
+  retrait_remis(page, reco)
+  retrait_publie(page, demarche, reco)
+end
+
 def envoyer_l_image(page, solution)
   Verify.rubrique(page, 'Solutions')
   Verify.ouvrir_depuis_la_liste(page, solution.nom)
@@ -329,6 +387,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Reopen and publish') { rouvrir_et_publier(page, nom).then { page_publique_publiee(page, demarche, nom) } }
   Verify.check('Abandon') { abandonner(page, publie).then { abandon_en_base(page, demarche, publie) } }
   Verify.check('What will go out') { ce_qui_partira(page, demarche, nom) }
+  Verify.check('Removal waits') { retrait_en_brouillon(page, demarche.reload, nom) }
   Verify.check('Image') do
     solution = Solution.create!(nom:, slug:, visible: true)
     image_en_brouillon(page, solution).then { image_publiee(page, solution) }
@@ -340,7 +399,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g", "#{nom} h"])).destroy_all
   Organisation.where(nom: "#{nom} org").destroy_all
   TypeActeur.where(nom: "#{nom} fournisseur").destroy_all
   Vocabulaire.where(nom: "#{nom} voc").destroy_all
