@@ -10,7 +10,10 @@ module AdminHelper
     'Fournisseurs de services modifiés' => ['bloc-fournisseurs', %w[type_acteur_ids]],
     'Vocabulaires modifiés' => ['bloc-vocabulaires', %w[vocabulaires]]
   }.freeze
-  ORDRES = { 'niveau_2' => ['Ordre des solutions recommandées modifié', 'bloc-solutions-recommandees'] }.freeze
+  ORDRES = {
+    'niveau_2' => ['Ordre des solutions recommandées modifié', 'bloc-solutions-recommandees'],
+    'niveau_1' => ['Ordre des données utiles modifié', 'bloc-donnees-disponibles']
+  }.freeze
 
   def rubrique_admin_ouverte?(modele) = (params[:type] || controller_name) == modele.model_name.route_key
 
@@ -34,7 +37,7 @@ module AdminHelper
 
   def recommandations_a_publier(recommandations)
     champs = recommandations.index_with(&:champs_du_brouillon)
-    nommees = champs.reject { |recommandation, changes| changes == ['ordre'] && ORDRES.key?(recommandation.niveau) }.keys
+    nommees = champs.reject { |_, changes| changes == ['ordre'] }.keys
     nommees.map { recommandation_a_publier(it.appliquer_brouillon) } + ordres_modifies(champs)
   end
 
