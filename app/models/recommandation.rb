@@ -14,6 +14,8 @@ class Recommandation < ApplicationRecord
 
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
+  attribute :retiree, :boolean, default: false
+
   scope :visibles, -> { where(visible: true) }
   scope :a_publier_avec_la_demarche, -> { where("recommandations.brouillon->>'visible' = '1'") }
   scope :parues, -> { where.not(id: a_publier_avec_la_demarche) }
@@ -25,6 +27,10 @@ class Recommandation < ApplicationRecord
   def rangees = demarche.recommandations.sur_la_fiche.select { it.niveau == niveau }
   def ajoutee_au_brouillon? = brouillon.to_h['visible'] == '1'
   def masquee? = !visible_in_database && !ajoutee_au_brouillon?
+  def retrait_a_publier? = demarche.visible? && visible? && !ajoutee_au_brouillon?
+  def retrait_sans_retour_a_annoncer? = !retrait_a_publier? && demarche.suppression_sans_retour_a_annoncer?
+
+  def retirer = retrait_a_publier? ? enregistrer('retiree' => '1', 'modifie_le' => Time.current) : destroy!
 
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 

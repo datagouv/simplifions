@@ -1,0 +1,2 @@
+<%# locals: (recommandation:, nom:, fenetre: nil) -%>
+<%= tag.button type: "submit", form: dom_id(recommandation, :remise), class: "fr-btn fr-btn--tertiary", name: ("fenetre" if fenetre), value: fenetre do %>Remettre<span class="fr-sr-only"> <%= nom %></span><% end %>

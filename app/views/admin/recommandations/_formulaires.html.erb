@@ -8,6 +8,12 @@
     <%= form_with model: [:admin, ligne], method: :delete, id: dom_id(ligne, :suppression), data: { enregistre_sur_place: true } do %>
       <%= hidden_field_tag :ligne, 1, id: nil %>
     <% end %>
+    <% if ligne.retiree? %>
+      <%= form_with model: [:admin, ligne], id: dom_id(ligne, :remise), data: { enregistre_sur_place: true } do |f| %>
+        <%= hidden_field_tag :ligne, 1, id: nil %>
+        <%= f.hidden_field :retiree, value: "0", id: nil %>
+      <% end %>
+    <% end %>
     <%= form_with url: position_admin_recommandation_path(ligne), method: :patch, id: dom_id(ligne, :deplacement), data: { enregistre_sur_place: true } do %>
       <%= hidden_field_tag :ligne, 1, id: nil %>
       <%= tag.button type: "submit", name: "position", hidden: true %>

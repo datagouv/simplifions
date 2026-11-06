@@ -1,5 +1,7 @@
 <%# locals: (recommandation:) -%>
-<% if recommandation.ajoutee_au_brouillon? %>
+<% if recommandation.retiree? %>
+  <p class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--warning">Retirée · à publier</p>
+<% elsif recommandation.ajoutee_au_brouillon? %>
   <p class="fr-badge fr-badge--sm fr-badge--no-icon fr-badge--new">Ajoutée au brouillon</p>
 <% elsif recommandation.masquee? %>
   <p class="fr-badge fr-badge--sm fr-badge--no-icon">Masquée</p>

@@ -847,13 +847,14 @@ RSpec.describe 'Administration' do
       expect(flux_vers('message-recommandations').text.squish).to eq('Recommandation non enregistrée : Choisissez une solution')
     end
 
-    it 'retire la carte après la même confirmation qu’avant, la suppression restant immédiate' do
+    it 'retire tout de suite la carte d’une démarche masquée, après la même confirmation qu’avant' do
+      aides.update!(visible: false)
       recommandation = Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, visible: true)
       fiche
       retirer = page.at_css("#recommandation_#{recommandation.id} button[data-turbo-confirm]")
       formulaire = page.at_css("form##{retirer['form']}")
       expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.ancestors('form').size]).to eq(["/admin/recommandations/#{recommandation.id}", 'delete', 0])
-      expect([retirer.text.squish, retirer['data-turbo-confirm']]).to eq(['Retirer Mes Aides (API)', "Supprimer la recommandation Mes Aides (API) ? #{I18n.t('admin.suppression.immediate')}"])
+      expect([retirer.text.squish, retirer['data-turbo-confirm']]).to eq(['Retirer Mes Aides (API)', 'Supprimer la recommandation Mes Aides (API) ?'])
 
       delete "/admin/recommandations/#{recommandation.id}", params: { ligne: 1 }, as: :turbo_stream
 
@@ -2318,6 +2319,63 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('La recommandation « Mes Aides (API) » ne peut pas être publiée : Type de recommandation doit être rempli')
       expect([demarche.reload.nom, nouvelle.visible, publiee.reload.niveau]).to eq(['Aides', false, 'niveau_2'])
+    end
+  end
+
+  describe 'retrait d’une recommandation pendant le brouillon d’une démarche publiée' do
+    let!(:demarche) { Demarche.create!(nom: 'Aides', slug: 'aides', visible: true) }
+    let!(:carte) { Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Mes Aides', categorie: 'api'), niveau: :niveau_2, donnees_utiles: 'Quotient', visible: true) }
+    let(:immediate) { 'La suppression est immédiate, même pendant un brouillon : « Abandonner le brouillon » ne la remet pas.' }
+
+    before { sign_in admin }
+
+    def page = response.parsed_body
+    def fiche = get("/admin/demarches/#{demarche.id}/edit").then { page }
+    def encadre = page.at_css('section[aria-labelledby="a-la-publication"]')
+    def changements = encadre&.css('li a.fr-link')&.map { it.text.squish }
+    def cartes_publiques = get('/demarches/aides').then { page.css('.reco-card').map { it.text.squish } }
+    def carte_de_la_fiche(recommandation) = page.at_css("li##{ActionView::RecordIdentifier.dom_id(recommandation)}")
+
+    it 'garde en ligne la solution recommandée retirée depuis la fiche, barrée avec « Retirée · à publier » et « Remettre », jusqu’à la publication' do
+      fiche
+      expect(page.at_css("button[form='#{ActionView::RecordIdentifier.dom_id(carte, :suppression)}']")['data-turbo-confirm']).to eq('Supprimer la recommandation Mes Aides (API) ?')
+
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('« Aides → Mes Aides (API) » : brouillon enregistré, non publié.')
+      expect(Recommandation.exists?(carte.id)).to be(true)
+      expect(cartes_publiques.join).to include('Mes Aides')
+
+      fiche
+      retiree = carte_de_la_fiche(carte)
+      expect(retiree['class']).to include('retiree')
+      expect(retiree.at_css('s').text).to eq('Mes Aides (API)')
+      expect(retiree.at_css('.fr-badge.fr-badge--warning').text.squish).to eq('Retirée · à publier')
+      expect(retiree.css('button').map { it.text.squish }).to eq(['Remettre Mes Aides (API)'])
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 1 changement partira')
+      expect(changements).to eq(['Solution recommandée retirée : Mes Aides (API)'])
+    end
+
+    it 'garde en ligne celle retirée depuis sa propre fiche, sans annoncer de suppression immédiate' do
+      get "/admin/recommandations/#{carte.id}/edit"
+      expect(page.css('form[data-turbo-confirm]').pluck('data-turbo-confirm')).to include('Supprimer « Aides → Mes Aides (API) » ?')
+      expect(response.body).not_to include(immediate)
+
+      delete "/admin/recommandations/#{carte.id}"
+      follow_redirect!
+      expect(response.body).to include('« Aides → Mes Aides (API) » : brouillon enregistré, non publié.')
+      expect(Recommandation.exists?(carte.id)).to be(true)
+      expect(cartes_publiques.join).to include('Mes Aides')
+    end
+
+    it 'cache de la prévisualisation la solution recommandée retirée' do
+      autre = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Bouquet', categorie: 'api'), niveau: :niveau_2, visible: true)
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+
+      get "/admin/demarches/#{demarche.id}/previsualisation"
+      expect(page.css('.reco-card').map { it.text.squish }.join).to include('Bouquet')
+      expect(page.css('.reco-card').map { it.text.squish }.join).not_to include('Mes Aides')
+      expect(autre.reload.brouillon).to be_nil
     end
   end
 

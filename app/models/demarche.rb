@@ -116,7 +116,7 @@ class Demarche < ApplicationRecord
 
   def recommandations_telles_que_publiees
     a_publier = recommandations_en_brouillon.ids
-    recommandations.includes(solution: %i[exposees organisations]).to_a.each { it.appliquer_brouillon if it.id.in?(a_publier) }
+    recommandations.includes(solution: %i[exposees organisations]).to_a.each { it.appliquer_brouillon if it.id.in?(a_publier) }.reject(&:retiree?)
   end
 
   def publier_les_recommandations
