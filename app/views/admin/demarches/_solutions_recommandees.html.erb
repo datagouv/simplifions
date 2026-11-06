@@ -1,0 +1,13 @@
+<%# locals: (recommandations:) -%>
+<% cartes = recommandations.select(&:niveau_2?) %>
+<section id="solutions-recommandees" class="bloc-modifiable" aria-labelledby="bloc-solutions-recommandees">
+  <div class="bloc-modifiable__entete">
+    <h2 id="bloc-solutions-recommandees" class="fr-h4">Solutions recommandées <span class="fr-text-mention--grey">(<%= cartes.size %>)</span></h2>
+  </div>
+  <ul class="cartes-recommandees fr-grid-row fr-grid-row--gutters">
+    <%= render partial: "admin/recommandations/carte", collection: cartes %>
+    <li class="fr-col-12 fr-col-md-6 fr-col-lg-3">
+      <button type="button" class="carte-ajout fr-btn fr-btn--tertiary fr-icon-add-line fr-btn--icon-left" aria-controls="fenetre-<%= dom_id(Recommandation) %>" data-fr-opened="false">Ajouter une solution recommandée</button>
+    </li>
+  </ul>
+</section>

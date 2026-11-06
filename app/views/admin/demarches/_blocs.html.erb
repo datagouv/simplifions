@@ -1,4 +1,4 @@
-<%# locals: (f:, demarche:) -%>
+<%# locals: (f:, demarche:, recommandations:) -%>
 <% { "contexte" => ["Contexte", "le contexte", :contexte], "cadre-juridique" => ["Cadre juridique", "le cadre juridique", :cadre_juridique] }.each do |id, (titre, nom, attribut)| %>
   <section class="bloc-modifiable" aria-labelledby="bloc-<%= id %>">
     <div class="bloc-modifiable__entete">
@@ -14,6 +14,10 @@
     <% end %>
   </section>
 <% end %>
+
+<div id="message-recommandations" role="status"></div>
+<%= render "solutions_recommandees", recommandations: %>
+<%= render "donnees_disponibles", recommandations: %>
 
 <h2 class="fr-h5 fr-mt-6w">Hors de la page publique</h2>
 

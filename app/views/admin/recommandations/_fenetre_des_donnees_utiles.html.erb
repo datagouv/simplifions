@@ -1,0 +1,8 @@
+<%# locals: (lignes:) -%>
+<%= render layout: "admin/dialogue", locals: { id: "donnees-utiles", titre: "Modifier les données utiles", ouverte: false, hors_fiche: true, pied: false } do %>
+  <p class="fr-hint-text">Chaque ligne s’enregistre seule. La position range les données utiles : plus le nombre est petit, plus la donnée apparaît haut.</p>
+  <div id="message-donnees-utiles" role="status"></div>
+  <div id="lignes-des-donnees-utiles">
+    <%= render partial: "admin/recommandations/ligne_de_donnee_utile", collection: lignes, as: :ligne %>
+  </div>
+<% end %>

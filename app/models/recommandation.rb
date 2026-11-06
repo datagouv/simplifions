@@ -20,6 +20,10 @@ class Recommandation < ApplicationRecord
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
   def libelle = "#{demarche&.nom} → #{solution&.libelle_admin}"
 
+  def self.sur_la_fiche = includes(:solution).map(&:appliquer_brouillon).sort_by { [it.ordre ? 0 : 1, it.ordre.to_i, it.id] }
+  def ajoutee_au_brouillon? = brouillon.to_h['visible'] == '1'
+  def masquee? = !visible_in_database && !ajoutee_au_brouillon?
+
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 
   def enregistrer(attributs)

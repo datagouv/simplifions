@@ -1,0 +1,25 @@
+<%# locals: (ligne:) -%>
+<% nom = (ligne.solution_id_changed? ? Solution.find_by(id: ligne.solution_id_in_database) : ligne.solution)&.libelle_admin if ligne.persisted? %>
+<%= form_with model: [:admin, ligne], id: dom_id(ligne, :donnee_utile), namespace: dom_id(ligne, :donnee_utile), html: { novalidate: true }, data: { enregistre_sur_place: true } do |f| %>
+  <fieldset class="fr-fieldset">
+    <legend class="fr-fieldset__legend"><%= nom ? "Donnée utile : #{nom}" : "Ajouter une donnée utile" %></legend>
+    <% if ligne.persisted? %>
+      <div class="fr-fieldset__element"><%= render "admin/recommandations/badge", recommandation: ligne %></div>
+    <% end %>
+    <%= hidden_field_tag :ligne, 1, id: nil %>
+    <%= hidden_field_tag :fenetre, "donnees-utiles", id: nil %>
+    <%= f.hidden_field :niveau, value: "niveau_1", id: nil %>
+    <%= f.hidden_field :demarche_id, id: nil if ligne.new_record? %>
+    <div class="fr-fieldset__element"><%= f.dsfr_select :solution_id, choix_de_solutions %></div>
+    <div class="fr-fieldset__element"><%= f.dsfr_number_field :ordre %></div>
+    <div class="fr-fieldset__element"><%= f.dsfr_text_area :description %></div>
+    <div class="fr-fieldset__element">
+      <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm">
+        <li><button type="submit" class="fr-btn"><%= nom ? "Enregistrer" : "Ajouter" %><span class="fr-sr-only"> <%= nom ? "la donnée utile #{nom}" : "la donnée utile" %></span></button></li>
+        <% if nom %>
+          <li><%= render "admin/recommandations/bouton_retirer", recommandation: ligne, nom: %></li>
+        <% end %>
+      </ul>
+    </div>
+  </fieldset>
+<% end %>

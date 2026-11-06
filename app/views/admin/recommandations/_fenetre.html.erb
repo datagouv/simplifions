@@ -1,0 +1,17 @@
+<%# locals: (recommandation:) -%>
+<% id = dom_id(recommandation) %>
+<% formulaire = dom_id(recommandation, :formulaire) %>
+<% titre = recommandation.new_record? ? "Ajouter une solution recommandée" : "Modifier la solution recommandée" %>
+<%= render layout: "admin/dialogue", locals: { id:, titre:, ouverte: recommandation.errors.any?, formulaire: } do %>
+  <%= form_with model: [:admin, recommandation], id: formulaire, namespace: id, html: { novalidate: true }, data: { enregistre_sur_place: true } do |f| %>
+    <%= hidden_field_tag :ligne, 1, id: nil %>
+    <%= f.hidden_field :demarche_id, id: nil if recommandation.new_record? %>
+    <%= f.dsfr_select :solution_id, choix_de_solutions %>
+    <%= f.dsfr_select :niveau, options_traduites(Recommandation, :niveau) %>
+    <%= f.dsfr_number_field :ordre %>
+    <%= f.dsfr_text_area :description %>
+    <%= f.dsfr_text_area :donnees_utiles %>
+    <%= f.dsfr_text_area :parametres_a_saisir %>
+    <%= f.dsfr_text_field :url_demande_acces %>
+  <% end %>
+<% end %>
