@@ -46,7 +46,7 @@ class Demarche < ApplicationRecord
 
   def en_brouillon? = brouillon? || recommandations_en_brouillon.exists?
   def date_du_brouillon = [super, *recommandations_en_brouillon.map(&:date_du_brouillon)].compact.max
-  def brouillon_abandonnable? = brouillon? || recommandations.a_publier_avec_la_demarche.exists?
+  def brouillon_abandonnable? = brouillon? || recommandations.a_publier_avec_la_demarche.or(recommandations.retirees).exists?
   def suppression_sans_retour_a_annoncer? = visible? || brouillon_abandonnable?
 
   def enregistrer(attributs)
@@ -58,6 +58,7 @@ class Demarche < ApplicationRecord
   def abandonner_brouillon!
     transaction do
       recommandations.a_publier_avec_la_demarche.each(&:abandonner_avec_la_demarche!)
+      recommandations.retirees.each(&:abandonner_brouillon!)
       super
     end
   end
@@ -120,6 +121,7 @@ class Demarche < ApplicationRecord
   end
 
   def publier_les_recommandations
+    recommandations.retirees.destroy_all
     refusee = recommandations_en_brouillon.find { !it.publier_avec_la_demarche }
     return true unless refusee
 

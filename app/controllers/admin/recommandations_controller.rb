@@ -49,7 +49,9 @@ class Admin::RecommandationsController < Admin::BaseController
 
   def enregistrer_puis_repondre(page)
     enregistree = @recommandation.enregistrer(recommandation_params.merge(modifie_le: Time.current))
-    if params[:ligne]
+    if @recommandation.destroyed?
+      redirect_to admin_recommandations_path, notice: message_de_retrait, status: :see_other
+    elsif params[:ligne]
       render :ligne, formats: :turbo_stream, status: enregistree ? :ok : :unprocessable_content
     elsif enregistree
       redirige_vers_la_fiche(@recommandation)

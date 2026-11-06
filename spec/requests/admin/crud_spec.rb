@@ -2458,6 +2458,71 @@ RSpec.describe 'Administration' do
       fiche
       expect(page.at_css('.donnees-disponibles li.retiree')).to be_nil
     end
+
+    it 'supprime à la publication de la démarche chaque recommandation retirée, les autres cartes gardant leur ordre' do
+      premiere, derniere = %w[Bouquet Impôt].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche:, solution: Solution.create!(nom:, categorie: 'api'), niveau: :niveau_2, ordre:, visible: true) }
+      carte.update!(ordre: 2)
+      utile = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'API QF', categorie: 'api'), niveau: :niveau_1, visible: true)
+      [carte, utile].each { delete "/admin/recommandations/#{it.id}", params: { ligne: 1 } }
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(Recommandation.where(id: [carte.id, utile.id])).to be_empty
+      expect(cartes_publiques.map { it[/Bouquet|Impôt|Mes Aides/] }).to eq(%w[Bouquet Impôt])
+      expect([premiere, derniere].map { it.reload.brouillon }).to eq([nil, nil])
+      fiche
+      expect(encadre).to be_nil
+    end
+
+    it 'supprime à la publication la recommandation retirée que l’import a masquée entre-temps' do
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+      carte.update!(visible: false)
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      expect(Recommandation.exists?(carte.id)).to be(false)
+    end
+
+    it 'remet à l’abandon du brouillon chaque recommandation retirée, seule ou avec d’autres changements' do
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+      fiche
+      expect(encadre.css('button').map { it.text.squish }).to include('Abandonner le brouillon')
+
+      patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
+      expect(carte.reload.brouillon).to be_nil
+      expect(cartes_publiques.join).to include('Mes Aides')
+
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+      patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
+      expect([carte.reload.brouillon, demarche.reload.brouillon]).to eq([nil, nil])
+      fiche
+      expect(carte_de_la_fiche(carte)['class']).not_to include('retiree')
+    end
+
+    it 'supprime la recommandation retirée publiée depuis sa propre page, et oublie le retrait de celle qu’on y masque' do
+      autre = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Bouquet', categorie: 'api'), niveau: :niveau_2, visible: true)
+      [carte, autre].each { delete "/admin/recommandations/#{it.id}", params: { ligne: 1 } }
+
+      patch "/admin/recommandations/#{carte.id}", params: { recommandation: { visible: '1' } }
+      expect(response).to redirect_to('/admin/recommandations')
+      follow_redirect!
+      expect(response.body).to include('« Aides → Mes Aides (API) » supprimé.')
+      expect(Recommandation.exists?(carte.id)).to be(false)
+
+      patch "/admin/recommandations/#{autre.id}", params: { recommandation: { visible: '0' } }
+      expect(autre.reload.slice(:visible, :brouillon)).to eq('visible' => false, 'brouillon' => nil)
+      fiche
+      expect(carte_de_la_fiche(autre)['class']).not_to include('retiree')
+    end
+
+    it 'supprime tout de suite sur une démarche masquée, et la recommandation ajoutée au brouillon' do
+      ajoutee = Recommandation.new(demarche:, solution: Solution.create!(nom: 'Bouquet', categorie: 'api'), niveau: :niveau_2).tap { it.enregistrer({}) }
+      delete "/admin/recommandations/#{ajoutee.id}", params: { ligne: 1 }
+      expect(Recommandation.exists?(ajoutee.id)).to be(false)
+
+      demarche.update!(visible: false)
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+      expect(Recommandation.exists?(carte.id)).to be(false)
+    end
   end
 
   describe 'données utiles d’une démarche publiée' do
