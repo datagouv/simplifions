@@ -2903,6 +2903,38 @@ RSpec.describe 'Administration' do
       ])
     end
 
+    it 'se met à jour quand on ajoute une solution recommandée depuis la fiche' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } }
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
+
+      expect(flux['action']).to eq('replace')
+      expect(flux.at_css('section[aria-labelledby="a-la-publication"] li a.fr-link').text.squish).to eq("Solution recommandée ajoutée : #{api.libelle_admin}")
+      expect(flux.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to include('« Aides »')
+    end
+
+    it 'garde les filtres de la liste dans « Publier » après une recommandation ajoutée sur place' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } },
+        headers: { 'Referer' => "http://www.example.com/admin/demarches/#{demarche.id}/edit?q=Aides&etat=brouillon" }
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
+      publier = flux.at_css('form:has(button:contains("Publier"))')
+
+      expect(publier.css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
+
+      patch "/admin/recommandations/#{Recommandation.last.id}", params: { ligne: 1, recommandation: { ordre: '2' } }, headers: { 'Referer' => 'http://www.example.com/admin?q=%zz' }
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'garde les filtres de la liste dans « Publier » après une carte déplacée' do
+      cartes = %w[A B].map { Recommandation.create!(demarche:, solution: Solution.create!(nom: it, categorie: 'api'), niveau: :niveau_2, visible: true) }
+      fiche
+      deplacement = page.at_css("form#deplacement_recommandation_#{cartes.last.id}")
+      patch deplacement['action'], params: deplacement.css('input[type=hidden]').to_h { [it['name'], it['value']] }.merge('position' => '1'),
+        headers: { 'Referer' => "http://www.example.com/admin/demarches/#{demarche.id}/edit?q=Aides&etat=brouillon" }
+      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
+
+      expect(flux.at_css('form:has(button:contains("Publier"))').css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
+    end
+
     it 'publie depuis l’encadré' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
       fiche
