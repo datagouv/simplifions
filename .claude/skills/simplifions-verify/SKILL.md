@@ -21,11 +21,14 @@ Simplifions is a public catalogue (cas d'usages, solutions, articles) read by an
 Everything runs in Docker: Docker Desktop on a Mac (Apple silicon or Intel), Docker Engine on Linux. No Ruby, browser or driver is installed on the machine. Commands run from the root of the checkout being verified.
 
 1. Once per machine: `make install` (image, gems, database, Grist catalogue).
-2. Browsers, one container each, started on demand by the `verify` profile:
+2. Browsers, one container each, started on demand by the `verify` profile, once the machine has 3 GB of memory free: a pair of browsers and its drive take about 2 GB, and on a full machine they stall (`Net::ReadTimeout`, `Temporary failure in name resolution`, a browser `unhealthy`) and fail steps that pass alone. The `until` line waits on Linux; a Mac skips it.
 
    ```sh
+   until [ ! -r /proc/meminfo ] || awk '/MemAvailable/ { exit !($2 >= 3145728) }' /proc/meminfo; do sleep 30; done
    docker compose --profile verify up -d --wait chrome firefox
    ```
+
+   The same `until` line goes before each drive started while other checkouts drive too.
 
    It returns once both browsers accept sessions. `selenium/standalone-chromium` and `selenium/standalone-firefox` are published for arm64 and amd64: `uname -m` may print `arm64` or `x86_64`, the same command works. The first pull downloads about 2 GB.
 3. Database schema up to date: `docker compose run --rm web bin/rails db:prepare`.
@@ -90,6 +93,8 @@ Nobody else can open that folder. The agent gives the user, in its report, the p
 docker compose run --rm web bin/rails runner 'require "./.claude/skills/simplifions-verify/harness"; Verify.remove_admin'
 docker compose --profile verify stop chrome firefox
 ```
+
+Run it right after the last drive: idle browsers keep their memory. A worktree made only to drive is removed once its evidence is copied out, `bin/remove_worktree.sh <nom>` from the main checkout.
 
 Leave `tmp/verify/*/` in place. Each drive deletes what it creates, in its `ensure`; a drive killed midway can leave a `Vérif verify-map <browser>` row: remove it with `docker compose run --rm web bin/rails runner 'Vocabulaire.where("nom LIKE ?", "Vérif verify-map%").destroy_all'` (same for `Demarche` and `Solution`).
 
