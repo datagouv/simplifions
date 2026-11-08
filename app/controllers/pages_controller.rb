@@ -2,8 +2,13 @@ class PagesController < ApplicationController
   BESOINS_DE_CONTACT = %w[contenu nouveau-cas-usage modifier-cas-usage nouvelle-solution modifier-solution nouvel-article
                           modifier-article autre-contenu demarche-personnelle question-api probleme-site autre
                           donner-son-avis].freeze
+  GUIDES_DE_L_ACCUEIL = %w[guide-base-petites-collectivites anticiper-le-parcours-usager-avant-d-integrer-vos-api
+                           prerequis-et-etapes-integration-api].freeze
 
-  def home; end
+  def home
+    @guides = GUIDES_DE_L_ACCUEIL.map { |slug| Article.find(slug) }
+  end
+
   def about; end
   def doctrine_cas_usages; end
   def doctrine_solutions; end

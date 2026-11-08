@@ -134,6 +134,22 @@ RSpec.describe 'Pages' do
     end
   end
 
+  describe 'guides de la home' do
+    it 'met en avant trois guides après la présentation, avec un lien vers tous les articles' do
+      get root_path
+
+      section = response.parsed_body.at_css('section#guides')
+      expect(section.previous_element['id']).to eq('comment-vous-aider')
+      expect(section.at_css('h2').text.squish).to eq('Nos guides pour simplifier vos démarches')
+      expect(section.css('.fr-card__title a').pluck('href')).to eq(
+        ['/articles/guide-base-petites-collectivites',
+         '/articles/anticiper-le-parcours-usager-avant-d-integrer-vos-api',
+         '/articles/prerequis-et-etapes-integration-api']
+      )
+      expect(section.at_css('a[href="/articles"]').text.squish).to eq('Voir tous les articles')
+    end
+  end
+
   describe 'liens de la home et du pied de page' do
     it 'branche les cartes, les boutons et le footer sur le catalogue et les pages statiques' do
       get root_path

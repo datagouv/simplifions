@@ -161,7 +161,7 @@ RSpec.describe 'Matomo' do
       get root_path
 
       expect(response.parsed_body.css('[data-matomo-section]').pluck('data-matomo-section'))
-        .to eq(['Explorer le catalogue', 'Par public', 'Comment simplifions.data peut vous aider',
+        .to eq(['Explorer le catalogue', 'Par public', 'Comment simplifions.data peut vous aider', 'Nos guides',
                 'Comment est rédigé le contenu', 'Appel final'])
     end
 
