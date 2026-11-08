@@ -34,6 +34,27 @@ RSpec.describe 'SEO' do
       expect(response.body).not_to include('og:image')
     end
 
+    it 'décrit un article aux moteurs de recherche en données structurées' do
+      get article_path('guide-base-petites-collectivites')
+
+      donnees = JSON.parse(response.parsed_body.at_css('script[type="application/ld+json"]').text)
+      expect(donnees).to include(
+        '@context' => 'https://schema.org', '@type' => 'Article',
+        'headline' => 'Mairies et petites collectivités : simplifiez vos démarches en ligne',
+        'datePublished' => '2026-08-06', 'dateModified' => '2026-11-08',
+        'mainEntityOfPage' => 'http://www.example.com/articles/guide-base-petites-collectivites',
+        'publisher' => { '@type' => 'Organization', 'name' => 'Simplifions.data.gouv.fr', 'url' => 'http://www.example.com/' }
+      )
+      expect(donnees['description']).to start_with('Mairies et petites collectivités : évitez')
+      expect(donnees['image']).to match(%r{\Ahttp://www\.example\.com/assets/articles/image-guide-de-base-.+\.jpg\z})
+    end
+
+    it 'ne donne aucune donnée structurée hors des articles' do
+      get demarches_path
+
+      expect(response.parsed_body.css('script[type="application/ld+json"]')).to be_empty
+    end
+
     it 'titre une fiche par son seul title SEO, sans toucher au h1 ni à la description' do
       Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true, description_courte: 'Communes, simplifiez.',
         titre_seo: 'Tarif de cantine selon le quotient familial')
@@ -133,6 +154,7 @@ RSpec.describe 'SEO' do
         expect(response.body).to include("<loc>http://www.example.com#{chemin}</loc>"), chemin
       end
       expect(response.body).to include("<loc>http://www.example.com/demarches/cantine</loc>\n    <lastmod>2026-08-28</lastmod>")
+      expect(response.body).to include("<loc>http://www.example.com/articles/guide-base-petites-collectivites</loc>\n    <lastmod>2026-11-08</lastmod>")
       expect(response.body).not_to include('brouillon')
       expect(response.body).not_to include('Quotient')
 

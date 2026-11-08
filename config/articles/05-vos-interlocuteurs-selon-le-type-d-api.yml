@@ -5,6 +5,8 @@ description: >-
   Identifiez votre interlocuteur selon le type d'API que vous intégrez et
   selon votre situation.
 keywords: [API, Guide métier, DSI, MOA, Éditeur de logiciels]
+published_on: 2026-08-06
+updated_on: 2026-08-06
 hero_backdrop_gradient: "linear-gradient(135deg, #decdbd 0%, #e3e3fd 100%)"
 sections:
   types-api: Types d'API

@@ -1,4 +1,5 @@
-Article = Data.define(:slug, :h1, :title, :description, :image, :keywords, :hero_backdrop_gradient, :sections)
+Article = Data.define(:slug, :h1, :title, :description, :image, :keywords, :hero_backdrop_gradient, :sections,
+  :published_on, :updated_on)
 
 class Article
   KEYWORD_CATEGORIES = {
@@ -20,7 +21,7 @@ class Article
     ALL.select { |article| article.matches?(selected_keywords) }
   end
 
-  def initialize(image: nil, **attrs)
+  def initialize(image: nil, published_on: nil, updated_on: nil, **attrs)
     super
   end
 
@@ -46,6 +47,6 @@ class Article
   end
 
   ALL = Rails.root.glob('config/articles/*.yml')
-    .map { |path| new(**YAML.load_file(path).transform_keys(&:to_sym)) }
+    .map { |path| new(**YAML.load_file(path, permitted_classes: [Date]).transform_keys(&:to_sym)) }
     .freeze
 end

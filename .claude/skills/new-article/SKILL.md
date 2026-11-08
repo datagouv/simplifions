@@ -18,6 +18,8 @@ title: Balise <title> (SEO, peut différer du h1)
 description: >-
   Meta description (SEO) et texte de la carte sur l'index.
 keywords: [API, Guide métier, DSI]
+published_on: 2026-11-08   # date de publication
+updated_on: 2026-11-08     # dernière modification du texte (pas des changements techniques)
 hero_backdrop_gradient: "linear-gradient(135deg, #decdbd 0%, #d2e2f6 100%)"
 image: articles/mon-image.jpg   # optionnel, remplace le gradient sur la carte
 sections:
@@ -28,7 +30,8 @@ sections:
 - `keywords` : uniquement des valeurs de `Article::KEYWORD_CATEGORIES` (`app/models/article.rb`) — elles alimentent les filtres de l'index. Nouveau mot-clef = l'ajouter d'abord à la catégorie pertinente.
 - `hero_backdrop_gradient` : **toujours entre guillemets** (un `#` précédé d'un espace démarre un commentaire YAML).
 - `sections` : les clefs sont les `id` d'ancres, dans l'ordre de la page ; elles génèrent le sommaire. Chaque clef doit correspondre à un `ArticleSectionComponent(id:)` dans la vue.
-- `image` : fichier dans `app/assets/images/articles/`.
+- `image` : fichier dans `app/assets/images/articles/`. Elle sert aussi de visuel de partage (`og:image`) et d'image des données structurées.
+- `published_on` / `updated_on` : dates sans guillemets (`AAAA-MM-JJ`). `updated_on` alimente `<lastmod>` du `sitemap.xml` et `dateModified` des données structurées : la changer à chaque modification du texte.
 
 ## 2. Contenu — `app/views/articles/<slug_en_underscores>.html.erb`
 

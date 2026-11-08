@@ -21,6 +21,9 @@
     <% if image %>
       <meta property="og:image" content="<%= image %>">
     <% end %>
+    <% if @article %>
+      <script type="application/ld+json"><%= json_escape(donnees_structurees(@article, url: canonical, description:, image:).to_json).html_safe %></script>
+    <% end %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Simplifions">
