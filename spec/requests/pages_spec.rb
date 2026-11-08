@@ -60,7 +60,7 @@ RSpec.describe 'Pages' do
         'État' => '/demarches?fournisseurs-de-service=etat',
         'Acteurs du transport' => '/demarches?fournisseurs-de-service=acteurs-transport',
         "Acteurs de l'éducation et de l'enseignement" => '/demarches?fournisseurs-de-service=acteurs-education-enseignement',
-        'Guide de base pour les collectivités' => '/articles/guide-base-petites-collectivites',
+        'Guide de base des démarches en ligne pour les mairies' => '/articles/guide-base-petites-collectivites',
         "Qu'est-ce qu'une API ?" => '/articles/qu-est-ce-qu-une-api',
         "Prérequis et étapes d'intégration d'une API" => '/articles/prerequis-et-etapes-integration-api',
         'Sites de consultation en ligne' => '/solutions?categorie-de-solution=portail-consultation',
