@@ -109,6 +109,43 @@ RSpec.describe 'Demarches' do
       expect(Capybara.string(response.body).find('form.catalogue').find_button('Appliquer les filtres')[:type]).to eq('submit')
     end
 
+    it 'glisse le guide des mairies après la 3e démarche des communes, en première page seulement' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      Demarche.find_each { |demarche| demarche.update!(types_acteurs: [communes]) }
+      guide = '/articles/guide-base-petites-collectivites'
+
+      get demarches_path('fournisseurs-de-service' => 'communes')
+      resultats = response.parsed_body.css('#list > ul > li')
+      expect(resultats[3].text).to include('Vous êtes une mairie ou une petite collectivité ? Nous vous recommandons cet article :')
+      carte = resultats[3].at_css('.fr-card--horizontal')
+      expect(carte.at_css("h3 a[href='#{guide}']").text).to eq('Mairies et petites collectivités : simplifiez vos démarches en ligne')
+      expect(carte.text).to include('Guide de base')
+      expect(resultats.css("a[href='#{guide}']").size).to eq(1)
+      expect(resultats.css('.demarche-card').size).to eq(20)
+
+      get demarches_path('fournisseurs-de-service' => 'communes', page: 2)
+      expect(response.parsed_body.css("#list a[href='#{guide}']")).to be_empty
+    end
+
+    it 'ne glisse le guide des mairies ni sans filtre, ni pour les autres collectivités' do
+      get demarches_path
+      expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]')).to be_empty
+
+      get demarches_path('fournisseurs-de-service' => 'tout-collectivites-territoires')
+      expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]')).to be_empty
+    end
+
+    it 'glisse le guide des mairies après la dernière démarche quand il y en a moins de 3' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
+
+      get demarches_path('fournisseurs-de-service' => 'communes')
+
+      resultats = response.parsed_body.css('#list > ul > li')
+      expect(resultats.size).to eq(2)
+      expect(resultats.last.at_css('a[href="/articles/guide-base-petites-collectivites"]')).to be_present
+    end
+
     it 'ramène une page hors plage à la dernière, sans pagination quand tout tient sur une page' do
       get demarches_path(page: 2, q: 'Démarche 20')
 

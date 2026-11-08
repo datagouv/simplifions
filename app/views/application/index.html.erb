@@ -77,8 +77,19 @@
           </div>
 
           <ul class="list-none fr-p-0 fr-mt-1w">
-            <% @catalogue.each do |resultat| %>
+            <% position_du_guide = [@catalogue.size, 3].min %>
+            <% @catalogue.each.with_index(1) do |resultat, position| %>
               <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
+              <% if @guide && position == position_du_guide %>
+                <li class="fr-my-4w">
+                  <div class="fr-grid-row">
+                    <p class="fr-col-12 fr-col-md-10 fr-col-offset-md-1 fr-text--md fr-text--alt fr-mb-2w"><span class="fr-text--bold">Vous êtes une mairie ou une petite collectivité ?</span> Nous vous recommandons cet article :</p>
+                    <div class="fr-col-12 fr-col-md-10 fr-col-offset-md-1">
+                      <%= render ArticleCardComponent.new(article: @guide, horizontal: true) %>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
             <% end %>
           </ul>
           <%= pagination @catalogue, ApplicationController::FILTRES_CATALOGUE %>

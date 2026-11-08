@@ -45,6 +45,23 @@ RSpec.describe 'Solutions' do
       expect(response.parsed_body.css('main a[href="/#redaction-contenu"]')).to be_empty
     end
 
+    it 'glisse le guide des mairies après la 3e solution des communes' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      4.times do |i|
+        Solution.create!(nom: "Logiciel #{i}", categorie: 'logiciel_metier_cle_en_main', slug: "logiciel-#{i}",
+          visible: true, types_acteurs: [communes])
+      end
+
+      get solutions_path('fournisseurs-de-service' => 'communes')
+
+      resultats = response.parsed_body.css('#list > ul > li')
+      expect(resultats.size).to eq(5)
+      expect(resultats[3].at_css('a[href="/articles/guide-base-petites-collectivites"]')).to be_present
+
+      get solutions_path
+      expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]')).to be_empty
+    end
+
     it 'garde le titre des filtres pour les lecteurs d’écran seulement' do
       get solutions_path
 

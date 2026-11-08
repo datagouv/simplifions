@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   FACETTES_CATALOGUE = %w[fournisseurs-de-service target-users categorie-de-solution
                           types-de-simplification].freeze
   FILTRES_CATALOGUE = [:q, :sort, *FACETTES_CATALOGUE].freeze
+  GUIDE_DES_COMMUNES = 'guide-base-petites-collectivites'.freeze
 
   private
 
@@ -16,6 +17,10 @@ class ApplicationController < ActionController::Base
         filtres[facette] = filtres[facette].delete_prefix("simplifions-v2-#{facette}-") if filtres[facette]
       end
     end
+  end
+
+  def guide_du_catalogue
+    Article.find(GUIDE_DES_COMMUNES) if @filtres['fournisseurs-de-service'] == 'communes' && @catalogue.first_page?
   end
   stale_when_importmap_changes
 end
