@@ -63,6 +63,11 @@ RSpec.describe 'Articles' do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include(ERB::Util.html_escape(article.h1))
       end
+
+      it "écrit sans faute « Dites-le-nous une fois » dans #{article.slug}" do
+        get article_path(article.slug)
+        expect(response.body).not_to match(/dîtes/i)
+      end
     end
 
     it 'liste dans l’article FranceConnectées les API visibles marquées FranceConnectée, dans l’ordre Grist' do
