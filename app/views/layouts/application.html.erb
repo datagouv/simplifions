@@ -4,7 +4,8 @@
     <% titre = content_for(:titre_seo).presence || safe_join([content_for(:title) || @article&.title, "Simplifions.data.gouv.fr"].compact, " | ")
        description = (CGI.unescapeHTML(content_for(:description).to_s).presence || @article&.description)&.truncate(155, separator: " ", omission: "…") ||
          "Simplifiez les démarches et services des citoyens, entreprises et associations en récupérant pour eux leurs informations administratives grâce aux API et aux données de l'État."
-       canonical = response.not_found? ? request.original_url : url_for(only_path: false) %>
+       canonical = response.not_found? ? request.original_url : url_for(only_path: false)
+       image = content_for(:image).presence || (image_url(@article.image) if @article&.image) %>
     <title><%= titre %></title>
     <meta name="description" content="<%= description %>">
     <% if content_for?(:robots) %>
@@ -17,8 +18,8 @@
     <meta property="og:title" content="<%= titre %>">
     <meta property="og:description" content="<%= description %>">
     <meta property="og:url" content="<%= canonical %>">
-    <% if content_for?(:image) %>
-      <meta property="og:image" content="<%= content_for(:image) %>">
+    <% if image %>
+      <meta property="og:image" content="<%= image %>">
     <% end %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">

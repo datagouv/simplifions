@@ -26,6 +26,14 @@ RSpec.describe 'SEO' do
       expect(response.body).to match(%r{<meta property="og:image" content="http://www\.example\.com/rails/active_storage/[^"]+/babily\.png">})
     end
 
+    it 'donne à un article son image comme visuel de partage, et rien à un article sans image' do
+      get article_path('guide-base-petites-collectivites')
+      expect(response.body).to match(%r{<meta property="og:image" content="http://www\.example\.com/assets/articles/image-guide-de-base-collectivites-guichet-mairie-2-\h+\.jpg">})
+
+      get article_path('qu-est-ce-qu-une-api')
+      expect(response.body).not_to include('og:image')
+    end
+
     it 'titre une fiche par son seul title SEO, sans toucher au h1 ni à la description' do
       Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true, description_courte: 'Communes, simplifiez.',
         titre_seo: 'Tarif de cantine selon le quotient familial')
