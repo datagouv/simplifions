@@ -36,7 +36,7 @@ Preconditions: logged in; the drive mutates then puts back every recommandation 
 
 ## Gotchas
 
-- Firefox ignores Capybara's `drag_to` on SortableJS: the drive falls back to Selenium actions (`click_and_hold`, `move_to`, `release`), as `ordre-api-fournies.rb` does. Actions need both handles in the viewport: the drive drags the second card onto the first, scrolled to the centre.
+- Firefox ignores Capybara's `drag_to` on SortableJS: `Verify.glisser` (harness.rb) falls back to Selenium actions (`click_and_hold`, `move_to`, `release`) for every drag of the map. Actions need both handles in the viewport: the drive drags the second card onto the first, scrolled to the centre.
 - A modal button needs `data-fr-opened` for DSFR; a turbo-stream that replaces the button of an open window closes it. The windows of the cards close on `Enregistrer` (`aria-controls`) before the stream lands; the données utiles window stays open because its button and its lines are updated in place.
 - Each answer writes its message in the zone that acted (`#message-recommandations` for the cards, `#message-donnees-utiles` for the window) and empties the other: a check waits for the message naming its own solution, never for any message.
 - Reordering writes the order of every card of the démarche (in its draft when it is published): the drive saves every recommandation's `ordre` and `brouillon` first and puts them back in its `ensure`.

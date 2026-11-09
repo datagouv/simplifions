@@ -3113,6 +3113,48 @@ RSpec.describe 'Administration' do
       ])
     end
 
+    it 'résume en une ligne l’ordre des solutions recommandées, même quand chaque déplacement décale plusieurs cartes' do
+      cartes = %w[A B C D].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche:, solution: Solution.create!(nom:, categorie: 'api'), niveau: :niveau_2, ordre:, visible: true) }
+      patch "/admin/recommandations/#{cartes.last.id}/position", params: { position: 1 }, as: :turbo_stream
+      patch "/admin/recommandations/#{cartes.first.id}/position", params: { position: 4 }, as: :turbo_stream
+      fiche
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 1 changement partira')
+      expect(lignes).to eq([['Ordre des solutions recommandées modifié', '#bloc-solutions-recommandees']])
+      expect(page.at_css('#bloc-solutions-recommandees')).to be_present
+    end
+
+    it 'résume en une ligne l’ordre des données utiles' do
+      utiles = %w[A B C].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche:, solution: Solution.create!(nom:, categorie: 'api'), niveau: :niveau_1, ordre:, visible: true) }
+      { utiles.first => '3', utiles.last => '1' }.each do |utile, ordre|
+        patch "/admin/recommandations/#{utile.id}", params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { niveau: 'niveau_1', ordre: } }
+      end
+      fiche
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 1 changement partira')
+      expect(lignes).to eq([['Ordre des données utiles modifié', '#bloc-donnees-disponibles']])
+    end
+
+    it 'garde la ligne d’une solution recommandée déplacée et modifiée' do
+      cartes = %w[A B].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche:, solution: Solution.create!(nom:, categorie: 'api'), niveau: :niveau_2, ordre:, visible: true) }
+      patch "/admin/recommandations/#{cartes.last.id}/position", params: { position: 1 }, as: :turbo_stream
+      cartes.last.reload.enregistrer('description' => 'Nouvelle description')
+      fiche
+
+      expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 2 changements partiront')
+      expect(lignes).to contain_exactly(["Solution recommandée modifiée : #{cartes.last.solution.libelle_admin}", "#recommandation_#{cartes.last.id}"],
+        ['Ordre des solutions recommandées modifié', '#bloc-solutions-recommandees'])
+    end
+
+    it 'ne compte qu’« ajoutée » pour une solution recommandée ajoutée puis changée de position, sa position faisant partie de l’ajout' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } }
+      patch "/admin/recommandations/#{Recommandation.last.id}", params: { ligne: 1, recommandation: { ordre: '2' } }
+      fiche
+
+      expect(Recommandation.last.brouillon).to include('ordre' => '2')
+      expect(lignes.map(&:first)).to eq(["Solution recommandée ajoutée : #{api.libelle_admin}"])
+    end
+
     it 'se met à jour quand on ajoute une solution recommandée depuis la fiche' do
       post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } }
       flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
