@@ -34,23 +34,36 @@ def entree_contenu(page, debut)
   Verify.evidence(DOSSIER, page, '2-entree-contenu', "hash=#{hash} focus_suivant=#{suivant.first} dans_main=#{suivant.last}")
 end
 
-def fleches(page)
+def tabulation_etiquettes(page)
   page.visit('/demarches')
   debut = origine(page)
-  usagers = page.find_field('Démarches à destination des :')
-  usagers.send_keys(:down, :down, :down)
-  choisi = usagers.value
-  raise "flèches : valeur=#{choisi.inspect}, rechargée=#{origine(page) != debut}" if choisi.blank? || origine(page) != debut
+  groupe = page.find(:xpath, "//p[normalize-space()='Démarches à destination des :']/following-sibling::ul[1]")
+  groupe.all('button').first.send_keys(:tab)
+  vise = page.evaluate_script('document.activeElement.textContent.trim()')
+  raise "Tab : focus=#{vise.inspect}, rechargée=#{origine(page) != debut}" unless vise == groupe.all('button')[1].text && origine(page) == debut
 
   page.assert_current_path('/demarches')
-  Verify.evidence(DOSSIER, page, '3-fleches-sans-rechargement', "valeur=#{choisi} meme_page=true")
-  choisi
+  Verify.evidence(DOSSIER, page, '3-tab-sans-rechargement', "focus=#{vise} meme_page=true")
+  vise
 end
 
-def appliquer(page, choisi)
-  page.click_button 'Appliquer les filtres'
-  page.assert_current_path(/target-users=#{choisi}/, url: false)
-  Verify.evidence(DOSSIER, page, '4-appliquer', "url=#{page.current_url[/\?.*/]}")
+def entree_etiquette(page, vise)
+  page.send_keys(:enter)
+  page.assert_selector('button[aria-pressed=true]', text: vise.sub(/ \(\d+\)\z/, ''))
+  page.assert_selector('#resultats', focused: true)
+  Verify.evidence(DOSSIER, page, '4-entree-etiquette', "url=#{page.current_url[/\?.*/]} focus=resultats")
+end
+
+def afficher_plus_au_clavier(page)
+  page.visit('/demarches')
+  debut = origine(page)
+  deplier = page.find('summary', text: 'Afficher les 5 autres')
+  deplier.send_keys(:enter)
+  page.assert_selector('details[open] > summary', text: 'Afficher les 5 autres')
+  page.assert_selector(:button, text: /\ATous les acteurs publics \(/)
+  raise 'Entrée a rechargé la page' unless origine(page) == debut
+
+  Verify.evidence(DOSSIER, page, '5-afficher-plus', 'ouvert=true meme_page=true')
 end
 
 def compteur(page) = page.find('[role=status]', text: 'disponible').text
@@ -150,10 +163,11 @@ end
 
 Verify.drive(__FILE__) do |page|
   Verify.check('Contenu') { entree_contenu(page, premier_tab(page)) }
-  Verify.check('Flèches') { appliquer(page, fleches(page)) }
+  Verify.check('Étiquettes') { entree_etiquette(page, tabulation_etiquettes(page)) }
+  Verify.check('Afficher plus') { afficher_plus_au_clavier(page) }
   Verify.check('Compteur') { clavier_compteur(page) }
   Verify.check('Endpoints') { clavier_endpoints(page) }
   Verify.check('Sirene') { clavier_sirene(page) }
   Verify.check('Emoji muets') { emoji_muets(page) }
-  Verify.check('Proof') { Verify.captures_presentes(DOSSIER, %w[1-premier-tab 2-entree-contenu 3-fleches-sans-rechargement 4-appliquer 5-compteur 6-endpoints 7-sirene 8-emoji-muets]) }
+  Verify.check('Proof') { Verify.captures_presentes(DOSSIER, %w[1-premier-tab 2-entree-contenu 3-tab-sans-rechargement 4-entree-etiquette 5-afficher-plus 5-compteur 6-endpoints 7-sirene 8-emoji-muets]) }
 end
