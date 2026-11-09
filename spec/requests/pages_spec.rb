@@ -60,7 +60,7 @@ RSpec.describe 'Pages' do
         'État' => '/demarches?fournisseurs-de-service=etat',
         'Acteurs du transport' => '/demarches?fournisseurs-de-service=acteurs-transport',
         "Acteurs de l'éducation et de l'enseignement" => '/demarches?fournisseurs-de-service=acteurs-education-enseignement',
-        'Guide de base pour les collectivités' => '/articles/guide-base-petites-collectivites',
+        'Guide de base des démarches en ligne pour les mairies' => '/articles/guide-base-petites-collectivites',
         "Qu'est-ce qu'une API ?" => '/articles/qu-est-ce-qu-une-api',
         "Prérequis et étapes d'intégration d'une API" => '/articles/prerequis-et-etapes-integration-api',
         'Sites de consultation en ligne' => '/solutions?categorie-de-solution=portail-consultation',
@@ -131,6 +131,22 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('<option value="communes">Communes et groupements de communes</option>')
       expect(response.parsed_body.at_css('form.explorateur button[type=submit]').text.squish).to eq('Explorer les démarches référencées')
       expect(response.body).not_to include('href="#" class="fr-btn fr-btn--icon-right fr-icon-search-line"')
+    end
+  end
+
+  describe 'guides de la home' do
+    it 'met en avant trois guides après la présentation, avec un lien vers tous les articles' do
+      get root_path
+
+      section = response.parsed_body.at_css('section#guides')
+      expect(section.previous_element['id']).to eq('comment-vous-aider')
+      expect(section.at_css('h2').text.squish).to eq('Nos guides pour simplifier vos démarches')
+      expect(section.css('.fr-card__title a').pluck('href')).to eq(
+        ['/articles/guide-base-petites-collectivites',
+         '/articles/anticiper-le-parcours-usager-avant-d-integrer-vos-api',
+         '/articles/prerequis-et-etapes-integration-api']
+      )
+      expect(section.at_css('a[href="/articles"]').text.squish).to eq('Voir tous les articles')
     end
   end
 

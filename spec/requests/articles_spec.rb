@@ -44,14 +44,14 @@ RSpec.describe 'Articles' do
       retrait = page.find('a.fr-tag[aria-pressed="true"]')
       expect([retrait['data-matomo-action'], retrait['data-matomo-nom']]).to eq(['Retirer un mot-clé', 'Guide de base'])
       expect(page.first('a.fr-tag[aria-pressed="false"]')['data-matomo-action']).to eq('Filtrer par mot-clé')
-      carte = page.find_link('Guide de base pour les petites collectivités')
+      carte = page.find_link('Mairies et petites collectivités : simplifiez vos démarches en ligne')
       expect([carte['data-matomo-action'], carte['data-matomo-nom']])
-        .to eq(['Ouvrir un article', 'Guide de base pour les petites collectivités'])
+        .to eq(['Ouvrir un article', 'Mairies et petites collectivités : simplifiez vos démarches en ligne'])
     end
 
     it 'filtre par mot-clef' do
       get articles_path(keywords: 'Guide de base')
-      expect(response.body).to include('Guide de base pour les petites collectivités')
+      expect(response.body).to include('Mairies et petites collectivités : simplifiez vos démarches en ligne')
       expect(response.body).not_to include('Les API FranceConnectées</a>')
     end
   end
@@ -62,6 +62,11 @@ RSpec.describe 'Articles' do
         get article_path(article.slug)
         expect(response).to have_http_status(:ok)
         expect(response.body).to include(ERB::Util.html_escape(article.h1))
+      end
+
+      it "écrit sans faute « Dites-le-nous une fois » dans #{article.slug}" do
+        get article_path(article.slug)
+        expect(response.body).not_to match(/dîtes/i)
       end
     end
 
@@ -184,6 +189,19 @@ RSpec.describe 'Articles' do
       expect(marches.css('.fr-card__detail')).to be_empty
       expect(page.css('.carousel-track').text).to include('Pour simplifier les démarches')
       expect(page.css('.carousel-track').text).not_to include('À destination')
+    end
+
+    it 'reprend dans le guide des mairies les mots que les agents cherchent sur Google' do
+      get article_path('guide-base-petites-collectivites')
+      page = Capybara.string(response.body)
+
+      expect(page).to have_title('Démarches en ligne des mairies : portails et logiciels | Simplifions.data.gouv.fr')
+      expect(page).to have_css('h1', text: 'Mairies et petites collectivités : simplifiez vos démarches en ligne')
+      expect(page.find('meta[name="description"]', visible: false)['content'])
+        .to start_with('Mairies et petites collectivités : évitez de redemander leurs justificatifs aux usagers')
+      expect(page).to have_css('h2', text: 'À vérifier dès maintenant dans votre mairie')
+      expect(page).to have_css('h2', text: 'Logiciels de gestion des collectivités : les données auxquelles vous avez déjà accès')
+      expect(page).to have_css('h3', text: 'Une opportunité accessible aux mairies et petites collectivités')
     end
 
     it 'renvoie vers la section « Parcours alternatifs » sans coquille' do

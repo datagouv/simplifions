@@ -187,6 +187,25 @@
   </div>
 </section>
 
+<section data-matomo-section="Nos guides" id="guides" class="fr-py-6w fr-my-6w" style="background-color: var(--background-alt-grey)"
+  data-matomo-zone="Accueil › Nos guides">
+  <div class="fr-container fr-px-6w">
+    <h2 class="fr-h3 font-light fr-mb-4w">Nos guides pour simplifier vos démarches</h2>
+    <div class="fr-grid-row fr-grid-row--gutters">
+      <% @guides.each do |article| %>
+        <div class="fr-col-12 fr-col-md-6 fr-col-lg-4">
+          <%= render ArticleCardComponent.new(article: article) %>
+        </div>
+      <% end %>
+    </div>
+    <div class="fr-grid-row fr-grid-row--right fr-mt-4w">
+      <%= link_to "Voir tous les articles", articles_path,
+            class: "fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-arrow-right-line",
+            data: { matomo_action: "Voir tous les articles" } %>
+    </div>
+  </div>
+</section>
+
 <section data-matomo-section="Comment est rédigé le contenu" id="redaction-contenu" data-matomo-zone="Accueil › Rédaction du contenu">
   <div class="fr-grid-row">
     <div class="fr-col-12 fr-col-md-6 double-section__col-left" style="background-color: var(--background-alt-blue-france)">

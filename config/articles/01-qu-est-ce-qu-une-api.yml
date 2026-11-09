@@ -6,10 +6,12 @@ description: >-
   permettent aux administrations d'échanger des données pour simplifier les
   démarches des entreprises, associations et particuliers.
 keywords: [API, Définition, Petite collectivité, MOA]
+published_on: 2026-08-06
+updated_on: 2026-11-08
 hero_backdrop_gradient: "linear-gradient(135deg, #decdbd 0%, #d2e2f6 100%)"
 sections:
   definition: Qu'est-ce qu'une API ?
-  administration: API et Dîtes-le nous une fois
+  administration: API et Dites-le-nous une fois
   demonstrateur: Démonstrateur
   donnees-utilisees-par-l-api: Données utilisées par l'API
   api-entreprise-particulier: Les API clés pour la simplification

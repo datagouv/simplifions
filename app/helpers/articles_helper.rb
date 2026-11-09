@@ -9,6 +9,15 @@ module ArticlesHelper
     DemarcheCardComponent.pour(demarche, description: nil, **retouches) if demarche
   end
 
+  def donnees_structurees(article, url:, description:, image:)
+    {
+      '@context': 'https://schema.org', '@type': 'Article', headline: article.h1, description:, image:,
+      datePublished: article.published_on&.iso8601, dateModified: article.updated_on&.iso8601,
+      mainEntityOfPage: url, inLanguage: 'fr-FR',
+      publisher: { '@type': 'Organization', name: 'Simplifions.data.gouv.fr', url: root_url }
+    }.compact
+  end
+
   private
 
   def fiche_citee(modele, nature, slug)

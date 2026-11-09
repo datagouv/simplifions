@@ -5,6 +5,8 @@ description: >-
   API délivrant des données publiques ou protégées : ce guide détaille les
   parcours usager possibles pour intégrer une API.
 keywords: [API, Parcours usager, Guide métier, DSI, MOA, Éditeur de logiciels]
+published_on: 2026-08-06
+updated_on: 2026-09-18
 hero_backdrop_gradient: "linear-gradient(135deg, #decdbd 0%, #cfe0ef 100%)"
 sections:
   parcours-donnees-publiques: Parcours avec données publiques

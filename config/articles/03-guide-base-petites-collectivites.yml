@@ -1,13 +1,14 @@
 slug: guide-base-petites-collectivites
-h1: Guide de base pour les petites collectivités
-title: "Petites communes : un guide pour simplifier vos démarches"
+h1: "Mairies et petites collectivités : simplifiez vos démarches en ligne"
+title: "Démarches en ligne des mairies : portails et logiciels"
 description: >-
-  Petites collectivités, simplifiez vos démarches administratives sans
-  développement : portails publics gratuits et logiciels éditeurs déjà
-  raccordés aux données vous permettent d'éviter de les redemander aux
-  usagers.
+  Mairies et petites collectivités : évitez de redemander leurs justificatifs
+  aux usagers grâce aux portails publics gratuits et aux logiciels de
+  gestion raccordés aux données.
 image: articles/image-guide-de-base-collectivites-guichet-mairie-2.jpg
 keywords: [Guide de base, Petite collectivité]
+published_on: 2026-08-06
+updated_on: 2026-11-08
 hero_backdrop_gradient: "linear-gradient(135deg, #34BAB5 0%, #d2e2f6 100%)"
 sections:
   definition: Simplifier par la donnée, définition
