@@ -31,8 +31,8 @@ class Demarche < ApplicationRecord
 
   TRIS = { '-created' => { cree_le: :desc }, '-last_modified' => { modifie_le: :desc } }.freeze
 
-  scope :pour_vocabulaire, ->(slug) { where(id: Demarche.joins(:vocabulaires).where(vocabulaires: { slug: })) if slug.present? }
-  scope :pour_acteur, ->(slug) { where(id: Demarche.joins(:types_acteurs).where('? = ANY(types_acteurs.slugs)', slug)) if slug.present? }
+  scope :pour_vocabulaire, ->(slugs) { where(id: Demarche.joins(:vocabulaires).where(vocabulaires: { slug: slugs.to_s.split(',') })) if slugs.present? }
+  scope :pour_acteur, ->(slugs) { where(id: Demarche.joins(:types_acteurs).where('types_acteurs.slugs && ARRAY[?]::varchar[]', slugs.to_s.split(','))) if slugs.present? }
 
   def self.catalogue(params)
     visibles.pour_vocabulaire(params['target-users']).pour_vocabulaire(params['types-de-simplification'])

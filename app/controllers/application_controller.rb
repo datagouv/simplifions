@@ -14,13 +14,13 @@ class ApplicationController < ActionController::Base
   def filtres_catalogue
     params.permit(*FILTRES_CATALOGUE).tap do |filtres|
       FACETTES_CATALOGUE.each do |facette|
-        filtres[facette] = filtres[facette].delete_prefix("simplifions-v2-#{facette}-") if filtres[facette]
+        filtres[facette] = filtres[facette].split(',').map { it.delete_prefix("simplifions-v2-#{facette}-") }.join(',') if filtres[facette]
       end
     end
   end
 
   def guide_du_catalogue
-    Article.find(GUIDE_DES_COMMUNES) if @filtres['fournisseurs-de-service'] == 'communes' && @catalogue.first_page?
+    Article.find(GUIDE_DES_COMMUNES) if @filtres['fournisseurs-de-service'].to_s.split(',').include?('communes') && @catalogue.first_page?
   end
   stale_when_importmap_changes
 end

@@ -135,6 +135,15 @@ RSpec.describe 'Demarches' do
       expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]')).to be_empty
     end
 
+    it 'garde le guide des mairies quand les communes sont choisies avec d’autres acteurs' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
+
+      get demarches_path('fournisseurs-de-service' => 'departements,communes')
+
+      expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]').size).to eq(1)
+    end
+
     it 'glisse le guide des mairies après la dernière démarche quand il y en a moins de 3' do
       communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
       Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
