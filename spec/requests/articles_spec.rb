@@ -41,12 +41,24 @@ RSpec.describe 'Articles' do
       page = Capybara.string(response.body)
 
       expect(page.find('.fr-container[data-matomo-zone]')['data-matomo-zone']).to eq('Articles › Liste')
-      retrait = page.find('a.fr-tag[aria-pressed="true"]')
-      expect([retrait['data-matomo-action'], retrait['data-matomo-nom']]).to eq(['Retirer un mot-clé', 'Guide de base'])
-      expect(page.first('a.fr-tag[aria-pressed="false"]')['data-matomo-action']).to eq('Filtrer par mot-clé')
+      retrait = page.find('button.fr-tag[aria-pressed="true"]')
+      expect([retrait['data-matomo-action'], retrait['data-matomo-fermeture'], retrait['data-matomo-nom']])
+        .to eq(['Filtrer par mot-clé', 'Retirer un mot-clé', 'Guide de base'])
       carte = page.find_link('Mairies et petites collectivités : simplifiez vos démarches en ligne')
       expect([carte['data-matomo-action'], carte['data-matomo-nom']])
         .to eq(['Ouvrir un article', 'Mairies et petites collectivités : simplifiez vos démarches en ligne'])
+    end
+
+    it 'fait des mots-clefs des tags sélectionnables DSFR, boutons du formulaire qui remonte au titre' do
+      get articles_path(keywords: 'Guide de base')
+      formulaire = Capybara.string(response.body).find('form[action="/articles"][method=get]')
+
+      expect(formulaire['data-controller']).to eq('filtres-catalogue')
+      choisi = formulaire.find_button('Guide de base (1)')
+      expect([choisi[:type], choisi[:name], choisi[:value], choisi['aria-pressed']]).to eq(['submit', 'keywords', '', 'true'])
+      ajout = formulaire.find(:button, text: /\AGuide technique \(\d+\)\z/)
+      expect([ajout[:value], ajout['aria-pressed']]).to eq(['Guide de base,Guide technique', 'false'])
+      expect(formulaire).to have_no_css('a.fr-tag')
     end
 
     it 'filtre par mot-clef' do

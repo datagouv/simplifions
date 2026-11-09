@@ -6,6 +6,9 @@
 
   <div class="fr-grid-row fr-grid-row--gutters">
     <aside class="fr-col-12 fr-col-lg-3">
+      <%= form_with url: articles_path, method: :get,
+            data: { controller: "filtres-catalogue",
+                    action: "submit->filtres-catalogue#retenir formdata->filtres-catalogue#nettoyer turbo:before-fetch-request->filtres-catalogue#nettoyer" } do |f| %>
       <% Article::KEYWORD_CATEGORIES.each do |category, category_keywords| %>
         <div class="fr-mb-3w">
           <p class="fr-text--bold fr-mb-1w"><%= category %></p>
@@ -20,14 +23,15 @@
                 <% if count.zero? && !selected %>
                   <button type="button" class="fr-tag" disabled><%= keyword %> (0)</button>
                 <% else %>
-                  <%= link_to articles_path(keywords: toggled.any? ? toggled.join(",") : nil),
-                        class: "fr-tag", "aria-pressed": selected.to_s,
-                        data: { matomo_action: selected ? "Retirer un mot-clé" : "Filtrer par mot-clé", matomo_nom: keyword } do %><%= keyword %> (<%= count %>)<% end %>
+                  <%= f.button "#{keyword} (#{count})", name: "keywords", value: toggled.join(","),
+                        class: "fr-tag", aria: { pressed: selected },
+                        data: { matomo_action: "Filtrer par mot-clé", matomo_fermeture: "Retirer un mot-clé", matomo_nom: keyword } %>
                 <% end %>
               </li>
             <% end %>
           </ul>
         </div>
+      <% end %>
       <% end %>
     </aside>
 
