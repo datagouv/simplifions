@@ -148,7 +148,17 @@ def retrait_barre(page, demarche, reco)
   publique = cartes_publiques(page, demarche.slug).join
   raise 'retrait déjà en ligne' unless publique.include?(reco.solution.nom) && lu { Recommandation.exists?(reco.id) }
 
+  panneau_du_retrait(page, reco)
   page.visit("/admin/demarches/#{demarche.id}/edit")
+end
+
+def panneau_du_retrait(page, reco)
+  page.visit("/admin/recommandations/#{reco.id}/edit")
+  panneau = page.find(PANNEAU)
+  vu = [panneau.all('.fr-badge').map { it.text.squish.downcase }, panneau.has_text?('Brouillon du'), panneau.has_button?('Abandonner le brouillon')]
+  raise "panneau de la recommandation retirée : #{vu}" unless vu == [['publiée', 'retirée · à publier'], true, true]
+
+  Verify.evidence(DOSSIER, page, 'retrait-panneau', "panneau=#{vu}")
 end
 
 def retrait_remis(page, reco)

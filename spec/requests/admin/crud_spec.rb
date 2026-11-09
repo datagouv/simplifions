@@ -2382,6 +2382,16 @@ RSpec.describe 'Administration' do
       expect(cartes_publiques.join).to include('Mes Aides')
     end
 
+    it 'annonce « Retirée · à publier » dans l’encadré de la page de la recommandation retirée, à la place du brouillon à publier' do
+      delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
+
+      get "/admin/recommandations/#{carte.id}/edit"
+      etat = page.at_css(ETAT_DE_LA_FICHE)
+      expect(etat.css('.fr-badge').map { it.text.squish }).to eq(['Publiée', 'Retirée · à publier'])
+      expect(etat.at_css('.fr-badge--warning').text.squish).to eq('Retirée · à publier')
+      expect(etat.text.squish).to include('Brouillon du', 'Abandonner le brouillon')
+    end
+
     it 'cache de la prévisualisation la solution recommandée retirée' do
       autre = Recommandation.create!(demarche:, solution: Solution.create!(nom: 'Bouquet', categorie: 'api'), niveau: :niveau_2, visible: true)
       delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
