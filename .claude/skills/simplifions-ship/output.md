@@ -1,6 +1,6 @@
 # Output templates
 
-`<compare link>` is `https://github.com/datagouv/simplifions/compare/<branch>?expand=1`, with the full git branch name: the user opens it in a browser and pastes the title and body to open the PR.
+With `gh` logged in, the agent has opened the PR (`simplifions-commit/pull-request.md` § Opening it): each `Open the PR…:` line becomes `PR: <PR link>`, with no `Title:` and no `Body:`. Otherwise `<compare link>` is `https://github.com/datagouv/simplifions/compare/<branch>?expand=1`, with the full git branch name: the user opens it in a browser and pastes the title and body to open the PR.
 
 ### When resuming:
 ```

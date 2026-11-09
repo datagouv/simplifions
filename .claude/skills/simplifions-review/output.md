@@ -89,5 +89,5 @@ When the user asks for the review on a PR, give one block of text, all in French
 
 When the review holds a capture, its captures go in one PR comment of their own, right after the pasted review, all in French: per finding `[n]. [constat]` and its captures, the ask's under `Demande réalisée :`. The text holds no local path (`tmp/verify/…`): the PR's reader cannot open it, and it is gone with the worktree. A review with no capture has no such comment.
 
-- **`gh auth status` says logged in**: once the user says the review is on the PR, the agent posts this comment with the `gh-image` skill, which turns each capture into an image hosted on GitHub. It is the agent's only post on the PR.
+- **`gh auth status` says logged in**: once the user says the review is on the PR, the agent posts this comment with the `gh-image` skill, which turns each capture into an image hosted on GitHub.
 - **Otherwise**: the agent gives the comment's text to paste, and, outside that text, the local path of each capture under its finding's number; the user attaches each capture to the comment by hand.
