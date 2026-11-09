@@ -27,6 +27,7 @@ Preconditions: logged in, no row named `Vérif verify-map <browser>`.
 - **Create.** `/admin/types_acteurs/new`, name, tick `Régions` and `Tous les acteurs publics`, save: lands on the read page, slugs read back.
 - **Untick.** `Modifier`, untick `Régions`, save: base slugs `tout-acteurs-publics`, list column says `Tous les acteurs publics`.
 - **Delete.** From the edit page: `« <nom> » supprimé.`, `reste_en_base=0`.
+- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-fournisseurs-de-services/`.
 
 ## Gotchas
 

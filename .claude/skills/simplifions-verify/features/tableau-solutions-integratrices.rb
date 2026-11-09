@@ -18,6 +18,7 @@ def en_lignes(listes) = listes.map { it.join(', ') }.join(' | ')
 def en_annonces(annonces) = annonces.map { it.join(' / ') }.join(' || ')
 
 def trier_par(page, panneau, choix, attendu, etape)
+  page.scroll_to(panneau.find_field('Trier par :'), align: :center)
   panneau.select(choix, from: 'Trier par :')
   affichees = listes_affichees(panneau)
   raise "#{etape} : #{affichees.inspect} != #{attendu.inspect}" unless affichees == attendu

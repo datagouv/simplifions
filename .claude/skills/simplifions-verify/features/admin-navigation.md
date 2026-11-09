@@ -18,12 +18,17 @@ Under `/admin`, the header's navigation bar (`Menu de l’administration`) has f
 
 Drive: `features/admin-navigation.rb` (SKILL.md § Drive).
 
-Read-only.
+Read-only. Preconditions: logged in, catalogue imported (at least one solution).
 
 - **Tableau de bord.** `/admin`: the admin bar shows À reprendre, Démarches, Solutions, Référentiels in order, À reprendre `page`; no `Menu principal`.
+- **Rubrique.** Click `Solutions` in the bar: `/admin/solutions`, `Solutions` is `page`. Open a solution's edit page, then its history: `Solutions` is `true`.
 - **Référentiels.** Click the button Référentiels: the sub-menu shows Organisations, Fournisseurs de services, Vocabulaires; click Organisations: `/admin/organisations`, Référentiels `true`, Organisations `page`.
 - **Hors menu.** `/admin/recommandations` answers, no entry marked.
-- **Rubrique.** Click `Solutions` in the bar: `/admin/solutions`, `Solutions` is `page`. Open a solution's edit page, then its history: `Solutions` is `true`.
 - **Mobile.** At 375 px, `Menu` opens the modal with the four entries; Référentiels, then `Vocabulaires`, leads to `/admin/vocabulaires`, current; no horizontal scroll.
 - **Site public.** `/` as a logged-in admin: `Menu principal` only.
 - **Proof.** `tmp/verify/admin-navigation/`.
+
+## Gotchas
+
+- Référentiels is a button, not a link: `click_button`, then the sub-menu link.
+- `Mobile` resizes the window to 375 px and back to 1280 px only at its end: after a `FAIL` there, rerun the whole drive.

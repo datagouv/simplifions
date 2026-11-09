@@ -17,7 +17,7 @@ Drive: `features/admin-brouillons-en-cours.rb` (SKILL.md § Drive).
 
 Preconditions: logged in. The drive creates a published démarche `Vérif verify-map <browser>` with a draft and a solution of the same name with a draft, and deletes both at the end.
 
-- **Filtered démarches.** `Démarches` rubrique, `État` `En brouillon`, `Filtrer`: the URL holds `etat=brouillons`; `État` reads `En brouillon`, the `[role=status]` count of `Liste des démarches` equals the database count, every row shows `Brouillon`, the drive's démarche is listed, no `Voir toutes les lignes` link.
+- **Filtered démarches.** `Démarches` rubrique, `État` `En brouillon`, `Filtrer`: the URL holds `etat=brouillons`; `État` reads `En brouillon`, the `[role=status]` count of `Liste des démarches` equals the database count, every row shows `Brouillon`, the drive's démarche is listed.
 - **Search keeps the filter.** `Verify.rechercher(page, "Vérif verify-map")`: the URL keeps `etat=brouillons`, only the drive's démarche is listed, with `Brouillon`.
 - **Filtered solutions.** `Solutions` rubrique, `État` `En brouillon`, `Filtrer`: as many rows as the database count, all with `Brouillon`, the drive's solution among them.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-brouillons-en-cours/`.

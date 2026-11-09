@@ -34,3 +34,4 @@ Preconditions: a visible démarche with `Demarche#integratrices_par_categorie` n
 
 - The segmented radios are visually hidden by the DSFR: `choose` needs `allow_label_click: true`.
 - Headless Firefox will not go under about 480 px wide; the mobile read-back gives the real width.
+- At the bottom of a 1024 px window the floating « Proposer une modification » button covers `Trier par :`: Firefox refuses the click; the drive centres the select first.

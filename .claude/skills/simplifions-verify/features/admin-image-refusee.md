@@ -17,8 +17,12 @@ The server refuses a solution image whose content is not png, jpeg or webp, what
 
 Drive: `features/admin-image-refusee.rb` (SKILL.md § Drive).
 
-Writes `tmp/verify/pdf-nomme.png` (PDF bytes) and creates a hidden solution `Vérif verify-map <browser> masquée` and a published one `Vérif verify-map <browser>`; deletes both.
+Writes `tmp/verify/pdf-nomme.png` (PDF bytes) and creates a hidden solution `Vérif verify-map <browser> masquée` and a published one `Vérif verify-map <browser>`; deletes both. Preconditions: logged in.
 
 - **Refusal, hidden then published.** `Nom` `<nom> renommée`, attach the file, `Enregistrer`: the error in the upload group, `Nom` still `<nom> renommée`; base name unchanged, no image, no draft, blob count unchanged.
 - **Accepted.** On the published one, attach `app/assets/images/articles/api-franceconnectees-donnees-personnelles.png`, `Enregistrer`: draft badge, draft holds the image.
 - **Proof.** `tmp/verify/admin-image-refusee/`.
+
+## Gotchas
+
+- The refused file is a PDF named `.png`: the check reads the content, not the extension; a real PDF named `.pdf` proves less.

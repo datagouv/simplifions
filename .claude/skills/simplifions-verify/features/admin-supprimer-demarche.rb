@@ -6,6 +6,7 @@ def atteindre_la_table(page, demarche, solution)
   Verify.login(page)
   Verify.rubrique(page, 'Démarches')
   page.assert_selector 'h1', text: 'Démarches'
+  page.assert_selector "nav[aria-label='Liste des démarches'] li a", text: demarche.nom
   Verify.evidence(DOSSIER, page, 'avant', "demarche=#{demarche.id} recommandations=#{Recommandation.where(demarche:).count} solution=#{solution.id}")
 end
 
@@ -13,7 +14,7 @@ def supprimer(page, nom)
   Verify.ouvrir_depuis_la_liste(page, nom)
   page.accept_confirm("Supprimer « #{nom} » ? 1 recommandation sera supprimée.") { page.click_button 'Supprimer la démarche' }
   page.assert_text "« #{nom} » supprimé."
-  page.assert_no_selector 'td', text: nom
+  page.assert_no_selector "nav[aria-label='Liste des démarches'] li a", text: nom
 end
 
 def relire(page, demarche, solution)

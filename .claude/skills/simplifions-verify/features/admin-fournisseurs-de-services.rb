@@ -91,6 +91,7 @@ Verify.drive(__FILE__) do |page|
     supprimer(page, ligne)
     Verify.logout(page)
   end
+  Verify.check('Proof') { raise 'aucune capture' if Dir[Verify::ROOT.join(DOSSIER, "#{Verify.browser}-*.png")].empty? }
 ensure
   TypeActeur.where(nom:).destroy_all
 end

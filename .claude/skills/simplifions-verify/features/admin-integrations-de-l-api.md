@@ -14,7 +14,7 @@ The démarches of an intégration are those that recommend its API or jeu de don
 
 ## How to get to it (user POV)
 
-- `Démarches` → a démarche → `Choisir les intégrations`; `Intégrations` → a fiche → `Démarches` group; `Intégrations` → `Ajouter`.
+- `Démarches` → a démarche → `Choisir les intégrations`; `/admin/integrations` (typed: out of the admin menu) or a solution's row link `Modifier l’intégration <libellé>` → `Démarches` group; `/admin/integrations/new`.
 
 ## Driving it with Capybara
 
@@ -27,3 +27,7 @@ Preconditions: logged in, catalogue imported. The drive makes its own out-of-rul
 - **Refus serveur.** A hidden `integration[demarche_ids][]` for a démarche outside the list is injected, `Enregistrer`: error alert naming it, join table unchanged.
 - **Nouvelle intégration.** `/admin/integrations/new`: no démarche checkbox, the hint `Démarches : à cocher une fois l’API ou le jeu de données enregistré…`.
 - **Proof.** `tmp/verify/admin-integrations-de-l-api/`.
+
+## Gotchas
+
+- `Intégrations` is in neither the admin menu nor the dashboard: reach its list and its fiches by URL ([admin-navigation.md](admin-navigation.md)).

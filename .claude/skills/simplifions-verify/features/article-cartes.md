@@ -22,7 +22,7 @@ Preconditions:
 - Visible solution `data-subvention` with an operator, visible démarche `tarification-cantine-scolaire-a-1eur`.
 
 - **Cards from the base.** Visit `/articles/guide-base-petites-collectivites`. The spotlight holding `Data.Subvention` links to `/solutions/data-subvention` with the record's `nom`, and its badge bolds `organisations.first.nom`. A link to `/demarches/tarification-cantine-scolaire-a-1eur` carries the démarche's `titre`.
-- **Hidden record.** `update_columns(visible: false)` on `data-subvention`, reload: the H1 is there, no card links to `/solutions/data-subvention` (`.fr-card a[href=…]`; the article prose keeps its own link). Restore `visible: true` in `ensure`.
+- **Hidden record.** `update_columns(visible: false)` on `data-subvention`, reload: the H1 is there (the article's `h1`, read from its YAML), no card links to `/solutions/data-subvention` (`.fr-card a[href=…]`; the article prose keeps its own link). Restore `visible: true` in `ensure`.
 - **Proof.** Screenshot and read-back after each step: badge text against the base, then `visible=false carte=absente`.
 
 ## Gotchas
