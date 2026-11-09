@@ -1,0 +1,13 @@
+<% valeurs = @filtres[nom].to_s.split(",")
+   visibles, autres = options.partition.with_index { |_, index| index < 4 } %>
+<%= f.hidden_field nom, value: valeurs.join(","), id: nil if valeurs.any? %>
+<p id="titre-<%= nom %>" class="fr-text--bold fr-mb-1w"><%= label %> :</p>
+<% if autres.any? %>
+  <%= render "tags_de_filtre", f:, nom:, label:, options:, valeurs:, tags: visibles, marge: "fr-mb-0" %>
+  <%= tag.details class: "filtres-depliables fr-mb-2w", open: autres.any? { |_, slug| valeurs.include?(slug) } do %>
+    <summary class="fr-link fr-link--sm fr-icon-arrow-down-s-line fr-link--icon-right fr-mb-1w">Afficher les <%= autres.size %> autres</summary>
+    <%= render "tags_de_filtre", f:, nom:, label:, options:, valeurs:, tags: autres, marge: "fr-mb-0" %>
+  <% end %>
+<% else %>
+  <%= render "tags_de_filtre", f:, nom:, label:, options:, valeurs:, tags: visibles %>
+<% end %>

@@ -5,7 +5,7 @@ class Vocabulaire < ApplicationRecord
     'acces-facile' => 'Accès facile',
     'dlnuf' => 'Dites-le nous une fois',
     'proactivite' => 'Proactivité',
-    'brique-technique' => 'API, jeu de données ou brique logicielle',
+    'brique-technique' => 'API, données, brique logicielle',
     'logiciel-metier' => 'Logiciel métier "clé en main"',
     'portail-consultation' => 'Site de consultation'
   }.freeze

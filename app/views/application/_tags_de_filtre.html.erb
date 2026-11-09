@@ -1,0 +1,11 @@
+<ul class="fr-tags-group <%= local_assigns.fetch(:marge, "fr-mb-2w") %>" aria-labelledby="titre-<%= nom %>">
+  <% tags.each do |libelle, slug| %>
+    <% choisi = valeurs.include?(slug) %>
+    <li>
+      <%= f.button "#{libelle} (#{@catalogue.klass.catalogue(@filtres.to_h.merge(nom => slug)).count})",
+            name: nom, value: valeur_de_filtre(options, choisi ? valeurs - [slug] : valeurs + [slug]),
+            class: "fr-tag", aria: { pressed: choisi },
+            data: { matomo_action: "Choisir un filtre", matomo_fermeture: "Retirer un filtre", matomo_nom: "#{label} : #{libelle}" } %>
+    </li>
+  <% end %>
+</ul>
