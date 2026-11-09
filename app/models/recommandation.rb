@@ -14,8 +14,11 @@ class Recommandation < ApplicationRecord
 
   validates :solution_id, uniqueness: { scope: :demarche_id }
 
+  attribute :retiree, :boolean, default: false
+
   scope :visibles, -> { where(visible: true) }
   scope :a_publier_avec_la_demarche, -> { where("recommandations.brouillon->>'visible' = '1'") }
+  scope :retirees, -> { where("recommandations.brouillon->>'retiree' = '1'") }
   scope :parues, -> { where.not(id: a_publier_avec_la_demarche) }
   scope :en_brouillon, -> { where.not(brouillon: nil).where(visible: true).or(a_publier_avec_la_demarche) }
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
@@ -25,11 +28,17 @@ class Recommandation < ApplicationRecord
   def rangees = demarche.recommandations.sur_la_fiche.select { it.niveau == niveau }
   def ajoutee_au_brouillon? = brouillon.to_h['visible'] == '1'
   def masquee? = !visible_in_database && !ajoutee_au_brouillon?
+  def retrait_en_attente? = brouillon.to_h['retiree'] == '1'
+  def retrait_a_publier? = demarche.visible? && visible? && !ajoutee_au_brouillon?
+  def retrait_sans_retour_a_annoncer? = !retrait_a_publier? && demarche.suppression_sans_retour_a_annoncer?
+
+  def retirer = retrait_a_publier? ? enregistrer('retiree' => '1', 'modifie_le' => Time.current) : destroy!
 
   def self.ransackable_associations(_auth_object = nil) = %w[demarche solution]
 
   def enregistrer(attributs)
-    attributs = sans_publication_de_donnee_utile(attributs)
+    attributs = sans_retrait_si_masquee(sans_publication_de_donnee_utile(attributs))
+    return publier_avec_la_demarche if retrait_en_attente? && publication_demandee?(attributs)
     return super if publication_demandee?(attributs)
     return enregistrer_brouillon(attributs.merge('visible' => '1')) if devient_donnee_utile?(attributs)
     return super unless new_record?
@@ -39,7 +48,7 @@ class Recommandation < ApplicationRecord
     save
   end
 
-  def publier_avec_la_demarche = ecrire('visible' => '1')
+  def publier_avec_la_demarche = appliquer_brouillon.retiree? ? destroy! : ecrire('visible' => '1')
 
   def abandonner_avec_la_demarche!
     created_at >= brouillon['commence_le'].to_time ? destroy! : abandonner_brouillon!
@@ -115,6 +124,8 @@ class Recommandation < ApplicationRecord
 
     attributs.except('visible')
   end
+
+  def sans_retrait_si_masquee(attributs) = retrait_en_attente? && attributs['visible'] == '0' ? attributs.merge('retiree' => '0') : attributs
 
   def devient_donnee_utile?(attributs)
     persisted? && niveau_2? && !visible? && attributs['niveau'] == 'niveau_1'

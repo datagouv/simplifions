@@ -67,6 +67,7 @@ fr:
         donnees_utiles: "Données utiles disponibles"
         parametres_a_saisir: "Paramètres à saisir pour récupérer les données"
         url_demande_acces: "URL de demande d’accès pour cette démarche"
+        retiree: "Retirée"
         visible: "Visible sur simplifions"
       integration:
         integratrice: "Solution"

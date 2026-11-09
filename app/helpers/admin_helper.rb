@@ -19,6 +19,8 @@ module AdminHelper
       aria: { current: ((current_page?(liste) ? 'page' : 'true') if rubrique_admin_ouverte?(modele)) }
   end
 
+  def nom_de_la_recommandation(recommandation, nom) = recommandation.retiree? ? tag.s(nom, class: 'fr-text-mention--grey') : nom
+
   def changements_a_publier(demarche)
     return [] unless demarche.visible?
 
@@ -31,9 +33,15 @@ module AdminHelper
 
   def recommandation_a_publier(recommandation)
     quoi = recommandation.niveau_2? ? 'Solution recommandée' : 'Donnée utile'
-    comment = recommandation.ajoutee_au_brouillon? ? 'ajoutée' : 'modifiée'
+    comment = changement_de_la_recommandation(recommandation)
     ancre = recommandation.niveau_2? ? dom_id(recommandation) : 'bloc-donnees-disponibles'
     ["#{quoi} #{comment} : #{recommandation.solution.libelle_admin}", ancre]
+  end
+
+  def changement_de_la_recommandation(recommandation)
+    return 'retirée' if recommandation.retiree?
+
+    recommandation.ajoutee_au_brouillon? ? 'ajoutée' : 'modifiée'
   end
 
   def champs_a_publier(demarche)

@@ -2,10 +2,15 @@
 <% if donnees.any? %>
   <ul class="donnees-disponibles">
     <% donnees.each do |donnee| %>
-      <li>
-        <span><%= donnee.solution&.libelle_admin %></span>
+      <% nom = donnee.solution&.libelle_admin %>
+      <%= tag.li class: ("retiree" if donnee.retiree?) do %>
+        <span><%= nom_de_la_recommandation(donnee, nom) %></span>
+        <% if donnee.retiree? %>
+          <%= render "admin/recommandations/badge", recommandation: donnee %>
+          <%= render "admin/recommandations/bouton_remettre", recommandation: donnee, nom: %>
+        <% end %>
         <span class="fr-text--xs fr-text-mention--grey"><% if donnee.ordre %><span class="fr-sr-only">Position </span><%= donnee.ordre %><% else %><span aria-hidden="true">—</span><span class="fr-sr-only">Sans position</span><% end %></span>
-      </li>
+      <% end %>
     <% end %>
   </ul>
 <% else %>
