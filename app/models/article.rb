@@ -5,7 +5,7 @@ class Article
   KEYWORD_CATEGORIES = {
     "Type d'article" => ['Guide de base', 'Guide métier', 'Guide technique', 'Définition'],
     'Type de données' => ['API', 'Jeux de données'],
-    'Vous êtes ...' => ['Petite collectivité', 'DSI', 'MOA', 'Éditeur de logiciels'],
+    'Vous êtes' => ['Petite collectivité', 'DSI', 'MOA', 'Éditeur de logiciels'],
     'Thématique' => ['Parcours usager', 'Intégration technique', 'API FranceConnectées']
   }.freeze
 
@@ -19,6 +19,10 @@ class Article
 
   def self.filtered(selected_keywords)
     ALL.select { |article| article.matches?(selected_keywords) }
+  end
+
+  def self.count_for(keyword, selected_keywords, category)
+    ALL.count { |article| article.matches?(selected_keywords, except_category: category) && article.keywords.include?(keyword) }
   end
 
   def initialize(image: nil, published_on: nil, updated_on: nil, **attrs)
@@ -39,7 +43,7 @@ class Article
   end
 
   def audience
-    keywords_in('Vous êtes ...')
+    keywords_in('Vous êtes')
   end
 
   def template

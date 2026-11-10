@@ -51,14 +51,42 @@ RSpec.describe 'Articles' do
 
     it 'fait des mots-clefs des tags sélectionnables DSFR, boutons du formulaire qui remonte au titre' do
       get articles_path(keywords: 'Guide de base')
-      formulaire = Capybara.string(response.body).find('form[action="/articles"][method=get]')
+      formulaire = Capybara.string(response.body).find('form[action="/articles#resultats"][method=get]')
 
-      expect(formulaire['data-controller']).to eq('filtres-catalogue')
+      expect(formulaire['data-action']).to start_with('submit->filtres-catalogue#retenir')
       choisi = formulaire.find_button('Guide de base (1)')
       expect([choisi[:type], choisi[:name], choisi[:value], choisi['aria-pressed']]).to eq(['submit', 'keywords', '', 'true'])
       ajout = formulaire.find(:button, text: /\AGuide technique \(\d+\)\z/)
       expect([ajout[:value], ajout['aria-pressed']]).to eq(['Guide de base,Guide technique', 'false'])
       expect(formulaire).to have_no_css('a.fr-tag')
+    end
+
+    it 'annonce le nombre d’articles, cible du focus après un clic sur un tag' do
+      get articles_path(keywords: 'Guide de base')
+      page = Capybara.string(response.body)
+
+      zone = page.find('[data-controller=filtres-catalogue]')
+      expect(zone.find('form[action="/articles#resultats"]')).to have_button('Guide de base (1)')
+      expect(zone.find('#resultats[tabindex="-1"][role=status][data-filtres-catalogue-target=compteur]').text)
+        .to eq("1 article sur #{Article::ALL.size}")
+    end
+
+    it 'relie chaque groupe de tags à son titre, comme le catalogue' do
+      get articles_path
+      page = Capybara.string(response.body)
+
+      titres = page.all('form ul.fr-tags-group').map { page.find("##{it['aria-labelledby']}").text }
+      expect(titres).to eq(["Type d'article :", 'Type de données :', 'Vous êtes :', 'Thématique :'])
+    end
+
+    it 'remplace une liste vide par l’invitation à réinitialiser les filtres du catalogue' do
+      get articles_path(keywords: 'Jeux de données')
+      page = Capybara.string(response.body)
+
+      expect(page.find('#resultats[tabindex="-1"][data-filtres-catalogue-target=compteur]').text)
+        .to eq("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(page.find_link('Réinitialiser les filtres')[:href]).to eq('/articles')
+      expect(page.find_button('Jeux de données (0)')[:value]).to eq('')
     end
 
     it 'filtre par mot-clef' do

@@ -6,7 +6,7 @@ Visitors browse the list of cas d'usages (démarches), narrow it by full-text se
 
 - `catalogue-liste` shows the visible démarches, 20 per page, with a result count.
 - `catalogue-recherche` filters by the `Rechercher` text field.
-- `catalogue-facettes` filters by acteur, usager, catégorie de solution, type de simplification: each value is a DSFR selectable tag (a submit button, `aria-pressed`) showing its count, applied on click; several values of one facet add up (« ou »), facets combine (« et »). The focus then lands on the result count « N résultats sur M ». Acteurs show Communes et groupements, Départements, Régions, État, the 5 others in a native `details` « Afficher les 5 autres » (open when one of them is chosen, works without JavaScript; so does « Plus de filtres »). The tri keeps its select, applied by `Trier`, a button shown only while the chosen tri differs from the applied one.
+- `catalogue-facettes` filters by acteur, usager, catégorie de solution, type de simplification: each value is a DSFR selectable tag (a submit button, `aria-pressed`) showing its count, applied on click, disabled when it leads to no result unless chosen; several values of one facet add up (« ou »), facets combine (« et »). The focus then lands on the result count « N résultats sur M ». Acteurs show Communes et groupements, Départements, Régions, État, the 5 others in a native `details` « Afficher les 5 autres » (open when one of them is chosen, works without JavaScript; so does « Plus de filtres »). The tri keeps its select, applied by `Trier`, a button shown only while the chosen tri differs from the applied one.
 - `catalogue-type` switches between `Cas d'usages` and `Solutions` keeping the filters.
 - `catalogue-titre-filtres` the H2 « Filtrer les cas d'usages » / « Filtrer les solutions » is read by screen readers only (`fr-sr-only`): the search bar follows the H1 on screen.
 
@@ -37,6 +37,8 @@ Preconditions:
 - **Remove.** Click each pressed tag (`aria-pressed=true`) in turn: none left, the count is back to the search count. Screenshot `retrait`.
 - **Sort.** No `Trier` button at first. Choose `Date de création` in `Trier par :`: `Trier` shows; back to `Pertinence`: it hides; `Date de création` then `Trier`: URL has `sort=-created`, `Trier` hidden again. Screenshot `tri`.
 - **Type height.** Window 390 px wide, `/demarches`: each « Type » link (`Cas d'usages`, `Solutions`) is as tall as the `Trier par :` select. Screenshot `type-390`, read-back `trier_par=<px> types=[<px>, <px>]`.
+- **No result.** `/demarches?q=marchés publics`: the tag `Particuliers (0)` is disabled. Search `zzzz` with Enter: the focus lands on « Vous n'avez pas trouvé ce que vous cherchez ? » (`#resultats`). Screenshot `aucun-resultat`.
+- **Articles.** The articles filters share the catalogue partials. `/articles`, Enter on `Guide de base (N)` under `Type d'article :`: the focus lands on `#resultats` « N article(s) sur M »; tags with no article are disabled. Screenshot `articles`.
 - **Without JavaScript.** JavaScript off, `/demarches?types-de-simplification=dlnuf`: « Plus de filtres » is open and its chosen tag shows; clicking the `summary` `Afficher les 5 autres` shows `Tous les acteurs publics (N)`. Screenshot `sans-js`.
 
 ## Gotchas

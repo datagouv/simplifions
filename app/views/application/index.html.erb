@@ -48,28 +48,22 @@
         <p class="fr-text--sm fr-text--bold fr-mb-2w">Filtres</p>
         <% *principales, (nom_plus, label_plus, options_plus) = facettes %>
         <% principales.each do |nom, label, options| %>
-          <%= render "facette_tags", f:, nom:, label:, options: %>
+          <%= f.hidden_field nom, value: @filtres[nom], id: nil if @filtres[nom].present? %>
+          <%= render "facette_tags", f:, id: nom, label: "#{label} :", tags: tags_du_catalogue(@filtres, @catalogue.klass, nom, label, options) %>
         <% end %>
         <%= tag.details class: "filtres-depliables", open: @filtres[nom_plus].present? do %>
           <summary class="fr-link fr-icon-arrow-down-s-line fr-link--icon-right fr-mb-2w">Plus de filtres</summary>
-          <%= render "facette_tags", f:, nom: nom_plus, label: label_plus, options: options_plus %>
+          <%= f.hidden_field nom_plus, value: @filtres[nom_plus], id: nil if @filtres[nom_plus].present? %>
+          <%= render "facette_tags", f:, id: nom_plus, label: "#{label_plus} :", tags: tags_du_catalogue(@filtres, @catalogue.klass, nom_plus, label_plus, options_plus) %>
         <% end %>
       </div>
 
       <section id="list" class="fr-col-12 fr-col-md-8 fr-col-lg-9" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Résultats")) %>>
         <% if total.zero? %>
-          <div class="catalogue-vide fr-grid-row fr-grid-row--gutters fr-p-3w fr-mt-2w">
-            <div class="fr-col-auto"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
-            <div class="fr-col">
-              <p class="fr-text--bold fr-mb-1w">Vous n'avez pas trouvé ce que vous cherchez ?</p>
-              <p class="fr-mb-2w">Essayez de réinitialiser les filtres pour élargir votre recherche.</p>
-              <%= link_to "Réinitialiser les filtres", send(chemin), class: "fr-btn fr-btn--secondary fr-btn--sm",
-                    data: { matomo_action: "Réinitialiser les filtres" } %>
-            </div>
-          </div>
+          <%= render "resultats_vides", chemin: send(chemin) %>
         <% else %>
           <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters" style="justify-content: space-between">
-            <p id="resultats" class="fr-col-auto fr-my-0" tabindex="-1" data-filtres-catalogue-target="compteur" role="status"><%= total %> résultat<%= 's' if total > 1 %><%= " sur #{tout}" if total < tout %></p>
+            <%= render "compteur_de_resultats", total:, tout:, mot: "résultat", classe: "fr-col-auto fr-my-0" %>
             <div class="fr-col-auto">
               <div class="fr-grid-row fr-grid-row--middle">
                 <%= f.label :sort, "Trier par :", class: "fr-col-auto fr-text--sm fr-m-0 fr-mr-1w" %>

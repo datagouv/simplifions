@@ -1,0 +1,9 @@
+<div class="catalogue-vide fr-grid-row fr-grid-row--gutters fr-p-3w fr-mt-2w">
+  <div class="fr-col-auto"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
+  <div class="fr-col">
+    <p id="resultats" class="fr-text--bold fr-mb-1w" tabindex="-1" data-filtres-catalogue-target="compteur">Vous n'avez pas trouvé ce que vous cherchez ?</p>
+    <p class="fr-mb-2w">Essayez de réinitialiser les filtres pour élargir votre recherche.</p>
+    <%= link_to "Réinitialiser les filtres", chemin, class: "fr-btn fr-btn--secondary fr-btn--sm",
+          data: { matomo_action: "Réinitialiser les filtres" } %>
+  </div>
+</div>

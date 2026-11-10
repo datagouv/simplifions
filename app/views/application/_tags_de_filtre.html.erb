@@ -1,11 +1,13 @@
-<ul class="fr-tags-group <%= local_assigns.fetch(:marge, "fr-mb-2w") %>" aria-labelledby="titre-<%= nom %>">
-  <% tags.each do |libelle, slug| %>
-    <% choisi = valeurs.include?(slug) %>
+<ul class="fr-tags-group <%= local_assigns.fetch(:marge, "fr-mb-2w") %>" aria-labelledby="titre-<%= id %>">
+  <% tags.each do |tag_de_filtre| %>
+    <% texte = "#{tag_de_filtre[:libelle]} (#{tag_de_filtre[:compte]})" %>
     <li>
-      <%= f.button "#{libelle} (#{@catalogue.klass.catalogue(@filtres.to_h.merge(nom => slug)).count})",
-            name: nom, value: valeur_de_filtre(options, choisi ? valeurs - [slug] : valeurs + [slug]),
-            class: "fr-tag", aria: { pressed: choisi },
-            data: { matomo_action: "Choisir un filtre", matomo_fermeture: "Retirer un filtre", matomo_nom: "#{label} : #{libelle}" } %>
+      <% if tag_de_filtre[:compte].zero? && !tag_de_filtre[:choisi] %>
+        <button type="button" class="fr-tag" disabled><%= texte %></button>
+      <% else %>
+        <%= f.button texte, name: tag_de_filtre[:nom], value: tag_de_filtre[:valeur],
+              class: "fr-tag", aria: { pressed: tag_de_filtre[:choisi] }, data: tag_de_filtre[:data] %>
+      <% end %>
     </li>
   <% end %>
 </ul>

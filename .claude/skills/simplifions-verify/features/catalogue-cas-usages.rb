@@ -37,6 +37,28 @@ ensure
   page.current_window.resize_to(1280, 1024)
 end
 
+def aucun_resultat_au_clavier(page)
+  page.visit('/demarches?q=march%C3%A9s+publics')
+  zero = etiquettes(page, 'Démarches à destination des').find(:button, text: /\AParticuliers \(0\)\z/, disabled: true)
+  raise 'tag (0) choisissable' unless zero.disabled?
+
+  page.fill_in 'Recherche', with: 'zzzz'
+  page.find_field('Recherche').send_keys(:enter)
+  page.assert_selector('#resultats', focused: true, text: "Vous n'avez pas trouvé ce que vous cherchez ?")
+  Verify.evidence('catalogue-cas-usages', page, 'aucun-resultat', 'tag_zero=grise focus=vous-n-avez-pas-trouve')
+end
+
+def filtres_des_articles(page)
+  page.visit('/articles')
+  tag = page.find('ul[aria-labelledby=titre-type-d-article]').find(:button, text: /\AGuide de base \(\d+\)\z/)
+  annonce = tag.text[/\((\d+)\)/, 1]
+  tag.send_keys(:enter)
+  compteur = page.find('#resultats', focused: true, text: /\A#{annonce} articles? sur \d+\z/).text
+  raise 'aucun tag grisé sur Articles' unless page.has_css?('button.fr-tag[disabled]', wait: 0)
+
+  Verify.evidence('catalogue-cas-usages', page, 'articles', "compteur=#{compteur} focus=compteur")
+end
+
 def replis_sans_javascript
   page = Verify.session(javascript: false)
   page.visit('/demarches?types-de-simplification=dlnuf')
@@ -144,6 +166,8 @@ Verify.drive(__FILE__) do |page|
   end
 
   Verify.check('Type height') { hauteur_des_types(page) }
+  Verify.check('No result') { aucun_resultat_au_clavier(page) }
+  Verify.check('Articles') { filtres_des_articles(page) }
   Verify.check('Without JavaScript') do
     page.quit
     replis_sans_javascript

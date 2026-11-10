@@ -28,6 +28,7 @@ RSpec.describe 'Demarches' do
     end
 
     it 'range pour Matomo chaque geste du catalogue dans sa zone' do
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [TypeActeur.create!(nom: 'Départements', slugs: %w[departements])])
       get demarches_path
       page = Capybara.string(response.body)
       zone = ->(element) { element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone'] }
@@ -35,7 +36,7 @@ RSpec.describe 'Demarches' do
 
       expect(mesure.call(page.find('.catalogue-types a', text: 'Solutions')))
         .to eq(["Catalogue cas d'usages › Type", 'Changer de catalogue', 'Solutions'])
-      expect(mesure.call(page.find_button('Départements (0)')))
+      expect(mesure.call(page.find_button('Départements (1)')))
         .to eq(["Catalogue cas d'usages › Filtres", 'Choisir un filtre', 'Démarches gérées par : Départements'])
       expect(mesure.call(page.find('select#sort'))).to eq(["Catalogue cas d'usages › Résultats", 'Trier les résultats', nil])
       carte = page.first('.demarche-card a')
@@ -145,7 +146,7 @@ RSpec.describe 'Demarches' do
       page = Capybara.string(response.body)
       plus = page.find('details', text: 'Plus de filtres')
       expect([plus.find('summary').text, plus[:open]]).to eq(['Plus de filtres', nil])
-      expect(plus).to have_button('Dites-le nous une fois (0)', visible: :hidden)
+      expect(plus).to have_button('Dites-le nous une fois (0)', visible: :hidden, disabled: true)
       expect(page.all('p[id^=titre-]', visible: :all).map(&:text))
         .to eq(['Démarches à destination des :', 'Démarches gérées par :', 'Solution recherchée :', 'Type de simplification des démarches :'])
 
@@ -161,6 +162,17 @@ RSpec.describe 'Demarches' do
       expect(tri['data-action']).to eq('change->filtres-catalogue#comparerTri')
       expect(page.find("##{tri['aria-describedby']}").text).to eq('Le tri s’applique avec le bouton Trier qui suit.')
       expect(page.find('[data-filtres-catalogue-target=boutonTri]')).to have_button('Trier')
+    end
+
+    it 'grise les tags qui ne mènent à aucun résultat, sauf un tag choisi pour pouvoir le retirer' do
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+
+      get demarches_path('target-users' => 'particuliers')
+      page = Capybara.string(response.body)
+
+      expect(page.find_button('Particuliers (0)')[:value]).to eq('')
+      expect(page.find_button('Communes et groupements (0)', disabled: true)[:type]).to eq('button')
+      expect(page.find('#resultats[tabindex="-1"]').text).to eq("Vous n'avez pas trouvé ce que vous cherchez ?")
     end
 
     it 'garde fermés les autres acteurs quand aucun d’eux n’est choisi' do
@@ -182,9 +194,9 @@ RSpec.describe 'Demarches' do
 
       page = Capybara.string(response.body)
       expect(page.find('button[aria-pressed=true]', text: 'Communes et groupements')[:value]).to eq('')
-      expect(page.find_button('Particuliers (0)')[:value]).to eq('particuliers')
-      expect(page).to have_button('Dites-le nous une fois (0)', visible: :all)
-      expect(page).to have_button('API, données, brique logicielle (0)')
+      expect(page).to have_button('Particuliers (0)', disabled: true)
+      expect(page).to have_button('Dites-le nous une fois (0)', visible: :all, disabled: true)
+      expect(page).to have_button('API, données, brique logicielle (0)', disabled: true)
       expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
@@ -265,7 +277,8 @@ RSpec.describe 'Demarches' do
     it 'remplace la liste vide par l’invitation à réinitialiser les filtres, comme le site' do
       get demarches_path(q: 'zzzz', 'target-users' => 'particuliers')
 
-      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(Capybara.string(response.body).find('#resultats[tabindex="-1"][data-filtres-catalogue-target=compteur]').text)
+        .to eq("Vous n'avez pas trouvé ce que vous cherchez ?")
       expect(response.body).to include('Essayez de réinitialiser les filtres pour élargir votre recherche.')
       expect(response.body).to include('href="/demarches"')
       expect(response.body).to include('Réinitialiser les filtres')
