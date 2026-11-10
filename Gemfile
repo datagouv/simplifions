@@ -18,6 +18,8 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 gem "view_component"
+# Le DSFR (styles, script, polices, icônes, pictogrammes), son numéro suit celui du DSFR
+gem "dsfr-assets", "~> 1.15.4"
 # Chain-of-command pipelines (Grist import)
 gem "interactor"
 
