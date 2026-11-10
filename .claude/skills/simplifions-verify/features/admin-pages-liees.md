@@ -1,6 +1,6 @@
 # Relire les textes longs et rejoindre les pages liées
 
-On an admin form, each text area is as tall as its content (rows computed server-side, no JS) and the fields rendered as Markdown on the site say `Markdown accepté`. A visible démarche or solution with a slug offers `Voir la page publique` in the `État et actions` column (new tab, announced in the `title`). Each checked box of a filterable list from the catalogue, the recommandation's solution and the intégration's two solutions offer `Voir la fiche`, named `Voir la fiche <libellé>`, outside the checkbox label. Every vocabulaire and every fournisseur de services (checked or not) offers instead a `?` icon (`fr-icon-question-line`) beside its label, its text `Fiche de <nom> (nouvel onglet)` read by screen readers only, opening its read page in a new tab; both lists sit on three columns from 992 px (two from 576 px, one below).
+On an admin form, each text area is as tall as its content (rows computed server-side, no JS) and the fields rendered as Markdown on the site say `Markdown accepté`. A visible solution with a slug offers `Voir la page publique` in the `État et actions` column; a visible démarche shows its page address as a link in the `État de la démarche` bar, `Voir la page publique de <nom> - nouvelle fenêtre` in its `title`; both open a new tab. Each checked box of a filterable list from the catalogue, the recommandation's solution and the intégration's two solutions offer `Voir la fiche`, named `Voir la fiche <libellé>`, outside the checkbox label. Every vocabulaire and every fournisseur de services (checked or not) offers instead a `?` icon (`fr-icon-question-line`) beside its label, its text `Fiche de <nom> (nouvel onglet)` read by screen readers only, opening its read page in a new tab; both lists sit on three columns from 992 px (two from 576 px, one below).
 
 ## Sub-features
 
@@ -19,7 +19,7 @@ On an admin form, each text area is as tall as its content (rows computed server
 
 Drive: `features/admin-pages-liees.rb` (SKILL.md § Drive).
 
-Read-only. Precondition: catalogue imported (démarche 23 has a 2 947-character contexte on 2026-10-05).
+Read-only. Preconditions: catalogue imported (démarche 23 has a 2 947-character contexte on 2026-10-05).
 
 - **Text area.** The longest visible contexte, `Modifier le contexte` modal: `scrollHeight <= clientHeight`, hint `Markdown accepté`.
 - **Public page.** `Voir la page publique` opens `/demarches/<slug>` in a new window.

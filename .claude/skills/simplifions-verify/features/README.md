@@ -65,7 +65,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-saisie-solution.md](admin-saisie-solution.md) — a solution's types as checkboxes on a fixed list, one-line légende, image removal announced, linked démarches and intégrations shown with links.
 - [admin-colonne-actions.md](admin-colonne-actions.md) — the sticky `État et actions` column of admin forms: save from anywhere, publish or hide, Enter keeps the state, mobile layout.
 - [admin-historique.md](admin-historique.md) — who changed a fiche last and its history page: author (admin, Import Grist, data.gouv), each changed field before → after.
-- [admin-navigation.md](admin-navigation.md) — under `/admin` the header bar lists the seven admin rubriques, the current one marked; the public bar elsewhere.
+- [admin-navigation.md](admin-navigation.md) — under `/admin` the header bar has four entries (À reprendre, Démarches, Solutions, Référentiels and its sub-menu), the current one marked; the public bar elsewhere.
 - [admin-integrations-de-l-api.md](admin-integrations-de-l-api.md) — an intégration only offers the démarches that recommend its API, and the reverse; an out-of-rule link is marked, refused by the server, dropped by the import.
 - [admin-brouillon.md](admin-brouillon.md) — on a published démarche or solution, Enregistrer keeps a draft off the public site; Publier puts it online, Abandonner le brouillon drops it.
 - [admin-brouillons-en-cours.md](admin-brouillons-en-cours.md) — the démarches and solutions lists mark their drafts `Brouillon` and filter them with `État` `En brouillon`.
@@ -76,6 +76,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [matomo.md](matomo.md) — one Matomo hit per page shown, Turbo visits included; a new catalogue search is measured as a search (keyword, catalogue, result count) instead of a page view; every click to another site or on a file link is measured, on every page.
 - [depot-direct-ferme.md](depot-direct-ferme.md) — nobody, visitor or admin, can create a file through Active Storage's direct upload address; admin images go through the solution form.
 - [title-seo.md](title-seo.md) — a démarche or solution's « Title SEO » typed in the admin becomes its whole tab title and og:title, without the site name; the H1 stays; empty gives the usual title; no field on an API.
+- [guides-mis-en-avant.md](guides-mis-en-avant.md) — the home section of three guides, the commune guide card after the third result of the catalogue filtered on communes, and an article's og:image and schema.org `Article` dates.
 - [plan-du-site.md](plan-du-site.md) — the footer's Plan du site lists every visible cas d'usage, solution and article under its entry, alphabetical; a truncated fiche description keeps its apostrophes in meta and og tags.
 - [pied-de-page.md](pied-de-page.md) — on every page and in the admin, the footer's five blocks of links open the filtered catalogue, the guides and the comparisons; the presentation links to the home section on what the site brings.
 - [clavier-lecteur-ecran.md](clavier-lecteur-ecran.md) — first Tab on « Contenu », catalogue filters applied by a button, changing numbers announced in status regions (solution counter, endpoints, Sirene demo), icons shown but not read aloud.

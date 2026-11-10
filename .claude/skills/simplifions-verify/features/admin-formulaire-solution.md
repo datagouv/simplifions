@@ -1,6 +1,6 @@
 # Formulaire solution adapté à sa catégorie
 
-A solution's admin form shows only the fields of its catégorie: for `API` or `Jeu de données` the fiche fields (Slug, Site internet, URL de demande d’accès, Image principale, Légende de l’image, Description courte, Cette solution permet / ne permet pas) are hidden (`fr-hidden`) and disabled, on render and as soon as the `Catégorie de solution` select changes; a fiche field filled on screen or on render (and the image group while an image is shown) stays visible and enabled, so it can be emptied in the same save. The current image is shown (alt = légende) with a `Retirer l’image` box and the hint `Formats acceptés : png, jpg, webp`. A private solution carries a `Privée` badge under its H1.
+A solution's admin form shows only the fields of its catégorie: for `API` or `Jeu de données` the fiche fields (Slug, Titre SEO, Site internet, URL de demande d’accès, Image principale, Légende de l’image, Description courte, Cette solution permet / ne permet pas) are hidden (`fr-hidden`) and disabled, on render and as soon as the `Catégorie de solution` select changes; a fiche field filled on screen or on render (and the image group while an image is shown) stays visible and enabled, so it can be emptied in the same save. The current image is shown (alt = légende) with a `Retirer l’image` box and the hint `Formats acceptés : png, jpg, webp`. A private solution carries a `Privée` badge under its H1.
 
 ## Sub-features
 

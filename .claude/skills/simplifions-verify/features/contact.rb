@@ -12,7 +12,7 @@ def depuis_la_fiche(page, demarche)
 end
 
 def fiche_citee(page, demarche)
-  raise 'démarche non présélectionnée' unless page.has_select?('Démarche concernée', selected: demarche.titre)
+  raise 'démarche non présélectionnée' unless page.has_select?('Démarche concernée', selected: demarche.nom)
   raise "objet sans la fiche : #{contact_objet(page)}" unless contact_objet(page).end_with?(" : #{demarche.titre}")
 
   mailto = URI.decode_www_form_component(page.find_link('Ouvrir un e-mail déjà pré-rempli')[:href])
@@ -36,7 +36,7 @@ def autre_demarche_sans_recharger(page, autre)
 end
 
 def choisir(page, demarche)
-  page.select demarche.titre, from: 'Démarche concernée'
+  page.select demarche.nom, from: 'Démarche concernée'
   page.assert_current_path("/contact/modifier-cas-usage?demarche=#{demarche.slug}")
   page.assert_selector '#objet-message', text: " : #{demarche.titre}"
 end

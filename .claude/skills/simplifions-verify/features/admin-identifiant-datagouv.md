@@ -10,7 +10,7 @@ When an admin saves an API or a jeu de données with a new data.gouv identifier 
 
 ## How to get to it (user POV)
 
-- Admin → `Solutions` → `Ajouter` (`/admin/solutions/new`) → `Catégorie de solution` `API`, field `Identifiant data.gouv` → `Enregistrer`.
+- Admin → `Solutions` → `Ajouter une solution` (`/admin/solutions/new`) → `Catégorie de solution` `API`, field `Identifiant data.gouv` → `Enregistrer`.
 - `/admin/solutions/<id>/edit` of an API → change `Identifiant data.gouv` → `Enregistrer` (masked API) or `Publier` (published API, the change waits in its draft until then).
 
 ## Driving it with Capybara

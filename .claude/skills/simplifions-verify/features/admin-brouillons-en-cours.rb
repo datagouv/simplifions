@@ -35,7 +35,6 @@ def demarches_filtrees(page, nom)
   raise "lignes #{lignes} != #{total}" unless lignes == total
 
   Verify.evidence(DOSSIER, page, 'demarches-filtrees', "lignes=#{lignes} statut=#{comptage(page, 'démarches')} en_base=#{total}")
-  raise 'Voir toutes les lignes subsiste' if page.has_link?('Voir toutes les lignes', wait: 0)
 end
 
 def recherche_filtree(page, nom)

@@ -12,14 +12,14 @@ Every create, update and delete on the seven admin tables is kept by paper_trail
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → `Démarches` → a row name → `Historique de la démarche` at the bottom of the fiche (other tables: column `Historique`).
+- Dashboard `/admin` → `Démarches` → a row name → `Historique de la démarche` at the bottom of the fiche (a solution: column link and tab `Historique`; other tables: column `Historique`).
 - Admin only.
 
 ## Driving it with Capybara
 
 Drive: `features/admin-historique.rb` (SKILL.md § Drive).
 
-The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it from the en-tête modal, reads the state bar and the history page, publishes it to read the draft lines on the history page, then deletes the démarche and its versions.
+The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it from the en-tête modal, reads the state bar and the history page, publishes it to read the draft lines on the history page, then deletes the démarche and its versions. Preconditions: logged in.
 
 - **Created.** State bar: `Créée par Import Grist le …`.
 - **Updated.** `Modifier l’en-tête`, rename, `Enregistrer`: state bar `Modifiée par verif@simplifions.local le …`; base versions `['Import Grist', <admin id>]`.

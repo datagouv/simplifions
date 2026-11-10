@@ -15,7 +15,7 @@ On a démarche's fiche, under `Contexte` and `Cadre juridique`, the block `Solut
 
 ## How to get to it (user POV)
 
-`/admin/demarches/<id>/edit`, tab `Fiche` (the default), blocks `Solutions recommandées (<n>)` and `Données disponibles (<n>)`. Admin only.
+`/admin/demarches/<id>/edit`, blocks `Solutions recommandées (<n>)` and `Données disponibles (<n>)`. Admin only.
 
 ## Driving it with Capybara
 

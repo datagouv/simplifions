@@ -19,7 +19,7 @@ Drive: `features/admin-listes.rb` (SKILL.md § Drive).
 
 Read-only. Preconditions: logged in, catalogue imported (230 solutions on 2026-10-05).
 
-- **Solutions list.** `click_link "Solutions"`: navigation `Liste des solutions`, no `table` and no `.fr-pagination`, the prompt « Choisissez une solution dans la liste », as many rows as `Solution.count`, count `N solutions`.
+- **Solutions list on the left.** `click_link "Solutions"`: navigation `Liste des solutions`, no `table` and no `.fr-pagination`, the prompt « Choisissez une solution dans la liste », as many rows as `Solution.count`, count `N solutions`.
 - **Search.** `Verify.rechercher(page, <nom of an integrated solution>)`: row names equal `Solution.recherche(q)` names.
 - **Démarches list and prompt.** `click_link "Démarches"`: navigation `Liste des démarches`, « Choisissez une démarche dans la liste », a row per démarche, no `table`.
 - **Filtered row opens the fiche.** Select `Publiées` in `État`, `Filtrer`, open the first published démarche from the list: URL `/admin/demarches/<id>/edit?…etat=publiees`, H1 = its name, no prompt, one `aria-current="page"` row in the left list, `État` still `Publiées`.

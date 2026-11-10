@@ -18,7 +18,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Hidden record') do
     data_subvention.update_columns(visible: false)
     page.visit('/articles/guide-base-petites-collectivites')
-    page.assert_selector 'h1', text: 'Guide de base pour les petites collectivités'
+    page.assert_selector 'h1', text: Article.find('guide-base-petites-collectivites').h1
     page.assert_no_selector '.fr-card a[href="/solutions/data-subvention"]'
   end
 

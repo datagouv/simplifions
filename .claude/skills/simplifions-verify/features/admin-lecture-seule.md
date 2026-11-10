@@ -4,13 +4,13 @@ The administration shows a row's Grist identifier as text (`Identifiant Grist : 
 
 ## Sub-features
 
-- `lecture-seule-grist` `Identifiant Grist : <id>` as text in `État et actions`, no field.
+- `lecture-seule-grist` `Identifiant Grist : <id>` as text, no field: in the `État de la démarche` bar for a démarche, in `État et actions` for the other tables.
 - `lecture-seule-datagouv` a solution's data.gouv fields in the read-only block `Repris de data.gouv.fr`.
 - `lecture-seule-requete` a value sent anyway by a crafted request is ignored (spec only).
 
 ## How to get to it (user POV)
 
-- Any `edit` page of the seven admin tables: `Identifiant Grist : …` in the `État et actions` column, absent on `new` and on rows created in the admin.
+- Any admin `edit` page: `Identifiant Grist : …` in the `État et actions` column, on a démarche in the `État de la démarche` bar above the H1, after the dates; absent on `new` and on rows created in the admin.
 - `/admin/solutions/<id>/edit` of a solution with a data.gouv UID: the `Repris de data.gouv.fr` list (titre, organisation, logo URL, accès, accès des acteurs publics, badges).
 
 ## Driving it with Capybara

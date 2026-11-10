@@ -22,7 +22,7 @@ def reste_sur_la_fiche(page, solution, saisie)
   demande(page) { page.go_back }
   demande(page) { page.click_button 'Supprimer' }
   page.find_field('Nom', with: saisie)
-  raise 'démarche supprimée' unless Solution.exists?(solution.id)
+  raise 'solution supprimée' unless Solution.exists?(solution.id)
 end
 
 def beforeunload(page, solution)
@@ -99,6 +99,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('422') { refus_422(page, nom) }
   Verify.check('Save') { enregistrer(page, solution, "#{nom} enregistré") }
   Verify.check('Delete, unchanged') { supprimer(page, solution, "#{nom} enregistré") }
+  Verify.check('Proof') { raise 'aucune capture' if Dir[Verify::ROOT.join(DOSSIER, "#{Verify.browser}-*.png")].empty? }
   Verify.logout(page)
 ensure
   Solution.where(id: solution&.id).destroy_all

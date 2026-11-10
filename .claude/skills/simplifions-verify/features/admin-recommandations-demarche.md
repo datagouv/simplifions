@@ -1,6 +1,6 @@
 # Gérer les recommandations depuis la démarche
 
-A démarche's fiche shows its recommandations in two blocks, `Solutions recommandées (<n>)` as cards and `Données disponibles (<n>)` as a list, each edited in a window on the page (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). A recommandation's own page stays at its address, `/admin/recommandations/<id>/edit`, with no link from the démarche. `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Ordre, Visible, Modifié le).
+A démarche's fiche shows its recommandations in two blocks, `Solutions recommandées (<n>)` as cards and `Données disponibles (<n>)` as a list, each edited in a window on the page (see [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md)). A recommandation's own page stays at its address, `/admin/recommandations/<id>/edit`, with no link from the démarche. `/admin/recommandations/new?demarche_id=<id>` pre-selects the démarche. A recommandation's form opens on an encart: `Démarche : <nom>`, its description courte, `Voir la fiche <nom>`, and an accordion `Autres recommandations de la démarche (<n>)` holding a read-only table (Solution, Type de recommandation, Position, Visible, Modifié le).
 
 ## Sub-features
 
@@ -11,7 +11,7 @@ A démarche's fiche shows its recommandations in two blocks, `Solutions recomman
 
 ## How to get to it (user POV)
 
-- `/admin/demarches/<id>/edit`, tab `Fiche`, blocks `Solutions recommandées (<n>)` and `Données disponibles (<n>)`.
+- `/admin/demarches/<id>/edit`, blocks `Solutions recommandées (<n>)` and `Données disponibles (<n>)`.
 - `/admin/recommandations/new?demarche_id=<id>` and `/admin/recommandations/<id>/edit`: the encart above the form. Admin only.
 
 ## Driving it with Capybara

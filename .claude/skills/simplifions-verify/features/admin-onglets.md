@@ -19,7 +19,7 @@ The edit page of a solution reads in DSFR tabs, `Fiche` · `API fournies (<n>)` 
 
 Drive: `features/admin-onglets.rb` (SKILL.md § Drive).
 
-Mutation on a throwaway hidden démarche and solution only (`Vérif verify-map <browser>`, deleted at the end).
+Mutation on a throwaway hidden démarche and solution only (`Vérif verify-map <browser>`, deleted at the end). Preconditions: logged in.
 
 - **Démarche without tabs.** The démarche's page has `Choisir les intégrations` and no tablist.
 - **Solution tabs.** Six tabs in order; arrow right from `Fiche` selects `API fournies` and the hidden `onglet` field follows.

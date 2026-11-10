@@ -1,6 +1,6 @@
 # Distinguer les homonymes dans les sélecteurs
 
-Wherever the admin offers or lists a solution (checkbox lists, select menus, intégration and recommandation names, the rows of the solutions list), the solution shows as `<nom> (<catégorie>)`, e.g. `API Impôt particulier (API)` and `API Impôt particulier (Brique technique)`. A solution without catégorie shows its name alone.
+Wherever the admin offers or lists a solution (checkbox lists, select menus, intégration and recommandation names), the solution shows as `<nom> (<catégorie>)`, e.g. `API Impôt particulier (API)` and `API Impôt particulier (Brique technique)`; a row of the solutions list shows the name in bold, then the catégorie in small grey text on the same line. A solution without catégorie shows its name alone.
 
 ## Sub-features
 
@@ -18,7 +18,7 @@ Wherever the admin offers or lists a solution (checkbox lists, select menus, int
 
 Drive: `features/admin-homonymes.rb` (SKILL.md § Drive).
 
-Read-only. Precondition: catalogue imported, two `API Impôt particulier` rows (ids 92 brique_logicielle, 187 api on 2026-10-05).
+Read-only. Preconditions: catalogue imported, two `API Impôt particulier` rows (ids 92 brique_logicielle, 187 api on 2026-10-05).
 
 - **Selects.** Recommandation `Solution` and intégration `API ou jeu de données`: two distinct options for the name.
 - **Checkbox list.** New type d'acteur, `Filtrer les solutions` with `impot particulier`: the same two labels.

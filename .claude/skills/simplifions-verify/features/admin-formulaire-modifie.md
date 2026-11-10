@@ -24,7 +24,7 @@ Drive: `features/admin-formulaire-modifie.rb` (SKILL.md § Drive).
 Preconditions: logged in (`Verify.login`); the drive creates its own solution `Vérif verify-map <browser>` and deletes it. The démarche fiche edits each block in a modal whose `Annuler` puts the fields back ([admin-fiche-demarche.md](admin-fiche-demarche.md)), so the drive runs on a solution.
 
 - **Unchanged.** Reach the fiche through Turbo links (Administration → Solutions → search → row name), `click_link "Annuler"`: no dialog, H1 `Solutions`.
-- **Changed, stay.** Fill `Nom`, `dismiss_confirm { click_link "Annuler" }` then `dismiss_confirm { go_back }`, then `dismiss_confirm { click_button "Supprimer" }`: each returns the question (no delete dialog after the third), the field keeps the typed value, the démarche is still in base.
+- **Changed, stay.** Fill `Nom`, `dismiss_confirm { click_link "Annuler" }` then `dismiss_confirm { go_back }`, then `dismiss_confirm { click_button "Supprimer" }`: each returns the question (no delete dialog after the third), the field keeps the typed value, the solution is still in base.
 - **beforeunload.** A synthetic cancelable `beforeunload` dispatched on `window` comes back `defaultPrevented`.
 - **Delete refused after leaving.** Accept the question, dismiss `Supprimer « … » ?`: `Annuler` still asks.
 - **Changed, leave.** Type again, `accept_confirm { go_back }`: list shown, the name in base unchanged.
@@ -33,6 +33,7 @@ Preconditions: logged in (`Verify.login`); the drive creates its own solution `V
 - **422.** Empty `Nom`, `Enregistrer`, then `Annuler` asks the question without typing.
 - **Save.** Valid `Nom`, `Enregistrer`: no dialog, `« <nom> » enregistré.` on the same fiche, the name in base changed.
 - **Delete, unchanged.** `accept_confirm("Supprimer « … » ?") { click_button "Supprimer" }`: only the delete dialog.
+- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-formulaire-modifie/`.
 
 ## Gotchas
 
