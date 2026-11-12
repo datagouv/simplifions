@@ -16,17 +16,7 @@
 <% end %>
 
 <div id="message-recommandations" role="status"></div>
-<%= render "solutions_recommandees", recommandations: %>
-
-<section class="bloc-modifiable" aria-labelledby="bloc-integrations">
-  <div class="bloc-modifiable__entete">
-    <h2 id="bloc-integrations" class="fr-h4">Intégrations</h2>
-    <%= render layout: "fenetre", locals: { id: "integrations", titre: "Choisir les intégrations", attributs: %i[integration_ids] } do %>
-      <%= render "integrations", f: %>
-    <% end %>
-  </div>
-  <p class="fr-mb-0"><%= t("admin.integrations_cochees", count: demarche.integration_ids.size) %> <%= t("admin.integrations_proposees", count: demarche.integrations_proposees.count) %></p>
-</section>
+<%= render "solutions_recommandees", demarche:, recommandations: %>
 
 <h2 class="fr-h5 fr-mt-6w">Hors de la page publique</h2>
 

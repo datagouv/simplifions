@@ -755,7 +755,7 @@ RSpec.describe 'Administration' do
     def fiche = get("/admin/demarches/#{aides.id}/edit").then { page }
     def flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream')
     def flux_vers(cible) = flux.find { it['target'] == cible }.at_css('template')
-    def cartes(dans) = dans.css('li[id^=recommandation_]').map { |carte| carte.css('p:not(.fr-badge), h3, .fr-badge').map { it.text.squish } }
+    def cartes(dans) = dans.css('li[id^=recommandation_]').map { |carte| carte.css('.carte-recommandee > p:not(.fr-badge), h3, .fr-badge').map { it.text.squish } }
     def donnees(dans) = dans.css('.donnees-disponibles li').map { it.text.squish }
     def carte(dans, recommandation) = dans.at_css("li##{ActionView::RecordIdentifier.dom_id(recommandation)}")
     def orphelines(dans) = dans.at_css('#rattachees-a-aucune-solution')
@@ -779,7 +779,7 @@ RSpec.describe 'Administration' do
 
       expect(carte(page, a).at_css('h4').text.squish).to eq('Données utiles (1)')
       expect(donnees(carte(page, a))).to eq(['API X (API) Position 1'])
-      expect([carte(page, b).at_css('h4'), donnees(carte(page, b))]).to eq([nil, []])
+      expect([carte(page, b).css('h4').map { it.text.squish }, donnees(carte(page, b))]).to eq([['Intégrations (0)'], []])
       expect(orphelines(page).at_css('h3').text.squish).to eq('Rattachées à aucune solution recommandée')
       expect(donnees(orphelines(page))).to eq(['API Seule (API) —Sans position'])
       expect(page.css('h2, h3, h4').map { it.text.squish }).not_to include(a_string_starting_with('Données disponibles'))
@@ -809,7 +809,7 @@ RSpec.describe 'Administration' do
         ['Position 1', 'Aides Locales (API)', 'Masquée'], ['Position 2', 'Mes Aides (API)'], ['Position 3', 'Aide Rangée (API)'],
         ['Sans position', 'Nouvelle Aide (API)', 'Ajoutée au brouillon']
       ])
-      expect(page.at_css("#recommandation_#{Recommandation.find_by!(ordre: 2).id}").css('button').map { it.text.squish }).to eq(['Modifier Mes Aides (API)', 'Retirer Mes Aides (API)'])
+      expect(page.at_css("#recommandation_#{Recommandation.find_by!(ordre: 2).id}").css('button').map { it.text.squish }).to eq(['Modifier Mes Aides (API)', 'Retirer Mes Aides (API)', 'Ajouter une intégration à Mes Aides (API)'])
       expect(donnees(page)).to eq(['API QF (API) Position 1', 'API Impôt (API) —Sans position'])
       expect(page.at_css('button[aria-controls="fenetre-new_recommandation"]').text.squish).to eq('Ajouter une solution recommandée')
       expect(page.css('[role=tab]').map { it.text.squish }).not_to include(a_string_starting_with('Recommandations'))
@@ -2524,7 +2524,7 @@ RSpec.describe 'Administration' do
 
       fiche
       expect(carte_de_la_fiche(carte)['class']).not_to include('retiree')
-      expect(carte_de_la_fiche(carte).css('button').map { it.text.squish }).to eq(['Modifier Mes Aides (API)', 'Retirer Mes Aides (API)'])
+      expect(carte_de_la_fiche(carte).css('button').map { it.text.squish }).to eq(['Modifier Mes Aides (API)', 'Retirer Mes Aides (API)', 'Ajouter une intégration à Mes Aides (API)'])
       expect(encadre).to be_nil
     end
 
@@ -3035,7 +3035,7 @@ RSpec.describe 'Administration' do
       expect(page.at_css('.bloc-modifiable').text.squish).to include('/demarches/aides', 'Aider les entreprises.', 'Entreprises')
       expect(page.at_css('.bloc-modifiable').text).not_to include('DLNUF')
       expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title), h3').map { it.text.squish }).to eq(
-        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Intégrations', 'Hors de la page publique', 'Title SEO', 'Mots-clés',
+        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Hors de la page publique', 'Title SEO', 'Mots-clés',
          'Fournisseurs de services', 'Vocabulaires']
       )
       expect(page.at_css('#formulaire-fiche .bloc-modifiable strong').text).to eq('contexte')
@@ -3043,23 +3043,87 @@ RSpec.describe 'Administration' do
       expect(page.at_css('[role=tablist]')).to be_nil
     end
 
-    def bloc_integrations = response.parsed_body.at_css('section[aria-labelledby="bloc-integrations"]').text.squish
+    delegate :dom_id, to: :'ActionView::RecordIdentifier'
+    def integrations_de(carte) = response.parsed_body.at_css("li##{dom_id(carte)}").css('.integrations-de-la-carte li').map { it.text.squish }
+    def cases_de(id) = fenetre(id).css('input[type=checkbox]').pluck('value').map(&:to_i)
 
-    it 'dit combien d’intégrations sont cochées sur combien proposées, à choisir dans une fenêtre, le choix gardé au brouillon' do
-      api = Solution.create!(nom: 'API QF', categorie: 'api')
-      Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
-      cochee, libre = %w[Logiciel Portail].map { Integration.create!(integratrice: Solution.create!(nom: it), integree: api, type_integration: 'consomme') }
+    def brique_exposant(nom, *apis)
+      Solution.create!(nom:, categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: "Éditeur #{nom}", public_ou_prive: 'Public')]).tap do |brique|
+        apis.each { Integration.create!(integratrice: brique, integree: it, type_integration: 'expose') }
+      end
+    end
+
+    def integration_vers(api, nom) = Integration.create!(integratrice: Solution.create!(nom:), integree: api, type_integration: 'consomme')
+
+    def champs_envoyes
+      page.css('#formulaire-fiche input:not([type=submit]):not([type=checkbox]), #formulaire-fiche input[checked], #formulaire-fiche textarea')
+        .map { [it['name'], it['value'] || it.text] }.reject { it.first.nil? }
+    end
+
+    it 'montre sur chaque carte ses intégrations cochées et ne propose dans sa fenêtre que celles de sa solution, le choix gardé au brouillon' do
+      x, y = %w[X Y].map { Solution.create!(nom: "API #{it}", categorie: 'api') }
+      a = Recommandation.create!(demarche:, solution: brique_exposant('Brique A', x), niveau: :niveau_2, ordre: 1)
+      b = Recommandation.create!(demarche:, solution: y, niveau: :niveau_2, ordre: 2)
+      Recommandation.create!(demarche:, solution: x, niveau: :niveau_1)
+      cochee = integration_vers(x, 'Logiciel')
+      libre = integration_vers(x, 'Portail')
+      de_y = integration_vers(y, 'Guichet')
       demarche.integrations << cochee
       fiche
-      expect(bloc_integrations).to include('1 cochée sur 2 proposées par les solutions recommandées.')
-      expect(bouton('integrations').text).to eq('Choisir les intégrations')
-      expect(champs('integrations')).to eq(['demarche[integration_ids][]'])
+
+      expect(page.at_css("li##{dom_id(a)}").css('h4').map { it.text.squish }).to eq(['Données utiles (1)', 'Intégrations (1)'])
+      expect([integrations_de(a), integrations_de(b)]).to eq([[cochee.libelle], []])
+      bouton = page.at_css("li##{dom_id(a)} button[aria-controls='fenetre-integrations-#{dom_id(a)}']")
+      expect(bouton.text.squish).to eq('Ajouter une intégration à Brique A (Brique technique)')
+      expect([cases_de("integrations-#{dom_id(a)}"), cases_de("integrations-#{dom_id(b)}")]).to eq([[Integration.find_by!(integratrice: a.solution).id, cochee.id, libre.id], [de_y.id]])
+      ancetres = fenetre("integrations-#{dom_id(a)}").ancestors.pluck('id')
+      expect([ancetres.include?('formulaire-fiche'), ancetres.include?('cartes-recommandees')]).to eq([true, false])
+      expect(page.css('section h2').map { it.text.squish }).not_to include('Intégrations')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { integration_ids: ['', cochee.id, libre.id] } }
       expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
       expect(demarche.reload.integrations).to eq([cochee])
       fiche
-      expect(bloc_integrations).to include('2 cochées sur 2 proposées')
+      expect(integrations_de(a)).to eq([cochee.libelle, libre.libelle])
+    end
+
+    it 'rend chaque intégration cochée une seule fois dans le formulaire, carte retirée et intégration hors carte comprises, et les garde à l’enregistrement d’un autre bloc' do
+      x, z, w = %w[X Z W].map { Solution.create!(nom: "API #{it}", categorie: 'api') }
+      Recommandation.create!(demarche:, solution: brique_exposant('Brique A', x), niveau: :niveau_2, ordre: 1)
+      seconde = Recommandation.create!(demarche:, solution: brique_exposant('Brique C', x), niveau: :niveau_2, ordre: 2)
+      retiree = Recommandation.create!(demarche:, solution: z, niveau: :niveau_2, ordre: 3, visible: true, brouillon: { 'retiree' => '1' })
+      Recommandation.create!(demarche:, solution: x, niveau: :niveau_1)
+      de_x = integration_vers(x, 'Logiciel')
+      de_z = integration_vers(z, 'Portail')
+      hors_carte = integration_vers(w, 'Guichet')
+      demarche.integrations << [de_x, de_z]
+      Integration.connection.execute("INSERT INTO demarches_integrations (demarche_id, integration_id) VALUES (#{demarche.id}, #{hors_carte.id})")
+      fiche
+
+      formulaire = page.at_css('#formulaire-fiche')
+      expect(formulaire.css('input[type=checkbox][name="demarche[integration_ids][]"][checked]').pluck('value').map(&:to_i)).to contain_exactly(de_x.id, de_z.id, hors_carte.id)
+      expect(formulaire.css('input[type=hidden][name="demarche[integration_ids][]"]').size).to eq(1)
+      expect(page.css('[id]:not([type=hidden])').pluck('id').tally.select { |_, nombre| nombre > 1 }).to be_empty
+      expect(cases_de("integrations-#{dom_id(seconde)}")).to be_empty
+      expect(integrations_de(retiree)).to eq([de_z.libelle])
+      expect(page.at_css("li##{dom_id(retiree)}").text).not_to include('Ajouter une intégration')
+      orphelines = page.at_css('#rattachees-a-aucune-solution')
+      expect(orphelines.css('.integrations-de-la-carte li').map { it.text.squish }).to eq([hors_carte.libelle])
+      expect(orphelines.at_css("button[aria-controls='fenetre-integrations-rattachees-a-aucune-solution']")).to be_present
+
+      parametres = champs_envoyes.each_with_object({}) { |(nom, valeur), h| nom.end_with?('[]') ? (h[nom] ||= []) << valeur : h[nom] = valeur }
+      patch "/admin/demarches/#{demarche.id}", params: Rack::Utils.parse_nested_query(parametres.to_query).deep_merge('demarche' => { 'contexte' => 'Nouveau' })
+      expect(Demarche.find(demarche.id).appliquer_brouillon.integration_ids).to contain_exactly(de_x.id, de_z.id, hors_carte.id)
+    end
+
+    it 'donne sur place sa fenêtre d’intégrations à une carte ajoutée, dans le formulaire de la fiche' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      integration = integration_vers(api, 'Logiciel')
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } }
+
+      fenetres = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'fenetres-des-integrations' }.at_css('template')
+      expect(fenetres.at_css("dialog#fenetre-integrations-#{dom_id(Recommandation.last)}").css('input[type=checkbox]').pluck('value')).to eq([integration.id.to_s])
+      expect(fenetres.css('input[type=hidden][name="demarche[integration_ids][]"]').size).to eq(1)
     end
 
     it 'ouvre pour chaque bloc une fenêtre avec ses seuls champs' do
@@ -3154,7 +3218,7 @@ RSpec.describe 'Administration' do
         ['En-tête modifié', '#titre-de-la-demarche'],
         ['Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche', '#titre-de-la-demarche'],
         ['Contexte modifié', '#bloc-contexte'],
-        ['Intégrations modifiées', '#bloc-integrations']
+        ['Intégrations modifiées', '#bloc-solutions-recommandees']
       ])
       expect(lignes.map { |_libelle, ancre| page.at_css(ancre) }).to all(be_present)
       expect(encadre.css('a.fr-btn, button').map { it.text.squish }).to eq(['Publier ces 4 changements', 'Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon'])

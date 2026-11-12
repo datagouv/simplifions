@@ -1,6 +1,6 @@
 <% collection = collection.to_a %>
 <% courte = collection.size <= 10 %>
-<% filtre = f.field_id(attribut, :filtre) %>
+<% filtre = local_assigns[:filtre] || f.field_id(attribut, :filtre) %>
 <% cochees = f.object.public_send(attribut) %>
 <%= tag.fieldset class: "fr-fieldset", data: ({ controller: "liste-filtrable", action: "focusout->liste-filtrable#quitter" } unless courte) do %>
   <legend class="fr-fieldset__legend"><%= legende %></legend>
@@ -24,7 +24,7 @@
       <p class="fr-text--sm fr-mb-1w" aria-live="polite" data-liste-filtrable-target="compte"></p>
     <% end %>
     <div class="fr-grid-row">
-      <%= f.collection_check_boxes attribut, collection, :id, libelle do |b| %>
+      <%= f.collection_check_boxes attribut, collection, :id, libelle, include_hidden: local_assigns.fetch(:champ_vide, true) do |b| %>
         <%= tag.div class: class_names("fr-fieldset__element", "fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-grid-row fr-grid-row--middle case-avec-aide" => local_assigns[:referentiel]), data: ({ liste_filtrable_target: "element" } unless courte) do %>
           <div class="fr-checkbox-group">
             <%= b.check_box data: ({ action: "change->liste-filtrable#compter" } unless courte) %>

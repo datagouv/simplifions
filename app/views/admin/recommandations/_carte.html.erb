@@ -1,4 +1,4 @@
-<%# locals: (carte:, donnees:) -%>
+<%# locals: (carte:, donnees:, integrations:) -%>
 <% nom = carte.solution&.libelle_admin %>
 <%= tag.li id: dom_id(carte), class: ["fr-col-12", ("retiree" if carte.retiree?)], data: { deplacement: dom_id(carte, :deplacement) } do %>
   <div class="carte-recommandee">
@@ -26,5 +26,12 @@
         <% end %>
       </div>
     <% end %>
+    <div class="fr-mt-2w">
+      <h4 class="fr-text--md fr-text--bold fr-mb-1w">Intégrations (<%= integrations.size %>)</h4>
+      <%= render "admin/demarches/liste_des_integrations", integrations: %>
+      <% unless carte.retiree? %>
+        <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-add-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_integrations(carte) %>" data-fr-opened="false">Ajouter une intégration<span class="fr-sr-only"> à <%= nom %></span></button>
+      <% end %>
+    </div>
   </div>
 <% end %>

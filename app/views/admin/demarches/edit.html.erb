@@ -18,6 +18,7 @@
     <%= render "entete", f:, demarche: affichee %>
     <%= render "blocs", f:, demarche: affichee, recommandations: fiche %>
     <%= yield :fenetres %>
+    <%= render "fenetres_des_integrations", f:, cartes: fiche.select(&:niveau_2?) %>
   <% end %>
   <%= render "admin/recommandations/formulaires", demarche: en_base, lignes: fiche, nouvelle_carte: Recommandation.new(demarche: en_base, niveau: :niveau_2) %>
   <%= render "admin/recommandations/fenetres_des_donnees_utiles", cartes: fiche.select(&:niveau_2?), donnees: donnees_par_carte(fiche) %>

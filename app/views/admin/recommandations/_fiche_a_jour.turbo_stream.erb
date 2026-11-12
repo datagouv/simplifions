@@ -5,11 +5,16 @@
 <% nouvelle = refusee if refusee&.new_record? %>
 <% cartes = fiche.select(&:niveau_2?) %>
 <% donnees = donnees_par_carte(fiche) %>
+<% affichee = Demarche.find(demarche.id).appliquer_brouillon %>
+<% integrations = integrations_par_carte(affichee, cartes) %>
 <% fenetres = [*cartes, nil].index_by { fenetre_des_donnees_utiles(it) } %>
 <% fenetre = params[:fenetre] if fenetres.key?(params[:fenetre]) %>
 <% source = fenetres[fenetre] %>
 <%= turbo_stream.replace "etat-de-la-demarche", partial: "admin/demarches/barre_d_etat", locals: { demarche: } %>
 <%= turbo_stream.update "compte-des-solutions-recommandees", "(#{cartes.size})" %>
+<%= turbo_stream.replace "fenetres-des-integrations" do %>
+  <%= fields(:demarche, model: affichee) { |f| render "admin/demarches/fenetres_des_integrations", f:, cartes: } %>
+<% end %>
 <%= turbo_stream.replace "formulaires-recommandations", partial: "formulaires",
       locals: { demarche:, lignes:, nouvelle_carte: (nouvelle unless fenetre) || Recommandation.new(demarche:, niveau: :niveau_2) } %>
 <% if fenetre %>
@@ -18,8 +23,8 @@
         locals: { carte: source, donnees: donnees.fetch(source, []).map { refusee&.id == it.id ? refusee : it }, recommandees: fiche.map(&:solution_id), nouvelle: } %>
   <%= turbo_stream.update "message-recommandations", "" %>
 <% else %>
-  <%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes:, donnees: }, method: :morph %>
-  <%= turbo_stream.update "rattachees-a-aucune-solution", partial: "admin/demarches/rattachees_a_aucune_solution", locals: { donnees: donnees.fetch(nil, []) } %>
+  <%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes:, donnees:, integrations:, cochees: affichee.integration_ids }, method: :morph %>
+  <%= turbo_stream.update "rattachees-a-aucune-solution", partial: "admin/demarches/rattachees_a_aucune_solution", locals: { donnees: donnees.fetch(nil, []), integrations: integrations.fetch(nil, []), cochees: affichee.integration_ids } %>
   <%= turbo_stream.replace "fenetres-des-donnees-utiles", partial: "fenetres_des_donnees_utiles", locals: { cartes:, donnees: } %>
 <% end %>
 <%= turbo_stream.update(fenetre ? "message-#{fenetre}" : "message-recommandations") do %>

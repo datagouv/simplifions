@@ -4,7 +4,7 @@ module AdminHelper
     'Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche' => ['titre-de-la-demarche', %w[slug]],
     'Contexte modifié' => ['bloc-contexte', %w[contexte]],
     'Cadre juridique modifié' => ['bloc-cadre-juridique', %w[cadre_juridique]],
-    'Intégrations modifiées' => ['bloc-integrations', %w[integration_ids]],
+    'Intégrations modifiées' => ['bloc-solutions-recommandees', %w[integration_ids]],
     'Title SEO modifié' => ['bloc-titre-seo', %w[titre_seo]],
     'Mots-clés modifiés' => ['bloc-mots-clefs', %w[mots_clefs]],
     'Fournisseurs de services modifiés' => ['bloc-fournisseurs', %w[type_acteur_ids]],
@@ -24,6 +24,12 @@ module AdminHelper
   end
 
   def donnees_par_carte(lignes) = Demarche.rattachement(lignes.select(&:niveau_2?), lignes.select(&:niveau_1?), &:solution_id)
+
+  def integrations_par_carte(demarche, cartes)
+    Demarche.rattachement(cartes, demarche.integrations_proposees.includes(:integratrice, :integree).order(:id), &:integree_id)
+  end
+
+  def fenetre_des_integrations(carte) = "integrations-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"
   def fenetre_des_donnees_utiles(carte) = "donnees-utiles-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"
 
   def nom_de_la_recommandation(recommandation, nom) = recommandation.retiree? ? tag.s(nom, class: 'fr-text-mention--grey') : nom

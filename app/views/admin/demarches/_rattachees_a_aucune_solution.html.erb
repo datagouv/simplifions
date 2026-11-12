@@ -1,8 +1,16 @@
-<%# locals: (donnees:) -%>
-<% if donnees.any? %>
+<%# locals: (donnees:, integrations:, cochees:) -%>
+<% if donnees.any? || integrations.any? %>
   <h3 class="fr-h6 fr-mt-4w fr-mb-2w">Rattachées à aucune solution recommandée</h3>
-  <div id="liste-<%= fenetre_des_donnees_utiles(nil) %>">
-    <%= render "admin/demarches/liste_des_donnees_disponibles", donnees: %>
-  </div>
-  <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-edit-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_donnees_utiles(nil) %>" data-fr-opened="false">Modifier les données utiles<span class="fr-sr-only"> rattachées à aucune solution</span></button>
+  <% if donnees.any? %>
+    <div id="liste-<%= fenetre_des_donnees_utiles(nil) %>">
+      <%= render "admin/demarches/liste_des_donnees_disponibles", donnees: %>
+    </div>
+    <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-edit-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_donnees_utiles(nil) %>" data-fr-opened="false">Modifier les données utiles<span class="fr-sr-only"> rattachées à aucune solution</span></button>
+  <% end %>
+  <% if integrations.any? %>
+    <% cochees_ici = integrations.select { it.id.in?(cochees) } %>
+    <h4 class="fr-text--md fr-text--bold fr-mt-2w fr-mb-1w">Intégrations (<%= cochees_ici.size %>)</h4>
+    <%= render "admin/demarches/liste_des_integrations", integrations: cochees_ici %>
+    <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-edit-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_integrations(nil) %>" data-fr-opened="false">Modifier les intégrations<span class="fr-sr-only"> rattachées à aucune solution</span></button>
+  <% end %>
 <% end %>

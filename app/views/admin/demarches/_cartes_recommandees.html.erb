@@ -1,6 +1,6 @@
-<%# locals: (cartes:, donnees:) -%>
+<%# locals: (cartes:, donnees:, integrations:, cochees:) -%>
 <% cartes.each do |carte| %>
-  <%= render "admin/recommandations/carte", carte:, donnees: donnees.fetch(carte, []) %>
+  <%= render "admin/recommandations/carte", carte:, donnees: donnees.fetch(carte, []), integrations: integrations.fetch(carte, []).select { it.id.in?(cochees) } %>
 <% end %>
 <li class="fr-col-12">
   <button type="button" class="carte-ajout fr-btn fr-btn--tertiary fr-icon-add-line fr-btn--icon-left" aria-controls="fenetre-<%= dom_id(Recommandation) %>" data-fr-opened="false">Ajouter une solution recommandée</button>
