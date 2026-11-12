@@ -14,3 +14,7 @@
 <% else %>
   <%= turbo_stream.replace @integration.persisted? ? dom_id(@integration) : vide, partial: "ligne", locals: { ligne: @integration, liste: @liste }, method: :morph %>
 <% end %>
+<% solution = @integration.public_send(colonne_fixe_de_la_liste(@liste)) %>
+<% if solution %>
+  <%= render "onglets", solution: %>
+<% end %>

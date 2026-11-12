@@ -1,0 +1,4 @@
+<%# locals: (solution:) -%>
+<% libelles_des_onglets_d_integrations(solution).each do |cle, libelle| %>
+  <%= turbo_stream.update "onglet-#{cle}", libelle %>
+<% end %>
