@@ -757,11 +757,44 @@ RSpec.describe 'Administration' do
     def flux_vers(cible) = flux.find { it['target'] == cible }.at_css('template')
     def cartes(dans) = dans.css('li[id^=recommandation_]').map { |carte| carte.css('p:not(.fr-badge), h3, .fr-badge').map { it.text.squish } }
     def donnees(dans) = dans.css('.donnees-disponibles li').map { it.text.squish }
+    def carte(dans, recommandation) = dans.at_css("li##{ActionView::RecordIdentifier.dom_id(recommandation)}")
+    def orphelines(dans) = dans.at_css('#rattachees-a-aucune-solution')
     def fenetre(dans, recommandation) = dans.at_css("dialog#fenetre-#{ActionView::RecordIdentifier.dom_id(recommandation)}")
+
+    def brique_exposant(nom, *apis)
+      Solution.create!(nom:, categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: "Éditeur #{nom}", public_ou_prive: 'Public')]).tap do |brique|
+        apis.each { Integration.create!(integratrice: brique, integree: it, type_integration: 'expose') }
+      end
+    end
+
+    it 'range chaque donnée utile dans la carte de la solution qui la fournit, les autres à part' do
+      x = solution('API X')
+      y = solution('API Y')
+      orpheline = solution('API Seule')
+      a = Recommandation.create!(demarche: aides, solution: brique_exposant('Brique A', x, y), niveau: :niveau_2, ordre: 1)
+      b = Recommandation.create!(demarche: aides, solution: solution('API B'), niveau: :niveau_2, ordre: 2)
+      Recommandation.create!(demarche: aides, solution: x, niveau: :niveau_1, ordre: 1)
+      Recommandation.create!(demarche: aides, solution: orpheline, niveau: :niveau_1)
+      fiche
+
+      expect(carte(page, a).at_css('h4').text.squish).to eq('Données utiles (1)')
+      expect(donnees(carte(page, a))).to eq(['API X (API) Position 1'])
+      expect([carte(page, b).at_css('h4'), donnees(carte(page, b))]).to eq([nil, []])
+      expect(orphelines(page).at_css('h3').text.squish).to eq('Rattachées à aucune solution recommandée')
+      expect(donnees(orphelines(page))).to eq(['API Seule (API) —Sans position'])
+      expect(page.css('h2, h3, h4').map { it.text.squish }).not_to include(a_string_starting_with('Données disponibles'))
+    end
+
+    it 'n’affiche le bloc des données rattachées à aucune solution que s’il en reste' do
+      Recommandation.create!(demarche: aides, solution: solution('API B'), niveau: :niveau_2)
+      fiche
+      expect(orphelines(page).text.strip).to be_empty
+    end
+
     def ligne_de_donnee(dans, recommandation) = dans.at_css("form##{ActionView::RecordIdentifier.dom_id(recommandation, :donnee_utile)}")
     def choisi(dans, champ) = dans.at_css("[name=\"recommandation[#{champ}]\"]").then { it.name == 'select' ? it.at_css('option[selected]')&.text : it['value'] || it.text.strip }
 
-    it 'montre sous les blocs de texte les solutions recommandées en cartes et les données utiles en liste, avec leur nombre' do
+    it 'montre sous les blocs de texte les solutions recommandées en cartes, avec leur nombre' do
       Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, ordre: 2, visible: true)
       Recommandation.create!(demarche: aides, solution: solution('Aides Locales'), niveau: :niveau_2, ordre: 1)
       Recommandation.create!(demarche: aides, solution: solution('Nouvelle Aide'), niveau: :niveau_2, brouillon: { 'visible' => '1' })
@@ -771,7 +804,7 @@ RSpec.describe 'Administration' do
       Recommandation.create!(demarche: Demarche.create!(nom: 'Autre'), solution: solution('Ailleurs'), niveau: :niveau_2)
 
       fiche
-      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title)').map { it.text.squish }).to start_with('Contexte', 'Cadre juridique', 'Solutions recommandées (4)', 'Données disponibles (2)')
+      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title)').map { it.text.squish }).to start_with('Contexte', 'Cadre juridique', 'Solutions recommandées (4)')
       expect(cartes(page)).to eq([
         ['Position 1', 'Aides Locales (API)', 'Masquée'], ['Position 2', 'Mes Aides (API)'], ['Position 3', 'Aide Rangée (API)'],
         ['Sans position', 'Nouvelle Aide (API)', 'Ajoutée au brouillon']
@@ -902,7 +935,7 @@ RSpec.describe 'Administration' do
       expect(ligne.css('button').map { it.text.squish }).to eq(['Enregistrer la donnée utile API QF (API)', 'Retirer API QF (API)'])
 
       patch "/admin/recommandations/#{utile.id}", params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { niveau: 'niveau_1', ordre: '1' } }
-      expect(donnees(flux_vers('liste-des-donnees-disponibles'))).to eq(['API QF (API) Position 1'])
+      expect(donnees(flux_vers('rattachees-a-aucune-solution'))).to eq(['API QF (API) Position 1'])
       expect(flux_vers('message-donnees-utiles').text.squish).to eq('« Aides → API QF (API) » enregistré.')
       expect(flux_vers('message-recommandations').text.strip).to be_empty
 
@@ -912,7 +945,7 @@ RSpec.describe 'Administration' do
       expect(flux_vers('formulaires-recommandations').at_css('dialog#fenetre-new_recommandation')['data-controller']).to be_nil
 
       post '/admin/recommandations', params: { ligne: 1, fenetre: 'donnees-utiles', recommandation: { demarche_id: aides.id, solution_id: solution('API Impôt').id, niveau: 'niveau_1' } }
-      expect(donnees(flux_vers('liste-des-donnees-disponibles'))).to eq(['API QF (API) Position 1', 'API Impôt (API) —Sans position'])
+      expect(donnees(flux_vers('rattachees-a-aucune-solution'))).to eq(['API QF (API) Position 1', 'API Impôt (API) —Sans position'])
       expect(flux_vers('lignes-des-donnees-utiles').css('legend').map { it.text.squish }).to eq(['Donnée utile : API QF (API)', 'Donnée utile : API Impôt (API)', 'Ajouter une donnée utile'])
 
       retirer = ligne.at_css('button[data-turbo-confirm]')
@@ -2951,7 +2984,7 @@ RSpec.describe 'Administration' do
       expect(page.at_css('.bloc-modifiable').text.squish).to include('/demarches/aides', 'Aider les entreprises.', 'Entreprises')
       expect(page.at_css('.bloc-modifiable').text).not_to include('DLNUF')
       expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title), h3').map { it.text.squish }).to eq(
-        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Données disponibles (0)', 'Intégrations', 'Hors de la page publique', 'Title SEO', 'Mots-clés',
+        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Intégrations', 'Hors de la page publique', 'Title SEO', 'Mots-clés',
          'Fournisseurs de services', 'Vocabulaires']
       )
       expect(page.at_css('#formulaire-fiche .bloc-modifiable strong').text).to eq('contexte')
@@ -3107,7 +3140,7 @@ RSpec.describe 'Administration' do
                                          'Fournisseurs de services modifiés', 'Vocabulaires modifiés'])
     end
 
-    it 'nomme chaque recommandation ajoutée ou modifiée, liée à sa carte ou aux données disponibles, et pas celle retirée' do
+    it 'nomme chaque recommandation ajoutée ou modifiée, liée à sa carte ou au bloc des solutions recommandées, et pas celle retirée' do
       inclusion = Solution.create!(nom: 'API Marché de l’inclusion', categorie: 'api')
       Recommandation.new(demarche:, solution: inclusion, niveau: :niveau_2).enregistrer({})
       utile = Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
@@ -3119,7 +3152,7 @@ RSpec.describe 'Administration' do
       expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 2 changements partiront')
       expect(lignes).to eq([
         ["Solution recommandée ajoutée : #{inclusion.libelle_admin}", "#recommandation_#{carte.id}"],
-        ["Donnée utile modifiée : #{api.libelle_admin}", '#bloc-donnees-disponibles']
+        ["Donnée utile modifiée : #{api.libelle_admin}", '#bloc-solutions-recommandees']
       ])
     end
 
@@ -3142,7 +3175,7 @@ RSpec.describe 'Administration' do
       fiche
 
       expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 1 changement partira')
-      expect(lignes).to eq([['Ordre des données utiles modifié', '#bloc-donnees-disponibles']])
+      expect(lignes).to eq([['Ordre des données utiles modifié', '#bloc-solutions-recommandees']])
     end
 
     it 'garde la ligne d’une solution recommandée déplacée et modifiée' do

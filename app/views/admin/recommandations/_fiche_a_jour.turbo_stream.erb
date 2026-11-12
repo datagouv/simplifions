@@ -7,10 +7,9 @@
 <%= turbo_stream.replace "etat-de-la-demarche", partial: "admin/demarches/barre_d_etat", locals: { demarche: } %>
 <% cartes = fiche.select(&:niveau_2?) %>
 <%= turbo_stream.update "compte-des-solutions-recommandees", "(#{cartes.size})" %>
-<%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes: }, method: :morph %>
-<% donnees = fiche.select(&:niveau_1?) %>
-<%= turbo_stream.update "compte-des-donnees-disponibles", "(#{donnees.size})" %>
-<%= turbo_stream.update "liste-des-donnees-disponibles", partial: "admin/demarches/liste_des_donnees_disponibles", locals: { donnees: } %>
+<% donnees = Demarche.rattachement(cartes, fiche.select(&:niveau_1?), &:solution_id) %>
+<%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes:, donnees: }, method: :morph %>
+<%= turbo_stream.update "rattachees-a-aucune-solution", partial: "admin/demarches/rattachees_a_aucune_solution", locals: { donnees: donnees.fetch(nil, []) } %>
 <%= turbo_stream.replace "formulaires-recommandations", partial: "formulaires",
       locals: { demarche:, lignes:, nouvelle_carte: (nouvelle unless depuis_les_donnees_utiles) || Recommandation.new(demarche:, niveau: :niveau_2) } %>
 <%= turbo_stream.update "lignes-des-donnees-utiles", partial: "ligne_de_donnee_utile",

@@ -12,7 +12,7 @@ module AdminHelper
   }.freeze
   ORDRES = {
     'niveau_2' => ['Ordre des solutions recommandées modifié', 'bloc-solutions-recommandees'],
-    'niveau_1' => ['Ordre des données utiles modifié', 'bloc-donnees-disponibles']
+    'niveau_1' => ['Ordre des données utiles modifié', 'bloc-solutions-recommandees']
   }.freeze
 
   def rubrique_admin_ouverte?(modele) = (params[:type] || controller_name) == modele.model_name.route_key
@@ -49,7 +49,7 @@ module AdminHelper
   def recommandation_a_publier(recommandation)
     quoi = recommandation.niveau_2? ? 'Solution recommandée' : 'Donnée utile'
     comment = changement_de_la_recommandation(recommandation)
-    ancre = recommandation.niveau_2? ? dom_id(recommandation) : 'bloc-donnees-disponibles'
+    ancre = recommandation.niveau_2? ? dom_id(recommandation) : 'bloc-solutions-recommandees'
     ["#{quoi} #{comment} : #{recommandation.solution.libelle_admin}", ancre]
   end
 

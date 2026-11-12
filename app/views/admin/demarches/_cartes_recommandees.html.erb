@@ -1,5 +1,7 @@
-<%# locals: (cartes:) -%>
-<%= render partial: "admin/recommandations/carte", collection: cartes %>
-<li class="fr-col-12 fr-col-md-6 fr-col-lg-4">
+<%# locals: (cartes:, donnees:) -%>
+<% cartes.each do |carte| %>
+  <%= render "admin/recommandations/carte", carte:, donnees: donnees.fetch(carte, []) %>
+<% end %>
+<li class="fr-col-12">
   <button type="button" class="carte-ajout fr-btn fr-btn--tertiary fr-icon-add-line fr-btn--icon-left" aria-controls="fenetre-<%= dom_id(Recommandation) %>" data-fr-opened="false">Ajouter une solution recommandée</button>
 </li>

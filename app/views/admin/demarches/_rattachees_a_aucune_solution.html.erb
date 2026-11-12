@@ -1,0 +1,6 @@
+<%# locals: (donnees:) -%>
+<% if donnees.any? %>
+  <h3 class="fr-h6 fr-mt-4w fr-mb-2w">Rattachées à aucune solution recommandée</h3>
+  <h4 class="fr-text--md fr-text--bold fr-mb-1w">Données utiles (<%= donnees.size %>)</h4>
+  <%= render "admin/demarches/liste_des_donnees_disponibles", donnees: %>
+<% end %>

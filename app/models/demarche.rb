@@ -97,6 +97,11 @@ class Demarche < ApplicationRecord
       .group_by(&:categorie).slice(*Solution::CATEGORIES_INTEGRATRICES).transform_keys(&:to_sym)
   end
 
+  def self.rattachement(cartes, elements)
+    fournies = cartes.index_with { it.solution.fournies.map(&:id) }
+    elements.group_by { |element| cartes.find { fournies[it].include?(yield(element)) } }
+  end
+
   def integrations_autorisees = Integration.where(integree_id: recommandations.select(:solution_id))
   def integrations_proposees = integrations_autorisees.or(Integration.where(id: integration_ids))
 

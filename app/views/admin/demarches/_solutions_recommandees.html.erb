@@ -1,13 +1,18 @@
 <%# locals: (recommandations:) -%>
 <% cartes = recommandations.select(&:niveau_2?) %>
+<% donnees = Demarche.rattachement(cartes, recommandations.select(&:niveau_1?), &:solution_id) %>
 <section id="solutions-recommandees" class="bloc-modifiable" aria-labelledby="bloc-solutions-recommandees" data-controller="section-depliable">
   <div class="bloc-modifiable__entete">
     <h2 id="bloc-solutions-recommandees" class="fr-h4">Solutions recommandées <span id="compte-des-solutions-recommandees" class="fr-text-mention--grey">(<%= cartes.size %>)</span></h2>
     <button type="button" id="changer-l-ordre" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-arrow-up-down-line fr-btn--icon-left" aria-expanded="false" aria-controls="consigne-de-rangement"
             data-section-depliable-target="bouton" data-action="section-depliable#basculer">Changer l’ordre</button>
+    <button type="button" class="fr-btn fr-btn--sm fr-btn--secondary fr-icon-edit-line fr-btn--icon-left" aria-controls="fenetre-donnees-utiles" data-fr-opened="false">Modifier les données utiles</button>
   </div>
   <p id="consigne-de-rangement" class="fr-text--sm fr-text-mention--grey" hidden data-section-depliable-target="contenu">Glissez une carte par sa poignée pour la déplacer. Au clavier : « Modifier », puis le champ Position.</p>
   <ul id="cartes-recommandees" class="cartes-recommandees fr-grid-row fr-grid-row--gutters" data-controller="rangement">
-    <%= render "admin/demarches/cartes_recommandees", cartes: %>
+    <%= render "admin/demarches/cartes_recommandees", cartes:, donnees: %>
   </ul>
+  <div id="rattachees-a-aucune-solution">
+    <%= render "admin/demarches/rattachees_a_aucune_solution", donnees: donnees.fetch(nil, []) %>
+  </div>
 </section>
