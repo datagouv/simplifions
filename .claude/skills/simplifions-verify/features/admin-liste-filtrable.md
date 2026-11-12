@@ -5,7 +5,7 @@ A list of 10 linked rows or fewer in an admin form shows every box on load, chec
 ## Sub-features
 
 - `courte-liste` 10 choices or fewer: every box shown, no `Filtrer les <liste>` field, no live line; decided at page load from the number of choices.
-- `liste-filtrable` field `Filtrer les <legend in lowercase>`, hint `Sans filtre, seuls les éléments cochés sont affichés ; cliquer dans le champ ou y appuyer sur flèche bas affiche tous les choix.`; Tab into the field opens nothing; once opened, every box stays shown until the cross or until focus leaves the fieldset with an empty filter (a click on blank page keeps it open); every word must match, accents and case ignored; a polite live line `2 cochés sur 474` (empty filter) or `1 résultat sur 474, 3 cochés`. The boxes stay native: Tab reaches the shown ones, Space checks.
+- `liste-filtrable` field `Filtrer les <legend in lowercase>`, hint `Sans filtre, seuls les éléments cochés sont affichés ; cliquer dans le champ ou y appuyer sur flèche bas affiche tous les choix.`; Tab into the field opens nothing; once opened, every box stays shown until the cross or until focus leaves the fieldset with an empty filter (a click on blank page, on a label or on blank space inside the list keeps it open, also inside a tab of a fiche); every word must match, accents and case ignored; a polite live line `2 cochés sur 474` (empty filter) or `1 résultat sur 474, 3 cochés`. The boxes stay native: Tab reaches the shown ones, Space checks.
 - The filter field has no `name`: typing in it does not count as a change (no `Quitter sans enregistrer ?`) and Enter in it does not submit the form.
 - `vocabulaires-groupes` nested fieldsets inside `Vocabulaires` (on a démarche, split between the en-tête and `Vocabulaires` modals), démarche and solution forms, a `?` beside every vocabulaire (see `admin-pages-liees.md`).
 
@@ -29,6 +29,8 @@ Preconditions: logged in. The drive creates `Vérif verify-map <browser>`, recom
 - **Filter and keyboard.** Fill `Filtrer les intégrations` with the last intégration's libelle, transliterated and upcased; Enter does not save; Tab until its box has focus, Space; live line `1 résultat sur …, 3 cochés`.
 - **Save.** Clear the filter: the new box is still shown, checked. The window's `Enregistrer`: window closed, `integration_ids` in base has 3 ids, the target among them.
 - **Leave.** Reopen the window, type in the filter: the fiche does not count as changed; `Annuler`, breadcrumb `Démarches`: no confirm, back on `Démarches`.
+- **Click a label in a tab.** The first solution with organisations (a fiche with tabs): click `Filtrer les organisations`, then the label of the first unchecked organisation: every box still shown, that box checked, no focus ring around the list.
+- **Click inside the list.** Click the live line: every box still shown, no focus ring; leave by the breadcrumb `Solutions`, accepting `Quitter sans enregistrer les modifications ?`.
 - **Proof.** `tmp/verify/admin-liste-filtrable/`.
 
 ## Gotchas
