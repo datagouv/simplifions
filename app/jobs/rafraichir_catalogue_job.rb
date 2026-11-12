@@ -14,20 +14,9 @@ class RafraichirCatalogueJob < ApplicationJob
   private
 
   def rafraichir
-    result = Grist::Import.call
-    journaliser(result.report[:quarantine] + result.report[:notes])
-    raise result.error if result.failure?
-
     echecs_datagouv = Solution.rafraichir_datagouv
-    journaliser(echecs_datagouv)
-    journaliser_fin(result.report, echecs_datagouv)
-  end
-
-  def journaliser(notes) = notes.each { |note| Rails.logger.info("Rafraîchissement du catalogue — #{note}") }
-
-  def journaliser_fin(report, echecs_datagouv)
+    echecs_datagouv.each { |note| Rails.logger.info("Rafraîchissement du catalogue — #{note}") }
     LogStasher.info(event_type: 'rafraichissement_termine', demarches: Demarche.count, solutions: Solution.count,
-      quarantaine: report[:quarantine].size, notes: report[:notes].size,
       datagouv_en_echec: echecs_datagouv.size)
   end
 end
