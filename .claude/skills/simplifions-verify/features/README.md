@@ -65,6 +65,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-saisie-solution.md](admin-saisie-solution.md) — a solution's types as checkboxes on a fixed list, one-line légende, image removal announced, linked démarches and intégrations shown with links.
 - [admin-colonne-actions.md](admin-colonne-actions.md) — the sticky `État et actions` column of admin forms: save from anywhere, publish or hide, Enter keeps the state, mobile layout.
 - [admin-historique.md](admin-historique.md) — who changed a fiche last and its history page: author (admin, Import Grist, data.gouv), each changed field before → after.
+- [admin-pleine-largeur.md](admin-pleine-largeur.md) — after login, admin pages, header and footer as wide as the window from 1248 px, the previewed page and the public site at the public width, the fiche's side panel still sticky.
 - [admin-navigation.md](admin-navigation.md) — under `/admin` the header bar has four entries (À reprendre, Démarches, Solutions, Référentiels and its sub-menu), the current one marked; the public bar elsewhere.
 - [admin-integrations-de-l-api.md](admin-integrations-de-l-api.md) — an intégration only offers the démarches that recommend its API, and the reverse; an out-of-rule link is marked, refused by the server, dropped by the import.
 - [admin-brouillon.md](admin-brouillon.md) — on a published démarche or solution, Enregistrer keeps a draft off the public site; Publier puts it online, Abandonner le brouillon drops it.

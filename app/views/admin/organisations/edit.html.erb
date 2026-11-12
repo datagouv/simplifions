@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Modifier — Organisation" %>
 
-<div class="fr-container fr-mb-6w">
+<div class="<%= conteneur_de_page %> fr-mb-6w">
   <h1><%= nom_en_base %></h1>
   <% privees = en_base.solutions_rendues_privees.par_libelle_admin.map(&:libelle_admin) %>
   <%= render layout: "admin/fiche", locals: { consequences: [t("admin.suppression.solutions_privees", count: privees.size, noms: privees.join(", "))] } do %>

@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Historique" %>
 
-<div class="fr-container fr-mb-6w">
+<div class="<%= conteneur_de_page %> fr-mb-6w">
   <h1>Historique de « <%= nom_en_base %> »</h1>
   <%= render "versions", ligne: en_base %>
   <%= link_to "Retour à la fiche", fiche_admin(en_base), class: "fr-link fr-icon-arrow-left-line fr-link--icon-left" %>

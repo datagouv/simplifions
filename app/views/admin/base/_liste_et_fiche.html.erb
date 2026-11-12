@@ -1,7 +1,7 @@
 <%# locals: (lignes:) -%>
 <% une = modele.model_name.human.downcase %>
 <% des = modele.model_name.human(count: 2).downcase %>
-<div class="fr-container fr-mb-6w">
+<div class="<%= conteneur_de_page %> fr-mb-6w">
   <div class="fr-grid-row fr-grid-row--gutters fr-mt-1w">
     <nav class="fr-col-12 fr-col-md-4 fr-col-lg-3" aria-label="Liste des <%= des %>">
       <%= form_with url: url_for(action: :index), method: :get do |f| %>

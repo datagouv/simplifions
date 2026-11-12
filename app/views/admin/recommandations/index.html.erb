@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Recommandations" %>
 
-<div class="fr-container fr-mb-6w">
+<div class="<%= conteneur_de_page %> fr-mb-6w">
   <h1>Recommandations</h1>
   <%= link_to "Ajouter", new_admin_recommandation_path, class: "fr-btn fr-mb-3w" %>
   <%= render layout: "recherche", locals: { total: @recommandations.total_count } do %>

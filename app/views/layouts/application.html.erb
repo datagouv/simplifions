@@ -233,7 +233,7 @@
 
   <body>
     <div class="fr-skiplinks">
-      <nav class="fr-container" role="navigation" aria-label="Accès rapide">
+      <nav class="<%= conteneur_de_page %>" role="navigation" aria-label="Accès rapide">
         <ul class="fr-skiplinks__list">
           <li><a class="fr-link" href="#content" data-turbo="false">Contenu</a></li>
         </ul>
@@ -243,7 +243,7 @@
     <main role="main" id="content" data-matomo-zone="Page › <%= content_for(:title).presence || @article&.title || "Accueil" %>"
       data-matomo-liens="Suivre un lien">
       <% flash.each do |type, message| %>
-        <div class="fr-container fr-mt-2w">
+        <div class="<%= conteneur_de_page %> fr-mt-2w">
           <div class="fr-alert fr-alert--<%= type == "alert" ? "error" : "info" %> fr-alert--sm">
             <p><%= message %></p>
           </div>
