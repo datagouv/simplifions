@@ -50,11 +50,11 @@
         <ul class="fr-grid-row fr-grid-row--gutters fr-mt-1w list-none vue-cartes" data-tri-solutions-target="liste">
           <% solutions.each_with_index do |solution, ordre| %>
             <li class="fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-col-xl-3" data-nom="<%= solution.nom %>" data-ordre="<%= ordre %>">
-              <%= render 'solution_integratrice', solution:, recommandation: nil, couverture: nil, demarche:, lien_modification: %>
+              <%= render 'demarches/solution_integratrice', solution:, recommandation: nil, couverture: nil, demarche:, lien_modification: %>
             </li>
           <% end %>
         </ul>
-        <%= render 'tableau_integratrices', solutions:, demarche:, categorie:, titre: %>
+        <%= render 'demarches/tableau_integratrices', solutions:, demarche:, categorie:, titre: %>
       </div>
     </section>
   <% end %>

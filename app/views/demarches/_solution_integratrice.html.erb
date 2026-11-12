@@ -13,7 +13,7 @@
     <div class="integration-indicator solution-integratrice-card__couverture fr-p-1w">
       <% if couverture %>
         <% jeu_de_donnees = cible.categorie_base_de_donnees? %>
-        <%= render 'compteur', couverture: %>
+        <%= render 'demarches/compteur', couverture: %>
         <% if couverture == [1, 1] %>
           <span class="fr-text--xs"><%= jeu_de_donnees ? 'Jeu de données intégré' : 'API intégrée' %></span>
         <% else %>
@@ -25,7 +25,7 @@
         title="Voir les données intégrées par <%= solution.nom %>"
         <%= tag.attributes(data: matomo_evenement('Voir les données intégrées', solution.nom, solution)) %>>Voir les données intégrées par <%= solution.nom %></button>
       <p class="solution-integratrice-card__total fr-text--xs fr-text-mention--grey">
-        <%= render 'compteur', couverture: demarche.couverture(solution), total: true, attenue: couverture.present? %>
+        <%= render 'demarches/compteur', couverture: demarche.couverture(solution), total: true, attenue: couverture.present? %>
         <span>API ou jeux de données au total pour ce cas d’usage</span>
       </p>
     </div>
