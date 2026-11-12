@@ -1,0 +1,10 @@
+<%# locals: (integrations:) -%>
+<% if integrations.any? %>
+  <ul class="integrations-de-la-carte">
+    <% integrations.each do |integration| %>
+      <li><%= integration.libelle %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="fr-text-mention--grey fr-mb-0">Aucune.</p>
+<% end %>

@@ -2,17 +2,20 @@ require_relative '../harness'
 
 DOSSIER = 'admin-liste-filtrable'.freeze
 FILTRE = 'Filtrer les intégrations'.freeze
-CHAMP = 'demarche_integration_ids_filtre'.freeze
+
+API = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
+
+def bouton_des_integrations = "Ajouter une intégration à #{Solution.find(API).libelle_admin}"
 
 def preparer(nom)
-  api = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
   demarche = Demarche.create!(nom:)
-  Recommandation.create!(demarche:, solution_id: api, niveau: :niveau_1)
-  integrations = Integration.where(integree_id: api).includes(:integratrice, :integree).order(:id).to_a
+  Recommandation.create!(demarche:, solution_id: API, niveau: :niveau_2)
+  integrations = Integration.where(integree_id: API).includes(:integratrice, :integree).order(:id).to_a
   demarche.integrations = integrations.first(2)
   [demarche, integrations]
 end
 
+def champ(groupe) = groupe.find_field(FILTRE)[:id]
 def compte(groupe) = groupe.find('[aria-live=polite]').text
 def nb_visibles(groupe) = Verify.cases_affichees(groupe).size
 def fond(page, groupe) = page.evaluate_script('getComputedStyle(arguments[0]).backgroundColor', groupe.find('[data-liste-filtrable-target=resultats]'))
@@ -52,7 +55,7 @@ def groupes_de_la_fenetre(page, bouton, attendus)
 end
 
 def cochees_seules(page, total)
-  groupe = Verify.fenetre(page, 'Choisir les intégrations').find('fieldset', text: FILTRE)
+  groupe = Verify.fenetre(page, bouton_des_integrations).find('fieldset', text: FILTRE)
   coches = Verify.cases_affichees(groupe)
   raise "cases visibles sans filtre #{coches.size}" unless coches.size == 2 && coches.all?(&:checked?)
   raise "compte #{compte(groupe)}" unless compte(groupe) == "2 cochés sur #{total}"
@@ -70,7 +73,7 @@ end
 def traversee_au_clavier(page, groupe)
   page.execute_script("document.querySelector('dialog[open] .fr-btn--close').focus()")
   page.send_keys :tab
-  raise 'Tab n’entre pas dans le filtre' unless Verify.focus_sur(page) == CHAMP
+  raise 'Tab n’entre pas dans le filtre' unless Verify.focus_sur(page) == champ(groupe)
   raise 'Tab a ouvert la liste' unless nb_visibles(groupe) == 2
 
   tabs = tabs_pour_sortir(page, groupe)
@@ -93,7 +96,7 @@ def croix(page, groupe, sans_cadre)
   groupe.click_button 'Effacer le filtre des intégrations'
   raise 'croix : filtre non vide' unless groupe.find_field(FILTRE).value == ''
   raise "croix : #{nb_visibles(groupe)} cases" unless referme?(page, groupe, sans_cadre)
-  raise 'croix : focus perdu' unless Verify.focus_sur(page) == CHAMP
+  raise 'croix : focus perdu' unless Verify.focus_sur(page) == champ(groupe)
 
   Verify.evidence(DOSSIER, page, 'croix-referme', "visibles=#{nb_visibles(groupe)} fond=#{fond(page, groupe)}")
 end
@@ -156,7 +159,7 @@ def enregistrer(page, groupe, demarche, cible)
 end
 
 def partir(page)
-  Verify.fenetre(page, 'Choisir les intégrations').find('fieldset', text: FILTRE).fill_in FILTRE, with: 'texte sans nom'
+  Verify.fenetre(page, bouton_des_integrations).find('fieldset', text: FILTRE).fill_in FILTRE, with: 'texte sans nom'
   page.assert_selector '#formulaire-fiche[data-formulaire-modifie-modifie-value=false]'
   page.find('dialog[open]').click_button 'Annuler'
   page.assert_no_selector 'dialog[open]'

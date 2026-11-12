@@ -8,7 +8,7 @@ def onglet_retenu(page) = page.find('input[name=onglet]', visible: false).value
 
 def demarche_sans_onglet(page, demarche)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  page.assert_selector :button, 'Choisir les intégrations'
+  page.assert_selector :button, 'Modifier le contexte'
   page.assert_no_selector '[role=tablist]'
   Verify.evidence(DOSSIER, page, 'demarche-sans-onglet', "onglets=#{page.all('[role=tab]').size}")
 end

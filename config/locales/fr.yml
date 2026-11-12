@@ -244,14 +244,6 @@ fr:
       publier:
         one: "Publier ce changement"
         other: "Publier ces %{count} changements"
-    integrations_cochees:
-      zero: "0 cochée"
-      one: "1 cochée"
-      other: "%{count} cochées"
-    integrations_proposees:
-      zero: "sur 0 proposée par les solutions recommandées."
-      one: "sur 1 proposée par les solutions recommandées."
-      other: "sur %{count} proposées par les solutions recommandées."
     enregistre: "« %{nom} » enregistré."
     integrations_de_la_solution:
       fournies: "API fournies"

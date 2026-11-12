@@ -1,5 +1,7 @@
-<%# locals: (recommandations:) -%>
+<%# locals: (demarche:, recommandations:) -%>
 <% cartes = recommandations.select(&:niveau_2?) %>
+<% donnees = donnees_par_carte(recommandations) %>
+<% integrations = integrations_par_carte(demarche, cartes) %>
 <section id="solutions-recommandees" class="bloc-modifiable" aria-labelledby="bloc-solutions-recommandees" data-controller="section-depliable">
   <div class="bloc-modifiable__entete">
     <h2 id="bloc-solutions-recommandees" class="fr-h4">Solutions recommandées <span id="compte-des-solutions-recommandees" class="fr-text-mention--grey">(<%= cartes.size %>)</span></h2>
@@ -8,6 +10,9 @@
   </div>
   <p id="consigne-de-rangement" class="fr-text--sm fr-text-mention--grey" hidden data-section-depliable-target="contenu">Glissez une carte par sa poignée pour la déplacer. Au clavier : « Modifier », puis le champ Position.</p>
   <ul id="cartes-recommandees" class="cartes-recommandees fr-grid-row fr-grid-row--gutters" data-controller="rangement">
-    <%= render "admin/demarches/cartes_recommandees", cartes: %>
+    <%= render "admin/demarches/cartes_recommandees", cartes:, donnees:, integrations:, cochees: demarche.integration_ids %>
   </ul>
+  <div id="rattachees-a-aucune-solution">
+    <%= render "admin/demarches/rattachees_a_aucune_solution", donnees: donnees.fetch(nil, []), integrations: integrations.fetch(nil, []), cochees: demarche.integration_ids %>
+  </div>
 </section>

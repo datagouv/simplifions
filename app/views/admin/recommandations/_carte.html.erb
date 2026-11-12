@@ -1,6 +1,6 @@
-<%# locals: (carte:) -%>
+<%# locals: (carte:, donnees:, integrations:) -%>
 <% nom = carte.solution&.libelle_admin %>
-<%= tag.li id: dom_id(carte), class: ["fr-col-12 fr-col-md-6 fr-col-lg-4", ("retiree" if carte.retiree?)], data: { deplacement: dom_id(carte, :deplacement) } do %>
+<%= tag.li id: dom_id(carte), class: ["fr-col-12", ("retiree" if carte.retiree?)], data: { deplacement: dom_id(carte, :deplacement) } do %>
   <div class="carte-recommandee">
     <p class="fr-text--xs fr-text-mention--grey fr-mb-1w">
       <span class="poignee fr-icon-drag-move-2-line" aria-hidden="true" title="Glisser pour déplacer" data-poignee></span>
@@ -16,5 +16,22 @@
         <li><%= render "admin/recommandations/bouton_retirer", recommandation: carte, nom: %></li>
       <% end %>
     </ul>
+    <% if carte.solution.exposees.any? %>
+      <div class="fr-mt-2w">
+        <div id="liste-<%= fenetre_des_donnees_utiles(carte) %>">
+          <%= render "admin/demarches/liste_des_donnees_disponibles", donnees: %>
+        </div>
+        <% unless carte.retiree? %>
+          <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-add-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_donnees_utiles(carte) %>" data-fr-opened="false">Ajouter une donnée utile<span class="fr-sr-only"> à <%= nom %></span></button>
+        <% end %>
+      </div>
+    <% end %>
+    <div class="fr-mt-2w">
+      <h4 class="fr-text--md fr-text--bold fr-mb-1w">Intégrations (<%= integrations.size %>)</h4>
+      <%= render "admin/demarches/liste_des_integrations", integrations: %>
+      <% unless carte.retiree? %>
+        <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-add-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_integrations(carte) %>" data-fr-opened="false">Ajouter une intégration<span class="fr-sr-only"> à <%= nom %></span></button>
+      <% end %>
+    </div>
   </div>
 <% end %>

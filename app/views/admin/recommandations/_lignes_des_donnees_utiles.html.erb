@@ -1,0 +1,4 @@
+<%# locals: (carte:, donnees:, recommandees:, nouvelle: nil) -%>
+<% lignes = carte ? [*donnees, nouvelle || Recommandation.new(demarche: carte.demarche, niveau: :niveau_1)] : donnees %>
+<%= render partial: "admin/recommandations/ligne_de_donnee_utile", collection: lignes, as: :ligne,
+      locals: { fenetre: fenetre_des_donnees_utiles(carte), proposees: carte ? carte.solution.exposee_ids - recommandees : [] } %>

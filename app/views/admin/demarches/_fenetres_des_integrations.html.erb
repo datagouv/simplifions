@@ -1,0 +1,18 @@
+<%# locals: (f:, cartes:) -%>
+<% proposees = integrations_par_carte(f.object, cartes) %>
+<% autorisees = f.object.integrations_autorisees.ids %>
+<div id="fenetres-des-integrations">
+  <%= hidden_field_tag "demarche[integration_ids][]", "", id: nil %>
+  <% (proposees.key?(nil) ? [*cartes, nil] : cartes).each do |carte| %>
+    <% fenetre = fenetre_des_integrations(carte) %>
+    <% titre = carte ? "Intégrations : #{carte.solution.libelle_admin}" : "Intégrations rattachées à aucune solution recommandée" %>
+    <%= render layout: "admin/dialogue", locals: { id: fenetre, titre:, ouverte: f.object.errors.attribute_names.include?(:integration_ids) } do %>
+      <% if (collection = proposees.fetch(carte, [])).any? %>
+        <%= render "admin/cases_filtrables", f:, attribut: :integration_ids, collection:, legende: "Intégrations", filtre: "#{fenetre}-filtre", champ_vide: false,
+              libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) } %>
+      <% else %>
+        <p class="fr-hint-text">Aucune intégration n’existe encore pour cette solution.</p>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

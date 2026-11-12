@@ -315,14 +315,16 @@ body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="f
   border: 1px dashed var(--border-action-high-blue-france);
 }
 
-.donnees-disponibles {
+.donnees-disponibles,
+.integrations-de-la-carte {
   list-style: none;
   padding: 0;
   columns: 2 20rem;
   column-gap: 2rem;
 }
 
-.donnees-disponibles li {
+.donnees-disponibles li,
+.integrations-de-la-carte li {
   display: flex;
   justify-content: space-between;
   gap: 1rem;

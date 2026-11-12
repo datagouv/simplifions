@@ -4,7 +4,7 @@ module AdminHelper
     'Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche' => ['titre-de-la-demarche', %w[slug]],
     'Contexte modifié' => ['bloc-contexte', %w[contexte]],
     'Cadre juridique modifié' => ['bloc-cadre-juridique', %w[cadre_juridique]],
-    'Intégrations modifiées' => ['bloc-integrations', %w[integration_ids]],
+    'Intégrations modifiées' => ['bloc-solutions-recommandees', %w[integration_ids]],
     'Title SEO modifié' => ['bloc-titre-seo', %w[titre_seo]],
     'Mots-clés modifiés' => ['bloc-mots-clefs', %w[mots_clefs]],
     'Fournisseurs de services modifiés' => ['bloc-fournisseurs', %w[type_acteur_ids]],
@@ -12,7 +12,7 @@ module AdminHelper
   }.freeze
   ORDRES = {
     'niveau_2' => ['Ordre des solutions recommandées modifié', 'bloc-solutions-recommandees'],
-    'niveau_1' => ['Ordre des données utiles modifié', 'bloc-donnees-disponibles']
+    'niveau_1' => ['Ordre des données utiles modifié', 'bloc-solutions-recommandees']
   }.freeze
 
   def rubrique_admin_ouverte?(modele) = (params[:type] || controller_name) == modele.model_name.route_key
@@ -22,6 +22,15 @@ module AdminHelper
     link_to modele.model_name.human(count: 2), liste, class: 'fr-nav__link',
       aria: { current: ((current_page?(liste) ? 'page' : 'true') if rubrique_admin_ouverte?(modele)) }
   end
+
+  def donnees_par_carte(lignes) = Demarche.rattachement(lignes.select(&:niveau_2?), lignes.select(&:niveau_1?), &:solution_id)
+
+  def integrations_par_carte(demarche, cartes)
+    Demarche.rattachement(cartes, demarche.integrations_proposees.includes(:integratrice, :integree).order(:id), &:integree_id)
+  end
+
+  def fenetre_des_integrations(carte) = "integrations-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"
+  def fenetre_des_donnees_utiles(carte) = "donnees-utiles-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"
 
   def nom_de_la_recommandation(recommandation, nom) = recommandation.retiree? ? tag.s(nom, class: 'fr-text-mention--grey') : nom
 
@@ -49,7 +58,7 @@ module AdminHelper
   def recommandation_a_publier(recommandation)
     quoi = recommandation.niveau_2? ? 'Solution recommandée' : 'Donnée utile'
     comment = changement_de_la_recommandation(recommandation)
-    ancre = recommandation.niveau_2? ? dom_id(recommandation) : 'bloc-donnees-disponibles'
+    ancre = recommandation.niveau_2? ? dom_id(recommandation) : 'bloc-solutions-recommandees'
     ["#{quoi} #{comment} : #{recommandation.solution.libelle_admin}", ancre]
   end
 
