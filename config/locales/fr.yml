@@ -95,7 +95,7 @@ fr:
     hints:
       demarche:
         titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Cas d’usage - <nom> »."
-        slug: "Obligatoire si la démarche est visible sur simplifions. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
+        slug: "Laissé vide, il est tiré du nom à l’enregistrement. Ne plus le changer une fois la page publiée. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
         contexte: "Markdown accepté"
         cadre_juridique: "Markdown accepté"
         mots_clefs: "Une valeur par ligne, utilisés pour la recherche et le référencement"

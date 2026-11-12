@@ -1320,7 +1320,8 @@ RSpec.describe 'Administration' do
     end
 
     it 'exige un slug dès qu’une fiche est visible, comme l’import le garantissait' do
-      post '/admin/demarches', params: { demarche: { nom: 'Aides', visible: '1', slug: '' } }
+      demarche = Demarche.create!(nom: 'Aides', visible: true)
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { slug: '', visible: '1' } }
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('Slug doit être rempli')
 
@@ -1443,10 +1444,10 @@ RSpec.describe 'Administration' do
     end
 
     it 'dit dans l’aide les règles qui dépendent d’un autre champ' do
-      %w[demarche solution].each do |cle|
-        get "/admin/#{cle}s/new"
-        expect(response.parsed_body.at_css("label[for=#{cle}_slug] .fr-hint-text").text).to include('Obligatoire')
-      end
+      get '/admin/demarches/new'
+      expect(response.parsed_body.at_css('label[for=demarche_slug] .fr-hint-text').text).to include('tiré du nom')
+      get '/admin/solutions/new'
+      expect(response.parsed_body.at_css('label[for=solution_slug] .fr-hint-text').text).to include('Obligatoire')
       expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
     end
 
@@ -1537,12 +1538,24 @@ RSpec.describe 'Administration' do
   end
 
   describe 'slug' do
-    it 'laisse vides les slugs non renseignés, sans collision entre fiches' do
+    it 'rend vide le slug laissé vide quand la démarche est refusée' do
+      api = Solution.create!(nom: 'API QF', categorie: 'api')
+      integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
       sign_in admin
-      { demarches: Demarche, solutions: Solution }.each do |chemin, modele|
-        2.times { post "/admin/#{chemin}", params: { modele.model_name.param_key => { nom: 'Aides', slug: '' } } }
-        expect(modele.where(slug: nil).count).to eq(2)
-      end
+      post '/admin/demarches', params: { demarche: { nom: 'Aide publique', slug: '', integration_ids: [integration.id] } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.at_css('[name="demarche[slug]"]')['value']).to be_blank
+    end
+
+    it 'tire du nom le slug laissé vide, avec un suffixe quand une autre fiche l’a déjà' do
+      sign_in admin
+      post '/admin/demarches', params: { demarche: { nom: 'Aide publique', slug: '' } }
+      post '/admin/demarches', params: { demarche: { nom: 'Aide publique', slug: '' } }
+      follow_redirect!
+
+      expect(response.body).to include('/demarches/aide-publique-2')
+      expect(Demarche.pluck(:slug)).to contain_exactly('aide-publique', 'aide-publique-2')
     end
 
     it 'annonce le format attendu sous le champ et garde la saisie refusée' do
@@ -2014,7 +2027,7 @@ RSpec.describe 'Administration' do
 
     it 'propose de publier tant que la démarche en base est masquée, même si la publication a été refusée' do
       demarche = Demarche.create!(nom: 'Aides')
-      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1', slug: 'Hors format' } }
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(etat_de_la_fiche.text).to include('Masquée')

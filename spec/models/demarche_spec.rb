@@ -26,6 +26,38 @@ RSpec.describe Demarche do
     expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
   end
 
+  describe 'slug à l’enregistrement' do
+    it 'tire le slug du nom quand la rédactrice le laisse vide' do
+      expect(described_class.create!(nom: 'Aide publique', slug: '').slug).to eq('aide-publique')
+    end
+
+    it 'garde le slug écrit par la rédactrice' do
+      expect(described_class.create!(nom: 'Aide publique', slug: 'mon-slug').slug).to eq('mon-slug')
+    end
+
+    it 'donne un suffixe au slug déjà pris par une autre démarche du même nom' do
+      described_class.create!(nom: 'Aide publique')
+
+      expect(described_class.create!(nom: 'Aide publique').slug).to eq('aide-publique-2')
+      expect(described_class.create!(nom: 'Aide publique').slug).to eq('aide-publique-3')
+    end
+
+    it 'refuse de vider le slug d’une démarche visible, dont l’adresse est publiée' do
+      demarche = described_class.create!(nom: 'Aide publique', visible: true)
+
+      expect(demarche.update(slug: '')).to be(false)
+      expect(demarche.errors.of_kind?(:slug, :blank)).to be(true)
+    end
+
+    it 'tire un slug au format d’URL d’un nom avec accents, apostrophes et tirets bas' do
+      expect(described_class.create!(nom: 'L’école d’été _ prise_en charge').slug).to eq('l-ecole-d-ete-prise-en-charge')
+    end
+
+    it 'laisse le slug vide quand le nom n’a ni lettre ni chiffre' do
+      expect(described_class.create!(nom: '!!!').slug).to be_nil
+    end
+  end
+
   describe '#page_publique?' do
     it 'n’a une page publique que visible et avec un slug' do
       expect(described_class.new(visible: true, slug: 'cantine')).to be_page_publique
