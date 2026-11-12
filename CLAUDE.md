@@ -72,5 +72,5 @@ Formulaire ou liste admin en DSFR : regarder d'abord le `DsfrFormBuilder` de Dat
 
 ## Pull requests
 - Une PR = une fonctionnalité, utilisable seule une fois mergée.
-- Titre : comme un sujet de commit. Corps : 1 à 3 lignes (ce que le relecteur obtient, la contrainte à connaître), puis `Closes <lien Linear>`. Pas de titres, pas de plan de test.
+- Titre : comme un sujet de commit. Corps : 1 à 3 lignes (ce que le relecteur obtient, la contrainte à connaître), puis `Closes <lien Linear>` ; sous `Closes`, quand le changement se voit sur le site, une ligne dit ce que le parcours dans l'app a montré (`simplifions-commit/pull-request.md`). Pas de titres, pas de plan de test.
 - Avant le premier push : relire tout le diff (`git diff origin/main...`) contre cette page, tests et lint verts, page vérifiée dans Firefox et Chrome.
