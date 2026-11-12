@@ -15,7 +15,7 @@
                   data: matomo_fiche_solution(solution) %></h2>
             <%= render 'badge_operateur', solution: %>
             <div class="integration-indicator fr-p-1w fr-mt-2w">
-              <%= render('compteur', couverture:) if couverture %>
+              <%= render('demarches/compteur', couverture:) if couverture %>
               <div class="fr-text--sm">
                 <% if couverture == [1, 1] %>
                   <p class="fr-text--sm fr-mb-2w"><b>« <%= cible.nom %> » est <%= jeu_de_donnees ? 'intégré' : 'intégrée' %> par cette solution</b>, utile pour la démarche « <%= titre_demarche(demarche) %> »</p>
@@ -24,7 +24,7 @@
                 <% end %>
                 <p class="fr-text--sm fr-mb-0">
                   Sur l’ensemble du cas d’usage :
-                  <%= render 'compteur', couverture: demarche.couverture(solution), total: true %>
+                  <%= render 'demarches/compteur', couverture: demarche.couverture(solution), total: true %>
                   API et jeux de données utiles intégrés.
                 </p>
               </div>

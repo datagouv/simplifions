@@ -60,7 +60,7 @@ class Recommandation < ApplicationRecord
 
   def solutions_integratrices
     Solution.visibles.where(
-      id: Integration.en_production.pour_demarche(demarche)
+      id: Integration.en_production.where(id: demarche.integration_ids)
         .where(integree: solution.fournies)
         .select(:integratrice_id)
     )

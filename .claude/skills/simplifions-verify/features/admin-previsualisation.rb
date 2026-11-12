@@ -57,6 +57,64 @@ def image_previsualisee(page, solution)
   Verify.evidence(DOSSIER, page, 'solution-image', "image_du_brouillon=affichee image_en_base=#{attachee}")
 end
 
+def solution_integratrice(nom, slug)
+  organisation = Organisation.create!(nom: "#{nom} organisation", public_ou_prive: 'Public')
+  api = Solution.create!(nom: "#{nom} API", categorie: 'api', visible: true)
+  bouquet = Solution.create!(nom: "#{nom} bouquet", slug: "#{slug}-bouquet", categorie: 'brique_logicielle', visible: true, organisations: [organisation])
+  portail = Solution.create!(nom: "#{nom} portail", slug: "#{slug}-portail", categorie: 'site_de_consultation', visible: true)
+  Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+  { bouquet:, api:, portail:, integration: Integration.create!(integratrice: portail, integree: api, type_integration: 'consomme', statut: Integration::STATUT_EN_PRODUCTION) }
+end
+
+def retirer_solution_integratrice(nom)
+  solutions = Solution.where('nom LIKE ?', "#{nom} %")
+  Integration.where(integratrice: solutions).or(Integration.where(integree: solutions)).destroy_all
+  Recommandation.where(solution: solutions).destroy_all
+  solutions.destroy_all
+  Organisation.where(nom: "#{nom} organisation").destroy_all
+end
+
+def recommander(demarche, fixture)
+  Recommandation.create!(demarche:, solution: fixture[:bouquet], niveau: :niveau_2, ordre: 1, visible: true)
+  Recommandation.create!(demarche:, solution: fixture[:api], niveau: :niveau_1, visible: true)
+end
+
+def integration_cochee_en_brouillon(page, demarche, fixture)
+  recommander(demarche, fixture)
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  dialog = Verify.fenetre(page, 'Choisir les intégrations')
+  dialog.find("label[for=demarche_integration_ids_#{fixture[:integration].id}]").click
+  dialog.click_button 'Enregistrer'
+  page.assert_text "« #{demarche.nom} » : brouillon enregistré, non publié."
+  page.assert_no_selector 'dialog[open]'
+  integrations_en_base_vides(demarche)
+end
+
+def integrations_en_base_vides(demarche)
+  base = ActiveRecord::Base.uncached { Demarche.find(demarche.id).integration_ids }
+  raise "intégrations en base #{base}" unless base.empty?
+end
+
+def solution_integratrice_previsualisee(page, fixture)
+  portail = fixture[:portail].nom
+  page.assert_selector '.fr-notice', text: 'Prévisualisation, non publiée.'
+  page.find('.reco-card', text: portail, visible: :all)
+  panneau = page.find('#solutions-integratrices', visible: :all).text(:all).squish
+  raise "panneau sans #{portail} : #{panneau}" unless panneau.include?(portail)
+
+  Verify.evidence(DOSSIER, page, 'solution-integratrice', "carte_et_panneau_contiennent=#{portail} panneau=#{panneau.scan(portail).size} fois")
+end
+
+def solution_integratrice_absente_du_site(page, demarche, fixture)
+  page.visit("/demarches/#{demarche.slug}")
+  page.assert_selector 'h1'
+  vue = page.all('.reco-card, #solutions-integratrices', visible: :all).any? { it.text(:all).include?(fixture[:portail].nom) }
+  raise 'solution intégratrice sur la page publique' if vue
+
+  Verify.evidence(DOSSIER, page, 'solution-integratrice-site', "page_publique_contient=#{vue}")
+  page.visit('/admin')
+end
+
 Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
   slug = "verif-verify-map-#{Verify.browser}"
@@ -73,8 +131,15 @@ Verify.drive(__FILE__) do |page|
     image_en_brouillon(page, solution)
     previsualiser(page) { image_previsualisee(page, solution) }
   end
+  Verify.check('Integrating solution') do
+    fixture = solution_integratrice(nom, slug)
+    integration_cochee_en_brouillon(page, demarche, fixture)
+    previsualiser(page) { solution_integratrice_previsualisee(page, fixture) }
+    solution_integratrice_absente_du_site(page, demarche, fixture)
+  end
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
+  retirer_solution_integratrice(nom)
   Demarche.where(slug:).destroy_all
   Solution.where(slug:).destroy_all
 end

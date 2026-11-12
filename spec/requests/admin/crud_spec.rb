@@ -2848,6 +2848,52 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.css('.reco-card').map { it.text.squish }).to eq(apercu)
     end
 
+    describe 'carte avec une solution intégratrice' do
+      let(:api) { Solution.create!(nom: 'API Impôt', categorie: 'api', visible: true) }
+      let(:portail) { Solution.create!(nom: 'Portail', categorie: 'site_de_consultation', visible: true, slug: 'portail') }
+
+      before do
+        sign_in admin
+        bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', visible: true, slug: 'bouquet-api',
+          organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+        Integration.create!(integratrice: bouquet, integree: api, type_integration: 'expose')
+        Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, ordre: 1, visible: true)
+        Recommandation.create!(demarche:, solution: api, niveau: :niveau_1, visible: true)
+      end
+
+      def solutions_integratrices_vues(chemin)
+        get chemin
+        expect(response).to have_http_status(:ok)
+        ['.reco-card', '#solutions-integratrices'].map { response.parsed_body.at_css(it)&.text.to_s[/Portail/] }
+      end
+
+      def integration_du_portail(demarches: [])
+        Integration.create!(integratrice: portail, integree: api, type_integration: 'consomme', statut: Integration::STATUT_EN_PRODUCTION, demarches:)
+      end
+
+      it 'montre la solution intégratrice dans la carte et dans « Solutions intégratrices »' do
+        integration_du_portail(demarches: [demarche])
+
+        expect(solutions_integratrices_vues("/admin/demarches/#{demarche.id}/previsualisation")).to eq(%w[Portail Portail])
+      end
+
+      it 'montre l’intégration cochée dans le brouillon, absente du site' do
+        cochee = integration_du_portail
+        patch "/admin/demarches/#{demarche.id}", params: { demarche: { integration_ids: ['', cochee.id] } }
+
+        expect(solutions_integratrices_vues("/admin/demarches/#{demarche.id}/previsualisation")).to eq(%w[Portail Portail])
+        expect(solutions_integratrices_vues('/demarches/aides')).to eq([nil, nil])
+      end
+
+      it 'cache l’intégration décochée dans le brouillon, encore sur le site' do
+        integration_du_portail(demarches: [demarche])
+        patch "/admin/demarches/#{demarche.id}", params: { demarche: { integration_ids: [''] } }
+
+        expect(solutions_integratrices_vues("/admin/demarches/#{demarche.id}/previsualisation")).to eq([nil, nil])
+        expect(solutions_integratrices_vues('/demarches/aides')).to eq(%w[Portail Portail])
+      end
+    end
+
     it 'garde Prévisualisation devant le title SEO du brouillon' do
       sign_in admin
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { titre_seo: 'Aides selon le quotient' } }
