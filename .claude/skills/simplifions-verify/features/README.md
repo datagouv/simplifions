@@ -32,7 +32,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [article-cartes.md](article-cartes.md) — the solution and cas d'usage cards cited in an article come from the base; a hidden record's card is skipped, the article still renders.
 - [connexion-admin.md](connexion-admin.md) — log in as admin, reach the dashboard, log out.
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
-- [admin-fiche-demarche.md](admin-fiche-demarche.md) — a saved démarche reads like its public page; each block opens a modal with its fields (save, Escape, refused field), intégrations chosen in a modal, no tabs.
+- [admin-fiche-demarche.md](admin-fiche-demarche.md) — a saved démarche reads like its public page; each block opens a modal with its fields (save, Escape, refused field), intégrations chosen from a card's modal, no tabs.
 - [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete from the edit page: the confirmation names the row and what goes with it (démarche drive created, organisation cancelled).
 - [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused.
 - [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.
@@ -54,7 +54,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-listes.md](admin-listes.md) — admin lists: search (and its no-result sentence), 50 rows per page, name links to the edit page; démarches and solutions as a left list beside the fiche, with the `État` filter.
 - [admin-liste-filtrable.md](admin-liste-filtrable.md) — a list of 10 linked rows or fewer shows every box; longer lists show only checked boxes and filter as you type; vocabulaires grouped by category.
 - [admin-recommandations-demarche.md](admin-recommandations-demarche.md) — a démarche's recommandations in the blocks of its `Fiche`; a recommandation keeps its own page and its démarche in view.
-- [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md) — a démarche's solutions recommandées as cards and données utiles as a list in its `Fiche`, each edited in a window, cards reordered by drag, drafts kept off the public page.
+- [admin-recommandations-en-ligne.md](admin-recommandations-en-ligne.md) — a démarche's solutions recommandées as cards, each with its données utiles and intégrations, edited in windows, cards reordered by drag, drafts kept off the public page.
 - [admin-recommandations-avec-la-demarche.md](admin-recommandations-avec-la-demarche.md) — a recommandation added to a démarche, hidden or published, goes online with its `Publier`, shows in its preview, and goes with its `Abandonner le brouillon`.
 - [admin-integrations-en-ligne.md](admin-integrations-en-ligne.md) — edit, add, delete and see errors on a solution's integrations row by row, in the three tabs `API fournies`, `API intégrées` and `Solutions qui l’intègrent`; a bouquet's last tab also lists, read-only, the intégrations of its APIs.
 - [ordre-api-fournies.md](ordre-api-fournies.md) — the team ranks a solution's « Données et API fournies » by moving rows (handle, Monter / Descendre, keyboard) in the admin tab `API fournies`; the public order follows, unranked ones by card title.

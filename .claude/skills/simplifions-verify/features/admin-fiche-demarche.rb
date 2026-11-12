@@ -40,24 +40,24 @@ def annuler_par_echap(page, demarche)
 end
 
 def choisir_les_integrations(page, demarche, cible)
-  bloc = page.find('section', text: /\AIntégrations/)
-  bloc.assert_text '0 cochée sur'
-  dialog = Verify.fenetre(page, 'Choisir les intégrations')
+  carte = page.find("#recommandation_#{demarche.recommandations.first.id}")
+  carte.assert_text 'Intégrations (0)'
+  dialog = Verify.fenetre(page, "Ajouter une intégration à #{cible.integree.libelle_admin}")
   dialog.fill_in 'Filtrer les intégrations', with: I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ')
   dialog.find("label[for=demarche_integration_ids_#{cible.id}]").click
   dialog.click_button 'Enregistrer'
   page.assert_text "« #{demarche.nom} » enregistré."
   page.assert_no_selector 'dialog[open]'
   page.assert_current_path("/admin/demarches/#{demarche.id}/edit", ignore_query: true)
-  bloc = page.find('section', text: /\AIntégrations/)
-  page.scroll_to(bloc, align: :center)
-  texte = bloc.find('p').text
-  raise "bloc : #{texte}" unless texte.start_with?('1 cochée sur ')
+  carte = page.find("#recommandation_#{demarche.recommandations.first.id}")
+  page.scroll_to(carte, align: :center)
+  texte = carte.text.squish
+  raise "carte : #{texte}" unless texte.include?("Intégrations (1) #{cible.libelle.squish}")
 
   lu = ActiveRecord::Base.uncached { Demarche.find(demarche.id).integration_ids }
   raise "intégrations en base : #{lu}" unless lu == [cible.id]
 
-  Verify.evidence(DOSSIER, page, 'integrations-choisies', "bloc=#{texte} base=#{lu}")
+  Verify.evidence(DOSSIER, page, 'integrations-choisies', "carte=#{texte} base=#{lu}")
 end
 
 def refuser(page, demarche)
@@ -77,7 +77,7 @@ Verify.drive(__FILE__) do |page|
   nom = "Vérif fiche #{Verify.browser}"
   demarche = Demarche.create!(nom:, cree_le: Time.current, modifie_le: Time.current)
   api = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
-  Recommandation.create!(demarche:, solution_id: api, niveau: :niveau_1)
+  Recommandation.create!(demarche:, solution_id: api, niveau: :niveau_2)
   cible = Integration.where(integree_id: api).order(:id).last
 
   Verify.check('Reach the fiche') { atteindre(page, nom) }

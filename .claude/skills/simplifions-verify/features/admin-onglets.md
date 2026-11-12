@@ -21,7 +21,7 @@ Drive: `features/admin-onglets.rb` (SKILL.md § Drive).
 
 Mutation on a throwaway hidden démarche and solution only (`Vérif verify-map <browser>`, deleted at the end). Preconditions: logged in.
 
-- **Démarche without tabs.** The démarche's page has `Choisir les intégrations` and no tablist.
+- **Démarche without tabs.** The démarche's page has `Modifier le contexte` and no tablist.
 - **Solution tabs.** Six tabs in order; arrow right from `Fiche` selects `API fournies` and the hidden `onglet` field follows.
 - **Save from Historique.** Fill `Nom` in `Fiche`, open `Historique`, `Enregistrer` → URL `?onglet=historique`, `Historique` selected, base has the new name.
 - **Error opens Fiche.** Empty `Nom`, open `Historique`, `Enregistrer` → `doit être rempli`, `Fiche` selected.
