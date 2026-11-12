@@ -3349,6 +3349,18 @@ RSpec.describe 'Administration' do
       ])
     end
 
+    it 'range les recommandations dans l’ordre de la fiche, chaque donnée utile après sa carte, même enregistrées dans un autre ordre' do
+      sans_carte, deuxieme, de_la_premiere, premiere = ['Sans carte', 'Deuxième', 'De la première', 'Première'].map { Solution.create!(nom: it, categorie: 'api') }
+      Integration.create!(integratrice: premiere, integree: de_la_premiere, type_integration: 'expose')
+      { sans_carte => [:niveau_1, nil], deuxieme => [:niveau_2, 2], de_la_premiere => [:niveau_1, nil], premiere => [:niveau_2, 1] }.each do |solution, (niveau, ordre)|
+        Recommandation.create!(demarche:, solution:, niveau:, ordre:, visible: true).enregistrer('description' => 'Modifiée')
+      end
+      fiche
+
+      expect(lignes.map(&:first)).to eq(["Solution recommandée modifiée : #{premiere.libelle_admin}", "Donnée utile modifiée : #{de_la_premiere.libelle_admin}",
+                                         "Solution recommandée modifiée : #{deuxieme.libelle_admin}", "Donnée utile modifiée : #{sans_carte.libelle_admin}"])
+    end
+
     it 'résume en une ligne l’ordre des solutions recommandées, même quand chaque déplacement décale plusieurs cartes' do
       cartes = %w[A B C D].map.with_index(1) { |nom, ordre| Recommandation.create!(demarche:, solution: Solution.create!(nom:, categorie: 'api'), niveau: :niveau_2, ordre:, visible: true) }
       patch "/admin/recommandations/#{cartes.last.id}/position", params: { position: 1 }, as: :turbo_stream
