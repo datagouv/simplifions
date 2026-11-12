@@ -63,7 +63,7 @@ end
 
 def erreur_elle_meme(page, ctx)
   page.select ctx[:solution].libelle_admin, from: "API ou jeu de données de #{INTEGRE} (obligatoire)"
-  raise 'type non présélectionné' unless page.find_field("Type d’intégration de #{INTEGRE} (obligatoire)").value == 'consomme'
+  raise 'liste de type dans l’onglet API intégrées' if page.has_field?("Type d’intégration de #{INTEGRE} (obligatoire)", wait: 0)
 
   page.click_button "Ajouter #{INTEGRE}"
   erreur = page.find('#erreurs_integrees_integration', text: 'elle-même')
@@ -86,8 +86,16 @@ end
 
 def ajouter_l_integree(page, ctx)
   ajouter_une_ligne(page, INTEGRE, 'API ou jeu de données' => ctx[:api].libelle_admin)
-  ctx[:integree_creee] = ActiveRecord::Base.uncached { ctx[:solution].integrations_comme_integratrice.find_by!(integree: ctx[:api]) }
+  page.assert_selector '#message-integrations .fr-valid-text', text: "#{ctx[:api].libelle_admin} (intégrée) » enregistré"
+  ctx[:integree_creee] = integree_creee(ctx)
   page.assert_selector "tr#integration_#{ctx[:integree_creee].id}"
+end
+
+def integree_creee(ctx)
+  creee = ActiveRecord::Base.uncached { ctx[:solution].integrations_comme_integratrice.find_by!(integree: ctx[:api]) }
+  raise "type #{creee.type_integration} au lieu de consomme" unless creee.consomme?
+
+  creee
 end
 
 def ajouter_l_integratrice(page, ctx)
@@ -106,7 +114,9 @@ end
 def preuve_des_ajouts(page, ctx)
   vides = [%w[integrees integree], %w[integratrices integratrice]].map { |liste, cote| page.find("tr##{liste}_integration select[name='integration[#{cote}_id]']", visible: :all).value }
   types = [ctx[:integree_creee].type_integration, ctx[:integratrice_creee].type_integration]
-  Verify.evidence(DOSSIER, page, 'ajoutees', "en_base=#{compter(ctx[:solution])} avant=#{ctx[:avant]} lignes_vides=#{vides.inspect} types=#{types}")
+  listes_de_type = %w[api-fournies api-integrees integratrices].map { page.all("#onglet-#{it}-panneau select[name='integration[type_integration]']", visible: :all).size }
+  Verify.evidence(DOSSIER, page, 'ajoutees', "en_base=#{compter(ctx[:solution])} avant=#{ctx[:avant]} lignes_vides=#{vides.inspect} types=#{types} " \
+                                             "listes_de_type_par_onglet=#{listes_de_type}")
 end
 
 def tableaux_a_l_etroit(page, ctx, onglet)
@@ -121,9 +131,9 @@ def mesurer_a(page, ctx, largeur)
 
   onglet_integrees(page, ctx[:solution])
   selects = page.evaluate_script("[...document.querySelector('tr#integration_#{ctx[:integration].id}').querySelectorAll('select')].map(s => s.clientWidth)")
-  raise "selects trop étroits à #{largeur} px (solution, type, statut) : #{selects}" if selects.first < 150 || selects.last < 180
+  raise "selects trop étroits à #{largeur} px (solution, statut) : #{selects}" if selects.first < 150 || selects.last < 180
 
-  Verify.evidence(DOSSIER, page, "largeur-#{largeur}", "tableaux_defilable_visible=#{defilement} selects_solution_type_statut=#{selects}")
+  Verify.evidence(DOSSIER, page, "largeur-#{largeur}", "tableaux_defilable_visible=#{defilement} selects_solution_statut=#{selects}")
 end
 
 def largeurs(page, ctx)
