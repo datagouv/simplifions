@@ -15,19 +15,6 @@ RSpec.describe Integration do
     end
   end
 
-  describe '.pour_demarche' do
-    it 'keeps only integrations scoped to the given demarche' do
-      cantine = Demarche.create!(nom: 'Cantine à 1€')
-      autre = Demarche.create!(nom: 'Autre démarche')
-      [cantine, autre].each { Recommandation.create!(demarche: it, solution: api, niveau: :niveau_1) }
-      scopee = described_class.create!(integratrice: bouquet, integree: api, type_integration: 'consomme',
-        demarches: [cantine])
-      described_class.create!(integratrice: bouquet, integree: api, type_integration: 'consomme', demarches: [autre])
-
-      expect(described_class.pour_demarche(cantine)).to contain_exactly(scopee)
-    end
-  end
-
   it 'rejects unknown integration types' do
     expect {
       described_class.new(type_integration: 'transporte')

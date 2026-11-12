@@ -24,7 +24,6 @@ class Integration < ApplicationRecord
   def type_libelle = self.class.human_attribute_name("type_integration.#{type_integration}")
 
   def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]
-  scope :pour_demarche, ->(demarche) { joins(:demarches).where(demarches: { id: demarche }) }
   scope :par_libelle_admin_de, ->(cote) { joins(cote).merge(Solution.par_libelle_admin).order(:id) }
 
   def self.ordre_public = [arel_table[:ordre].asc.nulls_last, Arel.sql("COALESCE(NULLIF(BTRIM(solutions.datagouv_titre), ''), solutions.nom)")]

@@ -2748,14 +2748,33 @@ RSpec.describe 'Administration' do
       def solutions_integratrices_vues(chemin)
         get chemin
         expect(response).to have_http_status(:ok)
-        page = response.parsed_body
-        [page.at_css('.reco-card').text.squish, page.at_css('#solutions-integratrices').text.squish].map { it[/Portail/] }
+        ['.reco-card', '#solutions-integratrices'].map { response.parsed_body.at_css(it)&.text.to_s[/Portail/] }
+      end
+
+      def integration_du_portail(demarches: [])
+        Integration.create!(integratrice: portail, integree: api, type_integration: 'consomme', statut: Integration::STATUT_EN_PRODUCTION, demarches:)
       end
 
       it 'montre la solution intégratrice dans la carte et dans « Solutions intégratrices »' do
-        Integration.create!(integratrice: portail, integree: api, type_integration: 'consomme', statut: Integration::STATUT_EN_PRODUCTION, demarches: [demarche])
+        integration_du_portail(demarches: [demarche])
 
         expect(solutions_integratrices_vues("/admin/demarches/#{demarche.id}/previsualisation")).to eq(%w[Portail Portail])
+      end
+
+      it 'montre l’intégration cochée dans le brouillon, absente du site' do
+        cochee = integration_du_portail
+        patch "/admin/demarches/#{demarche.id}", params: { demarche: { integration_ids: ['', cochee.id] } }
+
+        expect(solutions_integratrices_vues("/admin/demarches/#{demarche.id}/previsualisation")).to eq(%w[Portail Portail])
+        expect(solutions_integratrices_vues('/demarches/aides')).to eq([nil, nil])
+      end
+
+      it 'cache l’intégration décochée dans le brouillon, encore sur le site' do
+        integration_du_portail(demarches: [demarche])
+        patch "/admin/demarches/#{demarche.id}", params: { demarche: { integration_ids: [''] } }
+
+        expect(solutions_integratrices_vues("/admin/demarches/#{demarche.id}/previsualisation")).to eq([nil, nil])
+        expect(solutions_integratrices_vues('/demarches/aides')).to eq(%w[Portail Portail])
       end
     end
 
