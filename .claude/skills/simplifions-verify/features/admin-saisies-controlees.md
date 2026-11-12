@@ -1,6 +1,6 @@
 # Saisies contrôlées dans l'administration
 
-Four admin fields that used to break the public site in silence: a solution URL typed without `https://` is completed, an intégration's statut is a closed list, an organisation's « Public ou privé » is a radio group, a démarche or solution slug outside `a-z0-9-` is refused with a message.
+Four admin fields that used to break the public site in silence: a solution URL typed without `https://` is completed, an intégration's statut is a closed list, an organisation's « Public ou privé » is a radio group, a démarche or solution slug outside `a-z0-9-` is refused with a message, and one left empty is tiré du nom at save (an API or a jeu de données keeps it empty).
 
 ## Sub-features
 
@@ -8,6 +8,7 @@ Four admin fields that used to break the public site in silence: a solution URL 
 - `saisies-statut` `Statut de l’intégration` is a closed list.
 - `saisies-public-prive` `Public ou privé` is a radio group: `Non renseigné`, `Public`, `Privé`.
 - `saisies-slug` a slug outside `a-z0-9-` is refused with its message; the old slug and the public page stay.
+- `saisies-slug-vide` a démarche or a solution saved with an empty `Slug` gets the one tiré du nom, with `-2` when another has it.
 - `saisies-incoherences` an intégration of a solution with itself and a vocabulaire without slug are refused, nothing saved.
 
 ## How to get to it (user POV)
@@ -15,7 +16,8 @@ Four admin fields that used to break the public site in silence: a solution URL 
 - `/admin/solutions/<id>/edit` field `Site internet` (also `URL de demande d’accès`).
 - `/admin/integrations/<id>/edit` select `Statut de l’intégration`.
 - `/admin/organisations/<id>/edit` radios `Public ou privé`: `Non renseigné`, `Public`, `Privé`.
-- `/admin/demarches/<id>/edit` and `/admin/solutions/<id>/edit` field `Slug`, hint `Minuscules sans accent, chiffres et tirets`.
+- `/admin/demarches/<id>/edit` and `/admin/solutions/<id>/edit` field `Slug`, hint `Laissé vide, il est tiré du nom à l’enregistrement` … `Minuscules sans accent, chiffres et tirets`.
+- `/admin/demarches/new` and `/admin/solutions/new`: `Nom` filled, `Slug` left empty, `Enregistrer`.
 
 ## Driving it with Capybara
 
@@ -27,6 +29,7 @@ Preconditions: logged in, a visible public solution with a slug, an intégration
 - **Statut.** The `Statut de l’intégration` options are `""` + `Integration::STATUTS`; select the empty option then the current one (re-selecting it alone fires no change and leaves `Enregistrer` disabled), save, read back.
 - **Public ou privé.** `Public` is checked for a public operator; retype `Nom` (Enregistrer stays disabled until a field changes), save; the public solution page still shows `Solution publique | <organisation>`.
 - **Slug.** On its own published démarche `Vérif verify-map <browser>`, `Modifier l’en-tête`, fill `Slug` with `Vérif avec espaces/et accents`, `Enregistrer` (a draft, not checked), then `Publier ce changement` in the box `À la publication, 1 changement partira` of the state bar (validations run at publication): the error `Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets`, the en-tête modal opens again and the field keeps the typed value, the database keeps the old slug, `/demarches/<slug>` still answers with its H1.
+- **Slug vide.** After the Slug check, `/admin/demarches/new`, `Nom` = `Vérif verify-map <browser>`, `Slug` empty, `Enregistrer`: `« <nom> » enregistré.`, the en-tête shows the address `…/demarches/verif-verify-map-<browser>-2` (the Slug check's démarche holds the slug without suffix) and the database holds that slug. Then `/admin/solutions/new` with the same `Nom` and no catégorie (a solution with its page): the field `Slug` reads `verif-verify-map-<browser>`, the database too. The drive deletes both.
 - **Incohérences.** On the first intégration, select its intégratrice in `API ou jeu de données`, save: `Une solution ne peut pas s’intégrer elle-même`, the database keeps the old intégrée. A new vocabulaire with an empty `Slug`: `Slug doit être rempli`; with `Vérif Accents`: the format message; no row created.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-saisies-controlees/`.
 
