@@ -91,6 +91,8 @@ class Solution < ApplicationRecord
   end
 
   scope :par_libelle_admin, -> { order(:nom, :categorie) }
+  scope :recommandables, ->(deja) { where(categorie: HORS_FICHES).or(where("'API' = ANY(types_solution)")).or(where(id: deja)) }
+  def self.choix_admin = par_libelle_admin.map { [it.libelle_admin, it.id] }
   def libelle_admin = categorie ? "#{nom} (#{self.class.human_attribute_name("categorie.#{categorie}")})" : nom
 
   def privee? = fiche? && organisations.none?(&:publique?)
