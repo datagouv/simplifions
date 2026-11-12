@@ -165,6 +165,46 @@ def partir(page)
   page.assert_no_selector 'dialog[open]'
   page.find('.fr-breadcrumb').click_link 'Démarches'
   page.assert_selector 'h1', text: 'Démarches'
+  Verify.evidence(DOSSIER, page, 'filtre-ignore-en-partant', 'confirmation=aucune')
+end
+
+QUITTER = 'Quitter sans enregistrer les modifications ?'.freeze
+
+def ouvrir_les_organisations(page, solution)
+  page.visit("/admin/solutions/#{solution.id}/edit")
+  groupe = page.find('fieldset', text: 'Filtrer les organisations')
+  groupe.find_field('Filtrer les organisations').click
+  groupe
+end
+
+def nb_cases(groupe) = groupe.all('[data-liste-filtrable-target=element]', visible: :all).size
+def anneau_de_focus?(page, groupe) = page.evaluate_script('getComputedStyle(arguments[0]).outlineStyle', groupe) != 'none'
+
+def restee_ouverte(page, groupe, clic)
+  visibles = nb_visibles(groupe)
+  raise "#{clic} : #{visibles} cases sur #{nb_cases(groupe)}" unless visibles == nb_cases(groupe)
+  raise "#{clic} : anneau de focus autour de la liste" if anneau_de_focus?(page, groupe)
+
+  "visibles=#{visibles} total=#{nb_cases(groupe)}"
+end
+
+def clic_sur_un_libelle(page, solution)
+  groupe = ouvrir_les_organisations(page, solution)
+  cible = Organisation.order(:nom).where.not(id: solution.organisation_ids).first
+  groupe.find("label[for=solution_organisation_ids_#{cible.id}]").click
+  lecture = restee_ouverte(page, groupe, 'clic sur un libellé')
+  raise 'clic sur un libellé : case non cochée' unless groupe.find("#solution_organisation_ids_#{cible.id}", visible: :all).checked?
+
+  Verify.evidence(DOSSIER, page, 'clic-sur-un-libelle-dans-un-onglet', "#{lecture} cible=#{cible.id} cochee=true")
+  groupe
+end
+
+def clic_dans_le_vide(page, groupe)
+  groupe.find('[aria-live=polite]').click
+  lecture = restee_ouverte(page, groupe, 'clic dans la liste')
+
+  Verify.evidence(DOSSIER, page, 'clic-dans-le-vide-de-la-liste', lecture)
+  page.accept_confirm(QUITTER) { page.find('.fr-breadcrumb').click_link 'Solutions' }
 end
 
 Verify.drive(__FILE__) do |page|
@@ -187,10 +227,10 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Filter and keyboard') { filtrer_et_cocher(page, groupe, integrations.last) }
   Verify.check('Save') { enregistrer(page, groupe, demarche, integrations.last) }
   Verify.check('Leave') { partir(page) }
-  Verify.check('Proof') do
-    Verify.evidence(DOSSIER, page, 'filtre-ignore-en-partant', 'confirmation=aucune')
-    Verify.logout(page)
-  end
+  solution = Solution.joins(:organisations).distinct.order(:id).first
+  organisations = Verify.check('Click a label in a tab') { clic_sur_un_libelle(page, solution) }
+  Verify.check('Click inside the list') { clic_dans_le_vide(page, organisations) }
+  Verify.check('Proof') { Verify.logout(page) }
 ensure
   Demarche.where(nom:).destroy_all
 end

@@ -2,7 +2,7 @@
 <% courte = collection.size <= 10 %>
 <% filtre = local_assigns[:filtre] || f.field_id(attribut, :filtre) %>
 <% cochees = f.object.public_send(attribut) %>
-<%= tag.fieldset class: "fr-fieldset", data: ({ controller: "liste-filtrable", action: "focusout->liste-filtrable#quitter" } unless courte) do %>
+<%= tag.fieldset class: "fr-fieldset", tabindex: (-1 unless courte), data: ({ controller: "liste-filtrable", action: "focusout->liste-filtrable#quitter" } unless courte) do %>
   <legend class="fr-fieldset__legend"><%= legende %></legend>
   <% unless courte %>
     <div class="fr-fieldset__element fr-mb-0">
