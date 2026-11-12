@@ -190,6 +190,21 @@ def retrait_en_brouillon(page, demarche, nom)
   retrait_publie(page, demarche, reco)
 end
 
+def lignes_dans_l_ordre_des_cartes(page, demarche, nom)
+  deuxieme, premiere = { 'n' => 98, 'm' => 97 }.map do |lettre, ordre|
+    Recommandation.create!(demarche:, solution: Solution.create!(nom: "#{nom} #{lettre}", categorie: 'api'), niveau: :niveau_2, ordre:, visible: true).solution
+  end
+  page.visit("/admin/demarches/#{demarche.id}/edit")
+  [deuxieme, premiere].each { Verify.modifier_la_carte(page, it, CHAMP_UTILE => "Vérif ordre #{it.nom}") }
+  lignes = lignes_de_l_encadre(page, 'À la publication, 2 changements partiront')
+  attendu = [premiere, deuxieme].map { "Solution recommandée modifiée : #{it.libelle_admin}" }
+  raise "encadré après #{deuxieme.nom} puis #{premiere.nom} : #{lignes}" unless lignes == attendu
+
+  Verify.evidence(DOSSIER, page, 'lignes-dans-l-ordre-des-cartes', "enregistrees=#{[deuxieme, premiere].map(&:nom)} lignes=#{lignes}")
+  page.accept_confirm { page.find(ENCADRE).click_button 'Abandonner le brouillon' }
+  page.assert_no_selector ENCADRE
+end
+
 def glisser_la_derniere_carte_en_tete(page, demarche)
   Verify.glisser(page, '#message-recommandations .fr-valid-text', 'déplacée en position 1') do
     page.visit("/admin/demarches/#{demarche.id}/edit")
@@ -458,11 +473,12 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Données utiles') { brouillon_donnees_utiles(page, demarche, nom) }
   Verify.check('Type chosen') { brouillon_type_choisi(page, demarche, nom) }
   Verify.check('No draft') { brouillon_fiches_sans_brouillon(page, demarche, nom) }
+  Verify.check('Lines in card order') { lignes_dans_l_ordre_des_cartes(page, demarche, nom) }
   Verify.check('One order line') { une_ligne_d_ordre(page, demarche, nom) }
   Verify.check('Proof') { page.visit('/admin').then { Verify.logout(page) } }
 ensure
   Demarche.where(slug:).destroy_all
-  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g", "#{nom} h", "#{nom} i", "#{nom} j", "#{nom} k", "#{nom} l"])).destroy_all
+  Solution.where(slug:).or(Solution.where(nom: ["#{nom} a", "#{nom} b", "#{nom} bouquet", "#{nom} c", "#{nom} d", "#{nom} e", "#{nom} f", "#{nom} g", "#{nom} h", "#{nom} i", "#{nom} j", "#{nom} k", "#{nom} l", "#{nom} m", "#{nom} n"])).destroy_all
   Organisation.where(nom: "#{nom} org").destroy_all
   TypeActeur.where(nom: "#{nom} fournisseur").destroy_all
   Vocabulaire.where(nom: "#{nom} voc").destroy_all

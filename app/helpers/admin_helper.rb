@@ -39,10 +39,17 @@ module AdminHelper
 
     champs = demarche.brouillon? ? champs_a_publier(demarche) : []
     blocs = BLOCS_DE_LA_DEMARCHE.filter_map { |libelle, (ancre, champs_du_bloc)| [libelle, ancre] if champs.intersect?(champs_du_bloc) }
-    blocs + recommandations_a_publier(demarche.recommandations_en_brouillon.includes(:solution))
+    blocs + recommandations_a_publier(dans_l_ordre_de_la_fiche(demarche))
   end
 
   private
+
+  def dans_l_ordre_de_la_fiche(demarche)
+    fiche = demarche.recommandations.sur_la_fiche
+    donnees = donnees_par_carte(fiche)
+    rangs = (fiche.select(&:niveau_2?).flat_map { [it, *donnees[it]] } + donnees.fetch(nil, [])).map(&:id)
+    demarche.recommandations_en_brouillon.includes(:solution).sort_by { [rangs.index(it.id) || rangs.size, it.id] }
+  end
 
   def recommandations_a_publier(recommandations)
     champs = recommandations.index_with(&:champs_du_brouillon)
