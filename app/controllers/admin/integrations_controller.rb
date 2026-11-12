@@ -22,7 +22,10 @@ class Admin::IntegrationsController < Admin::BaseController
 
   def destroy
     @integration.destroy!
-    return render :destroy, formats: :turbo_stream if params[:ligne]
+    if params[:ligne]
+      @liste = liste_de(params[:liste])
+      return render :destroy, formats: :turbo_stream
+    end
 
     redirect_to admin_integrations_path, notice: t('admin.supprime', nom: nom_de(@integration)), status: :see_other
   end
@@ -45,9 +48,11 @@ class Admin::IntegrationsController < Admin::BaseController
     { alert: t('admin.non_deplacee', erreurs: @integration.errors.full_messages.to_sentence) }
   end
 
+  def liste_de(valeur) = valeur.presence_in(%w[fournies integrees integratrices])&.to_sym
+
   def enregistrer_puis_repondre(page, enregistree)
     if params[:ligne]
-      @liste = params.expect(:liste).presence_in(%w[fournies integrees integratrices])&.to_sym || :integrees
+      @liste = liste_de(params.expect(:liste)) || :integrees
       render :ligne, formats: :turbo_stream, status: enregistree ? :ok : :unprocessable_content
     elsif enregistree
       redirige_vers_la_fiche(@integration)

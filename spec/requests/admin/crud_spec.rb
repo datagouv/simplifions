@@ -1035,6 +1035,7 @@ RSpec.describe 'Administration' do
     let!(:bouquet) { Solution.create!(nom: 'Bouquet') }
     let!(:api_qf) { Solution.create!(nom: 'API QF', categorie: 'api') }
     let!(:integration) { Integration.create!(integratrice: bouquet, integree: api_qf, type_integration: 'consomme') }
+    let(:onglets) { %w[onglet-api-fournies onglet-api-integrees onglet-integratrices] }
 
     before { sign_in admin }
 
@@ -1046,7 +1047,7 @@ RSpec.describe 'Administration' do
       patch "/admin/integrations/#{integration.id}", params: { ligne: 1, liste: 'integrees', integration: { type_integration: 'expose', statut: Integration::STATUT_EN_PRODUCTION } }
 
       expect(response.media_type).to eq('text/vnd.turbo-stream.html')
-      expect(flux.pluck('target')).to eq(['message-integrations', "integration_#{integration.id}"])
+      expect(flux.pluck('target')).to eq(['message-integrations', "integration_#{integration.id}", *onglets])
       expect([choisi(ligne_renvoyee, :integree_id), choisi(ligne_renvoyee, :statut)]).to eq(['API QF (API)', Integration::STATUT_EN_PRODUCTION])
       expect(ligne_renvoyee.at_css('[name="integration[integratrice_id]"]')).to be_nil
       expect(flux.first.text.squish).to eq('« Bouquet → API QF (API) (intégrée) » enregistré.')
@@ -1107,7 +1108,8 @@ RSpec.describe 'Administration' do
       nouvelle = Integration.last
 
       expect(flux.map { [it['action'], it['target']] }).to eq([
-        %w[update message-integrations], %w[before integratrices_integration], %w[append formulaires-integrations], %w[replace integratrices_integration]
+        %w[update message-integrations], %w[before integratrices_integration], %w[append formulaires-integrations], %w[replace integratrices_integration],
+        *onglets.map { ['update', it] }
       ])
       expect(choisi(flux[1].at_css('tr'), :integratrice_id)).to eq('Mes Aides')
       expect(flux[2].at_css('form')['action']).to eq("/admin/integrations/#{nouvelle.id}")
@@ -1115,10 +1117,33 @@ RSpec.describe 'Administration' do
       expect(nouvelle.slice(:integree_id, :type_integration)).to eq('integree_id' => api_qf.id, 'type_integration' => 'expose')
     end
 
+    def onglets_renvoyes = flux.select { it['action'] == 'update' && it['target'].start_with?('onglet-') }.to_h { [it['target'], it.text.squish] }
+
+    it 'met à jour les nombres des trois onglets de la solution après un ajout' do
+      post '/admin/integrations', params: { ligne: 1, liste: 'integrees', integration: { integratrice_id: bouquet.id, integree_id: Solution.create!(nom: 'API Impôt', categorie: 'api').id, type_integration: 'consomme' } }
+
+      expect(onglets_renvoyes).to eq('onglet-api-fournies' => 'API fournies (0)', 'onglet-api-integrees' => 'API intégrées (2)', 'onglet-integratrices' => 'Solutions qui l’intègrent (0)')
+    end
+
+    it 'compte dans « Solutions qui l’intègrent » les intégrations d’une API fournie ajoutée' do
+      Integration.create!(integratrice: Solution.create!(nom: 'Mes Aides'), integree: api_qf, type_integration: 'consomme')
+      post '/admin/integrations', params: { ligne: 1, liste: 'fournies', integration: { integratrice_id: bouquet.id, integree_id: api_qf.id } }
+
+      expect(onglets_renvoyes).to eq('onglet-api-fournies' => 'API fournies (1)', 'onglet-api-integrees' => 'API intégrées (1)', 'onglet-integratrices' => 'Solutions qui l’intègrent (2)')
+    end
+
+    it 'ne met à jour aucun onglet quand la ligne ajoutée n’a pas de solution de son côté' do
+      post '/admin/integrations', params: { ligne: 1, liste: 'integrees', integration: { integree_id: api_qf.id, type_integration: 'consomme' } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(flux.first.text).to include('Intégration non enregistrée')
+      expect(onglets_renvoyes).to be_empty
+    end
+
     it 'garde l’erreur d’un ajout sur la ligne vide de son côté' do
       post '/admin/integrations', params: { ligne: 1, liste: 'fournies', integration: { integratrice_id: bouquet.id, type_integration: 'expose' } }
 
-      expect(flux.pluck('target')).to eq(%w[message-integrations fournies_integration])
+      expect(flux.pluck('target')).to eq(['message-integrations', 'fournies_integration', *onglets])
       expect(ligne_renvoyee.at_css('.fr-error-text').text).to eq('Choisissez une API ou un jeu de données')
     end
 
@@ -1147,6 +1172,25 @@ RSpec.describe 'Administration' do
       ])
       expect(flux.last.at_css('[autofocus][tabindex="-1"]').text.squish).to eq('« Bouquet → API QF (API) (intégrée) » supprimé.')
       expect(Integration.exists?(integration.id)).to be(false)
+    end
+
+    it 'ne met à jour aucun onglet après une suppression sans onglet, depuis une page chargée avant leur mise à jour' do
+      delete "/admin/integrations/#{integration.id}", params: { ligne: 1 }, as: :turbo_stream
+
+      expect(Integration.exists?(integration.id)).to be(false)
+      expect(onglets_renvoyes).to be_empty
+    end
+
+    it 'met à jour les nombres des onglets de la solution après une suppression depuis l’un d’eux' do
+      delete "/admin/integrations/#{integration.id}", params: { ligne: 1, liste: 'integratrices' }, as: :turbo_stream
+
+      expect(onglets_renvoyes).to eq('onglet-api-fournies' => 'API fournies (0)', 'onglet-api-integrees' => 'API intégrées (0)', 'onglet-integratrices' => 'Solutions qui l’intègrent (0)')
+    end
+
+    it 'propose la suppression d’une ligne depuis son onglet' do
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      expect(response.parsed_body.at_css("#suppression_integration_#{integration.id} [name=liste]")['value']).to eq('integrees')
     end
 
     it 'garde la redirection vers la liste quand on supprime depuis la page de l’intégration' do

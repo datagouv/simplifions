@@ -101,6 +101,14 @@ class Solution < ApplicationRecord
     exposees.order(Integration.ordre_public)
   end
 
+  def nombres_d_integrations
+    {
+      fournies: integrations_qu_elle_expose.count,
+      integrees: integrations_comme_integratrice.consomme.count,
+      integratrices: integrations_comme_integree.count + integrations_de_ses_api.distinct.count
+    }
+  end
+
   def integratrices_visibles
     Solution.visibles.where(id: Integration.en_production.where(integree: fournies).select(:integratrice_id))
   end

@@ -10,6 +10,14 @@ module IntegrationsHelper
 
   def titre_groupe_donnees(bouquet) = bouquet || t('public.autres_donnees_utiles')
 
+  ONGLETS_D_INTEGRATIONS = { fournies: 'api-fournies', integrees: 'api-integrees', integratrices: 'integratrices' }.freeze
+
+  def libelles_des_onglets_d_integrations(solution)
+    solution.nombres_d_integrations.to_h do |liste, nombre|
+      [ONGLETS_D_INTEGRATIONS.fetch(liste), "#{t("admin.integrations_de_la_solution.#{liste}")} (#{nombre})"]
+    end
+  end
+
   def colonne_de_la_liste(liste) = liste == :integratrices ? :integratrice : :integree
   def colonne_fixe_de_la_liste(liste) = liste == :integratrices ? :integree : :integratrice
 
