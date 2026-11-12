@@ -23,6 +23,9 @@ module AdminHelper
       aria: { current: ((current_page?(liste) ? 'page' : 'true') if rubrique_admin_ouverte?(modele)) }
   end
 
+  def donnees_par_carte(lignes) = Demarche.rattachement(lignes.select(&:niveau_2?), lignes.select(&:niveau_1?), &:solution_id)
+  def fenetre_des_donnees_utiles(carte) = "donnees-utiles-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"
+
   def nom_de_la_recommandation(recommandation, nom) = recommandation.retiree? ? tag.s(nom, class: 'fr-text-mention--grey') : nom
 
   def changements_a_publier(demarche)

@@ -3,19 +3,25 @@
 <% fiche = demarche.recommandations.sur_la_fiche %>
 <% lignes = fiche.map { refusee&.id == it.id ? refusee : it } %>
 <% nouvelle = refusee if refusee&.new_record? %>
-<% depuis_les_donnees_utiles = params[:fenetre] == "donnees-utiles" %>
-<%= turbo_stream.replace "etat-de-la-demarche", partial: "admin/demarches/barre_d_etat", locals: { demarche: } %>
 <% cartes = fiche.select(&:niveau_2?) %>
+<% donnees = donnees_par_carte(fiche) %>
+<% fenetres = [*cartes, nil].index_by { fenetre_des_donnees_utiles(it) } %>
+<% fenetre = params[:fenetre] if fenetres.key?(params[:fenetre]) %>
+<% source = fenetres[fenetre] %>
+<%= turbo_stream.replace "etat-de-la-demarche", partial: "admin/demarches/barre_d_etat", locals: { demarche: } %>
 <%= turbo_stream.update "compte-des-solutions-recommandees", "(#{cartes.size})" %>
-<% donnees = Demarche.rattachement(cartes, fiche.select(&:niveau_1?), &:solution_id) %>
-<%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes:, donnees: }, method: :morph %>
-<%= turbo_stream.update "rattachees-a-aucune-solution", partial: "admin/demarches/rattachees_a_aucune_solution", locals: { donnees: donnees.fetch(nil, []) } %>
 <%= turbo_stream.replace "formulaires-recommandations", partial: "formulaires",
-      locals: { demarche:, lignes:, nouvelle_carte: (nouvelle unless depuis_les_donnees_utiles) || Recommandation.new(demarche:, niveau: :niveau_2) } %>
-<%= turbo_stream.update "lignes-des-donnees-utiles", partial: "ligne_de_donnee_utile",
-      collection: [*lignes.select(&:niveau_1?), (nouvelle if depuis_les_donnees_utiles) || Recommandation.new(demarche:, niveau: :niveau_1)], as: :ligne, method: :morph %>
-<% zone, autre_zone = %w[message-recommandations message-donnees-utiles].then { depuis_les_donnees_utiles ? it.reverse : it } %>
-<%= turbo_stream.update autre_zone, "" %>
-<%= turbo_stream.update zone do %>
+      locals: { demarche:, lignes:, nouvelle_carte: (nouvelle unless fenetre) || Recommandation.new(demarche:, niveau: :niveau_2) } %>
+<% if fenetre %>
+  <%= turbo_stream.update "liste-#{fenetre}", partial: "admin/demarches/liste_des_donnees_disponibles", locals: { donnees: donnees.fetch(source, []) } %>
+  <%= turbo_stream.update "lignes-#{fenetre}", partial: "lignes_des_donnees_utiles", method: :morph,
+        locals: { carte: source, donnees: donnees.fetch(source, []).map { refusee&.id == it.id ? refusee : it }, recommandees: fiche.map(&:solution_id), nouvelle: } %>
+  <%= turbo_stream.update "message-recommandations", "" %>
+<% else %>
+  <%= turbo_stream.update "cartes-recommandees", partial: "admin/demarches/cartes_recommandees", locals: { cartes:, donnees: }, method: :morph %>
+  <%= turbo_stream.update "rattachees-a-aucune-solution", partial: "admin/demarches/rattachees_a_aucune_solution", locals: { donnees: donnees.fetch(nil, []) } %>
+  <%= turbo_stream.replace "fenetres-des-donnees-utiles", partial: "fenetres_des_donnees_utiles", locals: { cartes:, donnees: } %>
+<% end %>
+<%= turbo_stream.update(fenetre ? "message-#{fenetre}" : "message-recommandations") do %>
   <%= tag.p message, class: [erreur ? "fr-error-text" : "fr-valid-text", "fr-mb-2w"], tabindex: (-1 if focus), autofocus: focus %>
 <% end %>

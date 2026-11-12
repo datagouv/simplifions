@@ -1,0 +1,10 @@
+<%# locals: (cartes:, donnees:) -%>
+<% recommandees = [*cartes, *donnees.values.flatten].map(&:solution_id) %>
+<div id="fenetres-des-donnees-utiles">
+  <% cartes.select { it.solution.exposees.any? }.each do |carte| %>
+    <%= render "admin/recommandations/fenetre_des_donnees_utiles", carte:, donnees: donnees.fetch(carte, []), recommandees: %>
+  <% end %>
+  <% if donnees.key?(nil) %>
+    <%= render "admin/recommandations/fenetre_des_donnees_utiles", carte: nil, donnees: donnees[nil], recommandees: %>
+  <% end %>
+</div>

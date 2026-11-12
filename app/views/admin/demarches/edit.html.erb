@@ -20,7 +20,7 @@
     <%= yield :fenetres %>
   <% end %>
   <%= render "admin/recommandations/formulaires", demarche: en_base, lignes: fiche, nouvelle_carte: Recommandation.new(demarche: en_base, niveau: :niveau_2) %>
-  <%= render "admin/recommandations/fenetre_des_donnees_utiles", lignes: [*fiche.select(&:niveau_1?), Recommandation.new(demarche: en_base, niveau: :niveau_1)] %>
+  <%= render "admin/recommandations/fenetres_des_donnees_utiles", cartes: fiche.select(&:niveau_2?), donnees: donnees_par_carte(fiche) %>
   <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm fr-mt-4w">
     <% if en_base.versions.any? %>
       <li><%= link_to "Historique de la démarche", admin_historique_path("demarches", en_base), class: "fr-btn fr-btn--tertiary-no-outline fr-icon-time-line fr-btn--icon-left" %></li>

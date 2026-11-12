@@ -17,8 +17,14 @@
       <% end %>
     </ul>
     <% if carte.solution.exposees.any? %>
-      <h4 class="fr-text--md fr-text--bold fr-mt-2w fr-mb-1w">Données utiles (<%= donnees.size %>)</h4>
-      <%= render "admin/demarches/liste_des_donnees_disponibles", donnees: %>
+      <div class="fr-mt-2w">
+        <div id="liste-<%= fenetre_des_donnees_utiles(carte) %>">
+          <%= render "admin/demarches/liste_des_donnees_disponibles", donnees: %>
+        </div>
+        <% unless carte.retiree? %>
+          <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-add-line fr-btn--icon-left fr-mt-1w" aria-controls="fenetre-<%= fenetre_des_donnees_utiles(carte) %>" data-fr-opened="false">Ajouter une donnée utile<span class="fr-sr-only"> à <%= nom %></span></button>
+        <% end %>
+      </div>
     <% end %>
   </div>
 <% end %>
