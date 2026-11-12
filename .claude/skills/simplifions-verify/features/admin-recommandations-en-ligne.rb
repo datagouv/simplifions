@@ -49,8 +49,26 @@ def modifier(page, ctx)
   Verify.evidence(DOSSIER, page, 'modifiee', "message=#{page.find('#message-recommandations').text} focus=#{focus} ordre_en_base=#{base['ordre']} brouillon=#{base['brouillon']['ordre']}")
 end
 
+def libelles_proposables = Solution.where(categorie: %w[api base_de_donnees]).or(Solution.where("'API' = ANY(types_solution)")).map { it.libelle_admin.squish }
+def options(dialog) = dialog.all('select[name="recommandation[solution_id]"] option').map(&:text).compact_blank
+
+def choix(page, ctx)
+  dialog = Verify.fenetre(page, "Modifier #{ctx[:carte].solution.libelle_admin}")
+  choisie = dialog.find('select[name="recommandation[solution_id]"] option[selected]').text
+  dialog.click_button 'Fermer'
+  page.assert_no_selector 'dialog[open]'
+  raise "solution choisie #{choisie}" unless choisie == ctx[:carte].solution.libelle_admin.squish
+
+  proposees = options(Verify.fenetre(page, 'Ajouter une solution recommandée'))
+  attendues, hors_filtre = lu { [libelles_proposables, Solution.count - libelles_proposables.size] }
+  raise "options en trop #{proposees - attendues}, manquantes #{attendues - proposees}" unless proposees.sort == attendues.sort && proposees.size == attendues.size
+  raise 'aucune solution hors filtre en base : le filtre n’est pas éprouvé' unless hors_filtre.positive?
+
+  Verify.evidence(DOSSIER, page, 'choix', "proposees=#{proposees.size} hors_filtre_en_base=#{hors_filtre} choisie_a_la_modification=#{choisie}")
+end
+
 def erreur(page)
-  Verify.fenetre(page, 'Ajouter une solution recommandée').click_button 'Enregistrer'
+  page.find('dialog[open]').click_button 'Enregistrer'
   erreur = page.find('dialog[open] .fr-message--error', text: 'Choisissez une solution')
   Verify.evidence(DOSSIER, page, 'erreur', "fenetre=#{page.find('dialog[open] h2').text} erreur=#{erreur.text}")
 end
@@ -191,6 +209,7 @@ Verify.drive(__FILE__) do |page|
   Verify.login(page)
   Verify.check('Cards') { cartes(page, ctx) }
   Verify.check('Modify') { modifier(page, ctx) }
+  Verify.check('Choices') { choix(page, ctx) }
   Verify.check('Error') { erreur(page) }
   Verify.check('Add') { ajouter(page, ctx) }
   Verify.check('Order') { changer_l_ordre(page, ctx) }

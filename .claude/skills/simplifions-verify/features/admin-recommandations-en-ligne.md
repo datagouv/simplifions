@@ -8,6 +8,7 @@ On a démarche's fiche, under `Contexte` and `Cadre juridique`, the block `Solut
 - `recos-fenetre-modifier` `Modifier <solution>` → window, `Enregistrer` → window closed, card updated, draft on a published démarche, focus back on `Modifier`.
 - `recos-fenetre-erreur` a refused save reopens the window, `Choisissez une solution` under `Solution`.
 - `recos-ajouter` `Ajouter une solution recommandée` → the same window, empty; the new card `Ajoutée au brouillon`.
+- `recos-choix` the window's `Solution` lists only the API, the jeux de données and the solutions whose types include « API »; `Modifier` keeps the card's own solution selected even outside that filter.
 - `recos-changer-l-ordre` `Changer l’ordre` shows the handles; a dragged card saves its position, the mode stays open; a refused neighbour stops the whole move (`Recommandation non déplacée : …`, request spec only).
 - `recos-donnees-utiles` a card's `Ajouter une donnée utile à <solution>` → its window; a line saves alone, the window stays open, the card's list follows; the blank line offers only the APIs of that solution not yet recommended.
 - `recos-integrations` a card's `Ajouter une intégration à <solution>` → that solution's intégrations only; `Enregistrer` → the card lists the new one, in the draft.
@@ -26,7 +27,8 @@ Preconditions: logged in; the drive mutates then puts back every recommandation 
 
 - **Cards.** `Solutions recommandées (<n>)` and the number of données utiles lines match the base read through the drafts; first card `Position <n>`.
 - **Modify.** `Modifier <solution>` of the first card, `Position` 77, `Enregistrer` → no open window, card `Position 77`, `brouillon enregistré` in `#message-recommandations`, focus on `Modifier <solution>`, base ordre unchanged, 77 in the draft.
-- **Error.** `Ajouter une solution recommandée`, `Enregistrer` with no solution → the window open again, `Choisissez une solution` under `Solution`.
+- **Choices.** `Ajouter une solution recommandée`: the `Solution` options are exactly the solutions of category API or Jeu de données, or whose `types_solution` contains `API`, by name; none of the others (logiciels métier, briques without « API »). The first card's `Modifier` window has its own solution selected.
+- **Error.** Same window, `Enregistrer` with no solution → the window open again, `Choisissez une solution` under `Solution`.
 - **Add.** Same window: the solution, `Enregistrer` → a new card `Ajoutée au brouillon`, count +1, base `visible` false.
 - **Order.** The hint `Glissez une carte par sa poignée…` hidden; `Changer l’ordre` (`aria-expanded` true) shows it and the handles; drag the second card's handle onto the first card → `déplacée en position 1`, the card first in the grid and in base (draft order), the mode still open (handles shown) for the next drag.
 - **Données utiles.** The card to complete: `Ajouter une donnée utile à <solution>` opens its own window; first line `Position` 55, its `Enregistrer` → message naming that line's solution in the window (and none behind it), window still open, focus on that line's form; the blank line's `Solution` offers exactly the APIs of the solution not yet recommended, the first one `Ajouter` → message naming it; `Fermer`: the card lists the line with `55` and the new one.
