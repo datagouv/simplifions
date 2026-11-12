@@ -34,7 +34,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-vocabulaires.md](admin-vocabulaires.md) — add a vocabulaire row in the administration, then delete it.
 - [admin-fiche-demarche.md](admin-fiche-demarche.md) — a saved démarche reads like its public page; each block opens a modal with its fields (save, Escape, refused field), intégrations chosen in a modal, no tabs.
 - [admin-supprimer-demarche.md](admin-supprimer-demarche.md) — delete from the edit page: the confirmation names the row and what goes with it (démarche drive created, organisation cancelled).
-- [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused.
+- [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused, empty slug tiré du nom.
 - [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.
 - [contenu-html-grist.md](contenu-html-grist.md) — the HTML typed in Grist markdown fields (DSFR callout, `<hr>`) shows on the public pages, never `raw HTML omitted`.
 - [rafraichissement-nuit.md](rafraichissement-nuit.md) — run the nightly refresh job on a throwaway database and see the 00:30 UTC recurring task registered in production only.

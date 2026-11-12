@@ -69,6 +69,23 @@ def page_publique_intacte(page, demarche)
   Verify.evidence(DOSSIER, page, 'page-publique', "path=#{page.current_path}")
 end
 
+def creer_sans_slug(page, modele, nom)
+  page.visit("/admin/#{modele.model_name.route_key}/new")
+  page.fill_in "#{modele.model_name.param_key}[nom]", with: nom
+  page.click_button 'Enregistrer'
+  page.assert_text "« #{nom} » enregistré."
+end
+
+def slug_tire_du_nom(page, modele, nom, attendu)
+  creer_sans_slug(page, modele, nom)
+  page.assert_text "/#{modele.model_name.route_key}/#{attendu}" if modele == Demarche
+  page.assert_selector :field, 'Slug', with: attendu, visible: :all
+  en_base = ActiveRecord::Base.uncached { modele.where(nom:).order(:id).last.slug }
+  raise "slug en base : #{en_base}" unless en_base == attendu
+
+  Verify.evidence(DOSSIER, page, "slug-tire-du-nom-#{modele.model_name.singular}", "saisi=vide en_base=#{en_base}")
+end
+
 def integrer_a_elle_meme(page, integration)
   page.visit("/admin/integrations/#{integration.id}/edit")
   page.select integration.integratrice.libelle_admin, from: 'API ou jeu de données'
@@ -118,6 +135,10 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Statut') { statut_en_liste(page) }
   Verify.check('Public ou privé') { public_ou_prive(page, solution) }
   Verify.check('Slug') { slug_refuse(page, nom) }
+  Verify.check('Slug vide') do
+    slug_tire_du_nom(page, Demarche, nom, "verif-verify-map-#{Verify.browser}-2")
+    slug_tire_du_nom(page, Solution, nom, "verif-verify-map-#{Verify.browser}")
+  end
   Verify.check('Incohérences') do
     integration_elle_meme(page)
     vocabulaire_sans_slug(page, nom)
@@ -127,4 +148,5 @@ ensure
   solution&.update!(site_internet: site_avant)
   Vocabulaire.where(nom:).destroy_all
   Demarche.where(nom:).destroy_all
+  Solution.where(nom:).destroy_all
 end

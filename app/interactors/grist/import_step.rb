@@ -68,7 +68,7 @@ class Grist::ImportStep < ApplicationInteractor
   end
 
   def assign_slug(row, gid)
-    slug = SNAPSHOT.dig(gid, 'slug') || row.nom.to_s.tr('_', ' ').parameterize
+    slug = SNAPSHOT.dig(gid, 'slug') || row.class.slug_du_nom(row.nom)
     slug = "#{slug}-#{gid.split(':').last}" if row.class.where(slug:).where.not(id: row.id).exists?
     row.slug = slug
   end

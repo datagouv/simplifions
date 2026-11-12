@@ -8,6 +8,8 @@ class Demarche < ApplicationRecord
   validates :grist_id, :slug, uniqueness: true, allow_nil: true
   validates :slug, format: { with: FORMAT_SLUG, message: :format_slug }, allow_nil: true
   validates :slug, presence: true, if: :visible?
+  before_validation :tirer_le_slug_du_nom, if: -> { slug.blank? && nom.present? && !visible_in_database }
+  after_validation :oublier_le_slug_tire_si_refus
 
   has_many :recommandations, dependent: :destroy
   has_and_belongs_to_many :vocabulaires
