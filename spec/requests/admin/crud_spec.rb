@@ -965,7 +965,25 @@ RSpec.describe 'Administration' do
       expect(flux.pluck('target')).to eq(['message-integrations', "integration_#{integration.id}"])
       expect([choisi(ligne_renvoyee, :integree_id), choisi(ligne_renvoyee, :statut)]).to eq(['API QF (API)', Integration::STATUT_EN_PRODUCTION])
       expect(ligne_renvoyee.at_css('[name="integration[integratrice_id]"]')).to be_nil
-      expect(flux.first.text.squish).to eq('« Bouquet → API QF (API) (fournie) » enregistré.')
+      expect(flux.first.text.squish).to eq('« Bouquet → API QF (API) (intégrée) » enregistré.')
+      expect(integration.reload.type_integration).to eq('consomme')
+    end
+
+    { 'integrees' => %w[expose consomme], 'fournies' => %w[consomme expose] }.each do |liste, (envoye, attendu)|
+      it "donne à une ligne ajoutée dans « #{liste} » le type #{attendu}, même si la requête envoie #{envoye}" do
+        post '/admin/integrations', params: { ligne: 1, liste:, integration: { integratrice_id: bouquet.id, integree_id: Solution.create!(nom: 'API Impôt', categorie: 'api').id, type_integration: envoye } }
+
+        expect(Integration.last.type_integration).to eq(attendu)
+      end
+    end
+
+    it 'garde le type choisi sur une ligne d’une liste inconnue' do
+      patch "/admin/integrations/#{integration.id}", params: { ligne: 1, liste: 'inconnue', integration: { type_integration: 'expose' } }
+      expect(integration.reload.type_integration).to eq('expose')
+    end
+
+    it 'garde le type choisi sur la page de l’intégration' do
+      patch "/admin/integrations/#{integration.id}", params: { integration: { type_integration: 'expose' } }
       expect(integration.reload.type_integration).to eq('expose')
     end
 

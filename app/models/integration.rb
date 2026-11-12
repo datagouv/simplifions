@@ -6,6 +6,7 @@ class Integration < ApplicationRecord
   STATUT_EN_PRODUCTION = '✅ en production'.freeze
   STATUTS = ['💡 en prospection', '🚧 Intéressé si évolution', '⏳En attente de développement', '⚙️ en développement',
              '📦 en recette', STATUT_EN_PRODUCTION].freeze
+  TYPE_DE_LISTE = { 'fournies' => 'expose', 'integrees' => 'consomme' }.freeze
 
   belongs_to :integratrice, class_name: 'Solution'
   belongs_to :integree, class_name: 'Solution'
