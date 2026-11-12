@@ -5,3 +5,6 @@
 <%= turbo_stream.update "message-integrations" do %>
   <p class="fr-valid-text fr-mb-2w" tabindex="-1" autofocus><%= t("admin.supprime", nom: nom_de(@integration)) %></p>
 <% end %>
+<% if @liste %>
+  <%= render "onglets", solution: @integration.public_send(colonne_fixe_de_la_liste(@liste)) %>
+<% end %>

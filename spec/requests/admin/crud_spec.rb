@@ -1174,6 +1174,25 @@ RSpec.describe 'Administration' do
       expect(Integration.exists?(integration.id)).to be(false)
     end
 
+    it 'ne met à jour aucun onglet après une suppression sans onglet, depuis une page chargée avant leur mise à jour' do
+      delete "/admin/integrations/#{integration.id}", params: { ligne: 1 }, as: :turbo_stream
+
+      expect(Integration.exists?(integration.id)).to be(false)
+      expect(onglets_renvoyes).to be_empty
+    end
+
+    it 'met à jour les nombres des onglets de la solution après une suppression depuis l’un d’eux' do
+      delete "/admin/integrations/#{integration.id}", params: { ligne: 1, liste: 'integratrices' }, as: :turbo_stream
+
+      expect(onglets_renvoyes).to eq('onglet-api-fournies' => 'API fournies (0)', 'onglet-api-integrees' => 'API intégrées (0)', 'onglet-integratrices' => 'Solutions qui l’intègrent (0)')
+    end
+
+    it 'propose la suppression d’une ligne depuis son onglet' do
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      expect(response.parsed_body.at_css("#suppression_integration_#{integration.id} [name=liste]")['value']).to eq('integrees')
+    end
+
     it 'garde la redirection vers la liste quand on supprime depuis la page de l’intégration' do
       delete "/admin/integrations/#{integration.id}"
       expect(response).to redirect_to('/admin/integrations')
