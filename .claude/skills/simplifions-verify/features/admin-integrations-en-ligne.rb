@@ -29,6 +29,25 @@ def solutions_masquees(ctx)
   ctx[:integration_mixte] = Integration.create!(integratrice: ctx[:masquee], integree: Solution.visibles.categorie_api.order(:id).first, type_integration: 'consomme')
 end
 
+def libelles_des_onglets(page)
+  %w[api-fournies api-integrees integratrices].map { page.find("#onglet-#{it}").text }
+end
+
+def libelles_attendus(nombres, ajoutees)
+  [
+    "API fournies (#{nombres[:fournies]})", "API intégrées (#{nombres[:integrees] + ajoutees})",
+    "Solutions qui l’intègrent (#{nombres[:integratrices] + ajoutees})"
+  ]
+end
+
+def onglets_a_jour(page, ctx, ajoutees)
+  lus = libelles_des_onglets(page)
+  attendus = libelles_attendus(ctx[:nombres], ajoutees)
+  raise "onglets #{lus} au lieu de #{attendus}" unless lus == attendus
+
+  lus
+end
+
 def compter(solution)
   ActiveRecord::Base.uncached { [solution.integrations_comme_integratrice.count, solution.integrations_comme_integree.count] }
 end
@@ -115,8 +134,9 @@ def preuve_des_ajouts(page, ctx)
   vides = [%w[integrees integree], %w[integratrices integratrice]].map { |liste, cote| page.find("tr##{liste}_integration select[name='integration[#{cote}_id]']", visible: :all).value }
   types = [ctx[:integree_creee].type_integration, ctx[:integratrice_creee].type_integration]
   listes_de_type = %w[api-fournies api-integrees integratrices].map { page.all("#onglet-#{it}-panneau select[name='integration[type_integration]']", visible: :all).size }
+  onglets = onglets_a_jour(page, ctx, 1)
   Verify.evidence(DOSSIER, page, 'ajoutees', "en_base=#{compter(ctx[:solution])} avant=#{ctx[:avant]} lignes_vides=#{vides.inspect} types=#{types} " \
-                                             "listes_de_type_par_onglet=#{listes_de_type}")
+                                             "listes_de_type_par_onglet=#{listes_de_type} onglets=#{onglets}")
 end
 
 def tableaux_a_l_etroit(page, ctx, onglet)
@@ -176,6 +196,7 @@ def defaire(page, ctx)
   ctx[:focus] = [supprimer_depuis_la_ligne(page, ctx[:integree_creee], publiee)]
   Verify.onglet(page, 'Solutions qui l’intègrent')
   ctx[:focus] << supprimer_depuis_la_ligne(page, ctx[:integratrice_creee], publiee)
+  ctx[:onglets] = onglets_a_jour(page, ctx, 0)
   remettre_le_statut(page, ctx)
   etat_revenu(ctx)
 end
@@ -226,7 +247,7 @@ end
 def preuve(page, ctx)
   statut = ActiveRecord::Base.uncached { ctx[:integration].reload.statut }
   Verify.evidence(DOSSIER, page, 'defait', "url=#{page.current_path} en_base=#{compter(ctx[:solution])} avant=#{ctx[:avant]} " \
-                                           "statut=#{statut.inspect} focus=#{ctx[:focus]}")
+                                           "statut=#{statut.inspect} focus=#{ctx[:focus]} onglets=#{ctx[:onglets]}")
   Verify.logout(page)
 end
 
@@ -292,6 +313,7 @@ end
 Verify.drive(__FILE__) do |page|
   ctx = contexte
   ctx[:avant] = compter(ctx[:solution])
+  ctx[:nombres] = ctx[:solution].nombres_d_integrations
   Verify.login(page)
   Verify.check('Row') { modifier_le_statut(page, ctx) }
   Verify.check('Error') { erreur_elle_meme(page, ctx) }
