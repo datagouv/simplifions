@@ -249,6 +249,17 @@ RSpec.describe Grist::Import do
     expect(result.error).to include('Solutions')
   end
 
+  it "refuse de tourner sur un serveur, où il effacerait les fiches créées dans l'admin" do
+    allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('production'))
+    demarche = Demarche.create!(nom: "Créée dans l'admin")
+
+    expect(result).to be_a_failure
+    expect(result.error).to eq("Import Grist refusé hors d'un poste de développement : " \
+                               "il effacerait les fiches créées dans l'admin")
+    expect(Demarche.all).to contain_exactly(demarche)
+    expect(a_request(:get, /#{Regexp.escape(Grist::FetchTables::DOC_URL)}/o)).not_to have_been_made
+  end
+
   it 'refuses to prune a model whose rows were all quarantined this run' do
     result
     operateurs = JSON.parse(Rails.root.join('spec/fixtures/grist/Operateurs.json').read)
