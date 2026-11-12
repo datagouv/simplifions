@@ -8,6 +8,53 @@ RSpec.describe Solution do
     expect(ligne.errors.full_messages).to eq(['Slug ne doit contenir que des minuscules sans accent, des chiffres et des tirets'])
   end
 
+  describe 'slug à l’enregistrement' do
+    def creer(**attributs) = described_class.create!(categorie: 'logiciel_metier_cle_en_main', **attributs)
+
+    it 'tire le slug du nom d’une solution qui a sa page quand la rédactrice le laisse vide' do
+      expect(creer(nom: 'Aide publique', slug: '').slug).to eq('aide-publique')
+    end
+
+    it 'garde le slug écrit par la rédactrice' do
+      expect(creer(nom: 'Aide publique', slug: 'mon-slug').slug).to eq('mon-slug')
+    end
+
+    it 'donne un suffixe au slug déjà pris par une autre solution du même nom' do
+      creer(nom: 'Aide publique')
+
+      expect(creer(nom: 'Aide publique').slug).to eq('aide-publique-2')
+      expect(creer(nom: 'Aide publique').slug).to eq('aide-publique-3')
+    end
+
+    it 'refuse de vider le slug d’une solution visible, dont l’adresse est publiée' do
+      solution = creer(nom: 'Aide publique', visible: true)
+
+      expect(solution.update(slug: '')).to be(false)
+      expect(solution.errors.of_kind?(:slug, :blank)).to be(true)
+    end
+
+    it 'laisse le slug vide quand le nom n’a ni lettre ni chiffre' do
+      expect(creer(nom: '!!!').slug).to be_nil
+    end
+
+    it 'oublie le slug tiré du nom quand une solution cachée devient une API' do
+      solution = creer(nom: 'Aide publique')
+
+      expect(solution.update(categorie: 'api')).to be(true)
+      expect(solution.reload.slug).to be_nil
+    end
+
+    it 'refuse encore le slug tapé pour une API, et celui d’une solution visible qui devient une API' do
+      expect(described_class.new(nom: 'API QF', categorie: 'api', slug: 'api-qf')).not_to be_valid
+      expect(creer(nom: 'Aide publique', visible: true).update(categorie: 'api')).to be(false)
+    end
+
+    it 'laisse vide le slug d’une API ou d’un jeu de données, qui n’ont pas de page' do
+      expect(described_class.create!(nom: 'API Particulier', categorie: 'api').slug).to be_nil
+      expect(described_class.create!(nom: 'Base Adresse', categorie: 'base_de_donnees', visible: true).slug).to be_nil
+    end
+  end
+
   describe '#page_publique?' do
     it 'n’a une page publique que visible et avec un slug' do
       expect(described_class.new(visible: true, slug: 'acheteza')).to be_page_publique

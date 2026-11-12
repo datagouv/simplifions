@@ -10,6 +10,9 @@ class Solution < ApplicationRecord
   validates :grist_id, :slug, uniqueness: true, allow_nil: true
   validates :slug, format: { with: FORMAT_SLUG, message: :format_slug }, allow_nil: true
   validates :slug, presence: true, if: -> { visible? && fiche? }
+  before_validation :tirer_le_slug_du_nom, if: -> { slug.blank? && nom.present? && fiche? && !visible_in_database }
+  before_validation -> { self.slug = nil }, unless: -> { fiche? || slug_changed? || visible_in_database }
+  after_validation :oublier_le_slug_tire_si_refus
 
   normalizes :site_internet, :url_demande_acces, with: lambda { |url|
     url = url.strip
