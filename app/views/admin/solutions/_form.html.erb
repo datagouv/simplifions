@@ -78,14 +78,14 @@
         </ul>
       <% end %>
     <% end %>
-    <% nombres = listes.transform_values { |lignes| lignes.count(&:persisted?) } %>
+    <% libelles = libelles_des_onglets_d_integrations(en_base) %>
     <% demarches = en_base.demarches_recommandantes.order(:nom).load %>
     <div id="message-integrations" role="status"></div>
     <%= render "admin/onglets", objet: solution, onglets: {
           "fiche" => ["Fiche", fiche],
-          "api-fournies" => ["#{t("admin.integrations_de_la_solution.fournies")} (#{nombres[:fournies]})", render("integrations", liste: :fournies, lignes: listes[:fournies])],
-          "api-integrees" => ["#{t("admin.integrations_de_la_solution.integrees")} (#{nombres[:integrees]})", render("integrations", liste: :integrees, lignes: listes[:integrees])],
-          "integratrices" => ["#{t("admin.integrations_de_la_solution.integratrices")} (#{nombres[:integratrices] + integrations_de_ses_api.size})", integratrices],
+          "api-fournies" => [libelles["api-fournies"], render("integrations", liste: :fournies, lignes: listes[:fournies])],
+          "api-integrees" => [libelles["api-integrees"], render("integrations", liste: :integrees, lignes: listes[:integrees])],
+          "integratrices" => [libelles["integratrices"], integratrices],
           "recommandee-dans" => ["Recommandée dans (#{demarches.size})", render("admin/liens_vers_les_fiches", lignes: demarches, vide: "Aucune démarche ne la recommande.")],
           "historique" => ["Historique", render("admin/historiques/versions", ligne: en_base)]
         } %>
