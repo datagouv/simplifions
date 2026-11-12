@@ -36,11 +36,11 @@ def dernieres_modifications(page, nom)
   Verify.evidence(DOSSIER, page, 'dernieres-modifications', "lignes=#{cellules} liens=#{liens}")
 end
 
-def import(page)
-  boite = zone(page, 'Import depuis Grist et data.gouv')
-  boite.assert_selector '.fr-alert', text: 'L’import remplace les modifications faites ici par le contenu du Grist et supprime les fiches créées ici.'
-  boite.assert_button 'Rafraîchir depuis Grist et data.gouv'
-  Verify.evidence(DOSSIER, page, 'import', "avertissement=#{boite.find('.fr-alert').text}")
+def rafraichissement(page)
+  boite = zone(page, 'Rafraîchissement depuis data.gouv')
+  boite.assert_selector :button, 'Rafraîchir depuis data.gouv'
+  boite.assert_no_text 'Grist'
+  Verify.evidence(DOSSIER, page, 'rafraichissement', "encadre=#{boite.text.squish}")
 end
 
 Verify.drive(__FILE__) do |page|
@@ -53,7 +53,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Catalogue') { catalogue(page) }
   Verify.check('À reprendre') { a_reprendre(page, demarche) }
   Verify.check('Dernières modifications') { dernieres_modifications(page, nom) }
-  Verify.check('Import') { import(page) }
+  Verify.check('Rafraîchissement') { rafraichissement(page) }
   Verify.check('Proof') { Verify.logout(page) }
 ensure
   Demarche.where(nom:).destroy_all
