@@ -37,7 +37,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-saisies-controlees.md](admin-saisies-controlees.md) — the four admin fields that broke the public site: URL completed, statut and public/privé closed, slug format refused, empty slug tiré du nom.
 - [import-grist.md](import-grist.md) — import the catalogue from Grist into a throwaway database; every solution image attached, data.gouv chained.
 - [contenu-html-grist.md](contenu-html-grist.md) — the HTML typed in Grist markdown fields (DSFR callout, `<hr>`) shows on the public pages, never `raw HTML omitted`.
-- [rafraichissement-nuit.md](rafraichissement-nuit.md) — run the nightly refresh job on a throwaway database and see the 00:30 UTC recurring task registered in production only.
+- [rafraichissement-nuit.md](rafraichissement-nuit.md) — run the nightly data.gouv refresh job on a throwaway database, a démarche created in the admin kept, and see the 00:30 UTC recurring task registered in production only.
 - [rafraichissement-admin.md](rafraichissement-admin.md) — click the admin button that refreshes the catalogue on a throwaway database; the button stays disabled during the run, the dashboard ends on `terminé`.
 - [admin-dates.md](admin-dates.md) — create then edit a démarche in the administration: `cree_le` and `modifie_le` set by themselves, no date field in the form.
 - [admin-lecture-seule.md](admin-lecture-seule.md) — the Grist identifier and a solution's data.gouv fields show as text in the administration, never as fields.
@@ -69,7 +69,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 - [admin-integrations-de-l-api.md](admin-integrations-de-l-api.md) — an intégration only offers the démarches that recommend its API, and the reverse; an out-of-rule link is marked, refused by the server, dropped by the import.
 - [admin-brouillon.md](admin-brouillon.md) — on a published démarche or solution, Enregistrer keeps a draft off the public site; Publier puts it online, Abandonner le brouillon drops it.
 - [admin-brouillons-en-cours.md](admin-brouillons-en-cours.md) — the démarches and solutions lists mark their drafts `Brouillon` and filter them with `État` `En brouillon`.
-- [admin-accueil.md](admin-accueil.md) — `/admin` says `Bonjour`, lists the drafts to resume with what changed, the last modified fiches, the catalogue counts and the import with its warning.
+- [admin-accueil.md](admin-accueil.md) — `/admin` says `Bonjour`, lists the drafts to resume with what changed, the last modified fiches, the catalogue counts and the `Rafraîchir depuis data.gouv` button.
 - [admin-image-refusee.md](admin-image-refusee.md) — a solution image whose content is not png, jpg or webp is refused, on a hidden and on a published solution, with no file or draft kept.
 - [admin-onglets.md](admin-onglets.md) — solution edit page in tabs inside one form (a démarche has none); a save reopens its tab, an error opens `Fiche`.
 - [contact.md](contact.md) — reach /contact/<besoin> from a cas d'usage page: the page is preselected and cited in the subject and the e-mail, another démarche chosen without reload, copy works, the answer-only steps give no address.

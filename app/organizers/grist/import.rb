@@ -10,4 +10,8 @@ class Grist::Import < ApplicationOrganizer
     context.index = {}
     context.seen = Hash.new { |modeles, modele| modeles[modele] = [] }
   end
+
+  before do
+    context.fail!(error: "Import Grist refusé hors d'un poste de développement : il effacerait les fiches créées dans l'admin") unless Rails.env.local?
+  end
 end
