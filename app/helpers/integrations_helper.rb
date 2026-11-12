@@ -14,7 +14,7 @@ module IntegrationsHelper
   def colonne_fixe_de_la_liste(liste) = liste == :integratrices ? :integree : :integratrice
 
   def ligne_vide(liste, solution_id)
-    Integration.new("#{colonne_fixe_de_la_liste(liste)}_id": solution_id, type_integration: { fournies: 'expose', integrees: 'consomme' }[liste])
+    Integration.new("#{colonne_fixe_de_la_liste(liste)}_id": solution_id, type_integration: Integration::TYPE_DE_LISTE[liste.to_s])
   end
 
   def lignes_d_integrations(solution, liste)

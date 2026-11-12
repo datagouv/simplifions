@@ -1049,7 +1049,25 @@ RSpec.describe 'Administration' do
       expect(flux.pluck('target')).to eq(['message-integrations', "integration_#{integration.id}"])
       expect([choisi(ligne_renvoyee, :integree_id), choisi(ligne_renvoyee, :statut)]).to eq(['API QF (API)', Integration::STATUT_EN_PRODUCTION])
       expect(ligne_renvoyee.at_css('[name="integration[integratrice_id]"]')).to be_nil
-      expect(flux.first.text.squish).to eq('« Bouquet → API QF (API) (fournie) » enregistré.')
+      expect(flux.first.text.squish).to eq('« Bouquet → API QF (API) (intégrée) » enregistré.')
+      expect(integration.reload.type_integration).to eq('consomme')
+    end
+
+    { 'integrees' => %w[expose consomme], 'fournies' => %w[consomme expose] }.each do |liste, (envoye, attendu)|
+      it "donne à une ligne ajoutée dans « #{liste} » le type #{attendu}, même si la requête envoie #{envoye}" do
+        post '/admin/integrations', params: { ligne: 1, liste:, integration: { integratrice_id: bouquet.id, integree_id: Solution.create!(nom: 'API Impôt', categorie: 'api').id, type_integration: envoye } }
+
+        expect(Integration.last.type_integration).to eq(attendu)
+      end
+    end
+
+    it 'garde le type choisi sur une ligne d’une liste inconnue' do
+      patch "/admin/integrations/#{integration.id}", params: { ligne: 1, liste: 'inconnue', integration: { type_integration: 'expose' } }
+      expect(integration.reload.type_integration).to eq('expose')
+    end
+
+    it 'garde le type choisi sur la page de l’intégration' do
+      patch "/admin/integrations/#{integration.id}", params: { integration: { type_integration: 'expose' } }
       expect(integration.reload.type_integration).to eq('expose')
     end
 
@@ -1102,6 +1120,17 @@ RSpec.describe 'Administration' do
 
       expect(flux.pluck('target')).to eq(%w[message-integrations fournies_integration])
       expect(ligne_renvoyee.at_css('.fr-error-text').text).to eq('Choisissez une API ou un jeu de données')
+    end
+
+    it 'ne demande le type d’intégration que dans l’onglet Solutions qui l’intègrent' do
+      Integration.create!(integratrice: Solution.create!(nom: 'Mes Aides'), integree: bouquet, type_integration: 'expose')
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      par_onglet = %w[api-fournies api-integrees integratrices].index_with do |onglet|
+        panneau = response.parsed_body.at_css("#onglet-#{onglet}-panneau")
+        [panneau.css('select[name="integration[type_integration]"]').size, panneau.css('th')[1].text.squish]
+      end
+      expect(par_onglet).to eq('api-fournies' => [0, 'Statut'], 'api-integrees' => [0, 'Statut'], 'integratrices' => [2, 'Type d’intégration (obligatoire) et statut'])
     end
 
     it 'garde la redirection vers la fiche hors de la ligne' do
@@ -2960,8 +2989,8 @@ RSpec.describe 'Administration' do
       expect(onglets).to eq([['Fiche', 'button', 'true'], ['API fournies (0)', 'button', 'false'], ['API intégrées (0)', 'button', 'false'],
                              ['Solutions qui l’intègrent (2)', 'button', 'false'], ['Recommandée dans (1)', 'button', 'false'], ['Historique', 'button', 'false']])
       expect(panneau('Fiche').at_css('input[name="solution[nom]"]')).to be_present
-      expect(lignes_par_titre('API fournies')).to eq('API fournies' => [[nil, 'Fournie', nil]])
-      expect(lignes_par_titre('API intégrées')).to eq('API intégrées' => [[nil, 'Intégrée', nil]])
+      expect(lignes_par_titre('API fournies')).to eq('API fournies' => [[nil, nil]])
+      expect(lignes_par_titre('API intégrées')).to eq('API intégrées' => [[nil, nil]])
       expect(lignes_par_titre('Solutions qui l’intègrent')).to eq(
         'Solutions qui l’intègrent' => [['Bouquet (Brique technique)', 'Intégrée', nil], ['Bouquet (Brique technique)', 'Fournie', nil], [nil, nil, nil]]
       )
@@ -2970,8 +2999,8 @@ RSpec.describe 'Administration' do
 
       get "/admin/solutions/#{bouquet.id}/edit"
       expect(onglets.map(&:first)).to eq(['Fiche', 'API fournies (1)', 'API intégrées (1)', 'Solutions qui l’intègrent (1)', 'Recommandée dans (0)', 'Historique'])
-      expect(lignes_par_titre('API fournies')).to eq('API fournies' => [['API QF (API)', 'Fournie', nil], [nil, 'Fournie', nil]])
-      expect(lignes_par_titre('API intégrées')).to eq('API intégrées' => [['API QF (API)', 'Intégrée', nil], [nil, 'Intégrée', nil]])
+      expect(lignes_par_titre('API fournies')).to eq('API fournies' => [['API QF (API)', nil], [nil, nil]])
+      expect(lignes_par_titre('API intégrées')).to eq('API intégrées' => [['API QF (API)', nil], [nil, nil]])
       expect(lignes_par_titre('Solutions qui l’intègrent')).to eq('Solutions qui l’intègrent' => [[nil, nil, nil]])
       expect(panneau('Recommandée dans').text.squish).to eq('Aucune démarche ne la recommande.')
     end
@@ -3026,7 +3055,7 @@ RSpec.describe 'Administration' do
       ligne = panneau('API intégrées').at_css("tr#integration_#{integration.id}")
       formulaire = response.parsed_body.at_css("form#formulaire_integration_#{integration.id}")
 
-      expect(ligne.css('select').map { [it['name'], it['form']] }).to eq(%w[integree_id type_integration statut].map { ["integration[#{it}]", formulaire['id']] })
+      expect(ligne.css('select').map { [it['name'], it['form']] }).to eq(%w[integree_id statut].map { ["integration[#{it}]", formulaire['id']] })
       expect([formulaire['action'], formulaire.at_css('input[name=_method]')['value'], formulaire.at_css('input[name=liste]')['value'], formulaire.ancestors('form').size])
         .to eq(["/admin/integrations/#{integration.id}", 'patch', 'integrees', 0])
       expect(ligne.at_css("label[for=\"#{ligne.at_css('select')['id']}\"]").text).to eq('API ou jeu de données de l’intégration Bouquet → API QF (API) (intégrée) (obligatoire)')

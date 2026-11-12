@@ -61,6 +61,8 @@ class Admin::IntegrationsController < Admin::BaseController
   end
 
   def integration_params
-    params.expect(integration: [:integratrice_id, :integree_id, :type_integration, :statut, { demarche_ids: [] }])
+    params.expect(integration: [:integratrice_id, :integree_id, :type_integration, :statut, { demarche_ids: [] }]).merge(type_de_la_liste)
   end
+
+  def type_de_la_liste = { type_integration: Integration::TYPE_DE_LISTE[params[:liste]] }.compact
 end

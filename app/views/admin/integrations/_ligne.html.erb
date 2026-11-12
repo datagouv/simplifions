@@ -19,8 +19,10 @@
       </div>
     </td>
     <td>
-      <%= f.label :type_integration, "#{Integration.human_attribute_name(:type_integration)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
-      <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select fr-mb-1w", form: formulaire, aria: { required: true, **invalide } %>
+      <% if liste == :integratrices %>
+        <%= f.label :type_integration, "#{Integration.human_attribute_name(:type_integration)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
+        <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select fr-mb-1w", form: formulaire, aria: { required: true, **invalide } %>
+      <% end %>
       <%= f.label :statut, "Statut de #{nom}", class: "fr-sr-only" %>
       <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", form: formulaire, aria: invalide %>
     </td>
