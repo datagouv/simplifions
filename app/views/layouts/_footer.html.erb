@@ -1,6 +1,6 @@
 <footer class="fr-footer" role="contentinfo" id="footer" data-matomo-zone="Navigation › Pied de page" data-matomo-liens="Aller vers une page">
   <div class="fr-footer__top">
-    <div class="fr-container">
+    <div class="<%= conteneur_de_page %>">
       <div class="fr-grid-row fr-grid-row--start fr-grid-row--gutters">
         <% [["Démarches référencées à destination des :",
              [["Particuliers", demarches_path("target-users" => "particuliers")],
@@ -58,7 +58,7 @@
       </div>
     </div>
   </div>
-  <div class="fr-container">
+  <div class="<%= conteneur_de_page %>">
     <div class="fr-footer__body">
       <div class="fr-footer__brand footer-brand">
         <a href="/" title="Retour à l'accueil du site — Simplifions.data.gouv.fr">

@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Intégrations" %>
 
-<div class="fr-container fr-mb-6w">
+<div class="<%= conteneur_de_page %> fr-mb-6w">
   <h1>Intégrations</h1>
   <%= link_to "Ajouter", new_admin_integration_path, class: "fr-btn fr-mb-3w" %>
   <%= render layout: "recherche", locals: { total: @integrations.total_count } do %>

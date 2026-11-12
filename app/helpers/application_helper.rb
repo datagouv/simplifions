@@ -3,6 +3,8 @@ module ApplicationHelper
   EVENEMENTS = { 'create' => 'Création', 'update' => 'Modification', 'destroy' => 'Suppression', 'brouillon' => 'Modification en brouillon',
                  'publication' => 'Publication du brouillon', 'abandon' => 'Abandon du brouillon' }.freeze
 
+  def conteneur_de_page = controller_path.start_with?('admin/') ? 'fr-container fr-container-xl--fluid fr-px-md-3w' : 'fr-container'
+
   def liste_humaine(items)
     parts = []
     items.each_with_index do |item, index|

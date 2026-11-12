@@ -346,6 +346,39 @@ RSpec.describe 'Administration' do
     end
   end
 
+  describe 'largeur des pages' do
+    def hors_fenetres(noeuds) = noeuds.reject { it.ancestors('dialog').any? }
+    def conteneurs = hors_fenetres(response.parsed_body.css('.fr-skiplinks, header, main, footer').css('[class~=fr-container]'))
+    def a_largeur_du_site(zone = response.parsed_body) = hors_fenetres(zone.css('[class~=fr-container]:not(.fr-container-xl--fluid)'))
+    def fluides(zone = response.parsed_body) = hors_fenetres(zone.css('[class~=fr-container-xl--fluid]'))
+
+    it 'élargit les pages de l’admin, leur en-tête et leur pied de page à toute la fenêtre' do
+      sign_in admin
+      solution = Solution.create!(nom: 'API QF', categorie: 'api')
+      ['/admin', '/admin/organisations', "/admin/solutions/#{solution.id}/edit"].each do |chemin|
+        get chemin
+        expect(conteneurs).to be_present
+        expect(a_largeur_du_site).to be_empty, "#{chemin} : #{a_largeur_du_site.map { it['class'] }}"
+        expect(conteneurs.map { it['class'] }).to all(include('fr-container-xl--fluid fr-px-md-3w'))
+      end
+    end
+
+    it 'garde à la page prévisualisée la largeur du site public' do
+      sign_in admin
+      solution = Solution.create!(nom: 'API QF', categorie: 'api')
+      get "/admin/solutions/#{solution.id}/previsualisation"
+      expect(a_largeur_du_site(response.parsed_body.at_css('main'))).to be_present
+      expect(fluides(response.parsed_body.at_css('main'))).to be_empty
+    end
+
+    it 'garde au site public et à la page de connexion leur largeur' do
+      [root_path, new_admin_session_path].each do |chemin|
+        get chemin
+        expect(fluides).to be_empty, chemin
+      end
+    end
+  end
+
   describe 'GET /admin/connexion' do
     it 'présente le formulaire de connexion en DSFR' do
       get new_admin_session_path

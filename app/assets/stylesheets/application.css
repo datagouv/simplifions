@@ -105,6 +105,10 @@ form :target {
   scroll-margin-top: 8rem;
 }
 
+main > .fr-container-xl--fluid {
+  overflow: visible;
+}
+
 @media (min-width: 48em) {
   .admin-panneau {
     order: 1;
