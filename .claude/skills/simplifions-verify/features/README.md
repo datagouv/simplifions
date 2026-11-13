@@ -13,7 +13,7 @@ Index for `simplifions-verify`. One file per user-facing feature; each holds the
 
 - Capybara through `harness.rb`: `Verify.drive` opens the session, one `Verify.check` per labelled bullet; run twice (`VERIFY_BROWSER=chrome`, then `firefox`).
 - Accessible names and route paths only; `[role=status]` for the result count, `aria-expanded` for accordions.
-- Catalogue selects wait for `Appliquer les filtres`; wait on the URL (`assert_current_path(/q=…/, url: false)`) before reading a count.
+- Catalogue filters are tag buttons, applied on click (text `Libellé (N)`); the tri select waits for `Trier`; wait on the URL (`assert_current_path(/q=…/, url: false)`) before reading a count.
 
 ## Proof rules
 

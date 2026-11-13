@@ -27,7 +27,7 @@ Drive: `features/matomo-evenements.rb` (SKILL.md § Drive).
 Preconditions: more than 20 visible démarches, and a démarche whose direct access lists more than 4 endpoints (both in the Grist import). The browser containers reach stats.data.gouv.fr. The drive sets `MATOMO_SITE_ID=999999`, a dummy site that stats.data.gouv.fr refuses, and reads the events from the `matomo.php` requests the browser sent (`performance.getEntriesByType('resource')`, parameters `e_c`, `e_a`, `e_n`).
 
 - **Pagination.** On `/demarches`, click `Page 2`: the event `Changer de page` is named `2`, and the URL has `page=2`.
-- **Filtres.** Choose a filter value: `Choisir un filtre` carries it. Click `Appliquer les filtres`: its event is sent.
+- **Filtres.** Click the tag `Communes et groupements (N)`: `Choisir un filtre` is named `Démarches gérées par : Communes et groupements`. Click it again, now pressed: `Retirer un filtre`, same name.
 - **Défilement.** On `/`, a script scroll sends no `Défilement` event; the `End` key sends `Atteindre 100 %`.
 - **Ouverture.** On the démarche with endpoints, open `Par l'API directement`: `Ouvrir l'accès direct` is sent. Close it: nothing more.
 - **Affichage.** On a fresh page scrolled down, click `Affichage personnalisé`: `Rouvrir l'affichage personnalisé` is sent.

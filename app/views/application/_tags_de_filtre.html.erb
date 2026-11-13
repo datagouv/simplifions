@@ -1,0 +1,13 @@
+<ul class="fr-tags-group <%= local_assigns.fetch(:marge, "fr-mb-2w") %>" aria-labelledby="titre-<%= id %>">
+  <% tags.each do |tag_de_filtre| %>
+    <% texte = "#{tag_de_filtre[:libelle]} (#{tag_de_filtre[:compte]})" %>
+    <li>
+      <% if tag_de_filtre[:compte].zero? && !tag_de_filtre[:choisi] %>
+        <button type="button" class="fr-tag" disabled><%= texte %></button>
+      <% else %>
+        <%= f.button texte, name: tag_de_filtre[:nom], value: tag_de_filtre[:valeur],
+              class: "fr-tag", aria: { pressed: tag_de_filtre[:choisi] }, data: tag_de_filtre[:data] %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>

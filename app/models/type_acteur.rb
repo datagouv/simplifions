@@ -2,13 +2,13 @@ class TypeActeur < ApplicationRecord
   has_paper_trail
 
   FILTRES = {
-    'Communes et groupements de communes' => 'communes',
+    'Communes et groupements' => 'communes',
     'Départements' => 'departements',
     'Régions' => 'regions',
-    'Toutes les collectivités et territoires' => 'tout-collectivites-territoires',
     'État' => 'etat',
+    'Toutes les collectivités et territoires' => 'tout-collectivites-territoires',
     'Organismes de droit privé' => 'organismes-droit-prive',
-    "Acteurs de l'éducation et de l'enseignement" => 'acteurs-education-enseignement',
+    'Acteurs de l’éducation' => 'acteurs-education-enseignement',
     'Acteurs du transport' => 'acteurs-transport',
     'Tous les acteurs publics' => 'tout-acteurs-publics'
   }.freeze

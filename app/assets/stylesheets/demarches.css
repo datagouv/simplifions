@@ -466,6 +466,15 @@ body:has(.bouton-proposer-modification) {
   background-color: var(--background-contrast-grey);
 }
 
+.filtres-depliables > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.filtres-depliables > summary::-webkit-details-marker {
+  display: none;
+}
+
 .catalogue-vide {
   background-color: var(--background-alt-blue-france);
   color: var(--text-title-blue-france);

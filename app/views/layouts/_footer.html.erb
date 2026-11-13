@@ -7,8 +7,8 @@
               ["Entreprises", demarches_path("target-users" => "entreprises")],
               ["Associations", demarches_path("target-users" => "associations")]]],
             ["Démarches référencées gérées par les :",
-             TypeActeur::FILTRES.slice("Communes et groupements de communes", "Départements", "Régions", "État",
-                                       "Acteurs du transport", "Acteurs de l'éducation et de l'enseignement")
+             TypeActeur::FILTRES.slice("Communes et groupements", "Départements", "Régions", "État",
+                                       "Acteurs du transport", "Acteurs de l’éducation")
                                 .map { |libelle, slug| [libelle, demarches_path("fournisseurs-de-service" => slug)] }],
             ["3 guides pour débuter :",
              [["Guide de base des démarches en ligne pour les mairies", article_path("guide-base-petites-collectivites")],
@@ -17,7 +17,7 @@
             ["Découvrir les solutions raccordées aux données :",
              [["Sites de consultation en ligne", solutions_path("categorie-de-solution" => "portail-consultation")],
               ["Logiciel métier « clé en main »", solutions_path("categorie-de-solution" => "logiciel-metier")],
-              ["API, jeu de données ou brique logicielle", solutions_path("categorie-de-solution" => "brique-technique")]]],
+              ["API, données, brique logicielle", solutions_path("categorie-de-solution" => "brique-technique")]]],
             ["Comparer le nombre de données raccordées par solution :",
              [["Solutions ayant intégré l'API Entreprise", solution_path("bouquet-api-entreprise", anchor: "solutions-integratices")],
               ["Solutions ayant intégré l'API Particulier", solution_path("bouquet-api-particulier", anchor: "solutions-integratices")]]]].each do |categorie, liens| %>
