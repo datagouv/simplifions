@@ -336,3 +336,7 @@ body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="f
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border-default-grey);
 }
+
+.fr-link.fr-icon-arrow-down-s-line[aria-expanded="true"]::after {
+  transform: rotate(-180deg);
+}

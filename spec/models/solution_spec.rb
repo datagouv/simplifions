@@ -381,6 +381,8 @@ RSpec.describe Solution do
       expect(described_class.catalogue('fournisseurs-de-service' => 'tout-acteurs-publics')).to eq([bouquet])
       expect(described_class.catalogue('target-users' => 'entreprises', 'q' => 'donnees')).to eq([bouquet])
       expect(described_class.catalogue('q' => 'demarche')).to eq([eovia])
+      expect(described_class.catalogue('target-users' => 'associations,entreprises')).to eq([bouquet])
+      expect(described_class.catalogue('fournisseurs-de-service' => 'etat,communes')).to eq([bouquet])
     end
   end
 

@@ -18,7 +18,7 @@ end
 def recherche_matomo(page, mot_cle, etape, attendus)
   page.fill_in 'Rechercher', with: mot_cle
   page.click_button 'Rechercher'
-  page.assert_current_path(/q=#{CGI.escape(mot_cle)}&/, url: false)
+  page.assert_current_path(/q=#{CGI.escape(mot_cle)}(&|\z)/, url: false)
   mesure_matomo(page, etape, attendus)
 end
 
@@ -101,7 +101,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Back') { retour(page, /q=eaje/, '4-retour', 4) }
   Verify.check('Same search again') { recherche_non_comptee(page, 'eaje', '5-meme-recherche', 5) }
   Verify.check('Another search') { autre_recherche(page) }
-  Verify.check('Back to the older search') { retour(page, /q=eaje&/, '7-retour-recherche-precedente', 7) }
+  Verify.check('Back to the older search') { retour(page, /q=eaje(&|\z)/, '7-retour-recherche-precedente', 7) }
   Verify.check('One character') { recherche_non_comptee(page, 'e', '8-mot-cle-court', 8) }
   Verify.check('Outlink after navigation') { lien_sortant(page, '9-lien-sortant-apres-navigation', 9) }
   Verify.check('Download after navigation') { telechargement(page) }

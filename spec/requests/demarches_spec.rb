@@ -28,6 +28,7 @@ RSpec.describe 'Demarches' do
     end
 
     it 'range pour Matomo chaque geste du catalogue dans sa zone' do
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [TypeActeur.create!(nom: 'Départements', slugs: %w[departements])])
       get demarches_path
       page = Capybara.string(response.body)
       zone = ->(element) { element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone'] }
@@ -35,9 +36,8 @@ RSpec.describe 'Demarches' do
 
       expect(mesure.call(page.find('.catalogue-types a', text: 'Solutions')))
         .to eq(["Catalogue cas d'usages › Type", 'Changer de catalogue', 'Solutions'])
-      expect(mesure.call(page.find('select#target-users')))
-        .to eq(["Catalogue cas d'usages › Filtres", 'Choisir un filtre', 'Démarches à destination des'])
-      expect(page.find_button('Appliquer les filtres')['data-matomo-action']).to eq('Appliquer les filtres')
+      expect(mesure.call(page.find_button('Départements (1)')))
+        .to eq(["Catalogue cas d'usages › Filtres", 'Choisir un filtre', 'Démarches gérées par : Départements'])
       expect(mesure.call(page.find('select#sort'))).to eq(["Catalogue cas d'usages › Résultats", 'Trier les résultats', nil])
       carte = page.first('.demarche-card a')
       expect(mesure.call(carte)).to eq(["Catalogue cas d'usages › Résultats", "Ouvrir un cas d'usage", carte.text])
@@ -86,7 +86,102 @@ RSpec.describe 'Demarches' do
       expect(response.body).to include('À destination des <b>Communes</b> et <b>Départements</b>')
     end
 
-    it 'propose les facettes préremplies, appliquées par un bouton, et le passage aux solutions' do
+    it 'propose les usagers en tags sélectionnables comptés, à cumuler, qui ramènent sur les résultats' do
+      particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      entreprises = Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager')
+      Demarche.find_by!(slug: 'demarche-0').update!(vocabulaires: [particuliers])
+      Demarche.find_by!(slug: 'demarche-1').update!(vocabulaires: [entreprises])
+
+      get demarches_path('target-users' => 'particuliers', 'q' => 'Démarche')
+      page = Capybara.string(response.body)
+
+      groupe = page.find('ul.fr-tags-group', text: 'Entreprises')
+      expect(page.find("##{groupe['aria-labelledby']}").text).to eq('Démarches à destination des :')
+      choisi = groupe.find_button('Particuliers (1)')
+      expect([choisi['aria-pressed'], choisi[:name], choisi[:value]]).to eq(['true', 'target-users', ''])
+      ajout = groupe.find_button('Entreprises (1)')
+      expect([ajout['aria-pressed'], ajout[:value]]).to eq(%w[false particuliers,entreprises])
+      expect(page.find('form.catalogue input[type=hidden][name="target-users"]', visible: :all).value).to eq('particuliers')
+      expect(page).to have_no_button('Appliquer les filtres')
+      expect(page.find('form.catalogue')[:action]).to eq('/demarches#resultats')
+      expect(page.find('#resultats[tabindex="-1"][role=status]').text).to eq('1 résultat sur 21')
+    end
+
+    it 'applique le tag cliqué, envoyé après la sélection en cours, et garde les démarches de l’un ou l’autre' do
+      particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      entreprises = Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager')
+      Demarche.find_by!(slug: 'demarche-0').update!(vocabulaires: [particuliers])
+      Demarche.find_by!(slug: 'demarche-1').update!(vocabulaires: [entreprises])
+
+      get '/demarches?target-users=particuliers&target-users=particuliers%2Centreprises'
+
+      expect(Capybara.string(response.body).find('#resultats').text).to eq('2 résultats sur 21')
+    end
+
+    it 'montre d’abord communes, départements, régions et État, puis les autres acteurs à déplier' do
+      publics = TypeActeur.create!(nom: 'Préfectures', slugs: %w[etat tout-acteurs-publics])
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [publics])
+
+      get demarches_path('fournisseurs-de-service' => 'tout-acteurs-publics', 'q' => 'Démarche')
+      page = Capybara.string(response.body)
+
+      groupes = page.all('ul[aria-labelledby="titre-fournisseurs-de-service"]')
+      expect(groupes.first.all('button.fr-tag').map { it.text.sub(/ \(\d+\)\z/, '') })
+        .to eq(['Communes et groupements', 'Départements', 'Régions', 'État'])
+      autres = page.find('details[open]', text: 'Afficher les 5 autres')
+      expect(autres.find('summary').text).to eq('Afficher les 5 autres')
+      expect(autres.find('button[aria-pressed=true]').text).to eq('Tous les acteurs publics (1)')
+      expect(groupes.first.find_button('État (1)')[:value]).to eq('etat,tout-acteurs-publics')
+      expect(page).to have_no_select('Démarches gérées par')
+      expect(page).to have_no_button('Ajouter')
+      expect(page.find('#resultats').text).to eq('1 résultat sur 21')
+      expect(page.find('form.catalogue').find_button('Trier')[:type]).to eq('submit')
+    end
+
+    it 'range le type de simplification dans « Plus de filtres », ouvert seulement quand il est choisi' do
+      Vocabulaire.create!(nom: 'DLNUF', slug: 'dlnuf', categorie: 'type_simplification')
+      Vocabulaire.create!(nom: 'Brique', slug: 'brique-technique', categorie: 'solution')
+
+      get demarches_path
+      page = Capybara.string(response.body)
+      plus = page.find('details', text: 'Plus de filtres')
+      expect([plus.find('summary').text, plus[:open]]).to eq(['Plus de filtres', nil])
+      expect(plus).to have_button('Dites-le nous une fois (0)', visible: :hidden, disabled: true)
+      expect(page.all('p[id^=titre-]', visible: :all).map(&:text))
+        .to eq(['Démarches à destination des :', 'Démarches gérées par :', 'Solution recherchée :', 'Type de simplification des démarches :'])
+
+      get demarches_path('types-de-simplification' => 'dlnuf')
+      expect(Capybara.string(response.body).find('details[open]', text: 'Plus de filtres')).to have_css('button[aria-pressed=true]')
+    end
+
+    it 'garde le bouton Trier pour valider le tri, décrit au lecteur d’écran, que le script cache tant que le tri ne change pas' do
+      get demarches_path
+      page = Capybara.string(response.body)
+
+      tri = page.find_field('Trier par :')
+      expect(tri['data-action']).to eq('change->filtres-catalogue#comparerTri')
+      expect(page.find("##{tri['aria-describedby']}").text).to eq('Le tri s’applique avec le bouton Trier qui suit.')
+      expect(page.find('[data-filtres-catalogue-target=boutonTri]')).to have_button('Trier')
+    end
+
+    it 'grise les tags qui ne mènent à aucun résultat, sauf un tag choisi pour pouvoir le retirer' do
+      Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+
+      get demarches_path('target-users' => 'particuliers')
+      page = Capybara.string(response.body)
+
+      expect(page.find_button('Particuliers (0)')[:value]).to eq('')
+      expect(page.find_button('Communes et groupements (0)', disabled: true)[:type]).to eq('button')
+      expect(page.find('#resultats[tabindex="-1"]').text).to eq("Vous n'avez pas trouvé ce que vous cherchez ?")
+    end
+
+    it 'garde fermés les autres acteurs quand aucun d’eux n’est choisi' do
+      get demarches_path('fournisseurs-de-service' => 'communes')
+
+      expect(Capybara.string(response.body).find('details', text: 'Afficher les 5 autres')[:open]).to be_nil
+    end
+
+    it 'propose les facettes préremplies et le passage aux solutions' do
       communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       Vocabulaire.create!(nom: '💠💠 DLNUF', slug: 'dlnuf', categorie: 'type_simplification')
@@ -97,16 +192,15 @@ RSpec.describe 'Demarches' do
 
       get demarches_path('fournisseurs-de-service' => 'communes', 'sort' => '-created', 'q' => 'Démarche')
 
-      expect(response.body).to include('<option selected="selected" value="communes">Communes et groupements de communes</option>')
-      expect(response.body).to include('<option value="particuliers">Particuliers</option>')
-      expect(response.body).to include('<option value="dlnuf">Dites-le nous une fois</option>')
-      expect(response.body).to include('<option value="brique-technique">API, jeu de données ou brique logicielle</option>')
+      page = Capybara.string(response.body)
+      expect(page.find('button[aria-pressed=true]', text: 'Communes et groupements')[:value]).to eq('')
+      expect(page).to have_button('Particuliers (0)', disabled: true)
+      expect(page).to have_button('Dites-le nous une fois (0)', visible: :all, disabled: true)
+      expect(page).to have_button('API, données, brique logicielle (0)', disabled: true)
       expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
-      expect(response.body).to include('role="status">1 résultat<')
       expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
       expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
       expect(response.body).not_to include('form#submit')
-      expect(Capybara.string(response.body).find('form.catalogue').find_button('Appliquer les filtres')[:type]).to eq('submit')
     end
 
     it 'glisse le guide des mairies après la 3e démarche des communes, en première page seulement' do
@@ -135,6 +229,15 @@ RSpec.describe 'Demarches' do
       expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]')).to be_empty
     end
 
+    it 'garde le guide des mairies quand les communes sont choisies avec d’autres acteurs' do
+      communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
+      Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
+
+      get demarches_path('fournisseurs-de-service' => 'departements,communes')
+
+      expect(response.parsed_body.css('#list a[href="/articles/guide-base-petites-collectivites"]').size).to eq(1)
+    end
+
     it 'glisse le guide des mairies après la dernière démarche quand il y en a moins de 3' do
       communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes])
       Demarche.find_by!(slug: 'demarche-0').update!(types_acteurs: [communes])
@@ -150,7 +253,7 @@ RSpec.describe 'Demarches' do
       get demarches_path(page: 2, q: 'Démarche 20')
 
       expect(response.body.scan('class="demarche-card').size).to eq(1)
-      expect(response.body).to include('role="status">1 résultat<')
+      expect(response.body).to include('role="status">1 résultat sur 21<')
       expect(response.body).not_to include('fr-pagination')
     end
 
@@ -174,7 +277,8 @@ RSpec.describe 'Demarches' do
     it 'remplace la liste vide par l’invitation à réinitialiser les filtres, comme le site' do
       get demarches_path(q: 'zzzz', 'target-users' => 'particuliers')
 
-      expect(response.body).to include("Vous n'avez pas trouvé ce que vous cherchez ?")
+      expect(Capybara.string(response.body).find('#resultats[tabindex="-1"][data-filtres-catalogue-target=compteur]').text)
+        .to eq("Vous n'avez pas trouvé ce que vous cherchez ?")
       expect(response.body).to include('Essayez de réinitialiser les filtres pour élargir votre recherche.')
       expect(response.body).to include('href="/demarches"')
       expect(response.body).to include('Réinitialiser les filtres')
@@ -193,7 +297,7 @@ RSpec.describe 'Demarches' do
       get demarches_path('target-users' => 'simplifions-v2-target-users-particuliers',
         'fournisseurs-de-service' => 'simplifions-v2-fournisseurs-de-service-communes')
 
-      expect(response.body).to include('role="status">1 résultat<')
+      expect(response.body).to include('role="status">1 résultat sur 21<')
       expect(response.body).to include('href="/demarches/demarche-0"')
     end
 

@@ -54,18 +54,18 @@ RSpec.describe 'Pages' do
         'Particuliers' => '/demarches?target-users=particuliers',
         'Entreprises' => '/demarches?target-users=entreprises',
         'Associations' => '/demarches?target-users=associations',
-        'Communes et groupements de communes' => '/demarches?fournisseurs-de-service=communes',
+        'Communes et groupements' => '/demarches?fournisseurs-de-service=communes',
         'Départements' => '/demarches?fournisseurs-de-service=departements',
         'Régions' => '/demarches?fournisseurs-de-service=regions',
         'État' => '/demarches?fournisseurs-de-service=etat',
         'Acteurs du transport' => '/demarches?fournisseurs-de-service=acteurs-transport',
-        "Acteurs de l'éducation et de l'enseignement" => '/demarches?fournisseurs-de-service=acteurs-education-enseignement',
+        'Acteurs de l’éducation' => '/demarches?fournisseurs-de-service=acteurs-education-enseignement',
         'Guide de base des démarches en ligne pour les mairies' => '/articles/guide-base-petites-collectivites',
         "Qu'est-ce qu'une API ?" => '/articles/qu-est-ce-qu-une-api',
         "Prérequis et étapes d'intégration d'une API" => '/articles/prerequis-et-etapes-integration-api',
         'Sites de consultation en ligne' => '/solutions?categorie-de-solution=portail-consultation',
         "Logiciel métier «\u00a0clé en main\u00a0»" => '/solutions?categorie-de-solution=logiciel-metier',
-        'API, jeu de données ou brique logicielle' => '/solutions?categorie-de-solution=brique-technique',
+        'API, données, brique logicielle' => '/solutions?categorie-de-solution=brique-technique',
         "Solutions ayant intégré l'API Entreprise" => '/solutions/bouquet-api-entreprise#solutions-integratices',
         "Solutions ayant intégré l'API Particulier" => '/solutions/bouquet-api-particulier#solutions-integratices'
       )
@@ -128,7 +128,7 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('<option value="">particuliers, entreprises, associations</option>')
       expect(response.body).to include('<option value="particuliers">Particuliers</option>')
       expect(response.parsed_body.at_css('select#select-fournisseurs')['name']).to eq('fournisseurs-de-service')
-      expect(response.body).to include('<option value="communes">Communes et groupements de communes</option>')
+      expect(response.body).to include('<option value="communes">Communes et groupements</option>')
       expect(response.parsed_body.at_css('form.explorateur button[type=submit]').text.squish).to eq('Explorer les démarches référencées')
       expect(response.body).not_to include('href="#" class="fr-btn fr-btn--icon-right fr-icon-search-line"')
     end

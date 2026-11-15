@@ -4,37 +4,22 @@
 <div class="fr-container fr-py-8v" data-matomo-zone="Articles › Liste">
   <h1>Articles</h1>
 
-  <div class="fr-grid-row fr-grid-row--gutters">
+  <div class="fr-grid-row fr-grid-row--gutters" data-controller="filtres-catalogue">
     <aside class="fr-col-12 fr-col-lg-3">
-      <% Article::KEYWORD_CATEGORIES.each do |category, category_keywords| %>
-        <div class="fr-mb-3w">
-          <p class="fr-text--bold fr-mb-1w"><%= category %></p>
-          <ul class="fr-tags-group fr-mb-0">
-            <% category_keywords.each do |keyword| %>
-              <%
-                selected = @selected_keywords.include?(keyword)
-                toggled = selected ? @selected_keywords - [ keyword ] : @selected_keywords + [ keyword ]
-                count = Article.all.count { |a| a.matches?(@selected_keywords, except_category: category) && a.keywords.include?(keyword) }
-              %>
-              <li>
-                <% if count.zero? && !selected %>
-                  <button type="button" class="fr-tag" disabled><%= keyword %> (0)</button>
-                <% else %>
-                  <%= link_to articles_path(keywords: toggled.any? ? toggled.join(",") : nil),
-                        class: "fr-tag", "aria-pressed": selected.to_s,
-                        data: { matomo_action: selected ? "Retirer un mot-clé" : "Filtrer par mot-clé", matomo_nom: keyword } do %><%= keyword %> (<%= count %>)<% end %>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
-        </div>
+      <%= form_with url: articles_path(anchor: "resultats"), method: :get,
+            data: { action: "submit->filtres-catalogue#retenir formdata->filtres-catalogue#nettoyer turbo:before-fetch-request->filtres-catalogue#nettoyer" } do |f| %>
+        <% Article::KEYWORD_CATEGORIES.each do |category, category_keywords| %>
+          <%= render "facette_tags", f:, id: category.parameterize, label: "#{category} :",
+                tags: tags_des_articles(@selected_keywords, category, category_keywords) %>
+        <% end %>
       <% end %>
     </aside>
 
     <div class="fr-col-12 fr-col-lg-9">
       <% if @articles.empty? %>
-        <p class="fr-text--lg">Aucun article ne correspond aux tags sélectionnés.</p>
+        <%= render "resultats_vides", chemin: articles_path %>
       <% else %>
+        <%= render "compteur_de_resultats", total: @articles.size, tout: Article::ALL.size, mot: "article", classe: "fr-mb-2w" %>
         <div class="fr-grid-row fr-grid-row--gutters">
           <% @articles.each do |article| %>
             <div class="fr-col-12 fr-col-md-6 fr-col-lg-4">

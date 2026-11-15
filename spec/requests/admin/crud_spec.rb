@@ -2110,7 +2110,7 @@ RSpec.describe 'Administration' do
 
     it 'montre dans la liste les regroupements de chaque fournisseur' do
       TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
-      expect(colonnes('types_acteurs')).to eq([{ 'Nom' => 'Communes', 'Regroupements' => 'Communes et groupements de communes, Tous les acteurs publics' }])
+      expect(colonnes('types_acteurs')).to eq([{ 'Nom' => 'Communes', 'Regroupements' => 'Communes et groupements, Tous les acteurs publics' }])
     end
 
     it 'se consulte avant de se modifier' do
@@ -2121,7 +2121,7 @@ RSpec.describe 'Administration' do
       expect([page.at_css('h1').text, page.at_css('title').text]).to eq(['Communes', 'Communes — Fournisseur de services | Simplifions.data.gouv.fr'])
       expect(page.css('.fr-breadcrumb__list li').map { |etape| etape.text.strip }).to eq(['Administration', 'Fournisseurs de services', 'Communes'])
       expect(page.css('dt').map { |terme| [terme.text.strip, terme.next_element.text.squish] }).to eq([
-        ['Regroupements', 'Communes et groupements de communes, Tous les acteurs publics'], ['Ce que cela inclut', 'Mairies'],
+        ['Regroupements', 'Communes et groupements, Tous les acteurs publics'], ['Ce que cela inclut', 'Mairies'],
         ['Codes juridiques', '7210'], ['Démarches', 'Aides'], ['Solutions', 'Bouquet'], ['Identifiant Grist', 'Fournisseurs_de_services:1']
       ])
       expect(page.at_css('a.fr-btn:contains("Modifier")')['href']).to eq("/admin/types_acteurs/#{communes.id}/edit")

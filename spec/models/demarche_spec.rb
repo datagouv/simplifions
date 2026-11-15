@@ -120,6 +120,15 @@ RSpec.describe Demarche do
       expect(described_class.catalogue('target-users' => '')).to eq([cantine, marches])
     end
 
+    it 'garde, pour plusieurs valeurs d’une facette séparées par une virgule, les démarches de l’une ou l’autre' do
+      Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager').then { marches.vocabulaires << it }
+
+      expect(described_class.catalogue('target-users' => 'particuliers,entreprises')).to eq([cantine, marches])
+      expect(described_class.catalogue('fournisseurs-de-service' => 'communes,etat')).to eq([cantine, marches])
+      expect(described_class.catalogue('target-users' => 'particuliers,entreprises', 'fournisseurs-de-service' => 'etat'))
+        .to eq([marches])
+    end
+
     it 'cherche par sous-chaîne, sans accents, dans le nom, le chapo et les mots-clefs, tous les termes requis' do
       expect(described_class.catalogue('q' => 'entre')).to eq([marches])
       expect(described_class.catalogue('q' => 'demarche')).to eq([cantine])

@@ -43,10 +43,10 @@ end
 
 def filtres(page)
   vider(page)
-  page.first('select[data-matomo-action="Choisir un filtre"]').all('option')[1].select_option
-  attendre_evenement(page, 'Choisir un filtre')
-  page.click_button 'Appliquer les filtres'
-  attendre_evenement(page, 'Appliquer les filtres')
+  page.find(:button, text: /\ACommunes et groupements \(/).click
+  attendre_evenement(page, 'Choisir un filtre | Démarches gérées par : Communes et groupements')
+  page.find(:button, text: /\ACommunes et groupements \(/) { it['aria-pressed'] == 'true' }.click
+  attendre_evenement(page, 'Retirer un filtre | Démarches gérées par : Communes et groupements')
 end
 
 def defilement(page)
