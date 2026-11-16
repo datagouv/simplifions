@@ -1609,14 +1609,14 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
     end
 
-    it 'range les champs dans l’ordre des fiches Grist' do
+    it 'range les champs dans l’ordre des fiches Grist, la catégorie et l’identifiant data.gouv en tête' do
       {
         'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
                         'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires'],
-        'solutions' => ['Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
-                        'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
-                        'Catégorie de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
-                        'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
+        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
+                        'URL de demande d’accès', 'Organisations', 'Image principale', 'Légende de l’image', 'Description courte',
+                        'Type de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
+                        'Cette solution ne permet pas', 'API FranceConnectée'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Position', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
