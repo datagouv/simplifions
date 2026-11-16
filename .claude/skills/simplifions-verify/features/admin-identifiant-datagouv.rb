@@ -25,7 +25,7 @@ def creer(page, nom)
   raise "#{MELODI} déjà en base" if Solution.exists?(uid_datagouv: MELODI)
 
   nouvelle_api(page, nom, MELODI)
-  page.assert_text "« #{nom} (API) » enregistré."
+  page.assert_text "« #{nom} (API) » enregistré.", wait: 40
   api = ActiveRecord::Base.uncached { Solution.find_by!(nom:) }
   raise 'rien repris de data.gouv.fr' if api.datagouv_titre.blank?
 
@@ -36,7 +36,9 @@ end
 
 def saisir_inconnu(page, nom)
   page.fill_in 'Identifiant data.gouv', with: 'verif-identifiant-inconnu'
+  page.execute_script('document.body.dataset.pageAvantEnregistrement = ""')
   page.click_button 'Enregistrer'
+  page.assert_no_selector('body[data-page-avant-enregistrement]', wait: 40)
   page.assert_text "« #{nom} (API) » enregistré."
 end
 
@@ -61,6 +63,61 @@ def doublon(page, nom)
   Verify.evidence(DOSSIER, page, 'doublon', "refusé, fiches avec #{SIRENE} : #{doublons} (#{sirene.libelle_admin})")
 end
 
+def saisir_identifiant(page, uid)
+  page.fill_in 'Identifiant data.gouv', with: uid
+  page.find_field('Nom').click
+end
+
+def titre_apercu(page, ancien = nil)
+  page.assert_no_selector('#repris-datagouv li', exact_text: "Titre : #{ancien}", wait: 40) if ancien
+  page.assert_selector('#repris-datagouv li', text: /\ATitre : \S/, wait: 40)
+  page.find('#repris-datagouv li', text: 'Titre :').text.delete_prefix('Titre : ')
+end
+
+ATTENTE = 'Recherche de cet identifiant sur data.gouv.fr…'.freeze
+
+def noter_les_annonces(page)
+  page.execute_script(<<~JS)
+    window.annonces = []
+    new MutationObserver(() => document.querySelectorAll('[role=status]').forEach(({ textContent }) => {
+      if (textContent.trim()) window.annonces.push(textContent.trim())
+    })).observe(document.body, { childList: true, characterData: true, subtree: true })
+  JS
+end
+
+def attente_annoncee(page)
+  annonces = page.evaluate_script('window.annonces')
+  raise "annonces pendant l’aperçu : #{annonces.inspect}" unless annonces.include?(ATTENTE)
+
+  page.assert_no_selector('[role=status]', text: ATTENTE)
+end
+
+def apercu(page, nom)
+  page.visit('/admin/solutions/new')
+  page.select 'API', from: 'Catégorie de solution'
+  noter_les_annonces(page)
+  saisir_identifiant(page, MELODI)
+  melodi = titre_apercu(page)
+  attente_annoncee(page)
+  page.assert_selector(:field, 'Nom', with: melodi)
+  saisir_identifiant(page, SIRENE)
+  page.assert_selector(:field, 'Nom', with: titre_apercu(page, melodi))
+  page.fill_in 'Nom', with: "#{nom} tapé"
+  saisir_identifiant(page, MELODI)
+  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
+  page.assert_selector(:field, 'Nom', with: "#{nom} tapé")
+  page.select 'Logiciel métier', from: 'Catégorie de solution'
+  page.assert_no_selector('h2', text: 'Repris de data.gouv.fr')
+  page.select 'API', from: 'Catégorie de solution'
+  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
+  raise "#{MELODI} enregistré par l’aperçu" if ActiveRecord::Base.uncached { Solution.exists?(uid_datagouv: MELODI) }
+
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence(DOSSIER, page, 'apercu', "titre=#{melodi} nom gardé=#{page.find_field('Nom').value} rien enregistré")
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_on 'Annuler' }
+  page.assert_text 'Choisissez une solution dans la liste'
+end
+
 def quitter(page)
   page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_button 'Se déconnecter' }
   page.assert_selector :link, 'Se connecter'
@@ -69,6 +126,7 @@ end
 Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
   Verify.login(page)
+  Verify.check('Aperçu') { apercu(page, nom) }
   api = Verify.check('Creation') { creer(page, nom) }
   Verify.check('Inconnu') { identifiant_inconnu(page, api, nom) }
   Verify.check('Doublon') { doublon(page, nom) }
