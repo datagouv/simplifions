@@ -1,11 +1,12 @@
 # Importer le catalogue depuis Grist
 
-`bin/rails grist:import` copies the Grist document into the catalogue (démarches, solutions, intégrations, recommandations, solution images), then chains `datagouv:import`. Rows it cannot map go to quarantine instead of stopping the run. It runs at every deploy.
+`bin/rails grist:import` copies the Grist document into the catalogue (démarches, solutions, intégrations, recommandations, solution images), then chains `datagouv:import`. Rows it cannot map go to quarantine instead of stopping the run. It runs on a developer machine only (`make install`, `make import`): elsewhere than development and test it stops before any Grist request, since it would delete the fiches created in the admin. The server start no longer runs it, nor any other refresh.
 
 ## Sub-features
 
 - `import-grist-catalogue` `bin/rails grist:import` copies démarches, solutions, intégrations, recommandations, then chains `datagouv:import`.
 - `import-grist-images` every Grist solution image is attached, its filename valid UTF-8.
+- `import-grist-poste-seulement` outside development and test it fails with `Import Grist refusé hors d'un poste de développement : il effacerait les fiches créées dans l'admin`, nothing read nor written (spec only).
 - `import-grist-quarantaine` rows it cannot map go to quarantine with a report instead of stopping the run (spec only).
 
 ## How to get to it (user POV)
