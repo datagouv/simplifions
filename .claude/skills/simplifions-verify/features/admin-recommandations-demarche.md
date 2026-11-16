@@ -29,4 +29,3 @@ Preconditions: logged in; mutating then undone. Démarche: the visible one with 
 ## Gotchas
 
 - Read-backs after a mutation go through `ActiveRecord::Base.uncached` (runner query cache).
-- A run that fails midway leaves a recommandation with `ordre` 99 on that démarche: remove it before re-running, or the next run picks another solution.

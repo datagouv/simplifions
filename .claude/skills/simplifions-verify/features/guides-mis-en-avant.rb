@@ -16,15 +16,14 @@ def guides_de_l_accueil(page)
   page.assert_current_path('/articles')
 end
 
-def filtrer(page, chemin, option)
+def filtrer(page, chemin, tag)
   page.visit(chemin)
-  page.select option, from: 'Démarches gérées par :'
-  page.click_button 'Appliquer les filtres'
+  page.find(:button, text: /\A#{tag} \(/).click
   page.assert_current_path(/fournisseurs-de-service=/, url: false)
 end
 
 def guide_des_communes(page, chemin)
-  filtrer(page, chemin, 'Communes et groupements de communes')
+  filtrer(page, chemin, 'Communes et groupements')
   page.assert_text PHRASE
   liste = page.find(:xpath, "//li[.//p[contains(., '#{PHRASE}')]]/..")
   resultats = liste.all(:xpath, './li').size - 1

@@ -6,7 +6,7 @@ Visitors browse the list of cas d'usages (démarches), narrow it by full-text se
 
 - `catalogue-liste` shows the visible démarches, 20 per page, with a result count.
 - `catalogue-recherche` filters by the `Rechercher` text field.
-- `catalogue-facettes` filters by acteur, usager, catégorie de solution, type de simplification: each value is a DSFR selectable tag (a submit button, `aria-pressed`) showing its count, applied on click, disabled when it leads to no result unless chosen; several values of one facet add up (« ou »), facets combine (« et »). The focus then lands on the result count « N résultats sur M ». Acteurs show Communes et groupements, Départements, Régions, État, the 5 others in a native `details` « Afficher les 5 autres » (open when one of them is chosen, works without JavaScript; so does « Plus de filtres »). The tri keeps its select, applied by `Trier`, a button shown only while the chosen tri differs from the applied one.
+- `catalogue-facettes` filters by acteur, usager, catégorie de solution, type de simplification: each value is a DSFR selectable tag (a submit button, `aria-pressed`) showing its count, applied on click, disabled when it leads to no result unless chosen; several values of one facet add up (« ou »), facets combine (« et »). The focus then lands on the result count « N résultats sur M » (« sur M » only while a filter leaves some out). Acteurs show Communes et groupements, Départements, Régions, État, the 5 others in a native `details` « Afficher les 5 autres » (open when one of them is chosen, works without JavaScript; so does « Plus de filtres »). The tri keeps its select, applied by `Trier`, a button shown only while the chosen tri differs from the applied one.
 - `catalogue-type` switches between `Cas d'usages` and `Solutions` keeping the filters.
 - `catalogue-titre-filtres` the H2 « Filtrer les cas d'usages » / « Filtrer les solutions » is read by screen readers only (`fr-sr-only`): the search bar follows the H1 on screen.
 
@@ -47,4 +47,4 @@ Preconditions:
 - Read the count only after `assert_current_path(/q=march/, url: false)`: Chrome returns the old page otherwise.
 - Facet values are slugs (`entreprises`), labels are capitalised (`Entreprises`).
 - The footer repeats some facet labels as links (`Départements`): click the tag button (its text ends with its count).
-- A tag sends the current values of its facet (hidden field) then its own: the URL can hold the facet twice, the last one counts.
+- A tag sends the current values of its facet (hidden field) then its own. With JavaScript the form keeps the last value of each parameter and drops the empty ones; without it the URL can hold the facet twice, and the last one counts.

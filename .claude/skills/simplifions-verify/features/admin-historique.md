@@ -27,7 +27,7 @@ The drive creates `Vérif verify-map <browser>` as `Import Grist`, renames it fr
 - **Mobile.** 375 px: no horizontal scroll.
 - **Back.** `Retour à la fiche` → the edit page.
 - **Draft.** The drive publishes the démarche, renames it in the en-tête modal, `Enregistrer`, `Historique de la démarche`: first `h2` `Modification en brouillon par verif@simplifions.local le …`, first row `Nom | <published> | <draft>`.
-- **Publication.** `Publier`: first `h2` `Publication du brouillon par …`, same row.
+- **Publication.** `Publier ce changement` (box `À la publication, …`): first `h2` `Publication du brouillon par …`, same row.
 - **Abandon.** Rename back in the en-tête modal, `Enregistrer`, `Abandonner le brouillon` (confirm): first `h2` `Abandon du brouillon par …`, same row, then `Retour à la fiche`; base events end with `brouillon, publication, brouillon, abandon`.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-historique/`.
 

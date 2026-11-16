@@ -4,7 +4,7 @@
 
 ## Sub-features
 
-- `rafraichissement-nuit-job` `RafraichirCatalogueJob` replays the Grist import then the data.gouv titles.
+- `rafraichissement-nuit-job` `RafraichirCatalogueJob` replays the Grist import then the data.gouv fields (titre, organisation, logo, badges, accès).
 - `rafraichissement-nuit-planning` scheduled at 00:30 UTC in production only; other environments only clear finished jobs.
 - `rafraichissement-nuit-frontal` with `FRONTAL=false` no task is scheduled.
 - `rafraichissement-nuit-echec` a failed Grist import raises without calling data.gouv (spec only).

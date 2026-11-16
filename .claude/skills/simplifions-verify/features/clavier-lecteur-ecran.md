@@ -14,7 +14,7 @@ The first Tab of any page lands on a « Contenu » skip link that jumps to the m
 ## How to get to it (user POV)
 
 - Any page, Tab from the address bar; admin pages too (same layout).
-- `/demarches` or `/solutions`, left column, button under the last filter.
+- `/demarches` or `/solutions`, left column, the filter tags.
 - `/solutions/<slug>` of a solution integrated by several solutions, filters above the tabs.
 - `/demarches/<slug>`, a recommendation with several endpoints, field `Filtrer les endpoints`.
 - `/articles/qu-est-ce-qu-une-api`, field `Numéro de SIRET d'un établissement :`.
@@ -34,7 +34,7 @@ Preconditions: catalogue imported; a visible solution with several integrating s
 - **Endpoints.** Unfold the recommandation, `set('zzzz')` in its endpoints field: its `[role=status]` (hidden, read with `visible: :all`) goes from empty to `0 endpoint`.
 - **Sirene.** SIRET `123` then `Interroger l'API`: the status holds « …14 chiffres. »; replace `window.fetch` with a stub answering `nom_complet: 'Vérif Sirene'`, SIRET `35600000000048`: the status holds `Résultat : Vérif Sirene`.
 - **Emoji muets.** On the démarche page: the tab title has no icon; the H1, the breadcrumb's current item and « Proposer une modification du contenu » read, without their `aria-hidden` part, the name or the heading alone, and that part holds the icon or ✒️; the « Pour vraiment simplifier » box shows 💡 only inside `aria-hidden`. The catalogue card link reads the same.
-- **Proof.** `tmp/verify/clavier-lecteur-ecran/` screenshots per step and `read-back.txt`: focus text, hash, `dans_main=true`, value chosen with `meme_page=true`, URL after the button, counter before → after, both announcements, the read and seen texts of the icons.
+- **Proof.** `tmp/verify/clavier-lecteur-ecran/` screenshots per step and `read-back.txt`: focus text, hash, `dans_main=true`, the tag reached with `meme_page=true`, URL after Enter on it with the focus on the result count, counter before → after, both announcements, the read and seen texts of the icons.
 
 ## Gotchas
 
