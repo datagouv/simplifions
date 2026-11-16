@@ -1,12 +1,12 @@
 # Dates de création et de modification tenues seules
 
-The administration dates a démarche, a solution or a recommandation by itself: `cree_le` and `modifie_le` at creation, `modifie_le` at every save. The forms no longer offer the two fields. The Grist import and the data.gouv refresh keep the Grist dates (they do not go through the admin controllers).
+The administration dates a démarche or a solution by itself: `cree_le` and `modifie_le` at creation, `modifie_le` at every save; a recommandation has only `modifie_le`. The forms no longer offer the two fields. The Grist import and the data.gouv refresh keep the Grist dates (they do not go through the admin controllers).
 
 ## Sub-features
 
 - `dates-creation` no date field in the form; creating a démarche dates `cree_le` and `modifie_le`.
 - `dates-modification` each save moves `modifie_le` and keeps `cree_le`.
-- `dates-solutions-recommandations` the same on solutions and recommandations (spec only).
+- `dates-solutions-recommandations` the same on solutions; a recommandation only gets `modifie_le` (spec only).
 - `dates-import` the Grist import keeps the Grist dates (spec only).
 
 ## How to get to it (user POV)

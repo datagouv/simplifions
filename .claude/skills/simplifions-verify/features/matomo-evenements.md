@@ -5,7 +5,7 @@ The site sends Matomo an event for each visitor gesture, filed by page zone. A l
 ## Sub-features
 
 - pagination: changing page in a catalogue, the page number is the event name.
-- filtres: choosing a filter, then applying it.
+- filtres: clicking a filter tag, then clicking it again to remove it.
 - defilement: nothing without a gesture from the visitor, the 100 % step after one.
 - ouverture: an accordion counts when it opens, not when it closes.
 - affichage: reopening the custom display after scrolling.
@@ -45,5 +45,6 @@ Preconditions: more than 20 visible démarches, and a démarche whose direct acc
 - Never run with `MATOMO_SITE_ID=311`: the events would land in the real statistics.
 - The lecture steps take about four minutes: the 30 s are real.
 - Wait for an event rather than reading the list once: the section and scroll events arrive after a delay.
+- Wait for the URL of a tag click before clicking that tag again: in Firefox the second click, made while Turbo renders, sends no `Retirer un filtre`.
 - Between two steps the list is emptied by hand: a Turbo navigation keeps it, a `visit` restarts it.
 - A step that closes the session must not use `visit` before its check: a reload would hide a script left running after the login or the logout.

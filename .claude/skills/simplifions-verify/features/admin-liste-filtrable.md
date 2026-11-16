@@ -6,7 +6,7 @@ A list of 10 linked rows or fewer in an admin form shows every box on load, chec
 
 - `courte-liste` 10 choices or fewer: every box shown, no `Filtrer les <liste>` field, no live line; decided at page load from the number of choices.
 - `liste-filtrable` field `Filtrer les <legend in lowercase>`, hint `Sans filtre, seuls les éléments cochés sont affichés ; cliquer dans le champ ou y appuyer sur flèche bas affiche tous les choix.`; Tab into the field opens nothing; once opened, every box stays shown until the cross or until focus leaves the fieldset with an empty filter (a click on blank page, on a label or on blank space inside the list keeps it open, also inside a tab of a fiche); every word must match, accents and case ignored; a polite live line `2 cochés sur 474` (empty filter) or `1 résultat sur 474, 3 cochés`. The boxes stay native: Tab reaches the shown ones, Space checks.
-- The filter field has no `name`: typing in it does not count as a change (no `Quitter sans enregistrer ?`) and Enter in it does not submit the form.
+- The filter field has no `name`: typing in it does not count as a change (no `Quitter sans enregistrer les modifications ?`) and Enter in it does not submit the form.
 - `vocabulaires-groupes` nested fieldsets inside `Vocabulaires` (on a démarche, split between the en-tête and `Vocabulaires` modals), démarche and solution forms, a `?` beside every vocabulaire (see `admin-pages-liees.md`).
 
 ## How to get to it (user POV)

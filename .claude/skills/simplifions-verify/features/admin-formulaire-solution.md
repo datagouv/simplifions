@@ -21,7 +21,7 @@ Preconditions: logged in; the drive works on a solution it creates (`Vérif veri
 
 - **Privée.** Open the solution from the left list: badge under the H1.
 - **Image.** Preview alt = légende, hint lists the formats.
-- **Catégorie.** Select `API` → empty Slug and Description courte hidden and disabled, the filled légende and the image group (`Retirer l’image`) stay visible and enabled; `Annuler` asks « Quitter sans enregistrer » (#81 still sees the change); back to `Brique technique` → all visible.
+- **Catégorie.** Select `API` → empty Titre SEO and Description courte hidden and disabled; the Slug (tiré du nom at creation), the filled légende and the image group (`Retirer l’image`) stay visible and enabled; `Annuler` asks « Quitter sans enregistrer » (#81 still sees the change); back to `Brique technique` → all visible.
 - **One save.** Empty the légende, tick `Retirer l’image`, select `API` (the emptied légende stays visible: its rendered value was filled), `Enregistrer` → database: catégorie api, no légende, no image.
 - **Proof.** `tmp/verify/admin-formulaire-solution/`, including `etroit-320`.
 

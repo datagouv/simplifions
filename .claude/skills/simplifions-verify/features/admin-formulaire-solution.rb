@@ -34,8 +34,8 @@ end
 
 def api_choisie(page)
   page.select 'API', from: 'Catégorie de solution'
-  etat = etat_des_champs(page, %w[solution_slug solution_description_courte solution_legende_image solution_retirer_image])
-  attendu = { 'solution_slug' => [true, true], 'solution_description_courte' => [true, true],
+  etat = etat_des_champs(page, %w[solution_slug solution_titre_seo solution_description_courte solution_legende_image solution_retirer_image])
+  attendu = { 'solution_slug' => [false, false], 'solution_titre_seo' => [true, true], 'solution_description_courte' => [true, true],
               'solution_legende_image' => [false, false], 'solution_retirer_image' => [false, false] }
   raise "API : #{etat}" unless etat == attendu
 

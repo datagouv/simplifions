@@ -1,6 +1,6 @@
 # Guides mis en avant
 
-The site puts its guides (articles) where a visitor looks for help. The home page has a section `Nos guides pour simplifier vos démarches` with three article cards (the commune guide, « Anticiper le parcours usager », « Prérequis et étapes d'intégration ») and a `Voir tous les articles` button. In the catalogue of cas d'usages or of solutions, filtered on `Communes et groupements de communes`, the first page shows after its third result (after the last one when there are fewer) the sentence `Vous êtes une mairie ou une petite collectivité ? Nous vous recommandons cet article :` and a horizontal card of the commune guide; another filter or another page shows none. A shared article carries its image (`og:image`) and, for search engines, a schema.org `Article` with its publication and update dates.
+The site puts its guides (articles) where a visitor looks for help. The home page has a section `Nos guides pour simplifier vos démarches` with three article cards (the commune guide, « Anticiper le parcours usager », « Prérequis et étapes d'intégration ») and a `Voir tous les articles` button. In the catalogue of cas d'usages or of solutions, filtered on `Communes et groupements`, the first page shows after its third result (after the last one when there are fewer) the sentence `Vous êtes une mairie ou une petite collectivité ? Nous vous recommandons cet article :` and a horizontal card of the commune guide; another filter or another page shows none. A shared article carries its image (`og:image`) and, for search engines, a schema.org `Article` with its publication and update dates.
 
 ## Sub-features
 
@@ -11,7 +11,7 @@ The site puts its guides (articles) where a visitor looks for help. The home pag
 ## How to get to it (user POV)
 
 - `/`, section `Nos guides pour simplifier vos démarches`, below the home blocks.
-- `/demarches` or `/solutions` → `Démarches gérées par :` `Communes et groupements de communes` → `Appliquer les filtres`; or the footer link `Communes et groupements de communes` ([pied-de-page.md](pied-de-page.md)).
+- `/demarches` or `/solutions` → the tag `Communes et groupements (N)` under `Démarches gérées par :`; or the footer link `Communes et groupements` ([pied-de-page.md](pied-de-page.md)).
 - Any `/articles/<slug>`: the shared-link image and the search-engine data sit in `<head>`.
 - Anyone, no login.
 
@@ -25,9 +25,9 @@ Preconditions:
 - Read-only.
 
 - **Home.** Visit `/`: the H2 `Nos guides pour simplifier vos démarches`, three card links in the order of the home guides, each to `/articles/<slug>` with the article's `h1`; `Voir tous les articles` opens `/articles`.
-- **Communes, cas d'usages.** `/demarches`, select `Communes et groupements de communes` from `Démarches gérées par :`, `Appliquer les filtres`: the URL holds `fournisseurs-de-service=communes`, the sentence `Vous êtes une mairie ou une petite collectivité ?` shows, its list item follows as many result cards as `min(3, results on the page)`, its card links to `/articles/guide-base-petites-collectivites`.
+- **Communes, cas d'usages.** `/demarches`, click the tag `Communes et groupements (N)` under `Démarches gérées par :`: the URL holds `fournisseurs-de-service=communes`, the sentence `Vous êtes une mairie ou une petite collectivité ?` shows, its list item follows as many result cards as `min(3, results on the page)`, its card links to `/articles/guide-base-petites-collectivites`.
 - **Communes, solutions.** Same on `/solutions`.
-- **Other filter.** Same select with `Départements`: no `Vous êtes une mairie` sentence.
+- **Other filter.** Same with the tag `Départements (N)`: no `Vous êtes une mairie` sentence.
 - **Sharing.** `/articles/guide-base-petites-collectivites`: `meta[property="og:image"]` ends with the article's image file name; the `application/ld+json` script parses to `@type` `Article`, `headline` = the article's `h1`, `datePublished` and `dateModified` = its YAML `published_on` and `updated_on`.
 - **Proof.** Screenshots and `read-back.txt` (card titles, guide position against the result count, og:image, JSON-LD dates) in `tmp/verify/guides-mis-en-avant/`.
 

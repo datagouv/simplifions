@@ -45,6 +45,7 @@ def filtres(page)
   vider(page)
   page.find(:button, text: /\ACommunes et groupements \(/).click
   attendre_evenement(page, 'Choisir un filtre | Démarches gérées par : Communes et groupements')
+  page.assert_current_path(/fournisseurs-de-service=communes/, url: false)
   page.find(:button, text: /\ACommunes et groupements \(/) { it['aria-pressed'] == 'true' }.click
   attendre_evenement(page, 'Retirer un filtre | Démarches gérées par : Communes et groupements')
 end

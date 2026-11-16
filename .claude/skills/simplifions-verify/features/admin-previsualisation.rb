@@ -82,7 +82,7 @@ end
 def integration_cochee_en_brouillon(page, demarche, fixture)
   recommander(demarche, fixture)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  dialog = Verify.fenetre(page, 'Choisir les intégrations')
+  dialog = Verify.fenetre(page, "Ajouter une intégration à #{fixture[:bouquet].libelle_admin}")
   dialog.find("label[for=demarche_integration_ids_#{fixture[:integration].id}]").click
   dialog.click_button 'Enregistrer'
   page.assert_text "« #{demarche.nom} » : brouillon enregistré, non publié."
