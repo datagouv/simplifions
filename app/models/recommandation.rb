@@ -23,6 +23,7 @@ class Recommandation < ApplicationRecord
   scope :en_brouillon, -> { where.not(brouillon: nil).where(visible: true).or(a_publier_avec_la_demarche) }
   scope :par_niveau_et_ordre, -> { order(:niveau, :ordre, :id) }
   def libelle = "#{demarche&.nom} → #{solution&.libelle_admin}"
+  def solutions_proposables = Solution.recommandables(solution_id)
 
   def self.sur_la_fiche = includes(:solution).map(&:appliquer_brouillon).sort_by { [it.ordre ? 0 : 1, it.ordre.to_i, it.id] }
   def rangees = demarche.recommandations.sur_la_fiche.select { it.niveau == niveau }

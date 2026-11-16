@@ -835,6 +835,27 @@ RSpec.describe 'Administration' do
         .to eq(['Ajouter une solution recommandée', 'Solution recommandée', nil, aides.id.to_s])
     end
 
+    it 'ne propose à recommander que des API, des jeux de données et des solutions de type API' do
+      Solution.create!(nom: 'API QF', categorie: 'api')
+      Solution.create!(nom: 'Base Sirene', categorie: 'base_de_donnees')
+      Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle', types_solution: ['Portail agent', 'API'])
+      Solution.create!(nom: 'Brique Formulaire', categorie: 'brique_logicielle', types_solution: ['Formulaire en ligne'])
+      Solution.create!(nom: 'Logiciel Aides', categorie: 'logiciel_metier_cle_en_main')
+      fiche
+
+      expect(page.at_css('dialog#fenetre-new_recommandation select[name="recommandation[solution_id]"]').css('option').map(&:text).compact_blank)
+        .to eq(['API QF (API)', 'Base Sirene (Jeu de données)', 'Bouquet API Entreprise (Brique technique)'])
+    end
+
+    it 'garde à la modification la solution déjà recommandée, même hors des API et jeux de données' do
+      logiciel = Solution.create!(nom: 'Logiciel Aides', categorie: 'logiciel_metier_cle_en_main', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+      recommandation = Recommandation.create!(demarche: aides, solution: logiciel, niveau: :niveau_2)
+      fiche
+
+      expect(choisi(fenetre(page, recommandation), :solution_id)).to eq('Logiciel Aides (Logiciel métier)')
+      expect(page.at_css('dialog#fenetre-new_recommandation').css('option').map(&:text)).not_to include('Logiciel Aides (Logiciel métier)')
+    end
+
     it 'enregistre la fenêtre sur place : la carte à jour, en brouillon tant que la démarche publiée n’est pas publiée à nouveau' do
       recommandation = Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, ordre: 1, visible: true)
       patch "/admin/recommandations/#{recommandation.id}", params: { ligne: 1, recommandation: { ordre: '3', description: 'Aide du mois' } }
