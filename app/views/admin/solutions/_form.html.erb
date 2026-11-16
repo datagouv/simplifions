@@ -8,7 +8,11 @@
     <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
           data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
     <%= f.dsfr_text_field :uid_datagouv %>
-    <%= render "repris_datagouv", solution:, a_recharger: solution.uid_datagouv.present? && solution.uid_datagouv_changed? %>
+    <%= tag.div data: { controller: "datagouv", action: "turbo:before-fetch-request->datagouv#attendre turbo:before-fetch-response->datagouv#finirLAttente turbo:fetch-request-error->datagouv#finirLAttente turbo:frame-load->datagouv#remplirLeNom",
+          datagouv_url_value: apercu_datagouv_admin_solutions_path, datagouv_categories_value: Solution::HORS_FICHES, datagouv_attente_value: "Recherche de cet identifiant sur data.gouv.fr…" } do %>
+      <p class="fr-hint-text fr-mb-3w" role="status" data-datagouv-target="attente"></p>
+      <%= render "repris_datagouv", solution:, a_recharger: solution.uid_datagouv.present? && solution.uid_datagouv_changed? %>
+    <% end %>
     <%= f.dsfr_text_field :nom %>
     <%= f.dsfr_text_field :titre_seo, **champ_de_fiche(f, :titre_seo) %>
     <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>
