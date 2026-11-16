@@ -1,6 +1,7 @@
-<%= turbo_frame_tag "repris-datagouv", src: (apercu_datagouv_admin_solutions_path(uid: solution.uid_datagouv, categorie: solution.categorie) if a_recharger) do %>
+<%= turbo_frame_tag "repris-datagouv", src: (apercu_datagouv_admin_solutions_path(uid: solution.uid_datagouv, categorie: solution.categorie) if a_recharger),
+      aria: { live: "polite" }, data: { controller: "datagouv", action: "turbo:frame-load->datagouv#remplirLeNom", datagouv_url_value: apercu_datagouv_admin_solutions_path, datagouv_categories_value: Solution::HORS_FICHES } do %>
   <% if solution.uid_datagouv.present? && !a_recharger %>
-    <div class="fr-mb-3w">
+    <div class="fr-mb-3w" data-titre-datagouv="<%= solution.datagouv_titre %>">
       <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
       <% if solution.datagouv_titre.blank? %>
         <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-1w">
