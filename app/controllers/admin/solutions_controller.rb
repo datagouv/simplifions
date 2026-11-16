@@ -32,6 +32,13 @@ class Admin::SolutionsController < Admin::BaseController
     end
   end
 
+  def apercu_datagouv
+    apercu = Solution.new(uid_datagouv: params[:uid], categorie: params.fetch(:categorie, nil).presence_in(Solution.categories.keys))
+    reprendre_sans_erreur(apercu) if apercu.uid_datagouv.present?
+    request.session_options[:skip] = true
+    render partial: 'repris_datagouv', locals: { solution: apercu, a_recharger: false }
+  end
+
   def destroy
     @solution.destroy!
     redirect_to admin_solutions_path, notice: t('admin.supprime', nom: nom_de(@solution)), status: :see_other
@@ -42,6 +49,12 @@ class Admin::SolutionsController < Admin::BaseController
   def charger_la_liste
     @solutions = liste(Solution).par_libelle_admin
     @en_brouillon = Solution.en_brouillon.ids.to_set
+  end
+
+  def reprendre_sans_erreur(apercu)
+    apercu.reprendre_datagouv
+  rescue StandardError
+    nil
   end
 
   def set_solution

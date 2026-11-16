@@ -1609,14 +1609,14 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
     end
 
-    it 'range les champs dans l’ordre des fiches Grist' do
+    it 'range les champs dans l’ordre des fiches Grist, la catégorie et l’identifiant data.gouv en tête' do
       {
         'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
                         'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires'],
-        'solutions' => ['Nom (obligatoire)', 'Slug', 'Site internet', 'URL de demande d’accès', 'Organisations',
-                        'Image principale', 'Légende de l’image', 'Description courte', 'Type de solution',
-                        'Catégorie de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
-                        'Cette solution ne permet pas', 'Identifiant data.gouv', 'API FranceConnectée'],
+        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
+                        'URL de demande d’accès', 'Organisations', 'Image principale', 'Légende de l’image', 'Description courte',
+                        'Type de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
+                        'Cette solution ne permet pas', 'API FranceConnectée'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Position', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
@@ -1844,6 +1844,84 @@ RSpec.describe 'Administration' do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include('déjà celui de « API Données du répertoire Sirene (API) »')
       expect(api.reload.brouillon).to be_nil
+    end
+  end
+
+  describe 'aperçu de data.gouv.fr avant l’enregistrement' do
+    let(:melodi) { 'https://www.data.gouv.fr/api/1/dataservices/6661e09c7230a8fc3b1ec229/' }
+    let(:rien_repris) { 'Rien n’a été repris de data.gouv.fr pour cet identifiant' }
+
+    def apercu(uid, categorie = 'api')
+      get '/admin/solutions/apercu_datagouv', params: { uid:, categorie: }
+      response.parsed_body.at_css('turbo-frame#repris-datagouv').text.squish
+    end
+
+    before do
+      sign_in admin
+      get '/admin/solutions/new'
+      stub_request(:get, melodi).to_return(status: 200, headers: { 'Content-Type' => 'application/json' },
+        body: { title: 'API Melodi', organization: { name: 'Insee' } }.to_json)
+    end
+
+    it 'montre ce que data.gouv.fr donne, sans rien enregistrer' do
+      bloc = apercu('6661e09c7230a8fc3b1ec229')
+      expect(bloc).to include('Repris de data.gouv.fr', 'Titre : API Melodi', 'Organisation : Insee')
+      expect(bloc).not_to include(rien_repris)
+      expect(Solution.count).to eq(0)
+    end
+
+    it 'cherche un jeu de données parmi les datasets de data.gouv.fr' do
+      stub_request(:get, 'https://www.data.gouv.fr/api/2/datasets/sirene/').to_return(status: 200, body: { title: 'Base Sirene' }.to_json)
+      expect(apercu('sirene', 'base_de_donnees')).to include('Titre : Base Sirene')
+    end
+
+    it 'dit que data.gouv.fr ne connaît pas l’identifiant ou n’a pas répondu, sans promettre l’essai de la nuit' do
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/inconnu/').to_return(status: 404)
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/sans-reponse/').to_timeout
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/hors-reseau/').to_raise(SocketError)
+      stub_request(:get, 'https://www.data.gouv.fr/api/1/dataservices/illisible/').to_return(status: 200, body: '<html>')
+      %w[inconnu sans-reponse hors-reseau illisible].each do |uid|
+        bloc = apercu(uid)
+        expect(bloc).to include('Repris de data.gouv.fr', 'data.gouv.fr ne connaît pas cet identifiant ou n’a pas répondu.')
+        expect(bloc).not_to include(rien_repris, 'Nouvel essai chaque nuit')
+      end
+    end
+
+    it 'reste vide sans identifiant' do
+      expect(apercu('')).to be_empty
+      expect(WebMock).not_to have_requested(:get, /data\.gouv\.fr/)
+    end
+
+    it 'exige la connexion' do
+      sign_out admin
+      get '/admin/solutions/apercu_datagouv', params: { uid: '6661e09c7230a8fc3b1ec229', categorie: 'api' }
+      expect(response).to redirect_to(new_admin_session_path)
+      expect(WebMock).not_to have_requested(:get, melodi)
+    end
+
+    it 'garde le message d’enregistrement quand l’aperçu répond juste après l’enregistrement' do
+      session_avant = cookies['_simplifions_session']
+      post '/admin/solutions', params: { solution: { nom: 'API Melodi', categorie: 'api', uid_datagouv: '6661e09c7230a8fc3b1ec229' } }
+      fiche = response.location
+      get '/admin/solutions/apercu_datagouv', params: { uid: '6661e09c7230a8fc3b1ec229', categorie: 'api' },
+        headers: { 'Cookie' => "_simplifions_session=#{CGI.escape(session_avant)}" }
+      get fiche
+      expect(response.body).to include('« API Melodi (API) » enregistré.')
+    end
+
+    it 'recharge l’aperçu quand l’enregistrement d’un identifiant saisi est refusé' do
+      post '/admin/solutions', params: { solution: { nom: '', categorie: 'api', uid_datagouv: '6661e09c7230a8fc3b1ec229' } }
+      cadre = response.parsed_body.at_css('turbo-frame#repris-datagouv')
+      expect(cadre['src']).to eq('/admin/solutions/apercu_datagouv?categorie=api&uid=6661e09c7230a8fc3b1ec229')
+      expect(cadre.text).not_to include(rien_repris)
+    end
+
+    it 'montre d’abord le bloc enregistré d’une fiche qui a déjà son identifiant' do
+      api = Solution.create!(nom: 'API Melodi', categorie: 'api', uid_datagouv: '6661e09c7230a8fc3b1ec229', datagouv_titre: 'Titre enregistré')
+      get "/admin/solutions/#{api.id}/edit"
+      cadre = response.parsed_body.at_css('turbo-frame#repris-datagouv')
+      expect(cadre['src']).to be_nil
+      expect(cadre.text).to include('Titre : Titre enregistré')
     end
   end
 
