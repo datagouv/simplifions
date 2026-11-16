@@ -8,24 +8,7 @@
     <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
           data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
     <%= f.dsfr_text_field :uid_datagouv %>
-    <% if solution.uid_datagouv_in_database.present? %>
-      <div class="fr-mb-3w">
-        <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
-        <% if solution.datagouv_titre.blank? %>
-          <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-1w">
-            <p>Rien n’a été repris de data.gouv.fr pour cet identifiant : data.gouv.fr ne le connaît pas ou n’a pas répondu. Nouvel essai chaque nuit.</p>
-          </div>
-        <% end %>
-        <ul>
-          <li>Titre : <%= solution.datagouv_titre %></li>
-          <li>Organisation : <%= solution.datagouv_organisation %></li>
-          <li>Logo : <%= solution.datagouv_logo %></li>
-          <li>Accès : <%= solution.datagouv_acces %></li>
-          <li>Accès des acteurs publics : <%= solution.datagouv_acces_acteurs_publics %></li>
-          <li>Badges de l’organisation : <%= solution.datagouv_organisation_badges.join(", ") %></li>
-        </ul>
-      </div>
-    <% end %>
+    <%= render "repris_datagouv", solution:, a_recharger: solution.uid_datagouv.present? && solution.uid_datagouv_changed? %>
     <%= f.dsfr_text_field :nom %>
     <%= f.dsfr_text_field :titre_seo, **champ_de_fiche(f, :titre_seo) %>
     <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>

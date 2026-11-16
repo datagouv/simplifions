@@ -138,15 +138,19 @@ class Solution < ApplicationRecord
 
   def rafraichir_datagouv!
     PaperTrail.request(whodunnit: 'data.gouv') do
-      response = fiche_datagouv
-      update!(datagouv_vides) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
-      return "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
-
-      update!(attributs_datagouv(JSON.parse(response.body)))
-      nil
+      response = reprendre_datagouv
+      save! if changed?
+      "#{uid_datagouv} — HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
     end
   rescue StandardError => e
     "#{uid_datagouv} — #{e.class} — #{e.message}"
+  end
+
+  def reprendre_datagouv
+    response = fiche_datagouv
+    assign_attributes(datagouv_vides) if response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPGone)
+    assign_attributes(attributs_datagouv(JSON.parse(response.body))) if response.is_a?(Net::HTTPSuccess)
+    response
   end
 
   def couvertures

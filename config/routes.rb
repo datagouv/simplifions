@@ -14,6 +14,9 @@ Rails.application.routes.draw do
     resources :demarches, :solutions, only: [] do
       get :previsualisation, on: :member
     end
+    resources :solutions, only: [] do
+      get :apercu_datagouv, on: :collection
+    end
     resources :integrations, :organisations, except: :show
     resources :integrations, :recommandations, only: [] do
       patch :position, on: :member
