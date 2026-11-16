@@ -8,7 +8,7 @@
     <% titre = carte ? "Intégrations : #{carte.solution.libelle_admin}" : "Intégrations rattachées à aucune solution recommandée" %>
     <%= render layout: "admin/dialogue", locals: { id: fenetre, titre:, ouverte: f.object.errors.attribute_names.include?(:integration_ids) } do %>
       <% if (collection = proposees.fetch(carte, [])).any? %>
-        <%= render "admin/cases_filtrables", f:, attribut: :integration_ids, collection:, legende: "Intégrations", filtre: "#{fenetre}-filtre", champ_vide: false,
+        <%= render "admin/cases_filtrables", f:, attribut: :integration_ids, collection:, legende: "Intégrations", filtre: "#{fenetre}-filtre", champ_vide: false, mots_cles: :noms_des_editeurs,
               libelle: ->(integration) { libelle_hors_regle(integration.libelle, autorisees.include?(integration.id)) } %>
       <% else %>
         <p class="fr-hint-text">Aucune intégration n’existe encore pour cette solution.</p>

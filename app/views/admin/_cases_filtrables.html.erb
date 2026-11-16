@@ -25,7 +25,8 @@
     <% end %>
     <div class="fr-grid-row">
       <%= f.collection_check_boxes attribut, collection, :id, libelle, include_hidden: local_assigns.fetch(:champ_vide, true) do |b| %>
-        <%= tag.div class: class_names("fr-fieldset__element", "fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-grid-row fr-grid-row--middle case-avec-aide" => local_assigns[:referentiel]), data: ({ liste_filtrable_target: "element" } unless courte) do %>
+        <% mots_cles = b.object.public_send(local_assigns[:mots_cles]).join(" ") if local_assigns[:mots_cles] %>
+        <%= tag.div class: class_names("fr-fieldset__element", "fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-grid-row fr-grid-row--middle case-avec-aide" => local_assigns[:referentiel]), data: ({ liste_filtrable_target: "element", liste_filtrable_mots_cles: mots_cles } unless courte) do %>
           <div class="fr-checkbox-group">
             <%= b.check_box data: ({ action: "change->liste-filtrable#compter" } unless courte) %>
             <%= b.label(class: "fr-label") %>

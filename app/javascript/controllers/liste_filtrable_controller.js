@@ -33,7 +33,7 @@ export default class extends Controller {
   filtrer() {
     const mots = sansAccent(this.filtreTarget.value).split(/\s+/).filter(Boolean)
     this.elementTargets.forEach((element) => {
-      const texte = sansAccent(element.querySelector("label").textContent)
+      const texte = sansAccent(`${element.querySelector("label").textContent} ${element.dataset.listeFiltrableMotsCles ?? ""}`)
       const visible = mots.length ? mots.every((mot) => texte.includes(mot)) : this.ouvert || element.querySelector("input").checked
       element.classList.toggle("fr-hidden", !visible)
     })

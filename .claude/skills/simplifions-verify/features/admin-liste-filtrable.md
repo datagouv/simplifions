@@ -1,6 +1,6 @@
 # Choisir les éléments liés dans une liste filtrable
 
-A list of 10 linked rows or fewer in an admin form shows every box on load, checked or not, with no filter field. Every longer list (intégrations, démarches, solutions, organisations, fournisseurs de services) shows only its checked boxes on load, with a `Filtrer les <liste>` field: a click in it or ArrowDown shows every box in a grey frame under the field, typing shows the matching ones, the `Effacer le filtre des <liste>` cross or leaving the list with an empty filter brings back the checked boxes only. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
+A list of 10 linked rows or fewer in an admin form shows every box on load, checked or not, with no filter field. Every longer list (intégrations, démarches, solutions, organisations, fournisseurs de services) shows only its checked boxes on load, with a `Filtrer les <liste>` field: a click in it or ArrowDown shows every box in a grey frame under the field, typing shows the matching ones (an intégration also by the name of its intégratrice's organisations, not shown), the `Effacer le filtre des <liste>` cross or leaving the list with an empty filter brings back the checked boxes only. Vocabulaires stay plain checkboxes, grouped under `Usager`, `Type de simplification`, `Catégorie de solution`, in Grist order.
 
 ## Sub-features
 
@@ -26,6 +26,7 @@ Preconditions: logged in. The drive creates `Vérif verify-map <browser>`, recom
 - **Click shows all, framed.** Click the field: every box shown, live line unchanged, `resultats` background no longer transparent.
 - **Cross.** Type, click `Effacer le filtre des intégrations`: field empty, 2 boxes, no frame, focus back in the field.
 - **ArrowDown, then leave.** ArrowDown shows all; Shift+Tab out of the fieldset: 2 boxes, no frame.
+- **Editor or software.** Fill `Filtrer les intégrations` with the name of an organisation of an intégration's intégratrice, a name its libelle does not hold: that box shown, its label unchanged; then with the intégratrice's name: still shown. The cross clears the filter.
 - **Filter and keyboard.** Fill `Filtrer les intégrations` with the last intégration's libelle, transliterated and upcased; Enter does not save; Tab until its box has focus, Space; live line `1 résultat sur …, 3 cochés`.
 - **Save.** Clear the filter: the new box is still shown, checked. The window's `Enregistrer`: window closed, `integration_ids` in base has 3 ids, the target among them.
 - **Leave.** Reopen the window, type in the filter: the fiche does not count as changed; `Annuler`, breadcrumb `Démarches`: no confirm, back on `Démarches`.
