@@ -22,6 +22,7 @@ class Integration < ApplicationRecord
 
   scope :en_production, -> { where(statut: STATUT_EN_PRODUCTION) }
   def libelle = "#{integratrice&.libelle_admin} → #{integree&.libelle_admin} (#{type_libelle.downcase})"
+  def noms_des_editeurs = integratrice.organisations.flat_map { [it.nom, it.nom_long] }.compact_blank
   def type_libelle = self.class.human_attribute_name("type_integration.#{type_integration}")
 
   def self.ransackable_associations(_auth_object = nil) = %w[integratrice integree]

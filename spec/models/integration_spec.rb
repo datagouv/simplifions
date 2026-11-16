@@ -15,6 +15,13 @@ RSpec.describe Integration do
     end
   end
 
+  it 'nomme ses éditeurs par le nom et le nom long des organisations de l’intégratrice' do
+    bouquet.organisations = [Organisation.create!(nom: 'Arpège', nom_long: 'Arpège SAS'), Organisation.create!(nom: 'Familea')]
+    integration = described_class.new(integratrice: bouquet, integree: api, type_integration: 'consomme')
+
+    expect(integration.noms_des_editeurs).to eq(['Arpège', 'Arpège SAS', 'Familea'])
+  end
+
   it 'rejects unknown integration types' do
     expect {
       described_class.new(type_integration: 'transporte')

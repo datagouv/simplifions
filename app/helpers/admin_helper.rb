@@ -26,7 +26,7 @@ module AdminHelper
   def donnees_par_carte(lignes) = Demarche.rattachement(lignes.select(&:niveau_2?), lignes.select(&:niveau_1?), &:solution_id)
 
   def integrations_par_carte(demarche, cartes)
-    Demarche.rattachement(cartes, demarche.integrations_proposees.includes(:integratrice, :integree).order(:id), &:integree_id)
+    Demarche.rattachement(cartes, demarche.integrations_proposees.includes(:integree, integratrice: :organisations).order(:id), &:integree_id)
   end
 
   def fenetre_des_integrations(carte) = "integrations-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"

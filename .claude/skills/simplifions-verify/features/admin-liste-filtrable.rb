@@ -111,6 +111,32 @@ def fleche_bas_puis_sortie(page, groupe, total, sans_cadre)
   Verify.evidence(DOSSIER, page, 'fleche-bas-puis-sortie-referme', "visibles=#{nb_visibles(groupe)}")
 end
 
+def sans_accent(texte) = I18n.transliterate(texte).downcase
+
+def editeur_absent_du_libelle(integrations)
+  integrations.each do |integration|
+    next if sans_accent(integration.integree.libelle_admin).include?(sans_accent(integration.integratrice.nom))
+
+    editeur = integration.noms_des_editeurs.find { !sans_accent(integration.libelle).include?(sans_accent(it)) }
+    return [integration, editeur] if editeur
+  end
+  raise 'aucune intégration dont l’éditeur manque au libellé'
+end
+
+def montree_pour(groupe, saisie, cible)
+  groupe.fill_in FILTRE, with: saisie
+  groupe.find('label', text: cible.libelle.squish, exact_text: true)
+  "#{saisie} → #{nb_visibles(groupe)} affichée(s)"
+end
+
+def par_l_editeur(page, groupe, integrations)
+  cible, editeur = editeur_absent_du_libelle(integrations)
+  par_logiciel = montree_pour(groupe, cible.integratrice.nom, cible)
+  par_editeur = montree_pour(groupe, editeur, cible)
+  Verify.evidence(DOSSIER, page, 'trouvee-par-l-editeur', "cible=#{cible.id} #{par_editeur} ; #{par_logiciel}")
+  groupe.click_button 'Effacer le filtre des intégrations'
+end
+
 def atteindre_au_clavier(page, id)
   20.times do
     break if Verify.focus_sur(page) == id
@@ -224,6 +250,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Click shows all, framed') { tous_au_clic(page, groupe, total, sans_cadre) }
   Verify.check('Cross') { croix(page, groupe, sans_cadre) }
   Verify.check('ArrowDown, then leave') { fleche_bas_puis_sortie(page, groupe, total, sans_cadre) }
+  Verify.check('Editor or software') { par_l_editeur(page, groupe, integrations) }
   Verify.check('Filter and keyboard') { filtrer_et_cocher(page, groupe, integrations.last) }
   Verify.check('Save') { enregistrer(page, groupe, demarche, integrations.last) }
   Verify.check('Leave') { partir(page) }
