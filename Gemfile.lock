@@ -131,6 +131,7 @@ GEM
       warden (~> 1.2.3)
     diff-lcs (1.6.2)
     drb (2.2.3)
+    dsfr-assets (1.15.4)
     erb (6.0.7)
     erubi (1.13.1)
     et-orbi (1.4.2)
@@ -470,6 +471,7 @@ DEPENDENCIES
   commonmarker
   debug
   devise
+  dsfr-assets (~> 1.15.4)
   importmap-rails
   interactor
   jbuilder
@@ -552,6 +554,7 @@ CHECKSUMS
   devise (5.0.4) sha256=d605f2b85854e74e56ee789e2d398702bc2d06e6bcd894717a670a3199c74cc1
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
   drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
+  dsfr-assets (1.15.4) sha256=1b796f6fd4768cdf548e66a9208cb7d3dd3dcbfa3bc317c55cc414f161f5f73c
   erb (6.0.7) sha256=c5ca6dc25b0ef974a44dc8f59fe847577122483b1968a38dec305c60bf91ee92
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   et-orbi (1.4.2) sha256=bb555dae668419cb24caa2a293a170e58be6d4df1e017c51f5030bdc133cd20c
