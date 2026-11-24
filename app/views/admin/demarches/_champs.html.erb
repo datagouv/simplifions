@@ -1,0 +1,13 @@
+<%# locals: (f:) -%>
+<div class="fr-grid-row fr-grid-row--gutters fr-mb-3w">
+  <div class="fr-col-12 fr-col-sm-3"><%= f.dsfr_text_field :icone %></div>
+  <div class="fr-col-12 fr-col-sm-9"><%= f.dsfr_text_field :nom %></div>
+</div>
+<%= f.dsfr_text_field :titre_seo %>
+<%= render "admin/slug", f: %>
+<%= f.dsfr_text_area :description_courte %>
+<%= f.dsfr_text_area :contexte %>
+<%= f.dsfr_text_area :cadre_juridique %>
+<%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true, id: f.field_id(:type_acteur_ids) %>
+<%= f.dsfr_text_area :mots_clefs %>
+<%= render "admin/vocabulaires", f: f %>

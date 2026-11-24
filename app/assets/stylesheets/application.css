@@ -229,18 +229,6 @@ body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="f
   display: none;
 }
 
-.barre-d-etat {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.barre-d-etat .fr-btns-group {
-  margin: 0;
-}
-
 .bloc-modifiable {
   border: 1px solid var(--border-default-grey);
   padding: 1.5rem;
@@ -339,4 +327,13 @@ body:has(#recommandation_niveau option[value="niveau_1"]:checked) button[form="f
 
 .fr-link.fr-icon-arrow-down-s-line[aria-expanded="true"]::after {
   transform: rotate(-180deg);
+}
+
+.fr-btn--tertiary.bouton-destructif {
+  color: var(--text-default-error);
+  box-shadow: inset 0 0 0 1px var(--border-plain-error);
+}
+
+:root:not([data-fiche-modifiee]) [data-cache-sans-modification] {
+  display: none;
 }

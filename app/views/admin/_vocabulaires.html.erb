@@ -1,5 +1,5 @@
 <%# locals: (f:, categories: Vocabulaire.categories.keys, legende: "Vocabulaires") -%>
-<fieldset class="fr-fieldset">
+<fieldset class="fr-fieldset" id="<%= f.field_id(:vocabulaire_ids) %>">
   <legend class="fr-fieldset__legend"><%= legende %></legend>
   <% options_traduites(Vocabulaire, :categorie).each do |legende_de_categorie, categorie| %>
     <% next unless categorie.in?(categories) %>

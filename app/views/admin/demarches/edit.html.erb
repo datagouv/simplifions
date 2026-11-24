@@ -3,34 +3,21 @@
 <%= render layout: "liste_et_fiche", locals: { lignes: @demarches } do %>
   <% affichee = @demarche.errors.any? ? Demarche.find(@demarche.id).appliquer_brouillon : @demarche %>
   <% fiche = en_base.recommandations.sur_la_fiche %>
-  <%= render "barre_d_etat", demarche: en_base %>
-  <% if @demarche.errors[:base].any? %>
-    <div class="fr-alert fr-alert--error fr-mb-4w" tabindex="-1" autofocus>
-      <h2 class="fr-alert__title"><%= t("admin.erreurs", count: @demarche.errors[:base].size) %></h2>
-      <ul>
-        <% @demarche.errors.full_messages_for(:base).each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+  <h1><%= titre_demarche(affichee) %></h1>
+  <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
+    <aside class="fr-col-12 fr-col-md-4 admin-panneau" aria-labelledby="etat-et-actions">
+      <%= render "barre_d_etat", demarche: en_base %>
+    </aside>
+    <div class="fr-col-12 fr-col-md-8">
+      <%= form_with model: [:admin, @demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(@demarche).merge(formulaire_modifie_fiche_value: (edit_admin_demarche_path(en_base) if @demarche.errors.any?)) do |f| %>
+        <%= render "admin/erreurs", f: f %>
+        <%= render "champs", f: %>
+        <div id="message-recommandations" role="status"></div>
+        <%= render "solutions_recommandees", demarche: affichee, recommandations: fiche %>
+        <%= render "fenetres_des_integrations", f:, cartes: fiche.select(&:niveau_2?) %>
+      <% end %>
+      <%= render "admin/recommandations/formulaires", demarche: en_base, lignes: fiche, nouvelle_carte: Recommandation.new(demarche: en_base, niveau: :niveau_2) %>
+      <%= render "admin/recommandations/fenetres_des_donnees_utiles", cartes: fiche.select(&:niveau_2?), donnees: donnees_par_carte(fiche) %>
     </div>
-  <% end %>
-  <%= form_with model: [:admin, @demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(@demarche).merge(formulaire_modifie_fiche_value: (edit_admin_demarche_path(en_base) if @demarche.errors.any?)) do |f| %>
-    <%= render "entete", f:, demarche: affichee %>
-    <%= render "blocs", f:, demarche: affichee, recommandations: fiche %>
-    <%= yield :fenetres %>
-    <%= render "fenetres_des_integrations", f:, cartes: fiche.select(&:niveau_2?) %>
-  <% end %>
-  <%= render "admin/recommandations/formulaires", demarche: en_base, lignes: fiche, nouvelle_carte: Recommandation.new(demarche: en_base, niveau: :niveau_2) %>
-  <%= render "admin/recommandations/fenetres_des_donnees_utiles", cartes: fiche.select(&:niveau_2?), donnees: donnees_par_carte(fiche) %>
-  <ul class="fr-btns-group fr-btns-group--inline fr-btns-group--sm fr-mt-4w">
-    <% if en_base.versions.any? %>
-      <li><%= link_to "Historique de la démarche", admin_historique_path("demarches", en_base), class: "fr-btn fr-btn--tertiary-no-outline fr-icon-time-line fr-btn--icon-left" %></li>
-    <% end %>
-    <% if en_base.visible? %>
-      <li><%= button_to "Masquer la démarche", [:admin, en_base], method: :patch, params: { "demarche[visible]" => "0", **filtres_de_la_liste }, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-eye-off-line fr-btn--icon-left" %></li>
-    <% end %>
-    <li><%= button_to "Supprimer la démarche", [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary-no-outline fr-icon-delete-line fr-btn--icon-left",
-        form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", t("admin.suppression.recommandations", count: en_base.recommandations.count),
-          t("admin.suppression.integrations_detachees", count: en_base.integrations.count)].compact_blank.join(" ") } } %></li>
-  </ul>
+  </div>
 <% end %>

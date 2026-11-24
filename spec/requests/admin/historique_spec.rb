@@ -65,7 +65,7 @@ RSpec.describe 'Historique des fiches' do
 
   describe 'etat_de_la_fiche de droite' do
     def etat_de_la_fiche = response.parsed_body.at_css(ETAT_DE_LA_FICHE)
-    def lien_historique = response.parsed_body.at_css('main a:contains("Historique")')
+    def lien_historique = response.parsed_body.at_css('section[aria-labelledby="historique-de-la-fiche"] a:contains("Voir l’historique")')
 
     it 'dit qui a modifié chaque fiche en dernier et mène à son historique' do
       lignes = PaperTrail.request(whodunnit: admin.id.to_s) do

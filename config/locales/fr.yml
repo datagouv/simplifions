@@ -186,6 +186,8 @@ fr:
     brouillon_abandonne: "Brouillon de « %{nom} » abandonné."
     brouillon_enregistre: "« %{nom} » : brouillon enregistré, non publié."
     sans_brouillon: "Pas de brouillon : « Enregistrer » met en ligne tout de suite."
+    aucun_brouillon: "Aucun brouillon en cours : « Enregistrer » crée un brouillon, invisible sur le site jusqu’à sa publication."
+    fiche_masquee: "Fiche masquée : « Enregistrer » écrit directement les modifications."
     brouillons:
       one: "1 brouillon"
       other: "%{count} brouillons"
@@ -237,13 +239,18 @@ fr:
       zero: ""
       one: "1 recommandation en brouillon"
       other: "%{count} recommandations en brouillon"
+    supprimer_la_fiche:
+      demarche: "Supprimer cette démarche"
+      solution: "Supprimer cette solution"
+      recommandation: "Supprimer cette recommandation"
+      integration: "Supprimer cette intégration"
+      organisation: "Supprimer cette organisation"
+      vocabulaire: "Supprimer ce vocabulaire"
+      type_acteur: "Supprimer ce type d’acteur"
     a_la_publication:
       titre:
         one: "À la publication, 1 changement partira"
         other: "À la publication, %{count} changements partiront"
-      publier:
-        one: "Publier ce changement"
-        other: "Publier ces %{count} changements"
     enregistre: "« %{nom} » enregistré."
     integrations_de_la_solution:
       fournies: "API fournies"

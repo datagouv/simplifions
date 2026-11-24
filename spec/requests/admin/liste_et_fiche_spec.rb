@@ -69,17 +69,13 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('input[name=q]')['value']).to eq('aides')
       expect(liste.at_css('a[aria-current=page]')['href']).to eq(lien)
       expect(page.at_css('h1').text.squish).to eq('💧 Aides')
-      expect(page.at_css('section[aria-label="État de la démarche"]')).to be_present
+      expect(page.at_css('aside #etat-de-la-demarche')).to be_present
     end
 
-    it 'garde la recherche et le filtre après l’enregistrement, la publication et à l’annulation' do
+    it 'garde la recherche et le filtre après l’enregistrement et la publication' do
       get "/admin/demarches/#{aides.id}/edit", params: { q: 'aides', etat: 'publiees' }
       expect(page.css('input[form=formulaire-fiche][type=hidden]').to_h { [it['name'], it['value']] }).to eq('q' => 'aides', 'etat' => 'publiees')
-      publier = page.css('form').find { it.at_css('button')&.text == 'Publier' }
-      expect(publier.css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'aides', 'etat' => 'publiees')
-
-      get '/admin/demarches/new', params: { q: 'aides', etat: 'publiees' }
-      expect(page.css('a').find { it.text == 'Annuler' }['href']).to eq('/admin/demarches?etat=publiees&q=aides')
+      expect(page.at_css('#etat-de-la-demarche button[form=formulaire-fiche][name="demarche[visible]"]').text).to eq('Masquer')
 
       patch "/admin/demarches/#{aides.id}", params: { demarche: { nom: 'Aides locales' }, q: 'aides', etat: 'publiees' }
       expect(response).to redirect_to("/admin/demarches/#{aides.id}/edit?etat=publiees&q=aides")

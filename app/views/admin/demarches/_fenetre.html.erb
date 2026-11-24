@@ -1,7 +1,0 @@
-<%# locals: (id:, titre:, attributs:) -%>
-<button type="button" class="fr-btn fr-btn--sm fr-btn--secondary fr-icon-edit-line fr-btn--icon-left" aria-controls="fenetre-<%= id %>" data-fr-opened="false"><%= titre %></button>
-<% content_for :fenetres do %>
-  <%= render layout: "admin/dialogue", locals: { id:, titre:, ouverte: @demarche.errors.attribute_names.intersect?(attributs) } do %>
-    <%= yield %>
-  <% end %>
-<% end %>

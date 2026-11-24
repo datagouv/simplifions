@@ -1,72 +1,74 @@
-<%# locals: (page_publique: nil, previsualisation: nil, consequences: [], en_brouillon: nil, brouillon: en_base.try(:brouillon?), abandon: brouillon, badge_du_brouillon: nil) -%>
+<%# locals: (page_publique: nil, adresse: nil, previsualisation: nil, consequences: [], en_brouillon: nil, brouillon: en_base.try(:brouillon?), abandon: brouillon, badge_du_brouillon: nil) -%>
 <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
   <aside class="fr-col-12 fr-col-md-4 admin-panneau" aria-labelledby="etat-et-actions">
+    <button type="submit" form="formulaire-fiche" hidden data-enregistrer>Enregistrer</button>
     <div class="fr-p-3w fr-background-alt--grey">
       <h2 id="etat-et-actions" class="fr-h6">État et actions</h2>
-      <% unless modele.has_attribute?(:brouillon) %>
+      <% if en_base.nil? && !modele.has_attribute?(:brouillon) %>
         <p class="fr-text--sm"><%= t("admin.sans_brouillon") %></p>
       <% end %>
       <% if en_base %>
         <% historique = admin_historique_path(modele.model_name.route_key, en_base) %>
+        <% champ_visible = "#{modele.model_name.param_key}[visible]" %>
         <% if modele.has_attribute?(:visible) %>
-          <p class="fr-badge fr-badge--no-icon <%= "fr-badge--success" if en_base.visible? %>"><%= en_base.visible? ? "Publiée" : "Masquée" %></p>
+          <div class="fr-grid-row fr-grid-row--middle fr-mb-1w">
+            <p class="fr-badge fr-badge--no-icon fr-mr-1w <%= "fr-badge--success" if en_base.visible? %>"><%= en_base.visible? ? "Publiée" : "Masquée" %></p>
+            <button type="submit" form="formulaire-fiche" name="<%= champ_visible %>" value="<%= en_base.visible? ? 0 : 1 %>" class="fr-btn fr-btn--sm fr-btn--secondary"><%= en_base.visible? ? "Masquer" : "Publier" %></button>
+          </div>
         <% end %>
-        <% if brouillon %>
-          <%= badge_du_brouillon || tag.p(en_base.passe_par_un_brouillon? ? t("admin.badge_brouillon.#{modele.model_name.i18n_key}", default: "Brouillon non publié") : "Brouillon non publié", class: "fr-badge fr-badge--no-icon fr-badge--new") %>
-          <% if (date = en_base.date_du_brouillon) %>
-            <p class="fr-text--sm fr-mt-1w fr-mb-0">Brouillon du <time datetime="<%= date.iso8601 %>"><%= l date, format: :court %></time></p>
-            <% if (import = en_base.import_grist_depuis_le_brouillon) %>
-              <div class="fr-alert fr-alert--warning fr-alert--sm fr-mt-1w">
+        <% if page_publique %>
+          <%= render "admin/lien_nouvelle_fenetre", texte: "Voir la page publique", chemin: page_publique, titre: "Voir la page publique de #{nom_en_base}" %>
+        <% elsif adresse %>
+          <p class="fr-text--sm fr-mb-2w"><%= adresse %></p>
+        <% end %>
+        <%= tag.section class: "bloc-modifiable fr-p-2w", aria: { label: brouillon ? "Brouillon" : "Modifications" }, data: { cache_sans_modification: (true unless brouillon) } do %>
+          <% if brouillon %>
+            <div class="fr-grid-row fr-grid-row--middle fr-mb-1w">
+              <%= badge_du_brouillon || tag.p(en_base.passe_par_un_brouillon? ? t("admin.badge_brouillon.#{modele.model_name.i18n_key}", default: "Brouillon non publié") : "Brouillon non publié", class: "fr-badge fr-badge--no-icon fr-badge--new fr-mr-1w") %>
+              <% if (date = en_base.date_du_brouillon) %>
+                <span class="fr-text--sm">depuis le <time datetime="<%= date.iso8601 %>"><%= l date, format: :court %></time></span>
+              <% end %>
+            </div>
+            <% if previsualisation %>
+              <%= render "admin/lien_nouvelle_fenetre", texte: "Prévisualiser le brouillon", chemin: previsualisation, titre: "Prévisualiser le brouillon de #{nom_en_base}" %>
+            <% end %>
+            <% if date && (import = en_base.import_grist_depuis_le_brouillon) %>
+              <div class="fr-alert fr-alert--warning fr-alert--sm fr-mb-2w">
                 <p>Le Grist a modifié cette fiche le <time datetime="<%= import.created_at.iso8601 %>"><%= l import.created_at, format: :court %></time> : publier remplacera ces changements.
                   <%= link_to "Voir l’historique", historique, class: "fr-link fr-link--sm" %></p>
               </div>
             <% end %>
+            <% if en_brouillon.present? %>
+              <p class="fr-text--sm fr-mb-1w"><%= en_brouillon %></p>
+            <% end %>
+          <% else %>
+            <p class="fr-text--sm fr-mb-2w"><%= texte_sans_brouillon(en_base) %></p>
           <% end %>
+          <ul class="fr-btns-group fr-btns-group--sm fr-mb-n2w">
+            <li><button type="submit" form="formulaire-fiche" class="fr-btn" data-enregistrer>Enregistrer</button></li>
+            <% if brouillon && modele.has_attribute?(:visible) && en_base.visible? %>
+              <li><button type="submit" form="formulaire-fiche" name="<%= champ_visible %>" value="1" class="fr-btn fr-btn--secondary">Publier le brouillon</button></li>
+            <% end %>
+            <% if abandon %>
+              <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, en_base], method: :patch, class: "fr-btn fr-btn--tertiary bouton-destructif",
+                  form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_en_base} » ? Les modifications non publiées seront perdues." } } %></li>
+            <% end %>
+          </ul>
         <% end %>
-        <% if en_brouillon.present? %>
-          <p class="fr-text--sm fr-mt-1w fr-mb-0"><%= en_brouillon %></p>
-        <% end %>
-        <dl class="fr-pl-0 fr-mt-2w fr-text--sm">
-          <% { "Création" => modele.has_attribute?(:cree_le) ? en_base.cree_le : en_base.created_at,
-               "Dernière modification" => modele.has_attribute?(:modifie_le) ? en_base.modifie_le : en_base.updated_at }.compact.each do |terme, date| %>
-            <dt class="fr-text--bold fr-mb-0"><%= terme %></dt>
-            <dd class="fr-ml-0 fr-pl-0 fr-mb-1w"><time datetime="<%= date.iso8601 %>"><%= l date.to_date %></time></dd>
-          <% end %>
-        </dl>
-        <% if (version = en_base.versions.last) %>
-          <p class="fr-text--sm fr-mb-1w"><%= titre_de_version(version, version.event == "create" ? "Créée" : "Modifiée") %></p>
-          <p class="fr-text--sm"><%= link_to "Historique", historique, class: "fr-link fr-link--sm" %></p>
-        <% end %>
-        <% if en_base.grist_id.present? %>
-          <p class="fr-text--sm">Identifiant Grist : <%= en_base.grist_id %></p>
-        <% end %>
-      <% end %>
-      <ul class="fr-btns-group fr-btns-group--sm">
-        <li><button type="submit" form="formulaire-fiche" class="fr-btn" data-enregistrer>Enregistrer</button></li>
-        <% if modele.has_attribute?(:visible) %>
-          <% publiee = en_base&.visible? %>
-          <% if !publiee || modele.has_attribute?(:brouillon) %>
+        <%= render "admin/historique", ligne: en_base, chemin: historique,
+              cree_le: modele.has_attribute?(:cree_le) ? en_base.cree_le : en_base.created_at,
+              modifie_le: modele.has_attribute?(:modifie_le) ? en_base.modifie_le : en_base.updated_at %>
+        <ul class="fr-btns-group fr-btns-group--sm fr-mt-3w">
+          <li><%= button_to t("admin.supprimer_la_fiche.#{modele.model_name.i18n_key}"), [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary bouton-destructif",
+              form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", *consequences.compact_blank].join(" ") } } %></li>
+        </ul>
+      <% else %>
+        <ul class="fr-btns-group fr-btns-group--sm">
+          <li><button type="submit" form="formulaire-fiche" class="fr-btn" data-enregistrer>Enregistrer</button></li>
+          <% if modele.has_attribute?(:visible) %>
             <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="1" class="fr-btn fr-btn--secondary">Publier</button></li>
           <% end %>
-          <% if publiee %>
-            <li><button type="submit" form="formulaire-fiche" name="<%= modele.model_name.param_key %>[visible]" value="0" class="fr-btn fr-btn--secondary">Masquer</button></li>
-          <% end %>
-        <% end %>
-        <li><%= link_to "Annuler", url_for(action: :index, **filtres_de_la_liste), class: "fr-btn fr-btn--tertiary" %></li>
-        <% if abandon %>
-          <li><%= button_to "Abandonner le brouillon", [:abandonner_brouillon, :admin, en_base], method: :patch, class: "fr-btn fr-btn--tertiary",
-              form: { data: { turbo_confirm: "Abandonner le brouillon de « #{nom_en_base} » ? Les modifications non publiées seront perdues." } } %></li>
-        <% end %>
-        <% if en_base %>
-          <li><%= button_to "Supprimer", [:admin, en_base], method: :delete, class: "fr-btn fr-btn--tertiary",
-              form: { data: { turbo_confirm: ["Supprimer « #{nom_en_base} » ?", *consequences.compact_blank].join(" ") } } %></li>
-        <% end %>
-      </ul>
-      <% if page_publique %>
-        <p class="fr-mb-0"><%= link_to page_publique, class: "fr-link", target: "_blank", rel: "noopener", title: "Voir la page publique de #{nom_en_base} - nouvelle fenêtre" do %>Voir la page publique<span class="fr-sr-only"> - nouvelle fenêtre</span><% end %></p>
-      <% end %>
-      <% if previsualisation %>
-        <p class="fr-mb-0"><%= link_to previsualisation, class: "fr-link", target: "_blank", rel: "noopener", title: "Prévisualiser le brouillon de #{nom_en_base} - nouvelle fenêtre" do %>Prévisualiser<span class="fr-sr-only"> le brouillon - nouvelle fenêtre</span><% end %></p>
+        </ul>
       <% end %>
     </div>
   </aside>

@@ -1,0 +1,20 @@
+<%# locals: (ligne:, cree_le:, modifie_le:, chemin:) -%>
+<% version = ligne.versions.last %>
+<section class="fr-mt-3w" aria-labelledby="historique-de-la-fiche">
+  <h3 id="historique-de-la-fiche" class="fr-text--md fr-text--bold fr-mb-1w">Historique</h3>
+  <dl class="fr-pl-0 fr-text--sm fr-mb-1w">
+    <% { "Création" => cree_le, "Dernière modification" => modifie_le }.compact.each do |terme, date| %>
+      <dt class="fr-text--bold fr-mb-0"><%= terme %></dt>
+      <dd class="fr-ml-0 fr-pl-0 fr-mb-1w"><time datetime="<%= date.to_date.iso8601 %>"><%= l date.to_date %></time></dd>
+    <% end %>
+  </dl>
+  <% if version %>
+    <p class="fr-text--sm fr-mb-1w"><%= titre_de_version(version, version.event == "create" ? "Créée" : "Modifiée") %></p>
+  <% end %>
+  <% if ligne.try(:grist_id).present? %>
+    <p class="fr-text--sm fr-mb-1w">Identifiant Grist : <%= ligne.grist_id %></p>
+  <% end %>
+  <% if version %>
+    <p class="fr-text--sm fr-mb-0"><%= link_to "Voir l’historique", chemin, class: "fr-link fr-link--sm" %></p>
+  <% end %>
+</section>
