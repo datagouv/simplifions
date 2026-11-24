@@ -15,7 +15,7 @@
     <% end %>
     <%= f.dsfr_text_field :nom %>
     <%= f.dsfr_text_field :titre_seo, **champ_de_fiche(f, :titre_seo) %>
-    <%= f.dsfr_text_field :slug, **champ_de_fiche(f, :slug) %>
+    <%= render "admin/slug", f:, **champ_de_fiche(f, :slug) %>
     <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
     <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
     <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>

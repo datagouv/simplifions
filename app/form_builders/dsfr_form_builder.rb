@@ -42,7 +42,14 @@ class DsfrFormBuilder < ActionView::Helpers::FormBuilder
   end
 
   def dsfr_input_field(attribute, input_kind, opts, &)
-    dsfr_field_group(attribute, opts, 'fr-input-group', public_send(input_kind, attribute, class: 'fr-input', **input_options(attribute, opts)), &)
+    input = public_send(input_kind, attribute, class: 'fr-input', **input_options(attribute, opts))
+    dsfr_field_group(attribute, opts, 'fr-input-group', avec_bouton_accole(input, opts[:bouton_accole]), &)
+  end
+
+  def avec_bouton_accole(input, bouton)
+    return input unless bouton
+
+    @template.content_tag(:div, @template.safe_join([input, bouton]), class: 'fr-input-wrap fr-input-wrap--action')
   end
 
   def dsfr_field_group(attribute, opts, group_class, input, &block)
@@ -73,7 +80,7 @@ class DsfrFormBuilder < ActionView::Helpers::FormBuilder
 
   def input_options(attribute, opts)
     aria = errors_for(attribute).any? ? { aria: { invalid: true, describedby: messages_id(attribute) } } : {}
-    opts.except(:class, :input_group_options).merge(required: required?(attribute), **aria)
+    opts.except(:class, :input_group_options, :bouton_accole).merge(required: required?(attribute), **aria)
   end
 
   def messages_id(attribute) = "#{field_id(attribute)}-messages"

@@ -14,7 +14,7 @@
       <%= f.dsfr_text_field :icone %>
       <%= f.dsfr_text_field :nom %>
       <%= f.dsfr_text_area :description_courte %>
-      <%= f.dsfr_text_field :slug %>
+      <%= render "admin/slug", f: %>
       <%= render "admin/vocabulaires", f: f, categories: %w[usager], legende: "Publics" %>
     <% end %>
   </div>

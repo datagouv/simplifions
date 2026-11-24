@@ -3,7 +3,7 @@
   <%= f.dsfr_text_field :icone %>
   <%= f.dsfr_text_field :nom %>
   <%= f.dsfr_text_field :titre_seo %>
-  <%= f.dsfr_text_field :slug %>
+  <%= render "admin/slug", f: %>
   <%= f.dsfr_text_area :description_courte %>
   <%= f.dsfr_text_area :contexte %>
   <%= f.dsfr_text_area :cadre_juridique %>

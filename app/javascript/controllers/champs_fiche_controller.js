@@ -11,7 +11,7 @@ export default class extends Controller {
       const saisies = [...champ.querySelectorAll("input, textarea")]
       const masque = horsFiche && !("rempliEnBase" in champ.dataset) && !champ.querySelector("img") && !saisies.some(rempli)
       champ.classList.toggle("fr-hidden", masque)
-      saisies.forEach((saisie) => { saisie.disabled = masque })
+      saisies.forEach((saisie) => { saisie.disabled = masque || "verrouille" in saisie.dataset })
     })
   }
 }
