@@ -24,8 +24,8 @@ end
 
 def cases_filtrees(page, options)
   page.visit('/admin/types_acteurs/new')
-  groupe = page.find('fieldset', text: 'Filtrer les solutions')
-  groupe.fill_in 'Filtrer les solutions', with: 'impot particulier'
+  groupe = Verify.liste_filtrable(page, 'Solutions')
+  Verify.filtrer(groupe, 'impot particulier')
   cases = groupe.all('[data-liste-filtrable-target=element]:not(.fr-hidden) label').map(&:text)
   raise "cases #{cases}" unless cases.sort == options.sort
 

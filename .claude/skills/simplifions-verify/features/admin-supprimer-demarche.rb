@@ -12,7 +12,7 @@ end
 
 def supprimer(page, nom)
   Verify.ouvrir_depuis_la_liste(page, nom)
-  page.accept_confirm("Supprimer « #{nom} » ? 1 recommandation sera supprimée.") { page.click_button 'Supprimer la démarche' }
+  page.accept_confirm("Supprimer « #{nom} » ? 1 recommandation sera supprimée.") { page.click_button 'Supprimer cette démarche' }
   page.assert_text "« #{nom} » supprimé."
   page.assert_no_selector "nav[aria-label='Liste des démarches'] li a", text: nom
 end

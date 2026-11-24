@@ -1,51 +1,42 @@
 require_relative '../harness'
 
 DOSSIER = 'admin-fiche-demarche'.freeze
+QUESTION = 'Quitter sans enregistrer les modifications ?'.freeze
+
+def lu(demarche) = ActiveRecord::Base.uncached { Demarche.find(demarche.id) }
 
 def atteindre(page, nom)
   Verify.login(page)
   Verify.rubrique(page, 'Démarches')
   Verify.ouvrir_depuis_la_liste(page, nom)
   page.assert_selector 'h1', text: nom
-  page.assert_no_selector 'aside'
-  page.assert_selector :button, 'Modifier le contexte'
+  page.assert_selector 'aside.admin-panneau', text: 'État et actions'
+  page.assert_selector :field, 'Contexte'
 end
 
-def enregistrer_un_bloc(page, demarche)
-  Verify.fenetre(page, 'Modifier le contexte').fill_in 'Contexte', with: 'Contexte modifié par la vérif'
-  page.find('dialog[open]').click_button 'Enregistrer'
+def enregistrer_un_champ(page, demarche)
+  Verify.modifier_la_fiche(page, 'Contexte' => 'Contexte modifié par la vérif')
   page.assert_text "« #{demarche.nom} » enregistré."
-  page.assert_no_selector 'dialog[open]'
-  page.find('section', text: 'Contexte').assert_text 'Contexte modifié par la vérif'
-  lu = ActiveRecord::Base.uncached { Demarche.find(demarche.id).contexte }
-  raise "contexte en base : #{lu}" unless lu == 'Contexte modifié par la vérif'
+  page.assert_selector :field, 'Contexte', with: 'Contexte modifié par la vérif'
+  contexte = lu(demarche).contexte
+  raise "contexte en base : #{contexte}" unless contexte == 'Contexte modifié par la vérif'
 
-  Verify.evidence(DOSSIER, page, 'bloc-enregistre', "contexte=#{lu}")
-end
-
-def annuler_par_echap(page, demarche)
-  Verify.fenetre(page, 'Modifier l’en-tête').fill_in 'Nom', with: 'Nom abandonné'
-  page.find('dialog[open]').send_keys(:escape)
-  page.assert_no_selector 'dialog[open]'
-  page.assert_selector '#formulaire-fiche[data-formulaire-modifie-modifie-value=false]'
-  lu = ActiveRecord::Base.uncached { Demarche.find(demarche.id).nom }
-  raise "nom en base : #{lu}" unless lu == demarche.nom
-
-  valeur = Verify.fenetre(page, 'Modifier l’en-tête').find_field('Nom').value
-  raise "nom rouvert : #{valeur}" unless valeur == demarche.nom
-
-  page.find('dialog[open]').click_button 'Annuler'
-  page.assert_no_selector 'dialog[open]'
-  "nom_en_base=#{lu} nom_rouvert=#{valeur}"
+  page.scroll_to(page.find_field('Contexte'), align: :center)
+  Verify.evidence(DOSSIER, page, 'champ-enregistre', "contexte=#{contexte}")
 end
 
 def choisir_les_integrations(page, demarche, cible)
   carte = page.find("#recommandation_#{demarche.recommandations.first.id}")
   carte.assert_text 'Intégrations (0)'
   dialog = Verify.fenetre(page, "Ajouter une intégration à #{cible.integree.libelle_admin}")
-  dialog.fill_in 'Filtrer les intégrations', with: I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ')
+  liste = Verify.liste_filtrable(dialog, 'Intégrations')
+  Verify.filtrer(liste, I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ')) if liste.has_css?('[data-liste-filtrable-target=filtre]', wait: 0)
   dialog.find("label[for=demarche_integration_ids_#{cible.id}]").click
   dialog.click_button 'Enregistrer'
+  verifier_les_integrations(page, demarche, cible)
+end
+
+def verifier_les_integrations(page, demarche, cible)
   page.assert_text "« #{demarche.nom} » enregistré."
   page.assert_no_selector 'dialog[open]'
   page.assert_current_path("/admin/demarches/#{demarche.id}/edit", ignore_query: true)
@@ -54,22 +45,22 @@ def choisir_les_integrations(page, demarche, cible)
   texte = carte.text.squish
   raise "carte : #{texte}" unless texte.include?("Intégrations (1) #{cible.libelle.squish}")
 
-  lu = ActiveRecord::Base.uncached { Demarche.find(demarche.id).integration_ids }
-  raise "intégrations en base : #{lu}" unless lu == [cible.id]
+  integrations = lu(demarche).integration_ids
+  raise "intégrations en base : #{integrations}" unless integrations == [cible.id]
 
-  Verify.evidence(DOSSIER, page, 'integrations-choisies', "carte=#{texte} base=#{lu}")
+  Verify.evidence(DOSSIER, page, 'integrations-choisies', "carte=#{texte} base=#{integrations}")
 end
 
 def refuser(page, demarche)
-  Verify.fenetre(page, 'Modifier l’en-tête').fill_in 'Nom', with: ''
-  page.find('dialog[open]').click_button 'Enregistrer'
-  page.assert_selector 'dialog[open] .fr-input-group--error', text: 'doit être rempli'
-  Verify.evidence(DOSSIER, page, 'refuse', 'fenetre=ouverte message=doit être rempli')
-  page.find('dialog[open]').click_button 'Annuler'
-  page.assert_no_selector 'dialog[open]'
-  page.assert_selector "#demarche_nom[value='#{demarche.nom}']", visible: :all
+  Verify.modifier_la_fiche(page, 'Nom' => '')
+  page.assert_selector '.fr-input-group--error', text: 'doit être rempli'
+  nom = lu(demarche).nom
+  raise "nom en base : #{nom}" unless nom == demarche.nom
 
-  page.find('.fr-breadcrumb').click_link 'Démarches'
+  Verify.evidence(DOSSIER, page, 'refuse', "message=doit être rempli nom_en_base=#{nom}")
+  message = page.accept_confirm { page.find('.fr-breadcrumb').click_link 'Démarches' }
+  raise "confirmation #{message.inspect}" unless message == QUESTION
+
   page.assert_selector 'h1', text: 'Démarches'
 end
 
@@ -81,8 +72,7 @@ Verify.drive(__FILE__) do |page|
   cible = Integration.where(integree_id: api).order(:id).last
 
   Verify.check('Reach the fiche') { atteindre(page, nom) }
-  Verify.check('Save a block') { enregistrer_un_bloc(page, demarche) }
-  Verify.check('Cancel with Escape') { annuler_par_echap(page, demarche) }
+  Verify.check('Save a field') { enregistrer_un_champ(page, demarche) }
   Verify.check('Choose intégrations') { choisir_les_integrations(page, demarche, cible) }
   Verify.check('Refused field') { refuser(page, demarche) }
   Verify.check('Proof') { Verify.logout(page) }

@@ -1,7 +1,7 @@
 require_relative '../harness'
 
 DOSSIER = 'admin-liste-filtrable'.freeze
-FILTRE = 'Filtrer les intégrations'.freeze
+LEGENDE = 'Intégrations'.freeze
 
 API = Integration.group(:integree_id).order(count_all: :desc).count.keys.first
 
@@ -15,7 +15,7 @@ def preparer(nom)
   [demarche, integrations]
 end
 
-def champ(groupe) = groupe.find_field(FILTRE)[:id]
+def champ(groupe) = Verify.champ_de_filtre(groupe)[:id]
 def compte(groupe) = groupe.find('[aria-live=polite]').text
 def nb_visibles(groupe) = Verify.cases_affichees(groupe).size
 def fond(page, groupe) = page.evaluate_script('getComputedStyle(arguments[0]).backgroundColor', groupe.find('[data-liste-filtrable-target=resultats]'))
@@ -27,35 +27,27 @@ def liste_courte(page)
   proposees = courte.demarches_proposees.count
   visibles = page.find(:fieldset, 'Démarches').all('.fr-checkbox-group label', visible: true).size
   raise "courte liste : #{visibles} cases visibles sur #{proposees}" unless visibles == proposees
-  raise 'courte liste : champ de filtre présent' if page.has_field?('Filtrer les démarches', wait: 0)
+  raise 'courte liste : champ de filtre présent' if page.find(:fieldset, 'Démarches').has_css?('[data-liste-filtrable-target=filtre]', wait: 0)
 
   "intégration #{courte.id} : visibles=#{visibles} proposées=#{proposees} filtre=absent"
 end
 
+GROUPES = ['Démarche à destination de :', 'Catégorie de solution', 'Type de simplification'].freeze
+
 def groupes_de_vocabulaires(page, demarche)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  groupes = GROUPES_PAR_FENETRE.to_h { |bouton, attendus| [bouton, groupes_de_la_fenetre(page, bouton, attendus)] }
-  aides = groupes.values.sum(&:last)
+  groupes = page.all('#formulaire-fiche fieldset:has(> .fr-fieldset__element input[name="demarche[vocabulaire_ids][]"])')
+  categories = groupes.map { it.find('legend', match: :first).text }
+  raise "groupes de vocabulaires #{categories}" unless categories == GROUPES
+
+  aides = groupes.sum { Verify.liens_d_aide(it).size }
   raise "#{aides} « ? » pour #{Vocabulaire.count} vocabulaires" unless aides == Vocabulaire.count
 
-  groupes.values.flat_map(&:first)
-end
-
-GROUPES_PAR_FENETRE = { 'Modifier l’en-tête' => ['Usager'], 'Modifier les vocabulaires' => ['Type de simplification', 'Catégorie de solution'] }.freeze
-
-def groupes_de_la_fenetre(page, bouton, attendus)
-  fenetre = Verify.fenetre(page, bouton)
-  categories = fenetre.all('fieldset fieldset > legend').map(&:text)
-  raise "#{bouton} : groupes de vocabulaires #{categories}" unless categories == attendus
-
-  aides = Verify.liens_d_aide(fenetre).size
-  fenetre.click_button 'Annuler'
-  page.assert_no_selector 'dialog[open]'
-  [categories, aides]
+  categories
 end
 
 def cochees_seules(page, total)
-  groupe = Verify.fenetre(page, bouton_des_integrations).find('fieldset', text: FILTRE)
+  groupe = Verify.liste_filtrable(Verify.fenetre(page, bouton_des_integrations), LEGENDE)
   coches = Verify.cases_affichees(groupe)
   raise "cases visibles sans filtre #{coches.size}" unless coches.size == 2 && coches.all?(&:checked?)
   raise "compte #{compte(groupe)}" unless compte(groupe) == "2 cochés sur #{total}"
@@ -83,7 +75,7 @@ def traversee_au_clavier(page, groupe)
 end
 
 def tous_au_clic(page, groupe, total, sans_cadre)
-  groupe.find_field(FILTRE).click
+  Verify.champ_de_filtre(groupe).click
   raise "cases visibles au clic #{nb_visibles(groupe)}" unless nb_visibles(groupe) == total
   raise 'compte changé au clic' unless compte(groupe) == "2 cochés sur #{total}"
   raise "pas de cadre gris (#{fond(page, groupe)})" if fond(page, groupe) == sans_cadre
@@ -92,9 +84,9 @@ def tous_au_clic(page, groupe, total, sans_cadre)
 end
 
 def croix(page, groupe, sans_cadre)
-  groupe.fill_in FILTRE, with: 'zzz'
+  Verify.filtrer(groupe, 'zzz')
   groupe.click_button 'Effacer le filtre des intégrations'
-  raise 'croix : filtre non vide' unless groupe.find_field(FILTRE).value == ''
+  raise 'croix : filtre non vide' unless Verify.champ_de_filtre(groupe).value == ''
   raise "croix : #{nb_visibles(groupe)} cases" unless referme?(page, groupe, sans_cadre)
   raise 'croix : focus perdu' unless Verify.focus_sur(page) == champ(groupe)
 
@@ -124,7 +116,7 @@ def editeur_absent_du_libelle(integrations)
 end
 
 def montree_pour(groupe, saisie, cible)
-  groupe.fill_in FILTRE, with: saisie
+  Verify.filtrer(groupe, saisie)
   groupe.find('label', text: cible.libelle.squish, exact_text: true)
   "#{saisie} → #{nb_visibles(groupe)} affichée(s)"
 end
@@ -148,7 +140,7 @@ end
 
 def saisir_le_libelle(page, groupe, cible)
   saisie = I18n.transliterate(cible.libelle).upcase.scan(/[[:alnum:]]+/).join(' ')
-  groupe.fill_in FILTRE, with: saisie
+  Verify.filtrer(groupe, saisie)
   groupe.find('label', text: cible.libelle.squish, exact_text: true)
   page.send_keys :enter
   raise 'Entrée a envoyé le formulaire' if page.has_text?('enregistré', wait: 1)
@@ -166,7 +158,7 @@ def filtrer_et_cocher(page, groupe, cible)
 end
 
 def cible_reste_affichee(groupe, cible)
-  groupe.fill_in FILTRE, with: ''
+  Verify.filtrer(groupe, '')
   cochees = Verify.cases_affichees(groupe).select(&:checked?).pluck(:id)
   raise 'cible cachée après effacement' unless cochees.include?("demarche_integration_ids_#{cible.id}")
 end
@@ -185,7 +177,7 @@ def enregistrer(page, groupe, demarche, cible)
 end
 
 def partir(page)
-  Verify.fenetre(page, bouton_des_integrations).find('fieldset', text: FILTRE).fill_in FILTRE, with: 'texte sans nom'
+  Verify.filtrer(Verify.liste_filtrable(Verify.fenetre(page, bouton_des_integrations), LEGENDE), 'texte sans nom')
   page.assert_selector '#formulaire-fiche[data-formulaire-modifie-modifie-value=false]'
   page.find('dialog[open]').click_button 'Annuler'
   page.assert_no_selector 'dialog[open]'
@@ -198,8 +190,8 @@ QUITTER = 'Quitter sans enregistrer les modifications ?'.freeze
 
 def ouvrir_les_organisations(page, solution)
   page.visit("/admin/solutions/#{solution.id}/edit")
-  groupe = page.find('fieldset', text: 'Filtrer les organisations')
-  groupe.find_field('Filtrer les organisations').click
+  groupe = Verify.liste_filtrable(page, 'Organisations')
+  Verify.champ_de_filtre(groupe).click
   groupe
 end
 
@@ -231,6 +223,7 @@ def clic_dans_le_vide(page, groupe)
 
   Verify.evidence(DOSSIER, page, 'clic-dans-le-vide-de-la-liste', lecture)
   page.accept_confirm(QUITTER) { page.find('.fr-breadcrumb').click_link 'Solutions' }
+  page.assert_text 'Choisissez une solution dans la liste'
 end
 
 Verify.drive(__FILE__) do |page|

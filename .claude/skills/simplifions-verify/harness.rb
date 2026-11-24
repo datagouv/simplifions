@@ -119,6 +119,7 @@ module Verify
     end
 
     def rechercher(page, texte)
+      page.assert_no_selector 'html[data-turbo-preview]'
       page.fill_in 'Rechercher', with: texte
       page.click_button 'Rechercher'
       page.assert_current_path(/[?&]q=/, url: true) { |uri| URI.decode_www_form(uri.query.to_s).to_h['q'] == texte }
@@ -126,9 +127,12 @@ module Verify
 
     def ouvrir_depuis_la_liste(page, nom)
       rechercher(page, nom)
-      return page.within('tbody') { page.click_link nom, exact_text: true } if page.has_css?('tbody', wait: 0)
-
-      ligne_de_la_liste(page, nom).click
+      if page.has_css?('tbody', wait: 0)
+        page.within('tbody') { page.click_link nom, exact_text: true }
+      else
+        ligne_de_la_liste(page, nom).click
+      end
+      page.assert_no_selector 'html[data-turbo-preview]'
     end
 
     def ligne_de_la_liste(page, nom)
@@ -157,6 +161,12 @@ module Verify
     def modifier_dans_la_fenetre(page, bouton, champs)
       fenetre(page, bouton).then { |dialog| champs.each { |champ, valeur| dialog.fill_in champ, with: valeur } }
       page.find('dialog[open]').click_button 'Enregistrer'
+    end
+
+    def modifier_la_fiche(page, champs)
+      formulaire = page.find('#formulaire-fiche')
+      champs.each { |champ, valeur| formulaire.fill_in champ, with: valeur }
+      page.find('aside.admin-panneau').click_button 'Enregistrer'
     end
 
     def ajouter_une_solution_recommandee(page, solution, champs = {})
@@ -220,10 +230,13 @@ module Verify
       raise "captures manquantes #{manquantes}" if manquantes.any?
     end
 
+    def liste_filtrable(zone, legende) = zone.find(:xpath, ".//fieldset[@data-controller='liste-filtrable'][legend[normalize-space()='#{legende}']]")
+    def champ_de_filtre(groupe) = groupe.find('[data-liste-filtrable-target=filtre]')
+    def filtrer(groupe, texte) = champ_de_filtre(groupe).set(texte)
     def cases_affichees(groupe) = groupe.all('[data-liste-filtrable-target=element]:not(.fr-hidden) input', visible: :all)
     def liens_d_aide(zone) = zone.all('a:has(.fr-icon-question-line)').map { |lien| lien.text(:all).strip }
     def lien_nomme(zone, nom) = zone.all('a').find { |lien| (lien['aria-label'] || lien.text(:all).strip) == nom } || raise("aucun lien nommé #{nom}")
-    def enregistrer_desactive?(page) = page.find('button[data-enregistrer]', visible: :all).disabled?
+    def enregistrer_desactive?(page) = page.find('button[data-enregistrer]:not([hidden])', visible: :all).disabled?
     def focus_sur(page) = page.evaluate_script('document.activeElement.id')
   end
 

@@ -23,18 +23,20 @@ def colle_en_bas(page)
   page.visit("/admin/solutions/#{longue.id}/edit")
   hauteur = page.evaluate_script('document.documentElement.scrollHeight')
   page.assert_selector PANNEAU, text: /Publiée/i
-  defiler_jusqu_au_pied_de_page(page, page.find_button('Enregistrer', disabled: true))
+  page.fill_in 'Nom', with: "#{longue.nom} "
+  defiler_jusqu_au_pied_de_page(page, page.find_button('Enregistrer'))
   Verify.evidence(DOSSIER, page, 'defile', "solution=#{longue.id} hauteur=#{hauteur} scrollY=#{page.evaluate_script('window.scrollY')} enregistrer_a_l_ecran=true")
+  page.visit('/admin')
 end
 
 def grise(page, nom)
   Verify.ouvrir_solution(page, nom)
-  page.find_button('Enregistrer', disabled: true)
+  page.assert_no_selector(:button, 'Enregistrer')
   page.find_button('Publier', disabled: false)
-  Verify.evidence(DOSSIER, page, 'enregistrer-grise', 'enregistrer=desactive publier=actif')
+  Verify.evidence(DOSSIER, page, 'enregistrer-cache', 'enregistrer=cache publier=actif')
   page.fill_in 'Nom', with: "#{nom} saisie"
   page.find_button('Enregistrer', disabled: false)
-  Verify.evidence(DOSSIER, page, 'enregistrer-actif', 'enregistrer=actif apres_saisie')
+  Verify.evidence(DOSSIER, page, 'enregistrer-actif', 'enregistrer=affiche_et_actif apres_saisie')
 end
 
 def entree(page, solution, nom)
@@ -48,7 +50,7 @@ def entree(page, solution, nom)
 end
 
 def erreurs(page)
-  page.find_button('Enregistrer', disabled: true)
+  page.assert_no_selector(:button, 'Enregistrer')
   page.fill_in 'Nom', with: ''
   page.click_button 'Enregistrer'
   page.assert_text 'Nom doit être rempli'

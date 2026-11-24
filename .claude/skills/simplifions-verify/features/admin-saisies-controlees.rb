@@ -5,8 +5,9 @@ SLUG_REFUSE = 'Slug ne doit contenir que des minuscules sans accent, des chiffre
 
 def url_completee(page, solution)
   page.visit("/admin/solutions/#{solution.id}/edit")
-  page.fill_in 'Site internet', with: 'www.exemple-verif.fr'
-  page.click_button 'Publier'
+  Verify.modifier_la_fiche(page, 'Site internet' => 'www.exemple-verif.fr')
+  page.assert_text 'brouillon enregistré'
+  page.click_button 'Publier le brouillon'
   page.assert_text "« #{solution.libelle_admin} » enregistré."
   page.visit("/solutions/#{solution.slug}")
   page.assert_selector :link, 'Site de la solution', href: 'https://www.exemple-verif.fr'
@@ -54,11 +55,12 @@ end
 def slug_refuse(page, nom)
   demarche = Demarche.create!(nom:, slug: "verif-verify-map-#{Verify.browser}", visible: true)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Slug' => 'Vérif avec espaces/et accents')
+  page.click_button 'Modifier le slug'
+  Verify.modifier_la_fiche(page, 'Slug' => 'Vérif avec espaces/et accents')
   page.assert_text 'brouillon enregistré'
   page.find(Verify::BARRE_DEMARCHE).click_button 'Publier'
   page.assert_text SLUG_REFUSE
-  page.find('dialog[open]').assert_selector :field, 'Slug', with: 'Vérif avec espaces/et accents'
+  page.assert_selector :field, 'Slug', with: 'Vérif avec espaces/et accents'
   Verify.evidence(DOSSIER, page, 'slug-refuse', "demarche=#{demarche.id} en_base=#{demarche.reload.slug}")
   page_publique_intacte(page, demarche)
 end
@@ -70,16 +72,16 @@ def page_publique_intacte(page, demarche)
 end
 
 def creer_sans_slug(page, modele, nom)
-  page.visit("/admin/#{modele.model_name.route_key}/new")
+  page.visit(modele == Solution ? '/admin/solutions/new?categorie=logiciel_metier_cle_en_main' : "/admin/#{modele.model_name.route_key}/new")
   page.fill_in "#{modele.model_name.param_key}[nom]", with: nom
   page.click_button 'Enregistrer'
-  page.assert_text "« #{nom} » enregistré."
+  page.assert_text(/« #{Regexp.escape(nom)}( \(.+\))? » enregistré\./)
 end
 
 def slug_tire_du_nom(page, modele, nom, attendu)
   creer_sans_slug(page, modele, nom)
   page.assert_text "/#{modele.model_name.route_key}/#{attendu}" if modele == Demarche
-  page.assert_selector :field, 'Slug', with: attendu, visible: :all
+  page.assert_selector :field, 'Slug', with: attendu, visible: :all, disabled: :all
   en_base = ActiveRecord::Base.uncached { modele.where(nom:).order(:id).last.slug }
   raise "slug en base : #{en_base}" unless en_base == attendu
 

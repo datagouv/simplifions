@@ -28,7 +28,7 @@ Saves nothing (every submit is refused). Preconditions: logged in.
 - **Keyboard.** `Tab` from the summary lands on the first link.
 - **Link.** `click_link 'Nom doit être rempli'`: hash `#demarche_nom`, focus on the field (links carry `data-turbo="false"`, else Turbo fires `turbo:before-visit` and the leave warning asks).
 - **Field.** `aria-invalid="true"`, `aria-describedby` points at the message `Nom doit être rempli`.
-- **Still changed.** `Annuler` asks `Quitter sans enregistrer les modifications ?` (422 counts as changed).
+- **Still changed.** The breadcrumb `Démarches` asks `Quitter sans enregistrer les modifications ?` (422 counts as changed).
 - **Recommandation.** Messages `Choisissez une solution`, `Choisissez une démarche` under the selects.
 - **Narrow.** 640 px wide: no horizontal scroll.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-erreurs-formulaire/`.

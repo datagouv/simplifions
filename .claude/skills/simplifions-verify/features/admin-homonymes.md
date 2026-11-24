@@ -21,7 +21,7 @@ Drive: `features/admin-homonymes.rb` (SKILL.md § Drive).
 Read-only. Preconditions: catalogue imported, two `API Impôt particulier` rows (ids 92 brique_logicielle, 187 api on 2026-10-05).
 
 - **Selects.** Recommandation `Solution` and intégration `API ou jeu de données`: two distinct options for the name.
-- **Checkbox list.** New type d'acteur, `Filtrer les solutions` with `impot particulier`: the same two labels.
+- **Checkbox list.** New type d'acteur, the `Solutions` filter with `impot particulier`: the same two labels.
 - **Categories in the list.** Solutions list searched `impot particulier`: two rows named `API Impôt particulier`, each followed by a different catégorie label (`API`, `Brique technique`).
 - **Proof.** `tmp/verify/admin-homonymes/`.
 

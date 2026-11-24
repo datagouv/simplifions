@@ -5,7 +5,7 @@ QUESTION = 'Quitter sans enregistrer les modifications ?'.freeze
 
 def obligatoire(page)
   Verify.rubrique(page, 'Démarches')
-  page.click_link 'Ajouter'
+  page.click_link 'Ajouter une démarche', match: :first
   raise 'Nom sans required' unless page.find_field('Nom (obligatoire)')[:required]
 end
 
@@ -79,7 +79,7 @@ Verify.drive(__FILE__) do |page|
   premier = Verify.check('Keyboard') { tabulation(page, liens) }
   cible = Verify.check('Link') { lien_vers_le_champ(page) }
   Verify.check('Field') { champ_en_erreur(page, premier, cible) }
-  Verify.check('Still changed') { Verify.demande_avant_de_partir(page, QUESTION) { page.click_link 'Annuler' } }
+  Verify.check('Still changed') { Verify.demande_avant_de_partir(page, QUESTION) { page.find('.fr-breadcrumb').click_link 'Démarches' } }
   Verify.check('Recommandation') { recommandation(page) }
   Verify.check('Narrow') { etroit(page) }
   Verify.check('Proof') { quitter(page) }

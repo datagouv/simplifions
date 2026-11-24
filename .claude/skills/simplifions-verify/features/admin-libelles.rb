@@ -27,7 +27,7 @@ def categorie_de_solution(page, solution)
   page.visit("/admin/solutions/#{solution.id}/edit")
   page.assert_selector :field, 'Identifiant data.gouv', with: solution.uid_datagouv
   categorie = Solution.human_attribute_name("categorie.#{solution.categorie}")
-  page.assert_selector :select, 'Catégorie de solution', selected: categorie
+  page.assert_text "Catégorie de solution : #{categorie}"
   page.scroll_to(page.find_field('Identifiant data.gouv'), align: :center)
   categorie
 end

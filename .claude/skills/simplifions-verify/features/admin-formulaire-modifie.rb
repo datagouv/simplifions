@@ -7,18 +7,20 @@ BEFOREUNLOAD = "(() => { const e = new Event('beforeunload', { cancelable: true 
 def nom_en_base(solution) = ActiveRecord::Base.uncached { Solution.find(solution.id).nom }
 def demande(page, &) = Verify.demande_avant_de_partir(page, QUESTION, &)
 
+def fil_d_ariane(page) = page.find('.fr-breadcrumb').click_link('Solutions')
+
 def sans_saisie(page, nom)
   Verify.ouvrir_solution(page, nom)
-  page.click_link 'Annuler'
+  fil_d_ariane(page)
   page.assert_selector 'h1', text: 'Solutions'
-  Verify.evidence(DOSSIER, page, 'annuler-sans-saisie', 'confirmation=aucune')
+  Verify.evidence(DOSSIER, page, 'quitter-sans-saisie', 'confirmation=aucune')
 end
 
 def reste_sur_la_fiche(page, solution, saisie)
   Verify.ouvrir_depuis_la_liste(page, solution.nom)
   page.find_field('Nom', with: solution.nom)
   page.fill_in 'Nom', with: saisie
-  demande(page) { page.click_link 'Annuler' }
+  demande(page) { fil_d_ariane(page) }
   demande(page) { page.go_back }
   demande(page) { page.click_button 'Supprimer' }
   page.find_field('Nom', with: saisie)
@@ -36,7 +38,7 @@ end
 
 def supprimer_refuse_apres_depart(page)
   page.dismiss_confirm(/^Supprimer/) { page.accept_confirm(QUESTION) { page.click_button 'Supprimer' } }
-  demande(page) { page.click_link 'Annuler' }
+  demande(page) { fil_d_ariane(page) }
 end
 
 def quitter_la_fiche(page, solution, saisie)
@@ -50,7 +52,7 @@ def reseau_coupe(page, solution, saisie)
   page.execute_script("window.fetch = () => Promise.reject(new TypeError('réseau coupé'))")
   page.fill_in 'Nom', with: saisie
   page.click_button 'Enregistrer'
-  demande(page) { page.click_link 'Annuler' }
+  demande(page) { fil_d_ariane(page) }
   Verify.evidence(DOSSIER, page, 'reseau-coupe', "champ=#{page.find_field('Nom').value} confirmation=demandee")
   page.accept_confirm(QUESTION) { page.go_back }
   page.assert_selector 'h1', text: 'Solutions'
@@ -62,7 +64,7 @@ def refus_422(page, nom)
   page.fill_in 'Nom', with: ''
   page.click_button 'Enregistrer'
   page.assert_text 'Nom doit être rempli'
-  demande(page) { page.click_link 'Annuler' }
+  demande(page) { fil_d_ariane(page) }
 end
 
 def enregistrer(page, solution, nom)

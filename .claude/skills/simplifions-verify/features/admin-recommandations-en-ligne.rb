@@ -149,7 +149,8 @@ def integrations(page, ctx)
     .find { !it.id.in?(Demarche.find(ctx[:demarche].id).appliquer_brouillon.integration_ids) }
   avant = page.find("#recommandation_#{carte.id}").find('h4', text: /\AIntégrations/).text
   dialog = Verify.fenetre(page, "Ajouter une intégration à #{carte.solution.libelle_admin.squish}")
-  dialog.fill_in 'Filtrer les intégrations', with: I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ') if dialog.has_field?('Filtrer les intégrations')
+  liste = Verify.liste_filtrable(dialog, 'Intégrations')
+  Verify.filtrer(liste, I18n.transliterate(cible.libelle).scan(/[[:alnum:]]+/).join(' ')) if liste.has_css?('[data-liste-filtrable-target=filtre]', wait: 0)
   dialog.find("label[for=demarche_integration_ids_#{cible.id}]").click
   dialog.click_button 'Enregistrer'
   page.assert_text 'brouillon enregistré', wait: 15

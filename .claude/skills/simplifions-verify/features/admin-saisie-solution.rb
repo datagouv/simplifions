@@ -8,7 +8,7 @@ PANNEAUX = { 'API fournies' => 'api-fournies', 'API intégrées' => 'api-integre
 def integrations_liees(page)
   PANNEAUX.to_h do |onglet, panneau|
     Verify.onglet(page, onglet)
-    selects = page.find("#onglet-#{panneau}-panneau table").all('tbody tr td:first-child select', visible: :all)
+    selects = page.find("#onglet-#{panneau}-panneau table").all('tbody tr select[name$="_id]"]', visible: :all)
     [page.find("#onglet-#{panneau}-panneau h2").text, selects.filter_map { it.all('option[selected]', visible: :all).first&.text }]
   end
 end
