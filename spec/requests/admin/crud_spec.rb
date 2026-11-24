@@ -3001,7 +3001,7 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('h1').text.squish).to eq('Aides sociales')
       expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations y paraissent telles qu’elles seront publiées avec la démarche', 'intégrations, dans leur version publiée')
       expect(response.headers['X-Robots-Tag']).to eq('noindex')
-      expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Cas').and include('Aides sociales')
+      expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Démarche').and include('Aides sociales')
 
       get '/demarches/aides'
       expect([response.parsed_body.at_css('h1').text.squish, bandeau]).to eq(['Aides', nil])

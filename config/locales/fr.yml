@@ -94,7 +94,7 @@ fr:
         consomme: "Intégrée"
     hints:
       demarche:
-        titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Cas d’usage - <nom> »."
+        titre_seo: "Titre affiché par les moteurs de recherche et au partage d’un lien. Vide : « Démarche - <nom> »."
         slug: "Laissé vide, il est tiré du nom à l’enregistrement. Ne plus le changer une fois la page publiée. Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire"
         contexte: "Markdown accepté"
         cadre_juridique: "Markdown accepté"
