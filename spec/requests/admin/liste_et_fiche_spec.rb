@@ -19,6 +19,8 @@ RSpec.describe 'Liste à gauche de la fiche' do
   def page = response.parsed_body
   def liste = page.at_css('nav[aria-label="Liste des démarches"]')
   def lignes = liste.css('li').map { it.text.squish }
+  def invite = page.at_css('.liste-et-fiche__invite')
+  def ajout_de_l_invite(texte) = invite.css('a').find { it.text.squish == texte }['href']
 
   def noms(params = {})
     get('/admin/demarches', params:)
@@ -32,6 +34,7 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('[role=status]').text.squish).to eq('3 démarches')
       expect(liste.css('a').find { it.text.squish == 'Ajouter une démarche' }['href']).to eq('/admin/demarches/new')
       expect(page.css('main').text.squish).to include('Choisissez une démarche dans la liste')
+      expect(ajout_de_l_invite('Ajouter une démarche')).to eq('/admin/demarches/new')
       expect(page.at_css('table')).to be_nil
       expect(liste.at_css('[aria-hidden=true]').text).to eq('💧')
     end
@@ -44,6 +47,8 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(noms(etat: 'brouillons')).to eq(['Bourses'])
       expect(noms(etat: 'publiees', q: 'aides')).to eq(['💧 Aides'])
       expect(noms(etat: 'inconnu')).to eq(['💧 Aides', 'Bourses', 'Cantine'])
+      expect(noms(etat: 'publiees', q: 'aides')).to eq(['💧 Aides'])
+      expect(ajout_de_l_invite('Ajouter une démarche')).to eq('/admin/demarches/new?etat=publiees&q=aides')
     end
 
     it 'dit qu’une recherche ne trouve rien et propose de l’effacer' do
@@ -96,6 +101,7 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('[role=status]').text.squish).to eq('2 solutions')
       expect(liste.css('a').find { it.text.squish == 'Ajouter une solution' }['href']).to eq('/admin/solutions/new')
       expect(page.css('main').text.squish).to include('Choisissez une solution dans la liste')
+      expect(ajout_de_l_invite('Ajouter une solution')).to eq('/admin/solutions/new')
     end
 
     it 'filtre par état et garde la liste à gauche de la fiche, la solution ouverte signalée' do
