@@ -1,6 +1,7 @@
 <% types = { Demarche => ["Cas d'usages", DemarcheCardComponent, :demarches_path],
              Solution => ['Solutions', SolutionCardComponent, :solutions_path] }
    titre, carte, chemin = types.fetch(@catalogue.klass)
+   autre_type, (nom_autre_type, _, chemin_autre_type) = types.except(@catalogue.klass).first
    content_for :title, titre
    total = @catalogue.total_count
    requete = @filtres.to_h.compact_blank
@@ -34,20 +35,6 @@
 
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
       <div class="fr-col-12 fr-col-md-4 fr-col-lg-3" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Filtres")) %>>
-        <p class="fr-text--sm fr-text--bold fr-mb-2w">Type</p>
-        <ul class="catalogue-types list-none fr-p-0 fr-mb-4w" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Type")) %>>
-          <% types.each do |klass, (nom, _, chemin_type)| %>
-            <li class="<%= 'catalogue-types__actif' if klass == @catalogue.klass %>">
-              <%= link_to send(chemin_type, requete), class: "fr-grid-row fr-grid-row--middle fr-text--sm fr-p-1v",
-                    data: { matomo_action: "Changer de catalogue", matomo_nom: nom } do %>
-                <span class="fr-icon-book-2-line fr-icon--sm fr-mr-1w" aria-hidden="true"></span>
-                <span class="fr-col"><%= nom %></span>
-                <span class="fr-badge fr-badge--sm fr-badge--no-icon"><%= klass == @catalogue.klass ? total : klass.catalogue(@filtres).count %></span>
-              <% end %>
-            </li>
-          <% end %>
-        </ul>
-
         <p class="fr-text--sm fr-text--bold fr-mb-2w">Filtres</p>
         <% *principales, (nom_plus, label_plus, options_plus) = facettes %>
         <% principales.each do |nom, label, options| %>
@@ -62,8 +49,14 @@
       </div>
 
       <section id="list" class="fr-col-12 fr-col-md-8 fr-col-lg-9" <%= tag.attributes(data: matomo_zone("Catalogue #{titre.downcase} › Résultats")) %>>
+        <% autres_resultats = autre_type.catalogue(@filtres).count if requete.except(:sort).present? %>
+        <% renvoi = if autres_resultats&.positive?
+                      cle = "catalogue.renvoi.#{autre_type.model_name.i18n_key}"
+                      { texte: t("#{cle}.texte", count: autres_resultats), bouton: t("#{cle}.bouton", count: autres_resultats),
+                        chemin: send(chemin_autre_type, requete), matomo_nom: nom_autre_type }
+                    end %>
         <% if total.zero? %>
-          <%= render "resultats_vides", chemin: send(chemin) %>
+          <%= render "resultats_vides", chemin: send(chemin), renvoi: %>
         <% else %>
           <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters" style="justify-content: space-between">
             <%= render "compteur_de_resultats", total:, tout:, mot: "résultat", classe: "fr-col-auto fr-my-0" %>
@@ -98,6 +91,7 @@
             <% end %>
           </ul>
           <%= pagination @catalogue, ApplicationController::FILTRES_CATALOGUE %>
+          <%= render "resultats_vides", chemin: send(chemin), renvoi:, compteur: false if renvoi %>
         <% end %>
       </section>
     </div>

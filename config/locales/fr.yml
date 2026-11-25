@@ -10,6 +10,22 @@ fr:
   time:
     formats:
       court: "%d/%m/%Y à %H:%M"
+  catalogue:
+    renvoi:
+      solution:
+        texte:
+          one: "Votre recherche correspond aussi à %{count} solution référencée."
+          other: "Votre recherche correspond aussi à %{count} solutions référencées."
+        bouton:
+          one: "Voir la solution"
+          other: "Voir les %{count} solutions"
+      demarche:
+        texte:
+          one: "Votre recherche correspond aussi à %{count} cas d'usage référencé."
+          other: "Votre recherche correspond aussi à %{count} cas d'usages référencés."
+        bouton:
+          one: "Voir le cas d'usage"
+          other: "Voir les %{count} cas d'usages"
   activerecord:
     models:
       demarche:

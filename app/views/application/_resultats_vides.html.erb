@@ -1,9 +1,21 @@
-<div class="catalogue-vide fr-grid-row fr-grid-row--gutters fr-p-3w fr-mt-2w">
-  <div class="fr-col-auto"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
+<% renvoi = local_assigns[:renvoi]
+   compteur = local_assigns.fetch(:compteur, true) %>
+<div class="catalogue-vide fr-grid-row fr-p-3w fr-mt-2w">
+  <div class="fr-col-auto fr-mr-3w"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
   <div class="fr-col">
-    <p id="resultats" class="fr-text--bold fr-mb-1w" tabindex="-1" data-filtres-catalogue-target="compteur">Vous n'avez pas trouvé ce que vous cherchez ?</p>
-    <p class="fr-mb-2w">Essayez de réinitialiser les filtres pour élargir votre recherche.</p>
-    <%= link_to "Réinitialiser les filtres", chemin, class: "fr-btn fr-btn--secondary fr-btn--sm",
-          data: { matomo_action: "Réinitialiser les filtres" } %>
+    <p class="fr-text--bold fr-mb-1w" <%= tag.attributes(id: "resultats", tabindex: "-1", data: { filtres_catalogue_target: "compteur" }) if compteur %>>Vous n'avez pas trouvé ce que vous cherchez ?</p>
+    <% if renvoi %>
+      <p class="fr-mb-2w"><%= renvoi[:texte] %></p>
+      <ul class="fr-btns-group fr-btns-group--inline-sm fr-btns-group--sm fr-btns-group--icon-right">
+        <li><%= link_to renvoi[:bouton], renvoi[:chemin], class: "fr-btn fr-icon-arrow-right-line",
+                  data: { matomo_action: "Changer de catalogue", matomo_nom: renvoi[:matomo_nom] } %></li>
+        <li><%= link_to "Réinitialiser les filtres", chemin, class: "fr-btn fr-btn--secondary",
+                  data: { matomo_action: "Réinitialiser les filtres" } %></li>
+      </ul>
+    <% else %>
+      <p class="fr-mb-2w">Essayez de réinitialiser les filtres pour élargir votre recherche.</p>
+      <%= link_to "Réinitialiser les filtres", chemin, class: "fr-btn fr-btn--secondary fr-btn--sm",
+            data: { matomo_action: "Réinitialiser les filtres" } %>
+    <% end %>
   </div>
 </div>

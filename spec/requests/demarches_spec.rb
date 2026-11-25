@@ -34,8 +34,6 @@ RSpec.describe 'Demarches' do
       zone = ->(element) { element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone'] }
       mesure = ->(element) { [zone.call(element), element['data-matomo-action'], element['data-matomo-nom']] }
 
-      expect(mesure.call(page.find('.catalogue-types a', text: 'Solutions')))
-        .to eq(["Catalogue cas d'usages › Type", 'Changer de catalogue', 'Solutions'])
       expect(mesure.call(page.find_button('Départements (1)')))
         .to eq(["Catalogue cas d'usages › Filtres", 'Choisir un filtre', 'Démarches gérées par : Départements'])
       expect(mesure.call(page.find('select#sort'))).to eq(["Catalogue cas d'usages › Résultats", 'Trier les résultats', nil])
@@ -181,7 +179,7 @@ RSpec.describe 'Demarches' do
       expect(Capybara.string(response.body).find('details', text: 'Afficher les 5 autres')[:open]).to be_nil
     end
 
-    it 'propose les facettes préremplies et le passage aux solutions' do
+    it 'propose les facettes préremplies' do
       communes = TypeActeur.create!(nom: 'Communes', slugs: %w[communes tout-acteurs-publics])
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       Vocabulaire.create!(nom: '💠💠 DLNUF', slug: 'dlnuf', categorie: 'type_simplification')
@@ -198,9 +196,52 @@ RSpec.describe 'Demarches' do
       expect(page).to have_button('Dites-le nous une fois (0)', visible: :all, disabled: true)
       expect(page).to have_button('API, données, brique logicielle (0)', disabled: true)
       expect(response.body).to include('<option selected="selected" value="-created">Date de création</option>')
-      expect(response.body).to include('href="/solutions?fournisseurs-de-service=communes&amp;q=D%C3%A9marche&amp;sort=-created"')
-      expect(response.body).to match(%r{Solutions</span>\s*<span class="fr-badge[^>]*>1</span>})
       expect(response.body).not_to include('form#submit')
+    end
+
+    it 'ne propose plus de changer de catalogue parmi les filtres' do
+      get demarches_path
+      page = Capybara.string(response.body)
+
+      expect(page).to have_css('form.catalogue')
+      expect(page.find('form.catalogue')).to have_no_link(href: %r{\A/solutions})
+    end
+
+    it 'invite en fin de liste à voir les solutions de la même recherche, en gardant filtres et tri' do
+      Solution.create!(nom: 'Démarche express', categorie: 'logiciel_metier_cle_en_main', slug: 'demarche-express', visible: true)
+
+      get demarches_path('q' => 'Démarche', 'sort' => '-created')
+      page = Capybara.string(response.body)
+      encart = page.find('p', text: "Vous n'avez pas trouvé ce que vous cherchez ?").ancestor('div', match: :first, text: 'Réinitialiser les filtres')
+      bouton = encart.find_link('Voir la solution')
+
+      expect(encart).to have_text('Votre recherche correspond aussi à 1 solution référencée.')
+      expect(bouton[:href]).to eq('/solutions?q=D%C3%A9marche&sort=-created')
+      expect([bouton['data-matomo-action'], bouton.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']])
+        .to eq(['Changer de catalogue', "Catalogue cas d'usages › Résultats"])
+      expect(response.body.index('Voir la solution')).to be > response.body.rindex('demarche-card')
+      expect(page).to have_css('#resultats', count: 1, text: 'résultats')
+    end
+
+    it 'invite à voir les solutions dans l’encart qui remplace une liste vide' do
+      2.times { |i| Solution.create!(nom: "Logiciel rare #{i}", categorie: 'logiciel_metier_cle_en_main', slug: "rare-#{i}", visible: true) }
+
+      get demarches_path('q' => 'Logiciel rare')
+      page = Capybara.string(response.body)
+
+      expect(page).to have_text('Votre recherche correspond aussi à 2 solutions référencées.')
+      expect(page).to have_link('Voir les 2 solutions', href: '/solutions?q=Logiciel+rare')
+      expect(page).to have_link('Réinitialiser les filtres', href: '/demarches')
+    end
+
+    it 'n’ajoute pas d’encart sous les résultats sans recherche, ni quand aucune solution ne correspond' do
+      Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true)
+
+      get demarches_path
+      expect(response.body).not_to include("Vous n'avez pas trouvé")
+
+      get demarches_path('q' => 'Démarche')
+      expect(response.body).not_to include("Vous n'avez pas trouvé")
     end
 
     it 'glisse le guide des mairies après la 3e démarche des communes, en première page seulement' do
