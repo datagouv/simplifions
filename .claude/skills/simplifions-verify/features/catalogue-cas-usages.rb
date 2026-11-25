@@ -25,6 +25,17 @@ def titres_des_filtres(page)
   end
 end
 
+def libelle_des_acteurs(page)
+  page.visit('/demarches')
+  page.assert_text(/Gérée par/)
+  Verify.evidence('catalogue-cas-usages', page, 'tuile-demarche', 'tuile_demarche=gérée_par')
+  page.visit("/demarches/#{Demarche.visibles.joins(:types_acteurs).first.slug}")
+  page.assert_text(/Gérée par/)
+  page.visit('/solutions')
+  page.assert_text('À destination de')
+  Verify.evidence('catalogue-cas-usages', page, 'tuile-solution', 'page_demarche=gérée_par tuile_solution=à_destination')
+end
+
 def hauteur_des_types(page)
   page.current_window.resize_to(390, 844)
   page.visit('/demarches')
@@ -77,6 +88,7 @@ Verify.drive(__FILE__) do |page|
     page.find('[role=status]').text[/\d+/].to_i.tap { raise 'catalogue vide' unless it.positive? }
   end
 
+  Verify.check('Card wording') { libelle_des_acteurs(page) }
   Verify.check('Filter heading') { titres_des_filtres(page) }
 
   recherche = Verify.check('Search') do
