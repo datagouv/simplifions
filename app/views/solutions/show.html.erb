@@ -32,7 +32,7 @@
       <div class="fr-mb-4v"><%= render "badge_operateur", solution: @solution %></div>
       <p class="fr-text--lead"><%= @solution.description_courte %></p>
 
-      <%= render "public_vise", usagers:, acteurs: %>
+      <%= render "public_vise", usagers:, acteurs:, **public_vise_de_solution %>
 
       <ul class="fr-mt-4w">
         <li>

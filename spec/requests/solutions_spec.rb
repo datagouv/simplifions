@@ -88,8 +88,8 @@ RSpec.describe 'Solutions' do
 
       expect(response.body).to include('Solution publique | <b>DINUM</b>')
       expect(response.body).to include('Les données des particuliers.')
-      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
-      expect(response.body).to include('À destination des <b>Communes</b>')
+      expect(response.body).to include('Solution intégrant des données des <b>Particuliers</b>')
+      expect(response.body).to include('Solution à destination des <b>Communes</b>')
       expect(response.body).to include('swagger.png')
     end
 
@@ -342,6 +342,17 @@ RSpec.describe 'Solutions' do
 
       expect(response.body).not_to include('Solutions intégrant')
       expect(response.parsed_body.at_css('main').to_html).not_to include('#solutions-integratices')
+    end
+
+    it 'dit, comme les filtres, de qui elle intègre les données et à qui elle est destinée' do
+      Solution.create!(nom: 'Cantine', slug: 'cantine', categorie: 'brique_logicielle', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
+        types_acteurs: [TypeActeur.create!(nom: 'Tous les acteurs publics')])
+
+      get solution_path('cantine')
+
+      expect(response.body).to include('Solution intégrant des données des <b>Particuliers</b>')
+      expect(response.body).to include('Solution à destination de <b>Tous les acteurs publics</b>')
     end
 
     it 'renvoie 404 pour une solution non visible' do
