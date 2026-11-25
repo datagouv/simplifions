@@ -1,6 +1,6 @@
 <% if usagers.present? %>
   <div class="fr-card__detail">
-    <p class="fr-mb-1w white-space-normal">Pour simplifier les démarches des <%= liste_humaine(usagers) %></p>
+    <p class="fr-mb-1w white-space-normal"><%= local_assigns.fetch(:intro_usagers, "Pour simplifier les démarches des") %> <%= liste_humaine(usagers) %></p>
   </div>
 <% end %>
 <% if acteurs.present? %>

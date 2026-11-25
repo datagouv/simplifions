@@ -81,7 +81,7 @@ RSpec.describe 'Demarches' do
       expect(lu_a_voix_haute(lien)).to eq('Cantine à 1€')
       expect(response.body).to include('Communes, simplifiez.')
       expect(response.body).not_to include('Deuxième ligne')
-      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
+      expect(response.body).to include('Démarche à destination des <b>Particuliers</b>')
       expect(response.body).to include('fr-text--right')
       expect(response.body).to include('Gérée par les <b>Communes</b> et <b>Départements</b>')
     end
@@ -392,6 +392,15 @@ RSpec.describe 'Demarches' do
       get demarche_path('cantine')
 
       expect(response.body).to include('Gérée par les <b>Communes</b> et <b>Départements</b>')
+    end
+
+    it 'dit à qui la démarche est destinée, comme le filtre « Démarches à destination des »' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')])
+
+      get demarche_path('cantine')
+
+      expect(response.body).to include('Démarche à destination des <b>Particuliers</b>')
     end
 
     it 'dit « Gérée par Tous les acteurs publics », sans article' do
