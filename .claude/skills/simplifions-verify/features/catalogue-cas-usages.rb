@@ -1,6 +1,6 @@
 require_relative '../harness'
 
-def etiquettes(page, groupe) = page.find(:xpath, "//p[normalize-space()='#{groupe} :']/following-sibling::ul[1]")
+def etiquettes(page, groupe) = page.find(:xpath, "//p[normalize-space()='#{groupe}\u00A0:']/following-sibling::ul[1]")
 
 def compte(page) = page.find('[role=status]').text[/\d+/].to_i
 

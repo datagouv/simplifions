@@ -97,7 +97,7 @@ RSpec.describe 'Solutions' do
       get solutions_path
       titres = Capybara.string(response.body).all('p[id^=titre-]', visible: :all).map(&:text)
 
-      expect(titres.first(2)).to eq(['Solutions intégrant des données des :', 'Solutions à destination des :'])
+      expect(titres.first(2)).to eq(["Solutions intégrant des données des\u00A0:", "Solutions à destination des\u00A0:"])
     end
   end
 
