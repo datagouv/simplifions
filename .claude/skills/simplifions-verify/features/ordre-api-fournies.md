@@ -31,6 +31,8 @@ Preconditions: a visible solution providing at least five visible APIs on data.g
 
 ## Gotchas
 
+- Right after the tab click the DSFR tabs still animate their height: a handle read too early is pressed where a select now sits (Chrome opens the select, nothing moves). The drive waits until the handle stops moving before dragging.
+
 - The first move rewrites `ordre` on every provided API of the solution: the drive restores the original values in `Undo` and again in its `ensure`.
 - `drag_to` drops the row at the target's place as Sortable decides (it landed at position 1 over the 2nd row in Chrome), so the drive reads the resulting position from the database instead of assuming it.
 - Each move leaves paper_trail versions on the integrations.

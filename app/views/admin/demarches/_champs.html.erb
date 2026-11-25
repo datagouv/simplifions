@@ -6,8 +6,15 @@
 <%= f.dsfr_text_field :titre_seo %>
 <%= render "admin/slug", f: %>
 <%= f.dsfr_text_area :description_courte %>
+<div class="fr-grid-row fr-grid-row--gutters">
+  <div class="fr-col-12 fr-col-md-6">
+    <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Démarche gérée par :", elements: "fournisseurs de services", referentiel: true, largeur: "fr-col-12", id: f.field_id(:type_acteur_ids) %>
+  </div>
+  <div class="fr-col-12 fr-col-md-6">
+    <%= render "admin/vocabulaires", f:, categories: %w[usager], legende: nil, legendes: { "usager" => "Démarche à destination de :" }, id: nil, largeur: "fr-col-12" %>
+  </div>
+</div>
+<%= render "admin/vocabulaires", f:, categories: %w[solution type_simplification], legende: nil %>
 <%= f.dsfr_text_area :contexte %>
 <%= f.dsfr_text_area :cadre_juridique %>
-<%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true, id: f.field_id(:type_acteur_ids) %>
 <%= f.dsfr_text_area :mots_clefs %>
-<%= render "admin/vocabulaires", f: f %>

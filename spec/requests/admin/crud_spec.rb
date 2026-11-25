@@ -493,13 +493,20 @@ RSpec.describe 'Administration' do
       api = Vocabulaire.create!(nom: 'API', slug: 'api', categorie: 'solution')
       acces = Vocabulaire.create!(nom: 'Accès facile', slug: 'acces-facile', categorie: 'type_simplification')
 
-      %w[demarches solutions].each do |chemin|
-        get "/admin/#{chemin}/new"
-        vocabulaires = response.parsed_body.at_css('fieldset:has(> legend:contains("Vocabulaires"))')
-        groupes = vocabulaires.css('fieldset').to_h do |groupe|
-          [groupe.at_css('legend').text.strip, groupe.css('input[type=checkbox]').map { |case_a_cocher| case_a_cocher['value'].to_i }]
-        end
-        expect(groupes).to eq('Usager' => [particuliers.id], 'Type de simplification' => [proactivite.id, acces.id], 'Catégorie de solution' => [api.id])
+      get '/admin/solutions/new'
+      expect(groupes_de_vocabulaires('#formulaire-fiche')).to eq(
+        'Pour simplifier les démarches de :' => [particuliers.id], 'Catégorie de solution' => [api.id], 'Type de simplification' => [proactivite.id, acces.id]
+      )
+
+      get '/admin/demarches/new'
+      expect(groupes_de_vocabulaires('#formulaire-fiche')).to eq(
+        'Démarche à destination de :' => [particuliers.id], 'Catégorie de solution' => [api.id], 'Type de simplification' => [proactivite.id, acces.id]
+      )
+    end
+
+    def groupes_de_vocabulaires(conteneur)
+      response.parsed_body.at_css(conteneur).css('fieldset:has(input[name$="[vocabulaire_ids][]"])').to_h do |groupe|
+        [groupe.at_css('legend').text.strip, groupe.css('input[type=checkbox]').map { |case_a_cocher| case_a_cocher['value'].to_i }]
       end
     end
 
@@ -554,7 +561,7 @@ RSpec.describe 'Administration' do
       10.times { |rang| TypeActeur.create!(nom: "Fournisseur #{rang}") }
 
       get '/admin/demarches/new'
-      courte = response.parsed_body.at_css('fieldset:has(> legend:contains("Fournisseurs de services"))')
+      courte = response.parsed_body.at_css('fieldset:has(> legend:contains("Démarche gérée par"))')
       expect(courte.css('input[type=checkbox]').size).to eq(10)
       expect(courte.at_css('input[type=text]')).to be_nil
 
@@ -568,7 +575,8 @@ RSpec.describe 'Administration' do
         expect(filtrables.map { |groupe| groupe.at_css('legend').text.strip }).to eq(groupes)
         filtrables.each do |groupe|
           filtre = groupe.at_css('input[type=text][data-liste-filtrable-target=filtre]')
-          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer', 'cliquer dans le champ', 'flèche bas')
+          expect(groupe.at_css('legend')['class']).to eq('fr-sr-only')
+          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include(groupe.at_css('legend').text.strip, 'cliquer dans le champ', 'flèche bas')
           expect(filtre['data-action'].split).to include('click->liste-filtrable#ouvrir', 'keydown.down->liste-filtrable#ouvrir')
           expect(groupe.at_css('button[type=button][data-action="liste-filtrable#effacer"]').text.strip).to eq("Effacer le filtre des #{groupe.at_css('legend').text.strip.downcase}")
           expect(groupe['data-action']).to eq('focusout->liste-filtrable#quitter')
@@ -594,7 +602,7 @@ RSpec.describe 'Administration' do
 
       hauteurs_de_la_fiche = hauteurs("/admin/demarches/#{demarche.id}/edit")
       expect(hauteurs_de_la_fiche).to include('demarche[description_courte]' => 6, 'demarche[contexte]' => 32, 'demarche[mots_clefs]' => 10)
-      expect(hauteurs_de_la_fiche['demarche[cadre_juridique]']).to be >= 30
+      expect(hauteurs_de_la_fiche['demarche[cadre_juridique]']).to be >= (2900 / 65.0).ceil
       expect(hauteurs('/admin/demarches/new').values).to all(eq(6))
     end
 
@@ -734,7 +742,7 @@ RSpec.describe 'Administration' do
       end
     end
 
-    it 'range les vocabulaires et les fournisseurs sur trois colonnes, pas les éléments du catalogue' do
+    it 'met côte à côte les fournisseurs et les publics de la démarche, pas les éléments du catalogue' do
       TypeActeur.create!(nom: 'Communes')
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       api = Solution.create!(nom: 'API QF', categorie: 'api')
@@ -743,7 +751,7 @@ RSpec.describe 'Administration' do
       Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
       get "/admin/demarches/#{demarche.id}/edit"
       en_colonnes = response.parsed_body.css('input[type=checkbox]').to_h do |case_a_cocher|
-        [case_a_cocher['name'], case_a_cocher.ancestors('.fr-col-12.fr-col-sm-6.fr-col-lg-4').any?]
+        [case_a_cocher['name'], case_a_cocher.ancestors('.fr-col-md-6').any?]
       end
       expect(en_colonnes).to eq('demarche[type_acteur_ids][]' => true, 'demarche[vocabulaire_ids][]' => true, 'demarche[integration_ids][]' => false)
     end
@@ -1193,10 +1201,20 @@ RSpec.describe 'Administration' do
       get "/admin/solutions/#{bouquet.id}/edit"
 
       par_onglet = %w[api-fournies api-integrees integratrices].index_with do |onglet|
-        panneau = response.parsed_body.at_css("#onglet-#{onglet}-panneau")
-        [panneau.css('select[name="integration[type_integration]"]').size, panneau.css('th')[1].text.squish]
+        ligne = response.parsed_body.at_css("#onglet-#{onglet}-panneau tbody tr")
+        ligne.css('label:not(.fr-sr-only)').map { it.children.select(&:text?).join.squish }
       end
-      expect(par_onglet).to eq('api-fournies' => [0, 'Statut'], 'api-integrees' => [0, 'Statut'], 'integratrices' => [2, 'Type d’intégration (obligatoire) et statut'])
+      expect(par_onglet).to eq('api-fournies' => ['Statut'], 'api-integrees' => ['Statut'], 'integratrices' => ['Type d’intégration (obligatoire)', 'Statut'])
+    end
+
+    it 'range dans une seule colonne la solution et son statut, puis les actions de la ligne' do
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      panneau = response.parsed_body.at_css('#onglet-api-integrees-panneau')
+      expect(panneau.css('thead th').map { it.text.squish }).to eq(['API ou jeu de données (obligatoire)'])
+      cellule = panneau.at_css('tbody tr td:only-child')
+      ordre = cellule.css('select, button[type=submit]').map { it['name'] || it.text.squish }
+      expect(ordre.first(3)).to match(['integration[integree_id]', 'integration[statut]', start_with('Enregistrer')])
     end
 
     it 'garde la redirection vers la fiche hors de la ligne' do
@@ -1650,14 +1668,27 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
     end
 
+    it 'ne propose « API FranceConnectée » qu’aux API, et le bascule avec la catégorie' do
+      case_france_connectee = -> { response.parsed_body.at_css('.fr-input-group:has(> .fr-checkbox-group #solution_france_connectee)') }
+
+      get '/admin/solutions/new'
+      expect(case_france_connectee.call['class']).to include('fr-hidden')
+      expect(case_france_connectee.call.css('input')).to all(have_attributes(to_h: include('disabled')))
+      expect(case_france_connectee.call['data-champ-api']).to be_present
+
+      get "/admin/solutions/#{Solution.create!(nom: 'API QF', categorie: 'api').id}/edit"
+      expect(case_france_connectee.call['class']).not_to include('fr-hidden')
+      expect(case_france_connectee.call.css('input[disabled]')).to be_empty
+    end
+
     it 'range les champs dans l’ordre des fiches Grist, la catégorie et l’identifiant data.gouv en tête' do
       {
-        'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
-                        'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires'],
+        'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Démarche gérée par :',
+                        'Démarche à destination de :', 'Catégorie de solution', 'Type de simplification', 'Contexte', 'Cadre juridique', 'Mots-clés'],
         'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
-                        'URL de demande d’accès', 'Organisations', 'Image principale', 'Légende de l’image', 'Description courte',
-                        'Type de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
-                        'Cette solution ne permet pas', 'API FranceConnectée'],
+                        'URL de demande d’accès', 'Organisations', 'API FranceConnectée', 'Image principale', 'Légende de l’image',
+                        'Description courte', 'Solution à destination de :', 'Pour simplifier les démarches de :', 'Type de solution',
+                        'Type de simplification', 'Cette solution permet', 'Cette solution ne permet pas'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Position', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
@@ -1973,7 +2004,7 @@ RSpec.describe 'Administration' do
 
     def champs_masques(solution)
       get "/admin/solutions/#{solution.id}/edit"
-      response.parsed_body.css('form [name^="solution["]').select { |champ| champ.ancestors('.fr-hidden').any? }
+      response.parsed_body.css('form [name^="solution["]:not([name="solution[france_connectee]"])').select { |champ| champ.ancestors('.fr-hidden').any? }
         .map { |champ| [champ['name'][/\[(\w+)\]/, 1], champ.key?('disabled')] }
     end
 
@@ -3311,12 +3342,12 @@ RSpec.describe 'Administration' do
       expect(page.at_css('a[href="/demarches/aides"]').text.squish).to eq('Voir la page publique - nouvelle fenêtre')
       champs_sur_place = page.css('#formulaire-fiche input:not([type=hidden]), #formulaire-fiche textarea').reject { it.ancestors('dialog').any? }
       expect(champs_sur_place.pluck('name').uniq).to eq(
-        ['demarche[icone]', 'demarche[nom]', 'demarche[titre_seo]', 'demarche[slug]', 'demarche[description_courte]', 'demarche[contexte]',
-         'demarche[cadre_juridique]', 'demarche[type_acteur_ids][]', 'demarche[mots_clefs]', 'demarche[vocabulaire_ids][]']
+        ['demarche[icone]', 'demarche[nom]', 'demarche[titre_seo]', 'demarche[slug]', 'demarche[description_courte]',
+         'demarche[type_acteur_ids][]', 'demarche[vocabulaire_ids][]', 'demarche[contexte]', 'demarche[cadre_juridique]', 'demarche[mots_clefs]']
       )
       expect(page.at_css('#demarche_nom')['value']).to eq('Aides')
       expect(page.at_css('#demarche_contexte').text.strip).to eq('Un **contexte**.')
-      expect(page.css('#demarche_vocabulaire_ids input[checked]').pluck('value')).to contain_exactly(publics.id.to_s, dlnuf.id.to_s)
+      expect(page.css('#formulaire-fiche input[name="demarche[vocabulaire_ids][]"][checked]').pluck('value')).to contain_exactly(publics.id.to_s, dlnuf.id.to_s)
       expect(page.css('button.fr-icon-edit-line[aria-controls^="fenetre-"]')).to be_empty
       expect(page.at_css('aside h2').text).to eq('État et actions')
       expect(page.at_css('[role=tablist]')).to be_nil

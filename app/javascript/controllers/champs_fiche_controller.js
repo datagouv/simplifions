@@ -13,5 +13,10 @@ export default class extends Controller {
       champ.classList.toggle("fr-hidden", masque)
       saisies.forEach((saisie) => { saisie.disabled = masque || "verrouille" in saisie.dataset })
     })
+    this.element.form.querySelectorAll("[data-champ-api]").forEach((champ) => {
+      const masque = this.element.value !== "api"
+      champ.classList.toggle("fr-hidden", masque)
+      champ.querySelectorAll("input").forEach((saisie) => { saisie.disabled = masque })
+    })
   }
 }

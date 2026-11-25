@@ -19,6 +19,7 @@
     <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
     <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
     <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
+    <%= f.dsfr_check_box :france_connectee, disabled: !solution.categorie_api?, class: ("fr-hidden" unless solution.categorie_api?), input_group_options: { data: { champ_api: true } } %>
     <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_fiche(f, :image) do %>
       <% image = en_base&.brouillon.to_h.key?("image") ? solution.image : en_base&.image %>
       <% if image&.attached? && image.blob.persisted? %>
@@ -34,13 +35,22 @@
     <% end %>
     <%= f.dsfr_text_field :legende_image, **champ_de_fiche(f, :legende_image) %>
     <%= f.dsfr_text_area :description_courte, **champ_de_fiche(f, :description_courte) %>
+    <div class="fr-grid-row fr-grid-row--gutters">
+      <div class="fr-col-12 fr-col-md-6">
+        <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Solution à destination de :", elements: "fournisseurs de services", referentiel: true, largeur: "fr-col-12" %>
+      </div>
+      <div class="fr-col-12 fr-col-md-6">
+        <%= render "admin/vocabulaires", f:, categories: %w[usager], legende: nil, legendes: { "usager" => "Pour simplifier les démarches de :" }, id: nil, largeur: "fr-col-12" %>
+      </div>
+    </div>
+    <%= render "admin/vocabulaires", f:, categories: %w[solution], legende: nil %>
     <fieldset class="fr-fieldset" id="<%= f.field_id(:types_solution) %>">
       <legend class="fr-fieldset__legend">
         <%= Solution.human_attribute_name(:types_solution) %>
-        <span class="fr-hint-text"><%= t("activerecord.hints.solution.types_solution") %></span>
+        <span class="fr-hint-text fr-text--regular"><%= t("activerecord.hints.solution.types_solution") %></span>
       </legend>
       <%= f.collection_check_boxes :types_solution, Solution::TYPES_SOLUTION, :itself, :itself do |b| %>
-        <div class="fr-fieldset__element">
+        <div class="fr-fieldset__element fr-col-12 fr-col-md-4">
           <div class="fr-checkbox-group">
             <%= b.check_box %>
             <%= b.label(class: "fr-label") %>
@@ -48,11 +58,9 @@
         </div>
       <% end %>
     </fieldset>
-    <%= render "admin/vocabulaires", f: f %>
-    <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
+    <%= render "admin/vocabulaires", f:, categories: %w[type_simplification], legende: nil, id: nil %>
     <%= f.dsfr_text_area :permet, **champ_de_fiche(f, :permet) %>
     <%= f.dsfr_text_area :ne_permet_pas, **champ_de_fiche(f, :ne_permet_pas) %>
-    <%= f.dsfr_check_box :france_connectee %>
   <% end %>
   <% if en_base %>
     <% integratrices = capture do %>

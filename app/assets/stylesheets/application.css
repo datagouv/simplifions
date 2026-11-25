@@ -146,8 +146,20 @@ main > .fr-container-xl--fluid {
   width: 3.5rem;
 }
 
-.lignes-integrations td:nth-child(2) .fr-select {
-  min-width: 12rem;
+.ligne-integration {
+  container-type: inline-size;
+}
+
+.champs-de-la-ligne {
+  display: grid;
+  column-gap: 1rem;
+  align-items: end;
+}
+
+@container (min-width: 30rem) {
+  .champs-de-la-ligne {
+    grid-template-columns: 7fr 5fr;
+  }
 }
 
 .ligne-rangee {

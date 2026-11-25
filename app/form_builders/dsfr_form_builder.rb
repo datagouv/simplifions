@@ -14,13 +14,14 @@ class DsfrFormBuilder < ActionView::Helpers::FormBuilder
   end
 
   def dsfr_file_field(attribute, opts = {}, &)
-    dsfr_field_group(attribute, opts, 'fr-upload-group', file_field(attribute, class: 'fr-upload', **input_options(attribute, opts)), &)
+    espace = { class: @template.class_names('fr-mb-3w', opts[:class]) }
+    dsfr_field_group(attribute, opts.merge(espace), 'fr-upload-group', file_field(attribute, class: 'fr-upload', **input_options(attribute, opts)), &)
   end
 
   def dsfr_check_box(attribute, opts = {})
     dsfr_input_group(attribute, opts) do
       @template.content_tag(:div, class: 'fr-checkbox-group') do
-        @template.safe_join([check_box(attribute, input_options(attribute, opts)), label_with_hint(attribute), error_message(attribute)].compact)
+        @template.safe_join([check_box(attribute, input_options(attribute, opts)), label_with_hint(attribute, 'fr-label'), error_message(attribute)].compact)
       end
     end
   end
@@ -58,15 +59,15 @@ class DsfrFormBuilder < ActionView::Helpers::FormBuilder
     end
   end
 
-  def label_with_hint(attribute)
-    label(attribute, class: 'fr-label') do |text|
+  def label_with_hint(attribute, classes = 'fr-label fr-text--bold')
+    label(attribute, class: classes) do |text|
       @template.safe_join([required?(attribute) ? "#{text.translation} (obligatoire)" : text.translation, hint(attribute)].compact)
     end
   end
 
   def hint(attribute)
     text = I18n.t("activerecord.hints.#{@object.model_name.i18n_key}.#{attribute}", default: nil)
-    @template.content_tag(:span, text, class: 'fr-hint-text') if text
+    @template.content_tag(:span, text, class: 'fr-hint-text fr-text--regular') if text
   end
 
   def error_message(attribute)
@@ -101,7 +102,7 @@ class DsfrFormBuilder < ActionView::Helpers::FormBuilder
   end
 
   def rows_for(text)
-    lines = text.lines.sum { |line| [(line.chomp.length / 80.0).ceil, 1].max }
+    lines = text.lines.sum { |line| [(line.chomp.length / 60.0).ceil, 1].max }
     [lines + 2, 6].max
   end
 end
