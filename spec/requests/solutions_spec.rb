@@ -93,6 +93,18 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('swagger.png')
     end
 
+    it 'dit « fournissant des données » sur la tuile d’une solution qui en fournit sans en intégrer' do
+      particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', slug: 'bouquet', visible: true,
+        vocabulaires: [particuliers])
+      Integration.create!(integratrice: bouquet, type_integration: 'expose',
+        integree: Solution.create!(nom: 'API QF', categorie: 'api', visible: true, uid_datagouv: 'qf'))
+
+      get solutions_path
+
+      expect(response.body).to include('Solution fournissant des données des <b>Particuliers</b>')
+    end
+
     it 'titre les filtres de public avec les mots des solutions, pas ceux des démarches' do
       get solutions_path
       titres = Capybara.string(response.body).all('p[id^=titre-]', visible: :all).map(&:text)
@@ -353,6 +365,17 @@ RSpec.describe 'Solutions' do
 
       expect(response.body).to include('Solution intégrant des données des <b>Particuliers</b>')
       expect(response.body).to include('Solution à destination de <b>Tous les acteurs publics</b>')
+    end
+
+    it 'dit « fournissant des données » sur la fiche d’une solution qui en fournit sans en intégrer' do
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', slug: 'bouquet', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')])
+      Integration.create!(integratrice: bouquet, type_integration: 'expose',
+        integree: Solution.create!(nom: 'API QF', categorie: 'api', visible: true, uid_datagouv: 'qf'))
+
+      get solution_path('bouquet')
+
+      expect(response.body).to include('Solution fournissant des données des <b>Particuliers</b>')
     end
 
     it 'renvoie 404 pour une solution non visible' do

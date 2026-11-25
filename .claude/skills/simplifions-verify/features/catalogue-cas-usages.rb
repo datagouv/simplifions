@@ -44,6 +44,14 @@ def libelle_des_solutions(page)
   page.assert_text('Solution à destination de')
   page.assert_text('Solution intégrant des données des')
   Verify.evidence('catalogue-cas-usages', page, 'tuile-solution', 'page_demarche=gérée_par,démarche_à_destination filtres_solution=intégrant,à_destination tuile_solution=solution_à_destination,solution_intégrant')
+  fiche_fournisseuse(page)
+end
+
+def fiche_fournisseuse(page)
+  fournisseuse = Solution.visibles.fiches.joins(:vocabulaires).where(vocabulaires: { categorie: 'usager' }).distinct.find(&:fournit_sans_integrer?)
+  page.visit("/solutions/#{fournisseuse.slug}")
+  page.assert_text('Solution fournissant des données des')
+  Verify.evidence('catalogue-cas-usages', page, 'fiche-solution-fournisseuse', "fiche=#{fournisseuse.slug} solution_fournissant")
 end
 
 def hauteur_des_types(page)

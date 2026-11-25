@@ -98,6 +98,8 @@ class Solution < ApplicationRecord
   def privee? = fiche? && organisations.none?(&:publique?)
 
   def fournies = [self, *exposees]
+  def fournit_sans_integrer? = exposees.any?(&:affichee_sur_les_fiches?) && consommees.none?(&:affichee_sur_les_fiches?)
+  def affichee_sur_les_fiches? = visible? && uid_datagouv.present?
 
   def api_fournies_dans_l_ordre
     exposees.order(Integration.ordre_public)

@@ -13,7 +13,7 @@
       <% end %>
       <div class="fr-card__end">
         <%= render "application/public_vise", usagers: @card[:usagers], acteurs: @card[:acteurs],
-                                              **helpers.public_vise_de_solution %>
+                                              **helpers.public_vise_de_solution(@card[:solution]) %>
         <% if @arrow %>
           <div class="card-arrow" aria-hidden="true"><span class="fr-icon-arrow-right-line"></span></div>
         <% end %>
