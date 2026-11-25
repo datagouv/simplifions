@@ -28,10 +28,8 @@ module ApplicationHelper
   end
 
   def champ_de_fiche(formulaire, champ)
-    solution = formulaire.object
-    masque = solution.champ_masque?(champ)
-    { class: ('fr-hidden' if masque), disabled: masque,
-      input_group_options: { data: { champ_fiche: true, rempli_en_base: rempli_en_base?(solution, champ) } } }
+    masque = formulaire.object.champ_masque?(champ)
+    { class: ('fr-hidden' if masque), disabled: masque }
   end
 
   def onglet_ouvert(objet, onglets)
@@ -114,8 +112,6 @@ module ApplicationHelper
     valeur = modele.type_for_attribute(champ).cast(valeur)
     modele.defined_enums.key?(champ) && valeur ? modele.human_attribute_name("#{champ}.#{valeur}") : valeur
   end
-
-  def rempli_en_base?(objet, champ) = (true if objet.attribute_in_database(champ).present?)
 
   def etat_du_passage(passage)
     if passage.failed?

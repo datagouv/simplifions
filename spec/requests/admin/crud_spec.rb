@@ -58,7 +58,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     sign_in admin
     get "/admin/#{chemin}"
     expect(fil_d_ariane).to eq(['Administration', collection])
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(fil_d_ariane).to eq(['Administration', collection, 'Nouvelle ligne'])
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(fil_d_ariane).to eq(['Administration', collection, nom])
@@ -74,7 +74,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 
   it 'affiche les formulaires de création et de modification' do
     sign_in admin
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(response.body).to include("action=\"/admin/#{chemin}\"")
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(response.body).to include("action=\"/admin/#{chemin}/#{ligne.id}\"")
@@ -82,7 +82,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 
   it 'surveille les formulaires pour prévenir avant de quitter une saisie' do
     sign_in admin
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['action']).to eq("/admin/#{chemin}")
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['action']).to eq("/admin/#{chemin}/#{ligne.id}")
@@ -129,7 +129,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 
   it 'n’affiche pas d’identifiant Grist sur une ligne qui n’en a pas' do
     sign_in admin
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(response.body).not_to include('Identifiant Grist')
   end
 
@@ -493,7 +493,7 @@ RSpec.describe 'Administration' do
       api = Vocabulaire.create!(nom: 'API', slug: 'api', categorie: 'solution')
       acces = Vocabulaire.create!(nom: 'Accès facile', slug: 'acces-facile', categorie: 'type_simplification')
 
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(groupes_de_vocabulaires('#formulaire-fiche')).to eq(
         'Pour simplifier les démarches de :' => [particuliers.id], 'Catégorie de solution' => [api.id], 'Type de simplification' => [proactivite.id, acces.id]
       )
@@ -516,11 +516,11 @@ RSpec.describe 'Administration' do
       attendus = ['API Impôt particulier (API)', 'API Impôt particulier (Logiciel métier)']
 
       %w[types_acteurs organisations vocabulaires].each do |chemin|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         expect(response.parsed_body.css('input[type=checkbox][name$="[solution_ids][]"] + label').map { |libelle| libelle.text.strip }).to eq(attendus)
       end
       { 'recommandations' => %w[recommandation_solution_id], 'integrations' => %w[integration_integree_id integration_integratrice_id] }.each do |chemin, champs|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         champs.each { |champ| expect(response.parsed_body.css("##{champ} option").map(&:text).compact_blank).to eq(attendus) }
       end
 
@@ -570,7 +570,7 @@ RSpec.describe 'Administration' do
         'integrations' => [], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
         'vocabulaires' => %w[Démarches Solutions]
       }.each do |chemin, groupes|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         filtrables = response.parsed_body.css('fieldset[data-controller="liste-filtrable"]')
         expect(filtrables.map { |groupe| groupe.at_css('legend').text.strip }).to eq(groupes)
         filtrables.each do |groupe|
@@ -613,7 +613,7 @@ RSpec.describe 'Administration' do
         'recommandations' => %w[recommandation_donnees_utiles recommandation_parametres_a_saisir recommandation_description],
         'types_acteurs' => []
       }.each do |chemin, champs|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         signales = response.parsed_body.css('label:has(.fr-hint-text:contains("Markdown accepté"))').pluck('for')
         expect(signales).to eq(champs)
       end
@@ -625,7 +625,7 @@ RSpec.describe 'Administration' do
 
     it 'se saisit sous le nom d’une démarche ou d’une solution, avec son aide' do
       %w[demarche solution].each do |modele|
-        get "/admin/#{modele}s/new"
+        get nouvelle_fiche("#{modele}s")
         libelle = response.parsed_body.at_css("label[for=#{modele}_titre_seo]")
         expect(libelle.xpath('text()').text.strip).to eq('Title SEO')
         expect(libelle.at_css('.fr-hint-text').text).to include('moteurs de recherche')
@@ -736,7 +736,7 @@ RSpec.describe 'Administration' do
         ['Fiche de Particuliers (nouvel onglet)', "/admin/vocabulaires/#{usager.id}", '_blank', false]
       ]
 
-      ["/admin/demarches/#{demarche.id}/edit", '/admin/solutions/new'].each do |chemin|
+      ["/admin/demarches/#{demarche.id}/edit", nouvelle_fiche('solutions')].each do |chemin|
         get chemin
         expect(liens_vers_le_referentiel).to match_array(attendus)
       end
@@ -1590,7 +1590,7 @@ RSpec.describe 'Administration' do
     before { sign_in admin }
 
     def libelles(chemin)
-      get "/admin/#{chemin}/new"
+      get nouvelle_fiche(chemin)
       response.parsed_body.css('form[data-controller="formulaire-modifie"] label, form[data-controller="formulaire-modifie"] legend')
         .map { |libelle| libelle.xpath('text()').text.strip }
     end
@@ -1598,7 +1598,7 @@ RSpec.describe 'Administration' do
     it 'nomme les champs avec les mots du Grist et du site' do
       {
         'demarches' => ['Icône du titre', 'Description courte', 'Cadre juridique', 'Mots-clés'],
-        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
+        'solutions' => ['Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
                         'Type de solution', 'API FranceConnectée', 'Cette solution ne permet pas'],
         'recommandations' => ['Démarche (obligatoire)', 'Type de recommandation (obligatoire)', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
@@ -1613,7 +1613,7 @@ RSpec.describe 'Administration' do
       integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'),
         type_integration: 'consomme')
       %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').text).not_to match(/niveau_\d|_cle_en_main|brique_logicielle|type_simplification|consomme|expose/)
       end
 
@@ -1621,8 +1621,8 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.css('#recommandation_niveau option').map(&:text))
         .to eq(['', 'Donnée utile (API ou jeu de données)', 'Solution recommandée'])
       get '/admin/solutions/new'
-      expect(response.parsed_body.css('#solution_categorie option').map(&:text))
-        .to eq(['', 'Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier'])
+      expect(response.parsed_body.css('input[name=categorie] + label').map { it.children.first.text.strip })
+        .to eq(['Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier'])
       get '/admin/vocabulaires/new'
       expect(response.parsed_body.css('#vocabulaire_categorie option').map(&:text))
         .to eq(['', 'Usager', 'Type de simplification', 'Catégorie de solution'])
@@ -1635,13 +1635,13 @@ RSpec.describe 'Administration' do
         Recommandation => %w[niveau ordre], Solution => %w[uid_datagouv france_connectee slug],
         Demarche => %w[mots_clefs slug], Integration => %w[type_integration]
       }.each do |modele, champs|
-        get "/admin/#{modele.model_name.route_key}/new"
+        get nouvelle_fiche(modele.model_name.route_key)
         champs.each do |champ|
           aide = response.parsed_body.at_css("label[for=#{modele.model_name.param_key}_#{champ}] .fr-hint-text")
           expect(aide).to be_present, "#{modele}.#{champ}"
         end
       end
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.parsed_body.at_css('#solution_types_solution legend .fr-hint-text')).to be_present
     end
 
@@ -1652,7 +1652,7 @@ RSpec.describe 'Administration' do
         'recommandations' => %w[recommandation_solution_id recommandation_demarche_id recommandation_niveau],
         'integrations' => %w[integration_integree_id integration_integratrice_id integration_type_integration]
       }.each do |chemin, obligatoires|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         formulaire = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')
         expect(formulaire['novalidate']).not_to be_nil
         expect(formulaire.css('label').select { |libelle| libelle.text.include?('(obligatoire)') }.pluck('for')).to eq(obligatoires)
@@ -1663,31 +1663,30 @@ RSpec.describe 'Administration' do
     it 'dit dans l’aide les règles qui dépendent d’un autre champ' do
       get '/admin/demarches/new'
       expect(response.parsed_body.at_css('label[for=demarche_slug] .fr-hint-text').text).to include('tiré du nom')
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.parsed_body.at_css('label[for=solution_slug] .fr-hint-text').text).to include('tiré du nom', 'Reste vide pour une API')
-      expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
+      expect(response.parsed_body.at_css('#formulaire-fiche').text).to include('restent vides')
     end
 
-    it 'ne propose « API FranceConnectée » qu’aux API, et le bascule avec la catégorie' do
+    it 'ne propose « API FranceConnectée » qu’aux API' do
       case_france_connectee = -> { response.parsed_body.at_css('.fr-input-group:has(> .fr-checkbox-group #solution_france_connectee)') }
 
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(case_france_connectee.call['class']).to include('fr-hidden')
       expect(case_france_connectee.call.css('input')).to all(have_attributes(to_h: include('disabled')))
-      expect(case_france_connectee.call['data-champ-api']).to be_present
 
       get "/admin/solutions/#{Solution.create!(nom: 'API QF', categorie: 'api').id}/edit"
       expect(case_france_connectee.call['class']).not_to include('fr-hidden')
       expect(case_france_connectee.call.css('input[disabled]')).to be_empty
     end
 
-    it 'range les champs dans l’ordre des fiches Grist, la catégorie et l’identifiant data.gouv en tête' do
+    it 'range les champs dans l’ordre des fiches Grist, l’identifiant data.gouv en tête' do
       {
         'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Démarche gérée par :',
                         'Démarche à destination de :', 'Catégorie de solution', 'Type de simplification', 'Contexte', 'Cadre juridique', 'Mots-clés'],
-        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
+        'solutions' => ['Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
                         'URL de demande d’accès', 'Organisations', 'API FranceConnectée', 'Image principale', 'Légende de l’image',
-                        'Description courte', 'Solution à destination de :', 'Pour simplifier les démarches de :', 'Type de solution',
+                        'Description courte', 'Solution à destination de :', 'Pour simplifier les démarches de :', 'Catégorie de solution', 'Type de solution',
                         'Type de simplification', 'Cette solution permet', 'Cette solution ne permet pas'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Position', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
@@ -1808,7 +1807,7 @@ RSpec.describe 'Administration' do
 
     it 'annonce le format attendu sous le champ et garde la saisie refusée' do
       sign_in admin
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.body).to include('Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>')
 
       post '/admin/demarches', params: { demarche: { nom: 'Aides', slug: 'Aides publiques' } }
@@ -1930,7 +1929,7 @@ RSpec.describe 'Administration' do
 
     before do
       sign_in admin
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       stub_request(:get, melodi).to_return(status: 200, headers: { 'Content-Type' => 'application/json' },
         body: { title: 'API Melodi', organization: { name: 'Insee' } }.to_json)
     end
@@ -2032,19 +2031,96 @@ RSpec.describe 'Administration' do
       expect([champ['disabled'], champ.ancestors('.fr-hidden').any?]).to eq([nil, false])
     end
 
-    it 'marque les champs remplis en base, que la bascule vers API garde visibles même vidés après un refus' do
-      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description')
-      patch "/admin/solutions/#{brique.id}", params: { solution: { nom: '', description_courte: '' } }
-      expect(response.parsed_body.css('[data-rempli-en-base]').map { |groupe| groupe.at_css('[name^="solution["]')['name'] })
-        .to eq(['solution[slug]', 'solution[description_courte]'])
+    it 'demande d’abord la catégorie seule, puis montre la fiche de cette catégorie' do
+      get '/admin/solutions/new'
+      page = response.parsed_body
+      expect(page.at_css('[name="solution[nom]"]')).to be_nil
+      etape = page.at_css('form[method=get][action="/admin/solutions/new"]')
+      expect(etape.css('input[type=radio][name=categorie]').pluck('value')).to match_array(Solution.categories.keys)
+      expect(etape.at_css('input[type=hidden][name=categorie]')['value']).to eq('')
+
+      get '/admin/solutions/new', params: { categorie: 'api' }
+      page = response.parsed_body
+      expect(page.at_css('#formulaire-fiche input[type=hidden][name="solution[categorie]"]')['value']).to eq('api')
+      expect(page.at_css('select[name="solution[categorie]"]')).to be_nil
+      expect(page.at_css('#formulaire-fiche').text.squish).to include('Catégorie de solution : API')
     end
 
-    it 'bascule les champs quand la catégorie change' do
-      get '/admin/solutions/new'
-      categorie = response.parsed_body.at_css('select[name="solution[categorie]"]')
-      expect(categorie.to_h.slice('data-controller', 'data-action')).to eq('data-controller' => 'champs-fiche', 'data-action' => 'champs-fiche#basculer')
-      expect(JSON.parse(categorie['data-champs-fiche-hors-fiches-value'])).to eq(Solution::HORS_FICHES)
-      expect(response.parsed_body.css('form [data-champ-fiche]').size).to eq(champs_fiche.size)
+    it 'redemande la catégorie quand on continue sans en choisir' do
+      get '/admin/solutions/new', params: { categorie: '' }
+      expect(response.parsed_body.at_css('.fr-fieldset--error').text).to include('Choisissez une catégorie')
+    end
+
+    it 'change la catégorie d’une nouvelle fiche et l’enregistre, en gardant les champs communs' do
+      post '/admin/solutions', params: { changer_de_categorie: '1', nouvelle_categorie: 'api',
+                                         solution: { categorie: 'brique_logicielle', nom: 'Bouquet', description_courte: 'Texte' } }
+
+      expect(Solution.last.attributes.slice('categorie', 'nom', 'description_courte')).to eq('categorie' => 'api', 'nom' => 'Bouquet', 'description_courte' => nil)
+    end
+
+    it 'change la catégorie d’une fiche enregistrée, en effaçant ce que l’API n’a pas et en gardant le reste' do
+      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description', titre_seo: 'Bouquet en ligne')
+      patch "/admin/solutions/#{brique.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'api', solution: { categorie: 'brique_logicielle', nom: 'Bouquet API' } }
+
+      expect(response).to redirect_to("/admin/solutions/#{brique.id}/edit")
+      expect(brique.reload.attributes.slice('categorie', 'nom', 'description_courte', 'slug', 'titre_seo'))
+        .to eq('categorie' => 'api', 'nom' => 'Bouquet API', 'description_courte' => nil, 'slug' => nil, 'titre_seo' => 'Bouquet en ligne')
+    end
+
+    it 'efface encore ce que la nouvelle catégorie n’a pas au clic sur « Enregistrer » qui suit un refus' do
+      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description')
+      patch "/admin/solutions/#{brique.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'api', solution: { categorie: 'brique_logicielle', nom: '' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.at_css('input[type=hidden][name="solution[categorie]"]')['value']).to eq('api')
+
+      patch "/admin/solutions/#{brique.id}", params: { solution: { categorie: 'api', nom: 'Bouquet' } }
+      expect(brique.reload.attributes.slice('categorie', 'description_courte')).to eq('categorie' => 'api', 'description_courte' => nil)
+    end
+
+    it 'dit dans la fenêtre ce que chaque catégorie efface, et refuse API et jeu de données à une solution publiée' do
+      publiee = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      get "/admin/solutions/#{publiee.id}/edit"
+      choix = response.parsed_body.css('dialog input[type=radio][name=nouvelle_categorie]').to_h do |radio|
+        [radio['value'], [radio.key?('disabled'), radio.parent.at_css('.fr-hint-text')&.text&.squish]]
+      end
+
+      expect(choix['brique_logicielle']).to eq([false, 'Rien n’est effacé.'])
+      expect(choix['api']).to eq([true, 'Masquez d’abord la solution pour la transformer en API ou en jeu de données.'])
+      expect(choix['base_de_donnees'].first).to be(true)
+
+      get "/admin/solutions/#{Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle').id}/edit"
+      aide = response.parsed_body.at_css('dialog input[value=api]').parent.at_css('.fr-hint-text').text
+      expect(aide).to start_with('Efface : Slug, Site internet')
+    end
+
+    it 'refuse de faire d’une solution publiée une API, même sans passer par la fenêtre' do
+      publiee = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      patch "/admin/solutions/#{publiee.id}", params: { solution: { categorie: 'api', slug: '' } }
+      expect(response.parsed_body.text).to include('masquez-la d’abord')
+      expect(publiee.reload.brouillon.to_h).not_to include('categorie')
+    end
+
+    it 'efface ce que la fenêtre annonce quand le brouillon d’une API publiée la ramène à API' do
+      api = Solution.create!(nom: 'API Melodi', categorie: 'api', visible: true)
+      patch "/admin/solutions/#{api.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'logiciel_metier_cle_en_main', solution: { categorie: 'api', nom: 'API Melodi' } }
+      patch "/admin/solutions/#{api.id}", params: { solution: { categorie: 'logiciel_metier_cle_en_main', nom: 'API Melodi', description_courte: 'Texte du brouillon' } }
+
+      get "/admin/solutions/#{api.id}/edit"
+      expect(response.parsed_body.at_css('dialog input[value=api]').parent.at_css('.fr-hint-text').text).to include('Description courte')
+
+      patch "/admin/solutions/#{api.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'api',
+                                                    solution: { categorie: 'logiciel_metier_cle_en_main', nom: 'API Melodi', description_courte: 'Texte du brouillon' } }
+      patch "/admin/solutions/#{api.id}", params: { solution: { categorie: 'api', nom: 'API Melodi', visible: '1' } }
+
+      expect(response).to redirect_to("/admin/solutions/#{api.id}/edit")
+      expect(api.reload.attributes.slice('categorie', 'description_courte', 'brouillon')).to eq('categorie' => 'api', 'description_courte' => nil, 'brouillon' => nil)
+    end
+
+    it 'propose de choisir la catégorie d’une solution qui n’en a pas' do
+      get "/admin/solutions/#{Solution.create!(nom: 'Bouquet').id}/edit"
+      fiche = response.parsed_body.at_css('#formulaire-fiche')
+      expect(fiche.text.squish).to include('Catégorie de solution : non renseignée')
+      expect(fiche.css('button').map { it.text.strip }).to include('Choisir la catégorie')
     end
   end
 
@@ -2071,7 +2147,7 @@ RSpec.describe 'Administration' do
     end
 
     it 'propose les types de la liste fixe en cases à cocher et enregistre ceux cochés' do
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.parsed_body.css('input[type=checkbox][name="solution[types_solution][]"]').pluck('value'))
         .to eq(Solution::TYPES_SOLUTION)
 
@@ -2314,7 +2390,7 @@ RSpec.describe 'Administration' do
 
     def boutons_du_formulaire
       identifiant = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['id']
-      response.parsed_body.css("button[type=submit][form=\"#{identifiant}\"]:not([hidden])").map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
+      response.parsed_body.css("button[type=submit][form=\"#{identifiant}\"]:not([hidden])").reject { it.ancestors('dialog').any? }.map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
     end
 
     it 'montre l’état, les dates et l’identifiant Grist d’une démarche, et l’enregistre depuis son état' do
@@ -2401,7 +2477,7 @@ RSpec.describe 'Administration' do
         expect(etat_de_la_fiche.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq(I18n.t("admin.supprimer_la_fiche.#{ligne.model_name.i18n_key}"))
         expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button[type=submit]:not([form])')).to be_empty
 
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         expect(boutons_du_formulaire).to eq(boutons.reverse), chemin
       end
     end

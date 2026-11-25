@@ -21,8 +21,9 @@ class Solution < ApplicationRecord
   }
   normalizes :uid_datagouv, with: ->(uid) { uid.strip }
   validate :uid_datagouv_libre, on: :admin, if: -> { uid_datagouv.present? && uid_datagouv_changed? }
-  validates :description_courte, :site_internet, :permet, :ne_permet_pas, :legende_image,
-    :url_demande_acces, :slug, :image, absence: true, unless: :fiche?
+  CHAMPS_DE_FICHE = %i[slug site_internet url_demande_acces image legende_image description_courte permet ne_permet_pas].freeze
+  validates(*CHAMPS_DE_FICHE, absence: true, unless: :fiche?)
+  validate -> { errors.add(:categorie, :page_publique) unless categorie_possible?(categorie) }, on: :admin, if: :categorie_changed?
 
   has_one_attached :image
   TYPES_IMAGE = %w[image/png image/jpeg image/webp].freeze
@@ -87,7 +88,25 @@ class Solution < ApplicationRecord
   def page_publique? = visible? && slug.present?
 
   def champ_masque?(champ)
-    !fiche? && public_send(champ).blank? && !will_save_change_to_attribute?(champ) && !attachment_changes.key?(champ.to_s)
+    !fiche? && public_send(champ).blank? &&
+      (categorie_changed? || (!will_save_change_to_attribute?(champ) && !attachment_changes.key?(champ.to_s)))
+  end
+
+  def categorie_possible?(nouvelle)
+    !(visible_in_database && HORS_FICHES.exclude?(categorie_in_database) && HORS_FICHES.include?(nouvelle))
+  end
+
+  def champs_effaces_par(nouvelle)
+    return [] if nouvelle == categorie || HORS_FICHES.exclude?(nouvelle)
+
+    fiche? ? CHAMPS_DE_FICHE : %i[uid_datagouv]
+  end
+
+  def changement_de_categorie(nouvelle)
+    return {} unless self.class.categories.key?(nouvelle)
+
+    telle_qu_affichee = brouillon? ? self.class.find(id).appliquer_brouillon : self
+    telle_qu_affichee.champs_effaces_par(nouvelle).index_with(nil).merge(categorie: nouvelle)
   end
 
   scope :par_libelle_admin, -> { order(:nom, :categorie) }

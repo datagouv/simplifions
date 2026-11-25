@@ -110,5 +110,11 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('select[name=etat] option[selected]').text).to eq('Masquées')
       expect(page.at_css('h1').text).to eq('API Sirene (API)')
     end
+
+    it 'garde la recherche et le filtre après le choix de la catégorie' do
+      get '/admin/solutions/new', params: { q: 'api', etat: 'masquees' }
+      expect(page.at_css('form#formulaire-fiche')['action']).to eq('/admin/solutions/new')
+      expect(page.css('input[form=formulaire-fiche][type=hidden]').to_h { [it['name'], it['value']] }).to eq('q' => 'api', 'etat' => 'masquees')
+    end
   end
 end

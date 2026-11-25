@@ -4,10 +4,16 @@ DOSSIER = 'admin-identifiant-datagouv'.freeze
 MELODI = '6661e09c7230a8fc3b1ec229'.freeze
 SIRENE = '672cf6aece89cb14e31f0fba'.freeze
 
-def nouvelle_api(page, nom, uid)
+def nouvelle_fiche_d_api(page)
   page.visit('/admin/solutions/new')
+  page.find('label[for=choix-categorie-api]').click
+  page.click_button 'Continuer'
+  page.assert_text 'Catégorie de solution : API'
+end
+
+def nouvelle_api(page, nom, uid)
+  nouvelle_fiche_d_api(page)
   page.fill_in 'Nom', with: nom
-  page.select 'API', from: 'Catégorie de solution'
   page.check 'API', allow_label_click: true
   page.fill_in 'Identifiant data.gouv', with: uid
   page.click_button 'Enregistrer'
@@ -92,9 +98,22 @@ def attente_annoncee(page)
   page.assert_no_selector('[role=status]', text: ATTENTE)
 end
 
+def nom_tape_garde(page, nom, melodi)
+  page.fill_in 'Nom', with: "#{nom} tapé"
+  saisir_identifiant(page, MELODI)
+  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
+  page.assert_selector(:field, 'Nom', with: "#{nom} tapé")
+end
+
+def rien_enregistre(page, melodi)
+  raise "#{MELODI} enregistré par l’aperçu" if ActiveRecord::Base.uncached { Solution.exists?(uid_datagouv: MELODI) }
+
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence(DOSSIER, page, 'apercu', "titre=#{melodi} nom gardé=#{page.find_field('Nom').value} rien enregistré")
+end
+
 def apercu(page, nom)
-  page.visit('/admin/solutions/new')
-  page.select 'API', from: 'Catégorie de solution'
+  nouvelle_fiche_d_api(page)
   noter_les_annonces(page)
   saisir_identifiant(page, MELODI)
   melodi = titre_apercu(page)
@@ -102,19 +121,13 @@ def apercu(page, nom)
   page.assert_selector(:field, 'Nom', with: melodi)
   saisir_identifiant(page, SIRENE)
   page.assert_selector(:field, 'Nom', with: titre_apercu(page, melodi))
-  page.fill_in 'Nom', with: "#{nom} tapé"
-  saisir_identifiant(page, MELODI)
-  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
-  page.assert_selector(:field, 'Nom', with: "#{nom} tapé")
-  page.select 'Logiciel métier', from: 'Catégorie de solution'
-  page.assert_no_selector('h2', text: 'Repris de data.gouv.fr')
-  page.select 'API', from: 'Catégorie de solution'
-  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
-  raise "#{MELODI} enregistré par l’aperçu" if ActiveRecord::Base.uncached { Solution.exists?(uid_datagouv: MELODI) }
+  nom_tape_garde(page, nom, melodi)
+  rien_enregistre(page, melodi)
+  revenir_a_la_liste(page)
+end
 
-  page.scroll_to(bloc_datagouv(page), align: :center)
-  Verify.evidence(DOSSIER, page, 'apercu', "titre=#{melodi} nom gardé=#{page.find_field('Nom').value} rien enregistré")
-  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_on 'Annuler' }
+def revenir_a_la_liste(page)
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.within('nav[aria-label="vous êtes ici :"]') { page.click_link 'Solutions' } }
   page.assert_text 'Choisissez une solution dans la liste'
 end
 

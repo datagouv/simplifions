@@ -2,7 +2,11 @@
 
 <%= render layout: "liste_et_fiche", locals: { lignes: @solutions } do %>
   <h1>Solution : nouvelle ligne</h1>
-  <%= render layout: "admin/fiche" do %>
-    <%= render "form", solution: @solution %>
+  <% if @solution.categorie || @solution.errors.any? %>
+    <%= render layout: "admin/fiche" do %>
+      <%= render "form", solution: @solution %>
+    <% end %>
+  <% else %>
+    <%= render "premiere_etape" %>
   <% end %>
 <% end %>

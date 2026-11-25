@@ -49,6 +49,14 @@ module AdminHelper
     public_send("#{ligne.model_name.singular_route_key}_url", slug).delete_prefix(request.protocol)
   end
 
+  def effet_du_changement_de_categorie(solution, categorie)
+    return 'Catégorie actuelle.' if categorie == solution.categorie
+    return 'Masquez d’abord la solution pour la transformer en API ou en jeu de données.' unless solution.categorie_possible?(categorie)
+
+    effaces = solution.champs_effaces_par(categorie).map { Solution.human_attribute_name(it) }
+    effaces.any? ? "Efface : #{effaces.join(', ')}." : 'Rien n’est effacé.'
+  end
+
   def changements_a_publier(demarche)
     return [] unless demarche.visible?
 

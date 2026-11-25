@@ -1,0 +1,8 @@
+<%= form_with url: new_admin_solution_path, method: :get, id: "formulaire-fiche" do %>
+  <%= hidden_field_tag :categorie, "", id: nil %>
+  <%= render "choix_de_categorie", nom: "categorie", legende: "Quelle est la catégorie de cette solution ?",
+        aide: ->(categorie) { Solution::HORS_FICHES.include?(categorie) ? "Pas de page sur le site." : "A sa page sur le site." },
+        erreur: ("Choisissez une catégorie." if params.key?(:categorie)) %>
+  <p class="fr-hint-text">Elle pourra être changée ensuite, au prix des champs qu’elle n’a pas.</p>
+  <button type="submit" class="fr-btn">Continuer</button>
+<% end %>

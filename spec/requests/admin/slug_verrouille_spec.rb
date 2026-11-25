@@ -27,7 +27,7 @@ RSpec.describe 'Slug verrouillé dans les fiches' do
   end
 
   it 'grise le slug d’une solution, à la création comme à la modification, avec un bouton pour le modifier' do
-    get '/admin/solutions/new'
+    get nouvelle_fiche('solutions')
     expect(slug(:solution)['disabled']).to be_present
     expect(bouton_modifier).to be_present
 

@@ -5,8 +5,7 @@
 <%= form_with model: [:admin, solution], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(solution) do |f| %>
   <%= render "admin/erreurs", f: f %>
   <% fiche = capture do %>
-    <%= f.dsfr_select :categorie, options_traduites(Solution, :categorie),
-          data: { controller: "champs-fiche", action: "champs-fiche#basculer", champs_fiche_hors_fiches_value: Solution::HORS_FICHES } %>
+    <%= render "categorie", f: %>
     <%= f.dsfr_text_field :uid_datagouv %>
     <%= tag.div data: { controller: "datagouv", action: "turbo:before-fetch-request->datagouv#attendre turbo:before-fetch-response->datagouv#finirLAttente turbo:fetch-request-error->datagouv#finirLAttente turbo:frame-load->datagouv#remplirLeNom",
           datagouv_url_value: apercu_datagouv_admin_solutions_path, datagouv_categories_value: Solution::HORS_FICHES, datagouv_attente_value: "Recherche de cet identifiant sur data.gouv.fr…" } do %>
@@ -19,7 +18,7 @@
     <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
     <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
     <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
-    <%= f.dsfr_check_box :france_connectee, disabled: !solution.categorie_api?, class: ("fr-hidden" unless solution.categorie_api?), input_group_options: { data: { champ_api: true } } %>
+    <%= f.dsfr_check_box :france_connectee, disabled: !solution.categorie_api?, class: ("fr-hidden" unless solution.categorie_api?) %>
     <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_fiche(f, :image) do %>
       <% image = en_base&.brouillon.to_h.key?("image") ? solution.image : en_base&.image %>
       <% if image&.attached? && image.blob.persisted? %>

@@ -155,6 +155,7 @@ fr:
       inclusion: "doit être choisi dans la liste"
       record_invalid: "La validation a échoué : %{errors}"
       type_image: "doit être une image png, jpg ou webp"
+      page_publique: "ne peut pas devenir API ou jeu de données tant que la solution est publiée : masquez-la d’abord"
       deja_utilise: "est déjà celui de « %{fiche} »"
       format_slug: "ne doit contenir que des minuscules sans accent, des chiffres et des tirets"
       solution_integree_elle_meme: "Une solution ne peut pas s’intégrer elle-même"

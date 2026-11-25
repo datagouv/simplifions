@@ -16,7 +16,7 @@ export default class extends Controller {
   relancer = ({ target }) => {
     const uid = this.champ("uid_datagouv")
     const categorie = this.champ("categorie")
-    if (target !== uid && target !== categorie) return
+    if (target !== uid) return
     if (!uid.value.trim() || !this.categoriesValue.includes(categorie.value)) {
       this.cadreTarget.removeAttribute("src")
       this.cadreTarget.replaceChildren()
