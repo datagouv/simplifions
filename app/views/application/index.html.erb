@@ -5,8 +5,11 @@
    total = @catalogue.total_count
    requete = @filtres.to_h.compact_blank
    tout = @catalogue.klass.catalogue({}).count
-   facettes = [['target-users', 'Démarches à destination des', Vocabulaire.categorie_usager.choix],
-               ['fournisseurs-de-service', 'Démarches gérées par', TypeActeur::FILTRES.to_a],
+   titres_publics = { Demarche => ['Démarches à destination des', 'Démarches gérées par'],
+                      Solution => ['Solutions intégrant des données des', 'Solutions à destination des'] }
+   titre_usagers, titre_acteurs = titres_publics.fetch(@catalogue.klass)
+   facettes = [['target-users', titre_usagers, Vocabulaire.categorie_usager.choix],
+               ['fournisseurs-de-service', titre_acteurs, TypeActeur::FILTRES.to_a],
                ['categorie-de-solution', 'Solution recherchée', Vocabulaire.categorie_solution.choix],
                ['types-de-simplification', 'Type de simplification des démarches', Vocabulaire.categorie_type_simplification.choix]] %>
 <div class="fr-container">

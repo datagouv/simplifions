@@ -92,6 +92,13 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('À destination des <b>Communes</b>')
       expect(response.body).to include('swagger.png')
     end
+
+    it 'titre les filtres de public avec les mots des solutions, pas ceux des démarches' do
+      get solutions_path
+      titres = Capybara.string(response.body).all('p[id^=titre-]', visible: :all).map(&:text)
+
+      expect(titres.first(2)).to eq(['Solutions intégrant des données des :', 'Solutions à destination des :'])
+    end
   end
 
   describe 'contenu de la page' do
