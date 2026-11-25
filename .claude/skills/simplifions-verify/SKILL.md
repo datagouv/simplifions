@@ -110,5 +110,6 @@ Leave `tmp/verify/*/` in place. Each drive deletes what it creates, in its `ensu
 - The dev database is shared with the site on port 3000 and with `make import`; never `db:reset`, never edit catalogue rows outside the rows a drive creates.
 - `Vérif` appears in the row name on purpose: it sorts last and is greppable.
 - One browser session per container, held for the whole drive: a second drive started meanwhile waits 5 minutes, then fails on `session not created`. Run drives one after another.
+- After a click that submits a form, wait for a text that only the new page shows: a wait for a text the old page already shows passes at once, and the next `find` goes stale.
 - `bin/rails runner` keeps the query cache on: a read-back after a mutation made by the browser goes inside `ActiveRecord::Base.uncached { … }`.
 - On Linux the container writes `tmp/` and `log/` as root; before removing a worktree, `docker compose run --rm web chown -R "$(id -u):$(id -g)" tmp log`. Docker Desktop on a Mac keeps the user as owner.
