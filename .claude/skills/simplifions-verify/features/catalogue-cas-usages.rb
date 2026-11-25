@@ -28,12 +28,15 @@ end
 def libelle_des_acteurs(page)
   page.visit('/demarches')
   page.assert_text(/Gérée par/)
-  Verify.evidence('catalogue-cas-usages', page, 'tuile-demarche', 'tuile_demarche=gérée_par')
-  page.visit("/demarches/#{Demarche.visibles.joins(:types_acteurs).first.slug}")
+  page.assert_text('Démarche à destination des')
+  Verify.evidence('catalogue-cas-usages', page, 'tuile-demarche', 'tuile_demarche=gérée_par,démarche_à_destination')
+  page.visit("/demarches/#{Demarche.visibles.joins(:types_acteurs, :vocabulaires).where(vocabulaires: { categorie: 'usager' }).first.slug}")
   page.assert_text(/Gérée par/)
+  page.assert_text('Démarche à destination des')
   page.visit('/solutions')
   page.assert_text('À destination de')
-  Verify.evidence('catalogue-cas-usages', page, 'tuile-solution', 'page_demarche=gérée_par tuile_solution=à_destination')
+  page.assert_text('Pour simplifier les démarches des')
+  Verify.evidence('catalogue-cas-usages', page, 'tuile-solution', 'page_demarche=gérée_par,démarche_à_destination tuile_solution=à_destination,pour_simplifier')
 end
 
 def hauteur_des_types(page)
