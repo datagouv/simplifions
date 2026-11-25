@@ -1,7 +1,9 @@
 <%= turbo_frame_tag "repris-datagouv", src: (apercu_datagouv_admin_solutions_path(uid: solution.uid_datagouv, categorie: solution.categorie) if a_recharger),
-      aria: { live: "polite" }, data: { datagouv_target: "cadre" } do %>
+      aria: { live: "polite" }, data: { datagouv_target: "cadre",
+      action: "turbo:before-fetch-request->datagouv#attendre:self turbo:before-fetch-response->datagouv#finirLAttente:self turbo:fetch-request-error->datagouv#finirLAttente:self turbo:frame-load->datagouv#reprendre:self" } do %>
   <% if solution.uid_datagouv.present? && !a_recharger %>
-    <div class="fr-mb-3w" data-titre-datagouv="<%= solution.datagouv_titre %>">
+    <% organisation = solution.organisation_de_datagouv %>
+    <%= tag.div class: "fr-mb-3w", data: { titre_datagouv: solution.datagouv_titre, organisation_datagouv: organisation&.id } do %>
       <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
       <% if solution.datagouv_titre.blank? %>
         <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-1w">
@@ -14,12 +16,19 @@
       <% end %>
       <ul>
         <li>Titre : <%= solution.datagouv_titre %></li>
-        <li>Organisation : <%= solution.datagouv_organisation %></li>
+        <li>
+          Organisation : <%= solution.datagouv_organisation %>
+          <% if organisation %>
+            (correspond à « <%= organisation.nom %> » de la liste Organisations)
+          <% elsif solution.datagouv_organisation.present? %>
+            (absente de la liste Organisations)
+          <% end %>
+        </li>
         <li>Logo : <%= solution.datagouv_logo %></li>
         <li>Accès : <%= solution.datagouv_acces %></li>
         <li>Accès des acteurs publics : <%= solution.datagouv_acces_acteurs_publics %></li>
         <li>Badges de l’organisation : <%= solution.datagouv_organisation_badges.join(", ") %></li>
       </ul>
-    </div>
+    <% end %>
   <% end %>
 <% end %>

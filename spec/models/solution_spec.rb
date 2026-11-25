@@ -129,6 +129,11 @@ RSpec.describe Solution do
       api.site_internet = 'https://exemple.fr'
       expect(api.champ_masque?(:site_internet)).to be(false)
     end
+
+    it 'masque l’identifiant data.gouv vide hors API et jeu de données' do
+      expect(described_class.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main').champ_masque?(:uid_datagouv)).to be(true)
+      expect(described_class.new(nom: 'API QF', categorie: 'api').champ_masque?(:uid_datagouv)).to be(false)
+    end
   end
 
   describe '#libelle_admin' do

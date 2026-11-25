@@ -88,7 +88,8 @@ class Solution < ApplicationRecord
   def page_publique? = visible? && slug.present?
 
   def champ_masque?(champ)
-    !fiche? && public_send(champ).blank? &&
+    hors_de_sa_categorie = champ == :uid_datagouv ? fiche? : !fiche?
+    hors_de_sa_categorie && public_send(champ).blank? &&
       (categorie_changed? || (!will_save_change_to_attribute?(champ) && !attachment_changes.key?(champ.to_s)))
   end
 
@@ -148,6 +149,8 @@ class Solution < ApplicationRecord
   end
 
   def producteur = datagouv_organisation.presence || organisations.first&.then { |orga| orga.nom_long.presence || orga.nom }
+
+  def organisation_de_datagouv = (Organisation.du_nom(datagouv_organisation).order(:id).first if datagouv_organisation.present?)
 
   def lien_datagouv
     "https://www.data.gouv.fr/fr/#{categorie_base_de_donnees? ? 'datasets' : 'dataservices'}/#{uid_datagouv}"

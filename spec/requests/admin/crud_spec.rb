@@ -1684,8 +1684,8 @@ RSpec.describe 'Administration' do
       {
         'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Démarche gérée par :',
                         'Démarche à destination de :', 'Catégorie de solution', 'Type de simplification', 'Contexte', 'Cadre juridique', 'Mots-clés'],
-        'solutions' => ['Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
-                        'URL de demande d’accès', 'Organisations', 'API FranceConnectée', 'Image principale', 'Légende de l’image',
+        'solutions' => ['Identifiant data.gouv', 'Organisations', 'Nom (obligatoire)', 'Slug', 'Site internet',
+                        'URL de demande d’accès', 'API FranceConnectée', 'Image principale', 'Légende de l’image',
                         'Description courte', 'Solution à destination de :', 'Pour simplifier les démarches de :', 'Catégorie de solution', 'Type de solution',
                         'Type de simplification', 'Cette solution permet', 'Cette solution ne permet pas'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
@@ -1994,6 +1994,33 @@ RSpec.describe 'Administration' do
       expect(cadre['src']).to be_nil
       expect(cadre.text).to include('Titre : Titre enregistré')
     end
+
+    it 'propose de récupérer les infos d’une API, juste au-dessus de ses organisations' do
+      get '/admin/solutions/new?categorie=api'
+      page = response.parsed_body
+      bouton = page.at_css('button[data-action="datagouv#recuperer"]')
+      expect(bouton.text).to eq('Récupérer les infos data.gouv')
+      expect(page.at_css('turbo-frame#repris-datagouv + fieldset legend').text).to include('Organisations')
+    end
+
+    it 'ne propose pas la récupération pour une fiche hors API et jeu de données' do
+      get nouvelle_fiche('solutions')
+      expect(response.body).not_to include('Récupérer les infos data.gouv')
+    end
+
+    it 'désigne l’organisation de la liste qui porte le nom donné par data.gouv.fr' do
+      insee = Organisation.create!(nom: 'INSEE', nom_long: 'Institut national de la statistique et des études économiques')
+      stub_request(:get, melodi).to_return(status: 200, body: { title: 'API Melodi', organization: { name: ' Institut national de la statistique et des etudes economiques' } }.to_json)
+      bloc = apercu('6661e09c7230a8fc3b1ec229')
+      expect(bloc).to include('correspond à « INSEE » de la liste Organisations')
+      expect(response.parsed_body.at_css('[data-organisation-datagouv]')['data-organisation-datagouv']).to eq(insee.id.to_s)
+    end
+
+    it 'signale une organisation de data.gouv.fr absente de la liste' do
+      Organisation.create!(nom: 'DINUM')
+      expect(apercu('6661e09c7230a8fc3b1ec229')).to include('Organisation : Insee (absente de la liste Organisations)')
+      expect(response.parsed_body.at_css('[data-organisation-datagouv]')).to be_nil
+    end
   end
 
   describe 'formulaire solution selon sa catégorie' do
@@ -2013,8 +2040,15 @@ RSpec.describe 'Administration' do
       end
     end
 
-    it 'montre les champs de fiche des autres catégories' do
-      [nil, 'brique_logicielle'].each { |categorie| expect(champs_masques(Solution.create!(nom: 'Bouquet', categorie:))).to be_empty }
+    it 'montre les champs de fiche des autres catégories, sans l’identifiant data.gouv' do
+      %w[brique_logicielle site_de_consultation logiciel_metier_cle_en_main].each do |categorie|
+        expect(champs_masques(Solution.create!(nom: 'Bouquet', categorie:))).to eq([['uid_datagouv', true]])
+      end
+    end
+
+    it 'laisse visible l’identifiant data.gouv déjà rempli d’une brique technique, pour qu’on puisse le vider' do
+      brique = Solution.create!(nom: 'FranceConnect', categorie: 'brique_logicielle', uid_datagouv: 'identifiant-franceconnect')
+      expect(champs_masques(brique)).to be_empty
     end
 
     it 'laisse visible un champ de fiche déjà rempli, pour qu’on puisse le vider' do

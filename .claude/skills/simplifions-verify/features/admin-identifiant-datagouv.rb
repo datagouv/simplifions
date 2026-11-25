@@ -69,9 +69,9 @@ def doublon(page, nom)
   Verify.evidence(DOSSIER, page, 'doublon', "refusé, fiches avec #{SIRENE} : #{doublons} (#{sirene.libelle_admin})")
 end
 
-def saisir_identifiant(page, uid)
+def saisir_identifiant(page, uid, touche: nil)
   page.fill_in 'Identifiant data.gouv', with: uid
-  page.find_field('Nom').click
+  touche ? page.find_field('Identifiant data.gouv').send_keys(touche) : page.click_button('Récupérer les infos data.gouv')
 end
 
 def titre_apercu(page, ancien = nil)
@@ -100,7 +100,7 @@ end
 
 def nom_tape_garde(page, nom, melodi)
   page.fill_in 'Nom', with: "#{nom} tapé"
-  saisir_identifiant(page, MELODI)
+  saisir_identifiant(page, MELODI, touche: :enter)
   page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
   page.assert_selector(:field, 'Nom', with: "#{nom} tapé")
 end
@@ -112,6 +112,15 @@ def rien_enregistre(page, melodi)
   Verify.evidence(DOSSIER, page, 'apercu', "titre=#{melodi} nom gardé=#{page.find_field('Nom').value} rien enregistré")
 end
 
+def organisation_cochee(page)
+  organisation = Solution.find_by!(uid_datagouv: SIRENE).organisation_de_datagouv || raise('aucune organisation de la liste pour Sirene')
+  bloc_datagouv(page).assert_text "correspond à « #{organisation.nom} » de la liste Organisations"
+  page.assert_selector(:checkbox, organisation.nom, exact_text: true, checked: true, visible: :all)
+  page.assert_selector('[role=status]', text: 'Nom et organisation repris de data.gouv.fr : enregistrez la fiche pour les garder.')
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence(DOSSIER, page, 'organisation', "organisation data.gouv=#{organisation.nom} cochée")
+end
+
 def apercu(page, nom)
   nouvelle_fiche_d_api(page)
   noter_les_annonces(page)
@@ -119,8 +128,10 @@ def apercu(page, nom)
   melodi = titre_apercu(page)
   attente_annoncee(page)
   page.assert_selector(:field, 'Nom', with: melodi)
+  bloc_datagouv(page).assert_text '(absente de la liste Organisations)'
   saisir_identifiant(page, SIRENE)
   page.assert_selector(:field, 'Nom', with: titre_apercu(page, melodi))
+  organisation_cochee(page)
   nom_tape_garde(page, nom, melodi)
   rien_enregistre(page, melodi)
   revenir_a_la_liste(page)
@@ -129,6 +140,30 @@ end
 def revenir_a_la_liste(page)
   page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.within('nav[aria-label="vous êtes ici :"]') { page.click_link 'Solutions' } }
   page.assert_text 'Choisissez une solution dans la liste'
+end
+
+def hauteur_du_bloc(page) = page.evaluate_script('document.getElementById("repris-datagouv").offsetHeight')
+
+def api_avec_organisation
+  Solution.sur_datagouv.where.not(datagouv_titre: nil).joins(:organisations).first || raise('aucune API reprise de data.gouv avec une organisation')
+end
+
+def bloc_garde_au_survol(page, api)
+  avant = hauteur_du_bloc(page)
+  page.first(:link, 'Voir la fiche').hover
+  sleep 1
+  bloc_datagouv(page).assert_text "Titre : #{api.datagouv_titre}"
+  raise "bloc data.gouv de #{avant} px à #{hauteur_du_bloc(page)} px au survol" unless hauteur_du_bloc(page) == avant
+
+  avant
+end
+
+def survol_sans_saut(page)
+  api = api_avec_organisation
+  page.visit("/admin/solutions/#{api.id}/edit")
+  bloc_datagouv(page).assert_text "Titre : #{api.datagouv_titre}"
+  hauteur = bloc_garde_au_survol(page, api)
+  Verify.evidence(DOSSIER, page, 'survol', "fiche=#{api.libelle_admin} bloc=#{hauteur} px avant et après le survol de « Voir la fiche »")
 end
 
 def quitter(page)
@@ -142,6 +177,7 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Aperçu') { apercu(page, nom) }
   api = Verify.check('Creation') { creer(page, nom) }
   Verify.check('Inconnu') { identifiant_inconnu(page, api, nom) }
+  Verify.check('Survol') { survol_sans_saut(page) }
   Verify.check('Doublon') { doublon(page, nom) }
   Verify.check('Proof') { quitter(page) }
 ensure

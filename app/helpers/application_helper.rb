@@ -27,7 +27,7 @@ module ApplicationHelper
       action: 'input->formulaire-modifie#marquer change->formulaire-modifie#marquer' }
   end
 
-  def champ_de_fiche(formulaire, champ)
+  def champ_de_la_categorie(formulaire, champ)
     masque = formulaire.object.champ_masque?(champ)
     { class: ('fr-hidden' if masque), disabled: masque }
   end

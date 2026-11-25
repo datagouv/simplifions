@@ -6,20 +6,23 @@
   <%= render "admin/erreurs", f: f %>
   <% fiche = capture do %>
     <%= render "categorie", f: %>
-    <%= f.dsfr_text_field :uid_datagouv %>
-    <%= tag.div data: { controller: "datagouv", action: "turbo:before-fetch-request->datagouv#attendre turbo:before-fetch-response->datagouv#finirLAttente turbo:fetch-request-error->datagouv#finirLAttente turbo:frame-load->datagouv#remplirLeNom",
-          datagouv_url_value: apercu_datagouv_admin_solutions_path, datagouv_categories_value: Solution::HORS_FICHES, datagouv_attente_value: "Recherche de cet identifiant sur data.gouv.fr…" } do %>
+    <%= tag.div data: { controller: "datagouv",
+          datagouv_url_value: apercu_datagouv_admin_solutions_path, datagouv_attente_value: "Recherche de cet identifiant sur data.gouv.fr…",
+          datagouv_sans_identifiant_value: "Saisissez d’abord l’identifiant data.gouv.", datagouv_repris_value: "repris de data.gouv.fr : enregistrez la fiche pour les garder." } do %>
+      <% recuperable = !solution.fiche? %>
+      <%= f.dsfr_text_field :uid_datagouv, **champ_de_la_categorie(f, :uid_datagouv), data: ({ action: "keydown.enter->datagouv#recuperer:prevent" } if recuperable),
+            bouton_accole: (button_tag("Récupérer les infos data.gouv", type: "button", class: "fr-btn", data: { action: "datagouv#recuperer" }) if recuperable) %>
       <p class="fr-hint-text fr-mb-3w" role="status" data-datagouv-target="attente"></p>
       <%= render "repris_datagouv", solution:, a_recharger: solution.uid_datagouv.present? && solution.uid_datagouv_changed? %>
+      <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
     <% end %>
     <%= f.dsfr_text_field :nom %>
-    <%= f.dsfr_text_field :titre_seo, **champ_de_fiche(f, :titre_seo) %>
-    <%= render "admin/slug", f:, **champ_de_fiche(f, :slug) %>
-    <%= f.dsfr_text_field :site_internet, **champ_de_fiche(f, :site_internet) %>
-    <%= f.dsfr_text_field :url_demande_acces, **champ_de_fiche(f, :url_demande_acces) %>
-    <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
+    <%= f.dsfr_text_field :titre_seo, **champ_de_la_categorie(f, :titre_seo) %>
+    <%= render "admin/slug", f:, **champ_de_la_categorie(f, :slug) %>
+    <%= f.dsfr_text_field :site_internet, **champ_de_la_categorie(f, :site_internet) %>
+    <%= f.dsfr_text_field :url_demande_acces, **champ_de_la_categorie(f, :url_demande_acces) %>
     <%= f.dsfr_check_box :france_connectee, disabled: !solution.categorie_api?, class: ("fr-hidden" unless solution.categorie_api?) %>
-    <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_fiche(f, :image) do %>
+    <%= f.dsfr_file_field :image, accept: "image/png,image/jpeg,image/webp", **champ_de_la_categorie(f, :image) do %>
       <% image = en_base&.brouillon.to_h.key?("image") ? solution.image : en_base&.image %>
       <% if image&.attached? && image.blob.persisted? %>
         <%= image_tag image, alt: solution.legende_image.presence || "Image actuelle de #{en_base.nom}", width: 320, class: "fr-mt-2w" %>
@@ -32,8 +35,8 @@
         </div>
       <% end %>
     <% end %>
-    <%= f.dsfr_text_field :legende_image, **champ_de_fiche(f, :legende_image) %>
-    <%= f.dsfr_text_area :description_courte, **champ_de_fiche(f, :description_courte) %>
+    <%= f.dsfr_text_field :legende_image, **champ_de_la_categorie(f, :legende_image) %>
+    <%= f.dsfr_text_area :description_courte, **champ_de_la_categorie(f, :description_courte) %>
     <div class="fr-grid-row fr-grid-row--gutters">
       <div class="fr-col-12 fr-col-md-6">
         <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Solution à destination de :", elements: "fournisseurs de services", referentiel: true, largeur: "fr-col-12" %>
@@ -58,8 +61,8 @@
       <% end %>
     </fieldset>
     <%= render "admin/vocabulaires", f:, categories: %w[type_simplification], legende: nil, id: nil %>
-    <%= f.dsfr_text_area :permet, **champ_de_fiche(f, :permet) %>
-    <%= f.dsfr_text_area :ne_permet_pas, **champ_de_fiche(f, :ne_permet_pas) %>
+    <%= f.dsfr_text_area :permet, **champ_de_la_categorie(f, :permet) %>
+    <%= f.dsfr_text_area :ne_permet_pas, **champ_de_la_categorie(f, :ne_permet_pas) %>
   <% end %>
   <% if en_base %>
     <% integratrices = capture do %>

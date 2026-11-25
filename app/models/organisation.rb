@@ -11,6 +11,10 @@ class Organisation < ApplicationRecord
 
   has_and_belongs_to_many :solutions
 
+  scope :du_nom, lambda { |nom|
+    where('unaccent(lower(:nom)) IN (unaccent(lower(btrim(nom))), unaccent(lower(btrim(nom_long))))', nom: nom.to_s.squish)
+  }
+
   def publique? = public_ou_prive == 'Public'
 
   def solutions_rendues_privees
