@@ -21,11 +21,11 @@ fr:
           other: "Voir les %{count} solutions"
       demarche:
         texte:
-          one: "Votre recherche correspond aussi à %{count} cas d'usage référencé."
-          other: "Votre recherche correspond aussi à %{count} cas d'usages référencés."
+          one: "Votre recherche correspond aussi à %{count} démarche référencée."
+          other: "Votre recherche correspond aussi à %{count} démarches référencées."
         bouton:
-          one: "Voir le cas d'usage"
-          other: "Voir les %{count} cas d'usages"
+          one: "Voir la démarche"
+          other: "Voir les %{count} démarches"
   activerecord:
     models:
       demarche:

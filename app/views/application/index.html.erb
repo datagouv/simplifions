@@ -56,7 +56,7 @@
                         chemin: send(chemin_autre_type, requete), matomo_nom: nom_autre_type }
                     end %>
         <% if total.zero? %>
-          <%= render "resultats_vides", chemin: send(chemin), renvoi: %>
+          <%= render "encart_recherche", reinitialiser: send(chemin), renvoi: %>
         <% else %>
           <div class="fr-grid-row fr-grid-row--middle fr-grid-row--gutters" style="justify-content: space-between">
             <%= render "compteur_de_resultats", total:, tout:, mot: "résultat", classe: "fr-col-auto fr-my-0" %>
@@ -78,6 +78,9 @@
             <% position_du_guide = [@catalogue.size, 3].min %>
             <% @catalogue.each.with_index(1) do |resultat, position| %>
               <li class="fr-mb-2w"><%= render carte.pour(resultat) %></li>
+              <% if renvoi && @catalogue.first_page? && position == position_du_guide %>
+                <li class="fr-mb-2w"><%= render "encart_recherche", renvoi: %></li>
+              <% end %>
               <% if @guide && position == position_du_guide %>
                 <li class="fr-my-4w">
                   <div class="fr-grid-row">
@@ -91,7 +94,6 @@
             <% end %>
           </ul>
           <%= pagination @catalogue, ApplicationController::FILTRES_CATALOGUE %>
-          <%= render "resultats_vides", chemin: send(chemin), renvoi:, compteur: false if renvoi %>
         <% end %>
       </section>
     </div>

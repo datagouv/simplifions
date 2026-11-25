@@ -117,7 +117,7 @@ RSpec.describe 'Solutions' do
       expect(response.body).not_to include('Solution intégrant des données des')
     end
 
-    it 'renvoie vers les cas d’usages de la même recherche' do
+    it 'renvoie vers les démarches de la même recherche' do
       Solution.create!(nom: 'Démarche express', categorie: 'logiciel_metier_cle_en_main', slug: 'demarche-express', visible: true)
       2.times { |i| Demarche.create!(nom: "Démarche #{i}", slug: "demarche-#{i}", visible: true) }
 
@@ -125,8 +125,8 @@ RSpec.describe 'Solutions' do
 
       page = Capybara.string(response.body)
 
-      expect(page).to have_text("Votre recherche correspond aussi à 2 cas d'usages référencés.")
-      expect(page).to have_link("Voir les 2 cas d'usages", href: '/demarches?q=D%C3%A9marche')
+      expect(page).to have_text('Votre recherche correspond aussi à 2 démarches référencées.')
+      expect(page).to have_link('Voir les 2 démarches', href: '/demarches?q=D%C3%A9marche')
     end
 
     it 'titre les filtres de public avec les mots des solutions, pas ceux des démarches' do

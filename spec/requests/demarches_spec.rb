@@ -207,20 +207,29 @@ RSpec.describe 'Demarches' do
       expect(page.find('form.catalogue')).to have_no_link(href: %r{\A/solutions})
     end
 
-    it 'invite en fin de liste à voir les solutions de la même recherche, en gardant filtres et tri' do
+    it 'glisse après la 3e carte l’invitation à voir les solutions de la même recherche, en gardant filtres et tri' do
       Solution.create!(nom: 'Démarche express', categorie: 'logiciel_metier_cle_en_main', slug: 'demarche-express', visible: true)
 
       get demarches_path('q' => 'Démarche', 'sort' => '-created')
       page = Capybara.string(response.body)
-      encart = page.find('p', text: "Vous n'avez pas trouvé ce que vous cherchez ?").ancestor('div', match: :first, text: 'Réinitialiser les filtres')
-      bouton = encart.find_link('Voir la solution')
+      bouton = page.find_link('Voir la solution')
+      cartes = response.body.enum_for(:scan, 'class="demarche-card').map { Regexp.last_match.begin(0) }
 
-      expect(encart).to have_text('Votre recherche correspond aussi à 1 solution référencée.')
+      expect(page).to have_text('Votre recherche correspond aussi à 1 solution référencée.')
       expect(bouton[:href]).to eq('/solutions?q=D%C3%A9marche&sort=-created')
       expect([bouton['data-matomo-action'], bouton.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']])
         .to eq(['Changer de catalogue', "Catalogue cas d'usages › Résultats"])
-      expect(response.body.index('Voir la solution')).to be > response.body.rindex('demarche-card')
-      expect(page).to have_css('#resultats', count: 1, text: 'résultats')
+      expect(response.body.index('Voir la solution')).to be_between(cartes[2], cartes[3])
+      expect(response.body).not_to include("Vous n'avez pas trouvé")
+      expect(page).to have_no_link('Réinitialiser les filtres')
+    end
+
+    it 'ne glisse l’invitation à voir les solutions qu’en première page' do
+      Solution.create!(nom: 'Démarche express', categorie: 'logiciel_metier_cle_en_main', slug: 'demarche-express', visible: true)
+
+      get demarches_path('q' => 'Démarche', 'page' => 2)
+
+      expect(response.body).not_to include('Votre recherche correspond aussi')
     end
 
     it 'invite à voir les solutions dans l’encart qui remplace une liste vide' do
@@ -234,14 +243,14 @@ RSpec.describe 'Demarches' do
       expect(page).to have_link('Réinitialiser les filtres', href: '/demarches')
     end
 
-    it 'n’ajoute pas d’encart sous les résultats sans recherche, ni quand aucune solution ne correspond' do
+    it 'ne glisse pas d’invitation à voir les solutions sans recherche, ni quand aucune ne correspond' do
       Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', slug: 'acheteza', visible: true)
 
       get demarches_path
-      expect(response.body).not_to include("Vous n'avez pas trouvé")
+      expect(response.body).not_to include('Votre recherche correspond aussi')
 
       get demarches_path('q' => 'Démarche')
-      expect(response.body).not_to include("Vous n'avez pas trouvé")
+      expect(response.body).not_to include('Votre recherche correspond aussi')
     end
 
     it 'glisse le guide des mairies après la 3e démarche des communes, en première page seulement' do
