@@ -61,11 +61,21 @@
       "Bash(git push * -f)",
       "Bash(git push * -f *)",
       "Bash(git push *+*)",
-      "Bash(* db:schema:load*)",
-      "Bash(* db:drop*)",
-      "Bash(* db:reset*)",
       "Bash(rm -rf *)",
       "Bash(rm -fr *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/bases-jetables.sh"
+          }
+        ]
+      }
     ]
   }
 }
