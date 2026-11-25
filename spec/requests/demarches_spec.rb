@@ -83,7 +83,7 @@ RSpec.describe 'Demarches' do
       expect(response.body).not_to include('Deuxième ligne')
       expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
       expect(response.body).to include('fr-text--right')
-      expect(response.body).to include('À destination des <b>Communes</b> et <b>Départements</b>')
+      expect(response.body).to include('Gérée par les <b>Communes</b> et <b>Départements</b>')
     end
 
     it 'propose les usagers en tags sélectionnables comptés, à cumuler, qui ramènent sur les résultats' do
@@ -383,6 +383,24 @@ RSpec.describe 'Demarches' do
 
       expect(response.body.scan('Aucun contenu actuellement').size).to eq(2)
       expect(response.body).not_to include('Lire plus')
+    end
+
+    it 'dit par qui la démarche est gérée, comme le filtre « Démarches gérées par »' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true,
+        types_acteurs: [TypeActeur.create!(nom: 'Départements'), TypeActeur.create!(nom: 'Communes')])
+
+      get demarche_path('cantine')
+
+      expect(response.body).to include('Gérée par les <b>Communes</b> et <b>Départements</b>')
+    end
+
+    it 'dit « Gérée par Tous les acteurs publics », sans article' do
+      Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true,
+        types_acteurs: [TypeActeur.create!(nom: 'Tous les acteurs publics')])
+
+      get demarche_path('cantine')
+
+      expect(response.body).to include('Gérée par <b>Tous les acteurs publics</b>')
     end
 
     it 'renvoie 404 pour un slug inconnu' do
