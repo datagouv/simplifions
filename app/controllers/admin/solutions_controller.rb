@@ -48,7 +48,7 @@ class Admin::SolutionsController < Admin::BaseController
   private
 
   def charger_la_liste
-    @solutions = liste(Solution).par_libelle_admin
+    @solutions = liste(Solution).de_la_categorie(params[:categorie_filtree]).par_libelle_admin
     @en_brouillon = Solution.en_brouillon.ids.to_set
   end
 

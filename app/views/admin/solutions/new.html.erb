@@ -1,6 +1,6 @@
 <%= render "entete_page", titre: "Nouvelle ligne — Solution" %>
 
-<%= render layout: "liste_et_fiche", locals: { lignes: @solutions } do %>
+<%= render layout: "liste_et_fiche", locals: { lignes: @solutions, categories: Solution.categories.keys } do %>
   <h1>Solution : nouvelle ligne</h1>
   <% if @solution.categorie || @solution.errors.any? %>
     <%= render layout: "admin/fiche" do %>

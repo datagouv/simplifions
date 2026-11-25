@@ -90,6 +90,11 @@ RSpec.describe 'Liste à gauche de la fiche' do
   describe 'page Solutions' do
     def liste = page.at_css('nav[aria-label="Liste des solutions"]')
 
+    def lignes_filtrees(params)
+      get('/admin/solutions', params:)
+      lignes
+    end
+
     it 'liste les solutions avec leur catégorie et leur état, sans les démarches' do
       api_qf.update!(visible: true, brouillon: { 'nom' => 'API QF v2' })
       get '/admin/solutions'
@@ -109,6 +114,29 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('a[aria-current=page]').text.squish).to eq('API Sirene API Masquée')
       expect(liste.at_css('select[name=etat] option[selected]').text).to eq('Masquées')
       expect(page.at_css('h1').text).to eq('API Sirene (API)')
+    end
+
+    it 'filtre par catégorie de solution, avec l’état et la recherche, et garde le filtre sur la fiche' do
+      Solution.create!(nom: 'API Cantine', categorie: 'brique_logicielle')
+      Solution.create!(nom: 'API Bourses')
+      api_qf.update!(visible: true)
+      get '/admin/solutions', params: { categorie_filtree: 'api' }
+      expect(lignes).to eq(['API QF API Publiée', 'API Sirene API Masquée'])
+      expect(liste.css('select[name=categorie_filtree] option').map(&:text)).to eq(['Toutes', 'Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier', 'Sans catégorie'])
+      expect(liste.at_css('select[name=categorie_filtree] option[selected]').text).to eq('API')
+      expect(lignes_filtrees(categorie_filtree: 'api', etat: 'masquees', q: 'sirene')).to eq(['API Sirene API Masquée'])
+      expect(lignes_filtrees(categorie_filtree: 'sans_categorie')).to eq(['API Bourses Masquée'])
+      expect(lignes_filtrees(categorie_filtree: 'inconnue').size).to eq(4)
+
+      get '/admin/solutions', params: { categorie_filtree: 'brique_logicielle' }
+      get liste.at_css('li a')['href']
+      expect(lignes).to eq(['API Cantine Brique technique Masquée'])
+      expect(liste.at_css('select[name=categorie_filtree] option[selected]').text).to eq('Brique technique')
+    end
+
+    it 'n’affiche pas le filtre par catégorie sur les démarches' do
+      get '/admin/demarches'
+      expect(page.at_css('select[name=categorie_filtree]')).to be_nil
     end
 
     it 'garde la recherche et le filtre après le choix de la catégorie' do

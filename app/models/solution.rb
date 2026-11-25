@@ -110,6 +110,7 @@ class Solution < ApplicationRecord
     telle_qu_affichee.champs_effaces_par(nouvelle).index_with(nil).merge(categorie: nouvelle)
   end
 
+  scope :de_la_categorie, ->(categorie) { categories.key?(categorie) || categorie == 'sans_categorie' ? where(categorie: categories[categorie]) : all }
   scope :par_libelle_admin, -> { order(:nom, :categorie) }
   scope :recommandables, ->(deja) { where(categorie: HORS_FICHES).or(where("'API' = ANY(types_solution)")).or(where(id: deja)) }
   def self.choix_admin = par_libelle_admin.map { [it.libelle_admin, it.id] }
