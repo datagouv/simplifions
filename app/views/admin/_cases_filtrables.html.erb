@@ -24,20 +24,9 @@
     <% unless courte %>
       <p class="fr-text--sm fr-mb-1w" aria-live="polite" data-liste-filtrable-target="compte"></p>
     <% end %>
-    <div class="fr-grid-row">
+    <div class="fr-grid-row" id="<%= local_assigns[:filtre] ? "#{filtre}-cases" : f.field_id(attribut, :cases) %>">
       <%= f.collection_check_boxes attribut, collection, :id, libelle, include_hidden: local_assigns.fetch(:champ_vide, true) do |b| %>
-        <% mots_cles = b.object.public_send(local_assigns[:mots_cles]).join(" ") if local_assigns[:mots_cles] %>
-        <%= tag.div class: class_names("fr-fieldset__element", "#{local_assigns.fetch(:largeur, "fr-col-12 fr-col-sm-6 fr-col-lg-4")} fr-grid-row fr-grid-row--middle case-avec-aide" => local_assigns[:referentiel]), data: ({ liste_filtrable_target: "element", liste_filtrable_mots_cles: mots_cles } unless courte) do %>
-          <div class="fr-checkbox-group">
-            <%= b.check_box data: ({ action: "change->liste-filtrable#compter" } unless courte) %>
-            <%= b.label(class: "fr-label") %>
-          </div>
-          <% if local_assigns[:referentiel] %>
-            <%= lien_d_aide(b.object, b.text) %>
-          <% elsif cochees.include?(b.value) %>
-            <%= lien_vers_la_fiche(b.object, b.text) %>
-          <% end %>
-        <% end %>
+        <%= render "admin/case_filtrable", b:, courte:, cochee: cochees.include?(b.value), **local_assigns.slice(:mots_cles, :referentiel, :largeur) %>
       <% end %>
     </div>
   <% end %>

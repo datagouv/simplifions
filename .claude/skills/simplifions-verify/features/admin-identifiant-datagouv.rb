@@ -128,7 +128,7 @@ def apercu(page, nom)
   melodi = titre_apercu(page)
   attente_annoncee(page)
   page.assert_selector(:field, 'Nom', with: melodi)
-  bloc_datagouv(page).assert_text '(absente de la liste Organisations)'
+  page.assert_selector('#organisation-absente', text: /\Adata\.gouv\.fr indique l’organisation « .+ », absente de la liste Organisations\.\z/)
   saisir_identifiant(page, SIRENE)
   page.assert_selector(:field, 'Nom', with: titre_apercu(page, melodi))
   organisation_cochee(page)
@@ -166,6 +166,55 @@ def survol_sans_saut(page)
   Verify.evidence(DOSSIER, page, 'survol', "fiche=#{api.libelle_admin} bloc=#{hauteur} px avant et après le survol de « Voir la fiche »")
 end
 
+def organisation_de_melodi(page)
+  nouvelle_fiche_d_api(page)
+  saisir_identifiant(page, MELODI)
+  page.find('#organisation-absente', text: 'absente de la liste Organisations', wait: 40).text[/« (.+) »/, 1]
+end
+
+def fenetre_d_organisation(page, nom)
+  page.click_button 'Ajouter une organisation'
+  fenetre = page.find('dialog#fenetre-nouvelle-organisation[open]')
+  raise "nom prérempli #{fenetre.find_field('organisation[nom]').value.inspect}" unless fenetre.find_field('organisation[nom]').value == nom
+
+  fenetre
+end
+
+def nom_manquant(page, nom)
+  fenetre_d_organisation(page, nom).fill_in 'organisation[nom]', with: ''
+  page.within('dialog#fenetre-nouvelle-organisation') { page.click_button 'Enregistrer' }
+  page.find('dialog#fenetre-nouvelle-organisation[open]').assert_text 'Nom doit être rempli'
+  page.within('dialog#fenetre-nouvelle-organisation') { page.click_button 'Annuler' }
+  page.assert_no_selector('dialog#fenetre-nouvelle-organisation[open]')
+end
+
+def organisation_ajoutee(page, nom)
+  page.scroll_to(page.find('#organisation-absente'), align: :center)
+  Verify.evidence(DOSSIER, page, 'organisation-absente', "organisation data.gouv=#{nom} absente")
+  fenetre_d_organisation(page, nom)
+  Verify.evidence(DOSSIER, page, 'fenetre-organisation', "nom prérempli=#{nom}")
+  page.within('dialog#fenetre-nouvelle-organisation') { page.click_button 'Enregistrer' }
+  page.assert_selector('#organisation-absente', text: "« #{nom} » ajoutée à la liste Organisations et cochée : enregistrez la fiche pour la garder.")
+end
+
+def ajout_d_organisation(page)
+  nom = organisation_de_melodi(page)
+  raise "#{nom} déjà en base" if Organisation.exists?(nom:)
+
+  organisation_ajoutee(page, nom)
+  page.assert_selector(:checkbox, nom, exact_text: true, checked: true, visible: :all)
+  page.assert_text "1 coché sur #{Organisation.count}"
+  page.assert_selector('button.fr-btn[form=formulaire-fiche][data-enregistrer]:not([disabled])', text: 'Enregistrer')
+  nom_manquant(page, '')
+  creees = ActiveRecord::Base.uncached { Organisation.where(nom:).count }
+  raise "#{creees} organisations #{nom}" unless creees == 1
+
+  page.scroll_to(page.find('#organisation-absente'), align: :center)
+  Verify.evidence(DOSSIER, page, 'organisation-ajoutee', "organisation=#{nom} créée et cochée")
+  revenir_a_la_liste(page)
+  nom
+end
+
 def quitter(page)
   page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_button 'Se déconnecter' }
   page.assert_selector :link, 'Se connecter'
@@ -173,8 +222,10 @@ end
 
 Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
+  debut = Time.current
   Verify.login(page)
   Verify.check('Aperçu') { apercu(page, nom) }
+  Verify.check('Ajout d’organisation') { ajout_d_organisation(page) }
   api = Verify.check('Creation') { creer(page, nom) }
   Verify.check('Inconnu') { identifiant_inconnu(page, api, nom) }
   Verify.check('Survol') { survol_sans_saut(page) }
@@ -182,4 +233,5 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Proof') { quitter(page) }
 ensure
   ActiveRecord::Base.uncached { Solution.where('nom LIKE ?', "#{nom}%").destroy_all }
+  ActiveRecord::Base.uncached { Organisation.where(grist_id: nil, created_at: debut..).destroy_all }
 end

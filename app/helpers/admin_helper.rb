@@ -49,6 +49,12 @@ module AdminHelper
     public_send("#{ligne.model_name.singular_route_key}_url", slug).delete_prefix(request.protocol)
   end
 
+  def organisation_absente_de_la_liste(solution)
+    solution.datagouv_organisation.presence unless solution.uid_datagouv_changed? || solution.organisation_de_datagouv
+  end
+
+  def message_d_organisation_absente(nom) = "data.gouv.fr indique l’organisation « #{nom} », absente de la liste Organisations."
+
   def effet_du_changement_de_categorie(solution, categorie)
     return 'Catégorie actuelle.' if categorie == solution.categorie
     return 'Masquez d’abord la solution pour la transformer en API ou en jeu de données.' unless solution.categorie_possible?(categorie)

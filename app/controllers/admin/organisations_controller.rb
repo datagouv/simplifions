@@ -13,6 +13,8 @@ class Admin::OrganisationsController < Admin::BaseController
 
   def create
     @organisation = Organisation.new(organisation_params)
+    return render :sur_place, formats: :turbo_stream, status: @organisation.save ? :ok : :unprocessable_content if params[:sur_place]
+
     if @organisation.save
       redirige_vers_la_fiche(@organisation)
     else

@@ -3,7 +3,7 @@
       action: "turbo:before-fetch-request->datagouv#attendre:self turbo:before-fetch-response->datagouv#finirLAttente:self turbo:fetch-request-error->datagouv#finirLAttente:self turbo:frame-load->datagouv#reprendre:self" } do %>
   <% if solution.uid_datagouv.present? && !a_recharger %>
     <% organisation = solution.organisation_de_datagouv %>
-    <%= tag.div class: "fr-mb-3w", data: { titre_datagouv: solution.datagouv_titre, organisation_datagouv: organisation&.id } do %>
+    <%= tag.div class: "fr-mb-3w", data: { titre_datagouv: solution.datagouv_titre, organisation_datagouv: organisation&.id, organisation_absente: (solution.datagouv_organisation.presence unless organisation) } do %>
       <h2 class="fr-h6 fr-mb-1w">Repris de data.gouv.fr</h2>
       <% if solution.datagouv_titre.blank? %>
         <div class="fr-alert fr-alert--info fr-alert--sm fr-mb-1w">
@@ -20,8 +20,6 @@
           Organisation : <%= solution.datagouv_organisation %>
           <% if organisation %>
             (correspond à « <%= organisation.nom %> » de la liste Organisations)
-          <% elsif solution.datagouv_organisation.present? %>
-            (absente de la liste Organisations)
           <% end %>
         </li>
         <li>Logo : <%= solution.datagouv_logo %></li>

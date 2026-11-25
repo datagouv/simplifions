@@ -1,8 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["cadre", "attente"]
-  static values = { url: String, attente: String, sansIdentifiant: String, repris: String }
+  static targets = ["cadre", "attente", "organisationAbsente"]
+  static values = { url: String, attente: String, sansIdentifiant: String, repris: String, organisationAbsente: String, champOrganisation: String }
 
   connect() {
     this.formulaire = this.element.closest("form")
@@ -13,6 +13,7 @@ export default class extends Controller {
     if (!uid) {
       this.cadreTarget.removeAttribute("src")
       this.cadreTarget.replaceChildren()
+      this.signalerLOrganisationAbsente()
       this.attenteTarget.textContent = this.sansIdentifiantValue
       return
     }
@@ -22,6 +23,7 @@ export default class extends Controller {
 
   attendre() {
     this.cadreTarget.replaceChildren()
+    this.signalerLOrganisationAbsente()
     this.attenteTarget.textContent = this.attenteValue
   }
 
@@ -31,6 +33,7 @@ export default class extends Controller {
 
   reprendre() {
     const bloc = this.cadreTarget.querySelector("[data-titre-datagouv]")
+    this.signalerLOrganisationAbsente(bloc?.dataset.organisationAbsente)
     if (!bloc) return
     const repris = [this.remplirLeNom(bloc.dataset.titreDatagouv), this.cocherLOrganisation(bloc.dataset.organisationDatagouv)].filter(Boolean)
     if (repris.length) this.attenteTarget.textContent = `${repris.join(" et ")} ${this.reprisValue}`
@@ -52,6 +55,17 @@ export default class extends Controller {
     caseACocher.closest(".fr-fieldset__element")?.classList.remove("fr-hidden")
     caseACocher.dispatchEvent(new Event("change", { bubbles: true }))
     return "organisation"
+  }
+
+  signalerLOrganisationAbsente(nom) {
+    const message = nom && Object.assign(document.createElement("p"), {
+      className: "fr-message fr-message--warning fr-mb-1w", textContent: this.organisationAbsenteValue.replace("%{nom}", nom)
+    })
+    this.organisationAbsenteTarget.replaceChildren(...[message].filter(Boolean))
+    const champ = document.getElementById(this.champOrganisationValue)
+    if (!nom || !champ || (champ.value.trim() && champ.value !== champ.dataset.nomRepris)) return
+    champ.value = nom
+    champ.dataset.nomRepris = nom
   }
 
   champ(nom) {

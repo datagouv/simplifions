@@ -8,13 +8,22 @@
     <%= render "categorie", f: %>
     <%= tag.div data: { controller: "datagouv",
           datagouv_url_value: apercu_datagouv_admin_solutions_path, datagouv_attente_value: "Recherche de cet identifiant sur data.gouv.fr…",
-          datagouv_sans_identifiant_value: "Saisissez d’abord l’identifiant data.gouv.", datagouv_repris_value: "repris de data.gouv.fr : enregistrez la fiche pour les garder." } do %>
+          datagouv_sans_identifiant_value: "Saisissez d’abord l’identifiant data.gouv.", datagouv_repris_value: "repris de data.gouv.fr : enregistrez la fiche pour les garder.",
+          datagouv_organisation_absente_value: message_d_organisation_absente("%{nom}"), datagouv_champ_organisation_value: "nouvelle-organisation_organisation_nom" } do %>
       <% recuperable = !solution.fiche? %>
       <%= f.dsfr_text_field :uid_datagouv, **champ_de_la_categorie(f, :uid_datagouv), data: ({ action: "keydown.enter->datagouv#recuperer:prevent" } if recuperable),
             bouton_accole: (button_tag("Récupérer les infos data.gouv", type: "button", class: "fr-btn", data: { action: "datagouv#recuperer" }) if recuperable) %>
       <p class="fr-hint-text fr-mb-3w" role="status" data-datagouv-target="attente"></p>
       <%= render "repris_datagouv", solution:, a_recharger: solution.uid_datagouv.present? && solution.uid_datagouv_changed? %>
       <%= render "admin/cases_filtrables", f: f, attribut: :organisation_ids, collection: Organisation.order(:nom), libelle: :nom, legende: "Organisations" %>
+      <div class="fr-mt-n3w fr-mb-3w">
+        <div id="organisation-absente" role="status" data-datagouv-target="organisationAbsente">
+          <% if (absente = organisation_absente_de_la_liste(solution)) %>
+            <p class="fr-message fr-message--warning fr-mb-1w"><%= message_d_organisation_absente(absente) %></p>
+          <% end %>
+        </div>
+        <button type="button" class="fr-btn fr-btn--sm fr-btn--tertiary fr-icon-add-line fr-btn--icon-left" aria-controls="fenetre-nouvelle-organisation" data-fr-opened="false">Ajouter une organisation</button>
+      </div>
     <% end %>
     <%= f.dsfr_text_field :nom %>
     <%= f.dsfr_text_field :titre_seo, **champ_de_la_categorie(f, :titre_seo) %>
@@ -90,6 +99,7 @@
     <%= fiche %>
   <% end %>
 <% end %>
+<%= render "admin/organisations/fenetre", organisation: Organisation.new(nom: organisation_absente_de_la_liste(solution)) %>
 <% if listes %>
   <div id="formulaires-integrations">
     <% listes.each do |liste, lignes| %>

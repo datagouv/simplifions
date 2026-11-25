@@ -2018,8 +2018,10 @@ RSpec.describe 'Administration' do
 
     it 'signale une organisation de data.gouv.fr absente de la liste' do
       Organisation.create!(nom: 'DINUM')
-      expect(apercu('6661e09c7230a8fc3b1ec229')).to include('Organisation : Insee (absente de la liste Organisations)')
+      expect(apercu('6661e09c7230a8fc3b1ec229')).to include('Organisation : Insee')
+      expect(apercu('6661e09c7230a8fc3b1ec229')).not_to include('absente')
       expect(response.parsed_body.at_css('[data-organisation-datagouv]')).to be_nil
+      expect(response.parsed_body.at_css('[data-organisation-absente]')['data-organisation-absente']).to eq('Insee')
     end
   end
 
