@@ -10,7 +10,7 @@ Deleting a démarche from the administration removes its recommandations with it
 
 ## How to get to it (user POV)
 
-- Dashboard `/admin` → link `Démarches` → search the name → click it → `Supprimer la démarche` at the bottom of the fiche, confirm `Supprimer « <nom> » ? 1 recommandation sera supprimée.`
+- Dashboard `/admin` → link `Démarches` → search the name → click it → `Supprimer cette démarche` at the bottom of the fiche, confirm `Supprimer « <nom> » ? 1 recommandation sera supprimée.`
 - Same button on the six other edit pages; an organisation's says `Ces solutions deviendront privées : <noms>.` (one solution: `La solution <nom> deviendra privée.`)
 - Admin only.
 
@@ -24,7 +24,7 @@ Preconditions:
 - The drive creates its own démarche `Vérif verify-map <browser>` (not visible) and one recommandation towards the first non-private solution, through Active Record: never delete a real démarche.
 
 - **Reach the table.** `click_link "Démarches"`. H1 `Démarches`, the démarche is a link of the left list `Liste des démarches`.
-- **Delete.** `ouvrir_depuis_la_liste` (search `<nom>`, click the name), then `accept_confirm("Supprimer « <nom> » ? 1 recommandation sera supprimée.") { click_button "Supprimer la démarche" }`. Alert `« <nom> » supprimé.`, no link `<nom>` left in `Liste des démarches`.
+- **Delete.** `ouvrir_depuis_la_liste` (search `<nom>`, click the name), then `accept_confirm("Supprimer « <nom> » ? 1 recommandation sera supprimée.") { click_button "Supprimer cette démarche" }`. Alert `« <nom> » supprimé.`, no link `<nom>` left in `Liste des démarches`.
 - **Read back.** `Demarche.where(nom:).count == 0`, `Recommandation.where(demarche_id:).count == 0`, the solution still exists.
 - **Organisation, cancelled.** First organisation with `solutions_rendues_privees`: its edit page, `dismiss_confirm { click_button "Supprimer" }` returns the message, which lists those solutions' names; the organisation is still in base. Never accept on a real organisation.
 - **Proof.** Screenshots before and after deletion and after the cancelled organisation, read-backs of all three.

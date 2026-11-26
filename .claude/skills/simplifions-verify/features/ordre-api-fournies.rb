@@ -30,7 +30,7 @@ def lire_avant(page, ctx)
 end
 
 def lignes_du_tableau(page)
-  page.all('#lignes-fournies tr[data-deplacement]').map { it[:id][/\d+/].to_i }
+  page.all('#lignes-fournies tr[data-deplacement]', visible: :all).map { it[:id][/\d+/].to_i }
 end
 
 def ouvrir_l_onglet(page, ctx)
@@ -71,8 +71,19 @@ def clavier(page, ctx)
   Verify.evidence(DOSSIER, page, 'clavier', "message=position_4 focus=#{focus} base=#{ctx[:ids].first(6)} ordre=#{ordres(ctx[:solution])[bouge.id]}")
 end
 
+def position(page, element) = page.evaluate_script('(r => [r.x, r.y])(arguments[0].getBoundingClientRect())', element)
+
+def immobile(page, element)
+  page.document.synchronize do
+    avant = position(page, element)
+    sleep 0.2
+    raise Capybara::ExpectationNotMet, 'la poignée bouge encore' unless position(page, element) == avant
+  end
+  element
+end
+
 def poignees(page, ctx)
-  [3, 1].map { page.find("tr#integration_#{ctx[:ids][it]} [data-poignee]", visible: :all) }
+  [3, 1].map { immobile(page, page.find("tr#integration_#{ctx[:ids][it]} [data-poignee]", visible: :all)) }
 end
 
 def glisser(page, ctx)

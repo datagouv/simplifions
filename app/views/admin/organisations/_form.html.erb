@@ -1,18 +1,6 @@
 <%= form_with model: [:admin, organisation], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(organisation) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_text_field :nom %>
-  <%= f.dsfr_text_field :nom_long %>
-  <fieldset class="fr-fieldset">
-    <legend class="fr-fieldset__legend fr-fieldset__legend--regular">Public ou privé</legend>
-    <% ["", *Organisation::PUBLIC_OU_PRIVE].each do |valeur| %>
-      <div class="fr-fieldset__element fr-fieldset__element--inline">
-        <div class="fr-radio-group">
-          <%= f.radio_button :public_ou_prive, valeur %>
-          <%= f.label :public_ou_prive, valeur.presence || "Non renseigné", value: valeur, class: "fr-label" %>
-        </div>
-      </div>
-    <% end %>
-  </fieldset>
+  <%= render "admin/organisations/champs", f: %>
   <%= f.dsfr_text_field :type_organisation_privee %>
   <%= f.dsfr_text_field :site_internet %>
   <%= render "admin/cases_filtrables", f: f, attribut: :solution_ids, collection: Solution.par_libelle_admin, libelle: :libelle_admin, legende: "Solutions" %>

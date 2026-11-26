@@ -1,14 +1,5 @@
 <%= form_with model: [:admin, demarche], id: "formulaire-fiche", html: { novalidate: true }, data: surveille_les_modifications(demarche) do |f| %>
   <%= render "admin/erreurs", f: f %>
-  <%= f.dsfr_text_field :icone %>
-  <%= f.dsfr_text_field :nom %>
-  <%= f.dsfr_text_field :titre_seo %>
-  <%= f.dsfr_text_field :slug %>
-  <%= f.dsfr_text_area :description_courte %>
-  <%= f.dsfr_text_area :contexte %>
-  <%= f.dsfr_text_area :cadre_juridique %>
-  <%= render "admin/cases_filtrables", f: f, attribut: :type_acteur_ids, collection: TypeActeur.order(:nom), libelle: :nom, legende: "Fournisseurs de services", referentiel: true %>
-  <%= f.dsfr_text_area :mots_clefs %>
-  <%= render "admin/vocabulaires", f: f %>
+  <%= render "champs", f: %>
   <%= render "integrations", f: f %>
 <% end %>

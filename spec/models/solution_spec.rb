@@ -63,6 +63,64 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#changement_de_categorie' do
+    let(:dinum) { Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public') }
+
+    def logiciel(**attributs)
+      described_class.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', titre_seo: 'Acheteza en ligne',
+        description_courte: 'Achats publics', permet: 'Acheter', site_internet: 'https://acheteza.fr', organisations: [dinum], **attributs)
+    end
+
+    it 'garde tout entre deux catégories qui ont une fiche' do
+      solution = logiciel
+      solution.update!(solution.changement_de_categorie('brique_logicielle'))
+
+      expect(solution.reload.attributes.slice('categorie', 'slug', 'description_courte', 'permet')).to eq(
+        'categorie' => 'brique_logicielle', 'slug' => 'acheteza', 'description_courte' => 'Achats publics', 'permet' => 'Acheter'
+      )
+    end
+
+    it 'efface les champs de fiche en devenant une API, et garde le reste' do
+      solution = logiciel
+      solution.update!(solution.changement_de_categorie('api'))
+
+      solution.reload
+      expect([solution.slug, solution.description_courte, solution.permet, solution.site_internet]).to all(be_nil)
+      expect([solution.nom, solution.titre_seo, solution.organisations]).to eq(['Acheteza', 'Acheteza en ligne', [dinum]])
+    end
+
+    it 'efface l’identifiant data.gouv entre une API et un jeu de données, qui ne désignent pas le même objet' do
+      api = described_class.create!(nom: 'API Melodi', categorie: 'api', uid_datagouv: 'melodi', datagouv_titre: 'Melodi')
+      api.update!(api.changement_de_categorie('base_de_donnees'))
+
+      expect(api.reload.attributes.slice('categorie', 'uid_datagouv', 'datagouv_titre')).to eq('categorie' => 'base_de_donnees', 'uid_datagouv' => nil, 'datagouv_titre' => nil)
+    end
+
+    it 'garde l’identifiant data.gouv d’une API qui devient une fiche' do
+      api = described_class.create!(nom: 'API Melodi', categorie: 'api', uid_datagouv: 'melodi')
+      expect(api.changement_de_categorie('brique_logicielle')).to eq(categorie: 'brique_logicielle')
+    end
+
+    it 'dit ce que chaque catégorie effacerait' do
+      api = described_class.new(categorie: 'api')
+      expect(logiciel.champs_effaces_par('api')).to eq(described_class::CHAMPS_DE_FICHE)
+      expect(logiciel.champs_effaces_par('site_de_consultation')).to be_empty
+      expect(api.champs_effaces_par('base_de_donnees')).to eq([:uid_datagouv])
+      expect(api.champs_effaces_par('logiciel_metier_cle_en_main')).to be_empty
+    end
+
+    it 'refuse de faire d’une solution publiée une API ou un jeu de données, qui n’ont pas de page' do
+      publiee = logiciel(visible: true)
+
+      expect(publiee.categorie_possible?('api')).to be(false)
+      expect(publiee.categorie_possible?('brique_logicielle')).to be(true)
+      publiee.categorie = 'api'
+      publiee.slug = nil
+      expect(publiee.valid?(:admin)).to be(false)
+      expect(publiee.errors.of_kind?(:categorie, :page_publique)).to be(true)
+    end
+  end
+
   describe '#champ_masque?' do
     it 'masque un champ de fiche vide pour une API, tant qu’il n’est ni rempli ni en cours de saisie' do
       api = described_class.create!(nom: 'API QF', categorie: 'api')
@@ -70,6 +128,11 @@ RSpec.describe Solution do
       expect(described_class.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main').champ_masque?(:site_internet)).to be(false)
       api.site_internet = 'https://exemple.fr'
       expect(api.champ_masque?(:site_internet)).to be(false)
+    end
+
+    it 'masque l’identifiant data.gouv vide hors API et jeu de données' do
+      expect(described_class.new(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main').champ_masque?(:uid_datagouv)).to be(true)
+      expect(described_class.new(nom: 'API QF', categorie: 'api').champ_masque?(:uid_datagouv)).to be(false)
     end
   end
 

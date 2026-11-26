@@ -22,9 +22,9 @@ Preconditions: logged in. Creates its own hidden démarche `Vérif reco-demarche
 - **Hidden démarche.** `Ajouter une solution recommandée`, window: `Solution` first API (type `Solution recommandée` already chosen), `Enregistrer` → state bar `Publier` → `/demarches/<slug>` shows one card, the first API's; in base the recommandation is visible, without draft.
 - **Preview.** Same window with the second API → the state bar shows `Brouillon non publié` and `Prévisualiser`; the preview window shows two cards, the public page still one.
 - **Abandon.** `Abandonner le brouillon`, accept the confirmation → the second API's card is gone, still one card on the public page, the first recommandation still in base.
-- **Preview as published.** Add the second API again, state bar `Publier` (two cards, first API first); `Modifier <second API>`, window `Position` `0`, `Enregistrer` → state bar `Brouillon non publié`, `Prévisualiser`, `Abandonner le brouillon`; the preview's cards, second API first, differ from the public page's, then equal them after `Publier ce changement`, as the state bar's button reads once the démarche is published.
+- **Preview as published.** Add the second API again, state bar `Publier` (two cards, first API first); `Modifier <second API>`, window `Position` `0`, `Enregistrer` → state bar `Brouillon non publié`, `Prévisualiser`, `Abandonner le brouillon`; the preview's cards, second API first, differ from the public page's, then equal them after `Publier le brouillon`, as the state bar's button reads once the démarche is published.
 - **Proof.** `tmp/verify/admin-recommandations-avec-la-demarche/`.
 
 ## Gotchas
 
-- `Publier` and `Abandonner le brouillon` live in the state bar; on a published démarche with a change, in its box `À la publication, …`, `Publier` reading `Publier ce changement` or `Publier ces N changements` (`click_button 'Publier'` finds both).
+- `Publier` and `Abandonner le brouillon` live in the state bar; on a published démarche with a change, `Publier le brouillon` sits under the box `À la publication, …` (`click_button 'Publier'` finds both labels).

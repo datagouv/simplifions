@@ -1,0 +1,7 @@
+<%# locals: (f:, input_group_options: {}, **options) -%>
+<% verrouille = f.object.errors.none? || !f.object.will_save_change_to_slug? && f.object.errors[:slug].none? %>
+<% bouton = tag.button("Modifier le slug", type: "button", title: "Modifier le slug", class: "fr-btn fr-btn--secondary fr-icon-edit-line",
+      data: { slug_verrouille_target: "bouton", action: "slug-verrouille#deverrouiller" }) if verrouille %>
+<%= f.dsfr_text_field :slug, **options, disabled: options[:disabled] || verrouille, bouton_accole: bouton,
+      data: { slug_verrouille_target: "saisie", verrouille: verrouille.presence },
+      input_group_options: input_group_options.merge(data: { **input_group_options[:data].to_h, controller: "slug-verrouille" }) %>

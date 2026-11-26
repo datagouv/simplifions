@@ -1,9 +1,10 @@
 <%= render "entete_page", titre: "Solutions" %>
 
-<%= render layout: "liste_et_fiche", locals: { lignes: @solutions } do %>
+<%= render layout: "liste_et_fiche", locals: { lignes: @solutions, categories: Solution.categories.keys } do %>
   <h1 class="fr-sr-only">Solutions</h1>
   <div class="fr-p-4w liste-et-fiche__invite">
     <p class="fr-h4">Choisissez une solution dans la liste</p>
     <p class="fr-mb-0">Elle s’ouvre ici, sans quitter la liste.</p>
+    <%= link_to "Ajouter une solution", url_for(action: :new, **filtres_de_la_liste), class: "fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-add-line fr-mt-2w" %>
   </div>
 <% end %>

@@ -58,7 +58,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
     sign_in admin
     get "/admin/#{chemin}"
     expect(fil_d_ariane).to eq(['Administration', collection])
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(fil_d_ariane).to eq(['Administration', collection, 'Nouvelle ligne'])
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(fil_d_ariane).to eq(['Administration', collection, nom])
@@ -74,7 +74,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 
   it 'affiche les formulaires de création et de modification' do
     sign_in admin
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(response.body).to include("action=\"/admin/#{chemin}\"")
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(response.body).to include("action=\"/admin/#{chemin}/#{ligne.id}\"")
@@ -82,7 +82,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 
   it 'surveille les formulaires pour prévenir avant de quitter une saisie' do
     sign_in admin
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['action']).to eq("/admin/#{chemin}")
     get "/admin/#{chemin}/#{ligne.id}/edit"
     expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['action']).to eq("/admin/#{chemin}/#{ligne.id}")
@@ -129,7 +129,7 @@ RSpec.shared_examples 'un CRUD brut' do |modele, chemin|
 
   it 'n’affiche pas d’identifiant Grist sur une ligne qui n’en a pas' do
     sign_in admin
-    get "/admin/#{chemin}/new"
+    get nouvelle_fiche(chemin)
     expect(response.body).not_to include('Identifiant Grist')
   end
 
@@ -493,13 +493,20 @@ RSpec.describe 'Administration' do
       api = Vocabulaire.create!(nom: 'API', slug: 'api', categorie: 'solution')
       acces = Vocabulaire.create!(nom: 'Accès facile', slug: 'acces-facile', categorie: 'type_simplification')
 
-      %w[demarches solutions].each do |chemin|
-        get "/admin/#{chemin}/new"
-        vocabulaires = response.parsed_body.at_css('fieldset:has(> legend:contains("Vocabulaires"))')
-        groupes = vocabulaires.css('fieldset').to_h do |groupe|
-          [groupe.at_css('legend').text.strip, groupe.css('input[type=checkbox]').map { |case_a_cocher| case_a_cocher['value'].to_i }]
-        end
-        expect(groupes).to eq('Usager' => [particuliers.id], 'Type de simplification' => [proactivite.id, acces.id], 'Catégorie de solution' => [api.id])
+      get nouvelle_fiche('solutions')
+      expect(groupes_de_vocabulaires('#formulaire-fiche')).to eq(
+        'Pour simplifier les démarches de :' => [particuliers.id], 'Catégorie de solution' => [api.id], 'Type de simplification' => [proactivite.id, acces.id]
+      )
+
+      get '/admin/demarches/new'
+      expect(groupes_de_vocabulaires('#formulaire-fiche')).to eq(
+        'Démarche à destination de :' => [particuliers.id], 'Catégorie de solution' => [api.id], 'Type de simplification' => [proactivite.id, acces.id]
+      )
+    end
+
+    def groupes_de_vocabulaires(conteneur)
+      response.parsed_body.at_css(conteneur).css('fieldset:has(input[name$="[vocabulaire_ids][]"])').to_h do |groupe|
+        [groupe.at_css('legend').text.strip, groupe.css('input[type=checkbox]').map { |case_a_cocher| case_a_cocher['value'].to_i }]
       end
     end
 
@@ -509,11 +516,11 @@ RSpec.describe 'Administration' do
       attendus = ['API Impôt particulier (API)', 'API Impôt particulier (Logiciel métier)']
 
       %w[types_acteurs organisations vocabulaires].each do |chemin|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         expect(response.parsed_body.css('input[type=checkbox][name$="[solution_ids][]"] + label').map { |libelle| libelle.text.strip }).to eq(attendus)
       end
       { 'recommandations' => %w[recommandation_solution_id], 'integrations' => %w[integration_integree_id integration_integratrice_id] }.each do |chemin, champs|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         champs.each { |champ| expect(response.parsed_body.css("##{champ} option").map(&:text).compact_blank).to eq(attendus) }
       end
 
@@ -554,7 +561,7 @@ RSpec.describe 'Administration' do
       10.times { |rang| TypeActeur.create!(nom: "Fournisseur #{rang}") }
 
       get '/admin/demarches/new'
-      courte = response.parsed_body.at_css('fieldset:has(> legend:contains("Fournisseurs de services"))')
+      courte = response.parsed_body.at_css('fieldset:has(> legend:contains("Démarche gérée par"))')
       expect(courte.css('input[type=checkbox]').size).to eq(10)
       expect(courte.at_css('input[type=text]')).to be_nil
 
@@ -563,12 +570,13 @@ RSpec.describe 'Administration' do
         'integrations' => [], 'organisations' => ['Solutions'], 'types_acteurs' => %w[Démarches Solutions],
         'vocabulaires' => %w[Démarches Solutions]
       }.each do |chemin, groupes|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         filtrables = response.parsed_body.css('fieldset[data-controller="liste-filtrable"]')
         expect(filtrables.map { |groupe| groupe.at_css('legend').text.strip }).to eq(groupes)
         filtrables.each do |groupe|
           filtre = groupe.at_css('input[type=text][data-liste-filtrable-target=filtre]')
-          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include('Filtrer', 'cliquer dans le champ', 'flèche bas')
+          expect(groupe.at_css('legend')['class']).to eq('fr-sr-only')
+          expect(groupe.at_css("label[for=#{filtre['id']}]").text).to include(groupe.at_css('legend').text.strip, 'cliquer dans le champ', 'flèche bas')
           expect(filtre['data-action'].split).to include('click->liste-filtrable#ouvrir', 'keydown.down->liste-filtrable#ouvrir')
           expect(groupe.at_css('button[type=button][data-action="liste-filtrable#effacer"]').text.strip).to eq("Effacer le filtre des #{groupe.at_css('legend').text.strip.downcase}")
           expect(groupe['data-action']).to eq('focusout->liste-filtrable#quitter')
@@ -594,7 +602,7 @@ RSpec.describe 'Administration' do
 
       hauteurs_de_la_fiche = hauteurs("/admin/demarches/#{demarche.id}/edit")
       expect(hauteurs_de_la_fiche).to include('demarche[description_courte]' => 6, 'demarche[contexte]' => 32, 'demarche[mots_clefs]' => 10)
-      expect(hauteurs_de_la_fiche['demarche[cadre_juridique]']).to be >= 30
+      expect(hauteurs_de_la_fiche['demarche[cadre_juridique]']).to be >= (2900 / 65.0).ceil
       expect(hauteurs('/admin/demarches/new').values).to all(eq(6))
     end
 
@@ -605,7 +613,7 @@ RSpec.describe 'Administration' do
         'recommandations' => %w[recommandation_donnees_utiles recommandation_parametres_a_saisir recommandation_description],
         'types_acteurs' => []
       }.each do |chemin, champs|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         signales = response.parsed_body.css('label:has(.fr-hint-text:contains("Markdown accepté"))').pluck('for')
         expect(signales).to eq(champs)
       end
@@ -617,7 +625,7 @@ RSpec.describe 'Administration' do
 
     it 'se saisit sous le nom d’une démarche ou d’une solution, avec son aide' do
       %w[demarche solution].each do |modele|
-        get "/admin/#{modele}s/new"
+        get nouvelle_fiche("#{modele}s")
         libelle = response.parsed_body.at_css("label[for=#{modele}_titre_seo]")
         expect(libelle.xpath('text()').text.strip).to eq('Title SEO')
         expect(libelle.at_css('.fr-hint-text').text).to include('moteurs de recherche')
@@ -653,12 +661,12 @@ RSpec.describe 'Administration' do
       expect(lien_public("/admin/solutions/#{solution.id}/edit")['href']).to eq('/solutions/bouquet')
     end
 
-    it 'affiche l’adresse en ligne d’une démarche publiée, même quand son brouillon la change' do
+    it 'mène à la page en ligne d’une démarche publiée, même quand son brouillon change l’adresse' do
       demarche = Demarche.create!(nom: 'Aides', slug: 'aides', visible: true)
       demarche.enregistrer('slug' => 'nouvelle')
 
       lien = lien_public("/admin/demarches/#{demarche.id}/edit")
-      expect([lien['href'], lien.text]).to match(['/demarches/aides', a_string_including('/demarches/aides')])
+      expect([lien['href'], lien.text]).to eq(['/demarches/aides', 'Voir la page publique - nouvelle fenêtre'])
     end
 
     it 'ne propose aucun lien quand la page publique n’existe pas' do
@@ -668,6 +676,26 @@ RSpec.describe 'Administration' do
       demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { slug: 'Mauvais slug', visible: '1' } }
       expect(response.parsed_body.at_css('a[title^="Voir la page publique"]')['href']).to eq('/demarches/cantine')
+    end
+
+    it 'annonce l’adresse à choisir d’une solution masquée sans slug, rien pour une API qui n’a pas de page' do
+      adresse = lambda do |solution|
+        get "/admin/solutions/#{solution.id}/edit"
+        response.parsed_body.at_css(ETAT_DE_LA_FICHE).css('.fr-grid-row + p').first&.text&.squish
+      end
+
+      expect(adresse.call(Solution.new(nom: 'Bouquet', categorie: 'logiciel_metier_cle_en_main').tap { it.save!(validate: false) })).to eq('Slug de la page : à choisir')
+      expect(adresse.call(Solution.create!(nom: 'API QF', categorie: 'api'))).to be_nil
+      expect(adresse.call(Solution.create!(nom: 'Portail', slug: 'portail', brouillon: { 'slug' => 'portail-v2' }))).to eq('www.example.com/solutions/portail-v2')
+    end
+
+    it 'montre en texte l’adresse d’une fiche masquée, et le lien vers le brouillon sous son badge' do
+      solution = Solution.create!(nom: 'Bouquet', slug: 'bouquet', brouillon: { 'nom' => 'Bouquet v2' })
+      get "/admin/solutions/#{solution.id}/edit"
+      etat = response.parsed_body.at_css(ETAT_DE_LA_FICHE)
+
+      expect(etat.css('.fr-grid-row + p').map { it.text.squish }).to eq(['www.example.com/solutions/bouquet', 'Prévisualiser le brouillon - nouvelle fenêtre'])
+      expect(etat.at_css('a:contains("Prévisualiser le brouillon")')['href']).to eq("/admin/solutions/#{solution.id}/previsualisation")
     end
   end
 
@@ -708,13 +736,13 @@ RSpec.describe 'Administration' do
         ['Fiche de Particuliers (nouvel onglet)', "/admin/vocabulaires/#{usager.id}", '_blank', false]
       ]
 
-      ["/admin/demarches/#{demarche.id}/edit", '/admin/solutions/new'].each do |chemin|
+      ["/admin/demarches/#{demarche.id}/edit", nouvelle_fiche('solutions')].each do |chemin|
         get chemin
         expect(liens_vers_le_referentiel).to match_array(attendus)
       end
     end
 
-    it 'range les vocabulaires et les fournisseurs sur trois colonnes, pas les éléments du catalogue' do
+    it 'met côte à côte les fournisseurs et les publics de la démarche, pas les éléments du catalogue' do
       TypeActeur.create!(nom: 'Communes')
       Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
       api = Solution.create!(nom: 'API QF', categorie: 'api')
@@ -723,7 +751,7 @@ RSpec.describe 'Administration' do
       Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: api, type_integration: 'consomme')
       get "/admin/demarches/#{demarche.id}/edit"
       en_colonnes = response.parsed_body.css('input[type=checkbox]').to_h do |case_a_cocher|
-        [case_a_cocher['name'], case_a_cocher.ancestors('.fr-col-12.fr-col-sm-6.fr-col-lg-4').any?]
+        [case_a_cocher['name'], case_a_cocher.ancestors('.fr-col-md-6').any?]
       end
       expect(en_colonnes).to eq('demarche[type_acteur_ids][]' => true, 'demarche[vocabulaire_ids][]' => true, 'demarche[integration_ids][]' => false)
     end
@@ -794,7 +822,7 @@ RSpec.describe 'Administration' do
     def ligne_de_donnee(dans, recommandation) = dans.at_css("form##{ActionView::RecordIdentifier.dom_id(recommandation, :donnee_utile)}")
     def choisi(dans, champ) = dans.at_css("[name=\"recommandation[#{champ}]\"]").then { it.name == 'select' ? it.at_css('option[selected]')&.text : it['value'] || it.text.strip }
 
-    it 'montre sous les blocs de texte les solutions recommandées en cartes, avec leur nombre' do
+    it 'montre sous les champs de la démarche les solutions recommandées en cartes, avec leur nombre' do
       Recommandation.create!(demarche: aides, solution: solution('Mes Aides'), niveau: :niveau_2, ordre: 2, visible: true)
       Recommandation.create!(demarche: aides, solution: solution('Aides Locales'), niveau: :niveau_2, ordre: 1)
       Recommandation.create!(demarche: aides, solution: solution('Nouvelle Aide'), niveau: :niveau_2, brouillon: { 'visible' => '1' })
@@ -804,7 +832,7 @@ RSpec.describe 'Administration' do
       Recommandation.create!(demarche: Demarche.create!(nom: 'Autre'), solution: solution('Ailleurs'), niveau: :niveau_2)
 
       fiche
-      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title)').map { it.text.squish }).to start_with('Contexte', 'Cadre juridique', 'Solutions recommandées (4)')
+      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title)').map { it.text.squish }).to start_with('Solutions recommandées (4)')
       expect(cartes(page)).to eq([
         ['Position 1', 'Aides Locales (API)', 'Masquée'], ['Position 2', 'Mes Aides (API)'], ['Position 3', 'Aide Rangée (API)'],
         ['Sans position', 'Nouvelle Aide (API)', 'Ajoutée au brouillon']
@@ -1173,10 +1201,20 @@ RSpec.describe 'Administration' do
       get "/admin/solutions/#{bouquet.id}/edit"
 
       par_onglet = %w[api-fournies api-integrees integratrices].index_with do |onglet|
-        panneau = response.parsed_body.at_css("#onglet-#{onglet}-panneau")
-        [panneau.css('select[name="integration[type_integration]"]').size, panneau.css('th')[1].text.squish]
+        ligne = response.parsed_body.at_css("#onglet-#{onglet}-panneau tbody tr")
+        ligne.css('label:not(.fr-sr-only)').map { it.children.select(&:text?).join.squish }
       end
-      expect(par_onglet).to eq('api-fournies' => [0, 'Statut'], 'api-integrees' => [0, 'Statut'], 'integratrices' => [2, 'Type d’intégration (obligatoire) et statut'])
+      expect(par_onglet).to eq('api-fournies' => ['Statut'], 'api-integrees' => ['Statut'], 'integratrices' => ['Type d’intégration (obligatoire)', 'Statut'])
+    end
+
+    it 'range dans une seule colonne la solution et son statut, puis les actions de la ligne' do
+      get "/admin/solutions/#{bouquet.id}/edit"
+
+      panneau = response.parsed_body.at_css('#onglet-api-integrees-panneau')
+      expect(panneau.css('thead th').map { it.text.squish }).to eq(['API ou jeu de données (obligatoire)'])
+      cellule = panneau.at_css('tbody tr td:only-child')
+      ordre = cellule.css('select, button[type=submit]').map { it['name'] || it.text.squish }
+      expect(ordre.first(3)).to match(['integration[integree_id]', 'integration[statut]', start_with('Enregistrer')])
     end
 
     it 'garde la redirection vers la fiche hors de la ligne' do
@@ -1552,7 +1590,7 @@ RSpec.describe 'Administration' do
     before { sign_in admin }
 
     def libelles(chemin)
-      get "/admin/#{chemin}/new"
+      get nouvelle_fiche(chemin)
       response.parsed_body.css('form[data-controller="formulaire-modifie"] label, form[data-controller="formulaire-modifie"] legend')
         .map { |libelle| libelle.xpath('text()').text.strip }
     end
@@ -1560,7 +1598,7 @@ RSpec.describe 'Administration' do
     it 'nomme les champs avec les mots du Grist et du site' do
       {
         'demarches' => ['Icône du titre', 'Description courte', 'Cadre juridique', 'Mots-clés'],
-        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
+        'solutions' => ['Identifiant data.gouv', 'URL de demande d’accès', 'Légende de l’image',
                         'Type de solution', 'API FranceConnectée', 'Cette solution ne permet pas'],
         'recommandations' => ['Démarche (obligatoire)', 'Type de recommandation (obligatoire)', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
@@ -1575,7 +1613,7 @@ RSpec.describe 'Administration' do
       integration = Integration.create!(integratrice: Solution.create!(nom: 'Bouquet'), integree: Solution.create!(nom: 'API QF'),
         type_integration: 'consomme')
       %w[demarches solutions recommandations integrations organisations types_acteurs vocabulaires].each do |chemin|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').text).not_to match(/niveau_\d|_cle_en_main|brique_logicielle|type_simplification|consomme|expose/)
       end
 
@@ -1583,8 +1621,8 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.css('#recommandation_niveau option').map(&:text))
         .to eq(['', 'Donnée utile (API ou jeu de données)', 'Solution recommandée'])
       get '/admin/solutions/new'
-      expect(response.parsed_body.css('#solution_categorie option').map(&:text))
-        .to eq(['', 'Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier'])
+      expect(response.parsed_body.css('input[name=categorie] + label').map { it.children.first.text.strip })
+        .to eq(['Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier'])
       get '/admin/vocabulaires/new'
       expect(response.parsed_body.css('#vocabulaire_categorie option').map(&:text))
         .to eq(['', 'Usager', 'Type de simplification', 'Catégorie de solution'])
@@ -1597,13 +1635,13 @@ RSpec.describe 'Administration' do
         Recommandation => %w[niveau ordre], Solution => %w[uid_datagouv france_connectee slug],
         Demarche => %w[mots_clefs slug], Integration => %w[type_integration]
       }.each do |modele, champs|
-        get "/admin/#{modele.model_name.route_key}/new"
+        get nouvelle_fiche(modele.model_name.route_key)
         champs.each do |champ|
           aide = response.parsed_body.at_css("label[for=#{modele.model_name.param_key}_#{champ}] .fr-hint-text")
           expect(aide).to be_present, "#{modele}.#{champ}"
         end
       end
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.parsed_body.at_css('#solution_types_solution legend .fr-hint-text')).to be_present
     end
 
@@ -1614,7 +1652,7 @@ RSpec.describe 'Administration' do
         'recommandations' => %w[recommandation_solution_id recommandation_demarche_id recommandation_niveau],
         'integrations' => %w[integration_integree_id integration_integratrice_id integration_type_integration]
       }.each do |chemin, obligatoires|
-        get "/admin/#{chemin}/new"
+        get nouvelle_fiche(chemin)
         formulaire = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')
         expect(formulaire['novalidate']).not_to be_nil
         expect(formulaire.css('label').select { |libelle| libelle.text.include?('(obligatoire)') }.pluck('for')).to eq(obligatoires)
@@ -1625,19 +1663,31 @@ RSpec.describe 'Administration' do
     it 'dit dans l’aide les règles qui dépendent d’un autre champ' do
       get '/admin/demarches/new'
       expect(response.parsed_body.at_css('label[for=demarche_slug] .fr-hint-text').text).to include('tiré du nom')
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.parsed_body.at_css('label[for=solution_slug] .fr-hint-text').text).to include('tiré du nom', 'Reste vide pour une API')
-      expect(response.parsed_body.at_css('label[for=solution_categorie] .fr-hint-text').text).to include('restent vides')
+      expect(response.parsed_body.at_css('#formulaire-fiche').text).to include('restent vides')
     end
 
-    it 'range les champs dans l’ordre des fiches Grist, la catégorie et l’identifiant data.gouv en tête' do
+    it 'ne propose « API FranceConnectée » qu’aux API' do
+      case_france_connectee = -> { response.parsed_body.at_css('.fr-input-group:has(> .fr-checkbox-group #solution_france_connectee)') }
+
+      get nouvelle_fiche('solutions')
+      expect(case_france_connectee.call['class']).to include('fr-hidden')
+      expect(case_france_connectee.call.css('input')).to all(have_attributes(to_h: include('disabled')))
+
+      get "/admin/solutions/#{Solution.create!(nom: 'API QF', categorie: 'api').id}/edit"
+      expect(case_france_connectee.call['class']).not_to include('fr-hidden')
+      expect(case_france_connectee.call.css('input[disabled]')).to be_empty
+    end
+
+    it 'range les champs dans l’ordre des fiches Grist, l’identifiant data.gouv en tête' do
       {
-        'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Contexte',
-                        'Cadre juridique', 'Fournisseurs de services', 'Mots-clés', 'Vocabulaires'],
-        'solutions' => ['Catégorie de solution', 'Identifiant data.gouv', 'Nom (obligatoire)', 'Slug', 'Site internet',
-                        'URL de demande d’accès', 'Organisations', 'Image principale', 'Légende de l’image', 'Description courte',
-                        'Type de solution', 'Vocabulaires', 'Fournisseurs de services', 'Cette solution permet',
-                        'Cette solution ne permet pas', 'API FranceConnectée'],
+        'demarches' => ['Icône du titre', 'Nom (obligatoire)', 'Slug', 'Description courte', 'Démarche gérée par :',
+                        'Démarche à destination de :', 'Catégorie de solution', 'Type de simplification', 'Contexte', 'Cadre juridique', 'Mots-clés'],
+        'solutions' => ['Identifiant data.gouv', 'Organisations', 'Nom (obligatoire)', 'Slug', 'Site internet',
+                        'URL de demande d’accès', 'API FranceConnectée', 'Image principale', 'Légende de l’image',
+                        'Description courte', 'Solution à destination de :', 'Pour simplifier les démarches de :', 'Catégorie de solution', 'Type de solution',
+                        'Type de simplification', 'Cette solution permet', 'Cette solution ne permet pas'],
         'recommandations' => ['Solution (obligatoire)', 'URL de demande d’accès pour cette démarche', 'Démarche (obligatoire)',
                               'Type de recommandation (obligatoire)', 'Position', 'Données utiles disponibles', 'Paramètres à saisir pour récupérer les données',
                               'En quoi cette API ou ce jeu de données est utile'],
@@ -1757,7 +1807,7 @@ RSpec.describe 'Administration' do
 
     it 'annonce le format attendu sous le champ et garde la saisie refusée' do
       sign_in admin
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.body).to include('Minuscules sans accent, chiffres et tirets, ex. : cantine-scolaire</span>')
 
       post '/admin/demarches', params: { demarche: { nom: 'Aides', slug: 'Aides publiques' } }
@@ -1879,7 +1929,7 @@ RSpec.describe 'Administration' do
 
     before do
       sign_in admin
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       stub_request(:get, melodi).to_return(status: 200, headers: { 'Content-Type' => 'application/json' },
         body: { title: 'API Melodi', organization: { name: 'Insee' } }.to_json)
     end
@@ -1944,6 +1994,35 @@ RSpec.describe 'Administration' do
       expect(cadre['src']).to be_nil
       expect(cadre.text).to include('Titre : Titre enregistré')
     end
+
+    it 'propose de récupérer les infos d’une API, juste au-dessus de ses organisations' do
+      get '/admin/solutions/new?categorie=api'
+      page = response.parsed_body
+      bouton = page.at_css('button[data-action="datagouv#recuperer"]')
+      expect(bouton.text).to eq('Récupérer les infos data.gouv')
+      expect(page.at_css('turbo-frame#repris-datagouv + fieldset legend').text).to include('Organisations')
+    end
+
+    it 'ne propose pas la récupération pour une fiche hors API et jeu de données' do
+      get nouvelle_fiche('solutions')
+      expect(response.body).not_to include('Récupérer les infos data.gouv')
+    end
+
+    it 'désigne l’organisation de la liste qui porte le nom donné par data.gouv.fr' do
+      insee = Organisation.create!(nom: 'INSEE', nom_long: 'Institut national de la statistique et des études économiques')
+      stub_request(:get, melodi).to_return(status: 200, body: { title: 'API Melodi', organization: { name: ' Institut national de la statistique et des etudes economiques' } }.to_json)
+      bloc = apercu('6661e09c7230a8fc3b1ec229')
+      expect(bloc).to include('correspond à « INSEE » de la liste Organisations')
+      expect(response.parsed_body.at_css('[data-organisation-datagouv]')['data-organisation-datagouv']).to eq(insee.id.to_s)
+    end
+
+    it 'signale une organisation de data.gouv.fr absente de la liste' do
+      Organisation.create!(nom: 'DINUM')
+      expect(apercu('6661e09c7230a8fc3b1ec229')).to include('Organisation : Insee')
+      expect(apercu('6661e09c7230a8fc3b1ec229')).not_to include('absente')
+      expect(response.parsed_body.at_css('[data-organisation-datagouv]')).to be_nil
+      expect(response.parsed_body.at_css('[data-organisation-absente]')['data-organisation-absente']).to eq('Insee')
+    end
   end
 
   describe 'formulaire solution selon sa catégorie' do
@@ -1953,7 +2032,7 @@ RSpec.describe 'Administration' do
 
     def champs_masques(solution)
       get "/admin/solutions/#{solution.id}/edit"
-      response.parsed_body.css('form [name^="solution["]').select { |champ| champ.ancestors('.fr-hidden').any? }
+      response.parsed_body.css('form [name^="solution["]:not([name="solution[france_connectee]"])').select { |champ| champ.ancestors('.fr-hidden').any? }
         .map { |champ| [champ['name'][/\[(\w+)\]/, 1], champ.key?('disabled')] }
     end
 
@@ -1963,8 +2042,15 @@ RSpec.describe 'Administration' do
       end
     end
 
-    it 'montre les champs de fiche des autres catégories' do
-      [nil, 'brique_logicielle'].each { |categorie| expect(champs_masques(Solution.create!(nom: 'Bouquet', categorie:))).to be_empty }
+    it 'montre les champs de fiche des autres catégories, sans l’identifiant data.gouv' do
+      %w[brique_logicielle site_de_consultation logiciel_metier_cle_en_main].each do |categorie|
+        expect(champs_masques(Solution.create!(nom: 'Bouquet', categorie:))).to eq([['uid_datagouv', true]])
+      end
+    end
+
+    it 'laisse visible l’identifiant data.gouv déjà rempli d’une brique technique, pour qu’on puisse le vider' do
+      brique = Solution.create!(nom: 'FranceConnect', categorie: 'brique_logicielle', uid_datagouv: 'identifiant-franceconnect')
+      expect(champs_masques(brique)).to be_empty
     end
 
     it 'laisse visible un champ de fiche déjà rempli, pour qu’on puisse le vider' do
@@ -1981,19 +2067,96 @@ RSpec.describe 'Administration' do
       expect([champ['disabled'], champ.ancestors('.fr-hidden').any?]).to eq([nil, false])
     end
 
-    it 'marque les champs remplis en base, que la bascule vers API garde visibles même vidés après un refus' do
-      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description')
-      patch "/admin/solutions/#{brique.id}", params: { solution: { nom: '', description_courte: '' } }
-      expect(response.parsed_body.css('[data-rempli-en-base]').map { |groupe| groupe.at_css('[name^="solution["]')['name'] })
-        .to eq(['solution[slug]', 'solution[description_courte]'])
+    it 'demande d’abord la catégorie seule, puis montre la fiche de cette catégorie' do
+      get '/admin/solutions/new'
+      page = response.parsed_body
+      expect(page.at_css('[name="solution[nom]"]')).to be_nil
+      etape = page.at_css('form[method=get][action="/admin/solutions/new"]')
+      expect(etape.css('input[type=radio][name=categorie]').pluck('value')).to match_array(Solution.categories.keys)
+      expect(etape.at_css('input[type=hidden][name=categorie]')['value']).to eq('')
+
+      get '/admin/solutions/new', params: { categorie: 'api' }
+      page = response.parsed_body
+      expect(page.at_css('#formulaire-fiche input[type=hidden][name="solution[categorie]"]')['value']).to eq('api')
+      expect(page.at_css('select[name="solution[categorie]"]')).to be_nil
+      expect(page.at_css('#formulaire-fiche').text.squish).to include('Catégorie de solution : API')
     end
 
-    it 'bascule les champs quand la catégorie change' do
-      get '/admin/solutions/new'
-      categorie = response.parsed_body.at_css('select[name="solution[categorie]"]')
-      expect(categorie.to_h.slice('data-controller', 'data-action')).to eq('data-controller' => 'champs-fiche', 'data-action' => 'champs-fiche#basculer')
-      expect(JSON.parse(categorie['data-champs-fiche-hors-fiches-value'])).to eq(Solution::HORS_FICHES)
-      expect(response.parsed_body.css('form [data-champ-fiche]').size).to eq(champs_fiche.size)
+    it 'redemande la catégorie quand on continue sans en choisir' do
+      get '/admin/solutions/new', params: { categorie: '' }
+      expect(response.parsed_body.at_css('.fr-fieldset--error').text).to include('Choisissez une catégorie')
+    end
+
+    it 'change la catégorie d’une nouvelle fiche et l’enregistre, en gardant les champs communs' do
+      post '/admin/solutions', params: { changer_de_categorie: '1', nouvelle_categorie: 'api',
+                                         solution: { categorie: 'brique_logicielle', nom: 'Bouquet', description_courte: 'Texte' } }
+
+      expect(Solution.last.attributes.slice('categorie', 'nom', 'description_courte')).to eq('categorie' => 'api', 'nom' => 'Bouquet', 'description_courte' => nil)
+    end
+
+    it 'change la catégorie d’une fiche enregistrée, en effaçant ce que l’API n’a pas et en gardant le reste' do
+      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description', titre_seo: 'Bouquet en ligne')
+      patch "/admin/solutions/#{brique.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'api', solution: { categorie: 'brique_logicielle', nom: 'Bouquet API' } }
+
+      expect(response).to redirect_to("/admin/solutions/#{brique.id}/edit")
+      expect(brique.reload.attributes.slice('categorie', 'nom', 'description_courte', 'slug', 'titre_seo'))
+        .to eq('categorie' => 'api', 'nom' => 'Bouquet API', 'description_courte' => nil, 'slug' => nil, 'titre_seo' => 'Bouquet en ligne')
+    end
+
+    it 'efface encore ce que la nouvelle catégorie n’a pas au clic sur « Enregistrer » qui suit un refus' do
+      brique = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', description_courte: 'Ancienne description')
+      patch "/admin/solutions/#{brique.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'api', solution: { categorie: 'brique_logicielle', nom: '' } }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.at_css('input[type=hidden][name="solution[categorie]"]')['value']).to eq('api')
+
+      patch "/admin/solutions/#{brique.id}", params: { solution: { categorie: 'api', nom: 'Bouquet' } }
+      expect(brique.reload.attributes.slice('categorie', 'description_courte')).to eq('categorie' => 'api', 'description_courte' => nil)
+    end
+
+    it 'dit dans la fenêtre ce que chaque catégorie efface, et refuse API et jeu de données à une solution publiée' do
+      publiee = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      get "/admin/solutions/#{publiee.id}/edit"
+      choix = response.parsed_body.css('dialog input[type=radio][name=nouvelle_categorie]').to_h do |radio|
+        [radio['value'], [radio.key?('disabled'), radio.parent.at_css('.fr-hint-text')&.text&.squish]]
+      end
+
+      expect(choix['brique_logicielle']).to eq([false, 'Rien n’est effacé.'])
+      expect(choix['api']).to eq([true, 'Masquez d’abord la solution pour la transformer en API ou en jeu de données.'])
+      expect(choix['base_de_donnees'].first).to be(true)
+
+      get "/admin/solutions/#{Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle').id}/edit"
+      aide = response.parsed_body.at_css('dialog input[value=api]').parent.at_css('.fr-hint-text').text
+      expect(aide).to start_with('Efface : Slug, Site internet')
+    end
+
+    it 'refuse de faire d’une solution publiée une API, même sans passer par la fenêtre' do
+      publiee = Solution.create!(nom: 'Acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true)
+      patch "/admin/solutions/#{publiee.id}", params: { solution: { categorie: 'api', slug: '' } }
+      expect(response.parsed_body.text).to include('masquez-la d’abord')
+      expect(publiee.reload.brouillon.to_h).not_to include('categorie')
+    end
+
+    it 'efface ce que la fenêtre annonce quand le brouillon d’une API publiée la ramène à API' do
+      api = Solution.create!(nom: 'API Melodi', categorie: 'api', visible: true)
+      patch "/admin/solutions/#{api.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'logiciel_metier_cle_en_main', solution: { categorie: 'api', nom: 'API Melodi' } }
+      patch "/admin/solutions/#{api.id}", params: { solution: { categorie: 'logiciel_metier_cle_en_main', nom: 'API Melodi', description_courte: 'Texte du brouillon' } }
+
+      get "/admin/solutions/#{api.id}/edit"
+      expect(response.parsed_body.at_css('dialog input[value=api]').parent.at_css('.fr-hint-text').text).to include('Description courte')
+
+      patch "/admin/solutions/#{api.id}", params: { changer_de_categorie: '1', nouvelle_categorie: 'api',
+                                                    solution: { categorie: 'logiciel_metier_cle_en_main', nom: 'API Melodi', description_courte: 'Texte du brouillon' } }
+      patch "/admin/solutions/#{api.id}", params: { solution: { categorie: 'api', nom: 'API Melodi', visible: '1' } }
+
+      expect(response).to redirect_to("/admin/solutions/#{api.id}/edit")
+      expect(api.reload.attributes.slice('categorie', 'description_courte', 'brouillon')).to eq('categorie' => 'api', 'description_courte' => nil, 'brouillon' => nil)
+    end
+
+    it 'propose de choisir la catégorie d’une solution qui n’en a pas' do
+      get "/admin/solutions/#{Solution.create!(nom: 'Bouquet').id}/edit"
+      fiche = response.parsed_body.at_css('#formulaire-fiche')
+      expect(fiche.text.squish).to include('Catégorie de solution : non renseignée')
+      expect(fiche.css('button').map { it.text.strip }).to include('Choisir la catégorie')
     end
   end
 
@@ -2020,7 +2183,7 @@ RSpec.describe 'Administration' do
     end
 
     it 'propose les types de la liste fixe en cases à cocher et enregistre ceux cochés' do
-      get '/admin/solutions/new'
+      get nouvelle_fiche('solutions')
       expect(response.parsed_body.css('input[type=checkbox][name="solution[types_solution][]"]').pluck('value'))
         .to eq(Solution::TYPES_SOLUTION)
 
@@ -2263,7 +2426,7 @@ RSpec.describe 'Administration' do
 
     def boutons_du_formulaire
       identifiant = response.parsed_body.at_css('form[data-controller="formulaire-modifie"]')['id']
-      response.parsed_body.css("button[type=submit][form=\"#{identifiant}\"]").map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
+      response.parsed_body.css("button[type=submit][form=\"#{identifiant}\"]:not([hidden])").reject { it.ancestors('dialog').any? }.map { |bouton| [bouton.text.strip, bouton['name'], bouton['value']] }
     end
 
     it 'montre l’état, les dates et l’identifiant Grist d’une démarche, et l’enregistre depuis son état' do
@@ -2271,15 +2434,24 @@ RSpec.describe 'Administration' do
       get "/admin/demarches/#{demarche.id}/edit"
 
       expect(etat_de_la_fiche.text.squish).to include('Masquée', 'Création 02/01/2026', 'Dernière modification 05/10/2026', 'Identifiant Grist : Cas_d_usages:1')
-      expect(etat_de_la_fiche.css('button').map(&:text)).to eq(['Publier'])
-      expect(etat_de_la_fiche.at_css('input[name="demarche[visible]"]')['value']).to eq('1')
+      expect(etat_de_la_fiche.css('button:not([hidden])').map(&:text)).to eq(['Publier', 'Enregistrer', 'Supprimer cette démarche'])
+      expect(etat_de_la_fiche.at_css('button[name="demarche[visible]"]').then { [it['form'], it['value']] }).to eq(%w[formulaire-fiche 1])
+    end
+
+    it 'fait d’Enregistrer le bouton de la touche Entrée, sans changer l’état de la fiche' do
+      [Solution.create!(nom: 'Bouquet'), Solution.create!(nom: 'Portail', slug: 'portail', visible: true),
+       Demarche.create!(nom: 'Aides'), Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)].each do |fiche|
+        get "/admin/#{fiche.model_name.route_key}/#{fiche.id}/edit"
+        premier = response.parsed_body.at_css('button[type=submit][form="formulaire-fiche"]')
+        expect([premier.text, premier['name']]).to eq(['Enregistrer', nil]), fiche.nom
+      end
     end
 
     it 'désigne Enregistrer au script qui le grise tant que rien n’a changé, sans le griser côté serveur' do
       solution = Solution.create!(nom: 'Bouquet')
       get "/admin/solutions/#{solution.id}/edit"
 
-      expect(etat_de_la_fiche.css('button[data-enregistrer]').map { |bouton| [bouton.text.strip, bouton['disabled']] }).to eq([['Enregistrer', nil]])
+      expect(etat_de_la_fiche.css('button[data-enregistrer]').map { |bouton| [bouton.text.strip, bouton['disabled']] }).to all(eq(['Enregistrer', nil]))
     end
 
     it 'publie en enregistrant les autres champs, masque en les gardant en brouillon, et laisse l’état tel quel à l’enregistrement' do
@@ -2292,7 +2464,7 @@ RSpec.describe 'Administration' do
       expect(demarche.reload.slice(:nom, :visible)).to eq('nom' => 'Aides locales', 'visible' => true)
       follow_redirect!
       expect(etat_de_la_fiche.text).to include('Publiée')
-      expect(response.parsed_body.at_css('form:has(button:contains("Masquer la démarche")) input[name="demarche[visible]"]')['value']).to eq('0')
+      expect(etat_de_la_fiche.at_css('button:contains("Masquer")').then { [it['form'], it['name'], it['value']] }).to eq(['formulaire-fiche', 'demarche[visible]', '0'])
       expect(response.parsed_body.at_css('a[title^="Voir la page publique"]')['href']).to eq('/demarches/aides')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides', visible: '0' } }
@@ -2306,7 +2478,7 @@ RSpec.describe 'Administration' do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(etat_de_la_fiche.text).to include('Masquée')
-      expect(etat_de_la_fiche.css('button').map(&:text)).to eq(['Publier'])
+      expect(etat_de_la_fiche.css('button:not([hidden])').map(&:text)).to eq(['Publier', 'Enregistrer', 'Supprimer cette démarche'])
     end
 
     it 'garde Supprimer avec l’état de la fiche, à part du formulaire, et rien d’autre qu’Enregistrer et Publier sur une nouvelle démarche' do
@@ -2334,16 +2506,15 @@ RSpec.describe 'Administration' do
       }
 
       lignes.each do |chemin, ligne|
-        boutons = ligne.has_attribute?(:visible) ? [['Enregistrer', nil, nil], ['Publier', "#{ligne.model_name.param_key}[visible]", '1']] : [['Enregistrer', nil, nil]]
+        boutons = ligne.has_attribute?(:visible) ? [['Publier', "#{ligne.model_name.param_key}[visible]", '1'], ['Enregistrer', nil, nil]] : [['Enregistrer', nil, nil]]
         get "/admin/#{chemin}/#{ligne.id}/edit"
         expect(boutons_du_formulaire).to eq(boutons), chemin
         expect(etat_de_la_fiche.text.squish).to include('Dernière modification 07/10/2026')
-        expect(etat_de_la_fiche.at_css('a:contains("Annuler")')['href']).to eq("/admin/#{chemin}")
-        expect(etat_de_la_fiche.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq('Supprimer')
+        expect(etat_de_la_fiche.at_css("form[action=\"/admin/#{chemin}/#{ligne.id}\"] button").text).to eq(I18n.t("admin.supprimer_la_fiche.#{ligne.model_name.i18n_key}"))
         expect(response.parsed_body.at_css('form[data-controller="formulaire-modifie"]').css('button[type=submit]:not([form])')).to be_empty
 
-        get "/admin/#{chemin}/new"
-        expect(boutons_du_formulaire).to eq(boutons), chemin
+        get nouvelle_fiche(chemin)
+        expect(boutons_du_formulaire).to eq(boutons.reverse), chemin
       end
     end
   end
@@ -2359,7 +2530,7 @@ RSpec.describe 'Administration' do
 
     def actions
       get "/admin/demarches/#{demarche.id}/edit"
-      response.parsed_body.css('main form.button_to button').map { it.text.strip }
+      response.parsed_body.css('#etat-de-la-demarche button:not([hidden]), main form.button_to button').map { it.text.strip }
     end
 
     it 'garde Enregistrer en brouillon hors du site, rouvre le formulaire dessus, et le publie' do
@@ -2382,7 +2553,7 @@ RSpec.describe 'Administration' do
       demarche.update!(modifie_le: Time.zone.local(2026, 10, 5))
       travel_to(Time.zone.local(2026, 10, 7, 9, 30)) { patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } } }
       get "/admin/demarches/#{demarche.id}/edit"
-      expect(etat_de_la_fiche.text.squish).to include('Dernière modification 05/10/2026', 'Brouillon du 07/10/2026 à 09:30')
+      expect(etat_de_la_fiche.text.squish).to include('Dernière modification 05/10/2026', 'Brouillon non publié depuis le 07/10/2026 à 09:30')
       expect(demarche.versions.pluck(:event)).to contain_exactly('create', 'brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '1' } }
@@ -2439,10 +2610,10 @@ RSpec.describe 'Administration' do
     end
 
     it 'propose Publier et Masquer sur une fiche publiée, Abandonner seulement avec un brouillon' do
-      expect(actions).to eq(['Publier', 'Masquer la démarche', 'Supprimer la démarche'])
+      expect(actions).to eq(['Masquer', 'Enregistrer', 'Supprimer cette démarche'])
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
-      expect(actions).to eq(['Publier ce changement', 'Abandonner le brouillon', 'Masquer la démarche', 'Supprimer la démarche'])
+      expect(actions).to eq(['Masquer', 'Enregistrer', 'Publier le brouillon', 'Abandonner le brouillon', 'Supprimer cette démarche'])
       expect(etat_de_la_fiche.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to eq('Abandonner le brouillon de « Aides » ? Les modifications non publiées seront perdues.')
     end
   end
@@ -2677,7 +2848,7 @@ RSpec.describe 'Administration' do
       etat = page.at_css(ETAT_DE_LA_FICHE)
       expect(etat.css('.fr-badge').map { it.text.squish }).to eq(['Publiée', 'Retirée · à publier'])
       expect(etat.at_css('.fr-badge--warning').text.squish).to eq('Retirée · à publier')
-      expect(etat.text.squish).to include('Brouillon du', 'Abandonner le brouillon')
+      expect(etat.at_css('section[aria-label=Brouillon]').text.squish).to include('Retirée · à publier depuis le', 'Abandonner le brouillon')
     end
 
     it 'cache de la prévisualisation la solution recommandée retirée' do
@@ -2788,7 +2959,7 @@ RSpec.describe 'Administration' do
     it 'remet à l’abandon du brouillon chaque recommandation retirée, seule ou avec d’autres changements' do
       delete "/admin/recommandations/#{carte.id}", params: { ligne: 1 }
       fiche
-      expect(encadre.css('button').map { it.text.squish }).to include('Abandonner le brouillon')
+      expect(page.at_css('#etat-de-la-demarche').css('button').map { it.text.squish }).to include('Abandonner le brouillon')
 
       patch "/admin/demarches/#{demarche.id}/abandonner_brouillon"
       expect(carte.reload.brouillon).to be_nil
@@ -2973,7 +3144,7 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('h1').text.squish).to eq('Aides sociales')
       expect(bandeau.text.squish).to include('Prévisualisation', 'non publiée', 'recommandations y paraissent telles qu’elles seront publiées avec la démarche', 'intégrations, dans leur version publiée')
       expect(response.headers['X-Robots-Tag']).to eq('noindex')
-      expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Cas').and include('Aides sociales')
+      expect(response.parsed_body.at_css('title').text).to start_with('Prévisualisation - Démarche').and include('Aides sociales')
 
       get '/demarches/aides'
       expect([response.parsed_body.at_css('h1').text.squish, bandeau]).to eq(['Aides', nil])
@@ -3276,20 +3447,21 @@ RSpec.describe 'Administration' do
 
     def fiche = get("/admin/demarches/#{demarche.id}/edit").then { page }
     def fenetre(id) = page.at_css("dialog#fenetre-#{id}")
-    def champs(id) = fenetre(id).css('input:not([type=hidden]), textarea').pluck('name').uniq
-    def bouton(id) = page.at_css("button[aria-controls='fenetre-#{id}'].fr-icon-edit-line")
 
-    it 'montre l’en-tête et les blocs comme sur le site, sans etat_de_la_fiche d’état' do
+    it 'montre l’adresse et le nom, puis les champs de la démarche à modifier sur place, sans fenêtre' do
       fiche
       expect(page.at_css('h1').text.squish).to eq('💼 Aides')
-      expect(page.at_css('.bloc-modifiable').text.squish).to include('/demarches/aides', 'Aider les entreprises.', 'Entreprises')
-      expect(page.at_css('.bloc-modifiable').text).not_to include('DLNUF')
-      expect(page.at_css('#formulaire-fiche').css('h2:not(.fr-modal__title), h3').map { it.text.squish }).to eq(
-        ['Contexte', 'Cadre juridique', 'Solutions recommandées (0)', 'Hors de la page publique', 'Title SEO', 'Mots-clés',
-         'Fournisseurs de services', 'Vocabulaires']
+      expect(page.at_css('a[href="/demarches/aides"]').text.squish).to eq('Voir la page publique - nouvelle fenêtre')
+      champs_sur_place = page.css('#formulaire-fiche input:not([type=hidden]), #formulaire-fiche textarea').reject { it.ancestors('dialog').any? }
+      expect(champs_sur_place.pluck('name').uniq).to eq(
+        ['demarche[icone]', 'demarche[nom]', 'demarche[titre_seo]', 'demarche[slug]', 'demarche[description_courte]',
+         'demarche[type_acteur_ids][]', 'demarche[vocabulaire_ids][]', 'demarche[contexte]', 'demarche[cadre_juridique]', 'demarche[mots_clefs]']
       )
-      expect(page.at_css('#formulaire-fiche .bloc-modifiable strong').text).to eq('contexte')
-      expect(page.at_css('aside')).to be_nil
+      expect(page.at_css('#demarche_nom')['value']).to eq('Aides')
+      expect(page.at_css('#demarche_contexte').text.strip).to eq('Un **contexte**.')
+      expect(page.css('#formulaire-fiche input[name="demarche[vocabulaire_ids][]"][checked]').pluck('value')).to contain_exactly(publics.id.to_s, dlnuf.id.to_s)
+      expect(page.css('button.fr-icon-edit-line[aria-controls^="fenetre-"]')).to be_empty
+      expect(page.at_css('aside h2').text).to eq('État et actions')
       expect(page.at_css('[role=tablist]')).to be_nil
     end
 
@@ -3376,45 +3548,54 @@ RSpec.describe 'Administration' do
       expect(fenetres.css('input[type=hidden][name="demarche[integration_ids][]"]').size).to eq(1)
     end
 
-    it 'ouvre pour chaque bloc une fenêtre avec ses seuls champs' do
-      fiche
-      expect(%w[entete contexte cadre-juridique titre-seo mots-clefs fournisseurs vocabulaires].to_h { [bouton(it).text, champs(it)] }).to eq(
-        'Modifier l’en-tête' => ['demarche[icone]', 'demarche[nom]', 'demarche[description_courte]', 'demarche[slug]', 'demarche[vocabulaire_ids][]'],
-        'Modifier le contexte' => ['demarche[contexte]'],
-        'Modifier le cadre juridique' => ['demarche[cadre_juridique]'],
-        'Modifier le title SEO' => ['demarche[titre_seo]'],
-        'Modifier les mots-clés' => ['demarche[mots_clefs]'],
-        'Modifier les fournisseurs de services' => ['demarche[type_acteur_ids][]'],
-        'Modifier les vocabulaires' => ['demarche[vocabulaire_ids][]']
-      )
-      expect(fenetre('entete').css('input[type=checkbox]').pluck('value')).to eq([publics.id.to_s])
-      expect(fenetre('vocabulaires').css('input[type=checkbox]').pluck('value')).to eq([dlnuf.id.to_s])
-      expect(fenetre('contexte').css('.fr-modal__footer button').map { [it.text, it['type']] }).to eq([%w[Annuler button], %w[Enregistrer submit]])
-    end
-
-    it 'met l’état, les dates et les actions en haut, Masquer et Supprimer en bas' do
+    it 'met l’état et les actions dans la colonne « État et actions », tout le brouillon dans son bloc' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: 'Aides sociales' } }
       fiche
-      barre = page.at_css('section[aria-label="État de la démarche"]')
+      barre = page.at_css('aside[aria-labelledby="etat-et-actions"] #etat-de-la-demarche')
       expect(barre.css('.fr-badge').map(&:text)).to eq(['Publiée', 'Brouillon non publié'])
-      expect(barre.text.squish).to include('Création', 'Dernière modification', 'Brouillon du')
-      expect(page.at_css('#etat-de-la-demarche').css('a.fr-btn, button').map { it.text.squish }).to eq(['Publier ce changement', 'Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon'])
-      expect(page.css('form:has(button:contains("Masquer la démarche")), form:has(button:contains("Supprimer la démarche"))').pluck('data-turbo-confirm')).to eq(
-        [nil, 'Supprimer « Aides » ?']
+      expect(barre.text.squish).to include('Création', 'Dernière modification', 'Brouillon non publié depuis le')
+      expect(barre.css('a.fr-btn, button:not([hidden])').map { it.text.squish }).to eq(
+        ['Masquer', 'Enregistrer', 'Publier le brouillon', 'Abandonner le brouillon', 'Supprimer cette démarche']
       )
+      expect(barre.at_css('.fr-grid-row').text.squish).to eq('Publiée Masquer')
+      expect(barre.at_css('section[aria-label=Brouillon]')['data-cache-sans-modification']).to be_nil
+      expect(barre.at_css('.fr-grid-row + p a')['href']).to eq('/demarches/aides')
+      bloc = barre.at_css('section[aria-label=Brouillon]')
+      expect(bloc.css('.fr-badge, li a.fr-link, a[href$="/previsualisation"], button').map { it.text.squish }).to eq(
+        ['Brouillon non publié', 'Prévisualiser le brouillon - nouvelle fenêtre', 'En-tête modifié', 'Enregistrer', 'Publier le brouillon', 'Abandonner le brouillon']
+      )
+      expect(barre.at_css('form:has(button:contains("Supprimer cette démarche"))')['data-turbo-confirm']).to eq('Supprimer « Aides » ?')
     end
 
-    it 'mène à l’historique de la démarche depuis le bas de la fiche, à côté de « Supprimer la démarche »' do
+    it 'garde Enregistrer dans le cadre des modifications, caché tant que rien ne change, qui dit s’il crée un brouillon ou écrit directement' do
       fiche
-      bas = page.css('ul.fr-btns-group').find { it.text.include?('Supprimer la démarche') }
-      expect(bas.css('li').map { it.text.squish }).to eq(['Historique de la démarche', 'Masquer la démarche', 'Supprimer la démarche'])
-      expect(bas.at_css('a')['href']).to eq("/admin/historique/demarches/#{demarche.id}")
+      cadre = page.at_css('#etat-de-la-demarche section[aria-label=Modifications]')
+      expect(cadre['data-cache-sans-modification']).to eq('true')
+      expect(cadre.text.squish).to include('Aucun brouillon en cours : « Enregistrer » crée un brouillon')
+      expect(cadre.css('button').map { it.text.squish }).to eq(['Enregistrer'])
+
+      demarche.update!(visible: false)
+      get "/admin/demarches/#{demarche.id}/edit"
+      expect(response.parsed_body.at_css('#etat-de-la-demarche section[aria-label=Modifications]').text.squish).to include('Fiche masquée : « Enregistrer » écrit directement')
+    end
+
+    it 'regroupe création, dernière modification, auteur et lien vers l’historique dans la zone « Historique »' do
+      PaperTrail.request(whodunnit: admin.id.to_s) { demarche.update!(nom: 'Aides sociales') }
+      fiche
+      zone = page.at_css('section[aria-labelledby="historique-de-la-fiche"]')
+      expect(zone.text.squish).to include('Création', 'Dernière modification', 'Modifiée par dorine@example.gouv.fr le')
+      expect(zone.at_css('a')['href']).to eq("/admin/historique/demarches/#{demarche.id}")
+    end
+
+    it 'mène à l’historique de la démarche depuis la colonne « État et actions »' do
+      fiche
+      expect(page.at_css('#historique-de-la-fiche + dl ~ p a:contains("Voir l’historique")')['href']).to eq("/admin/historique/demarches/#{demarche.id}")
     end
 
     it 'ne propose pas de masquer une démarche déjà masquée' do
       demarche.update!(visible: false)
       fiche
-      expect(page.text).not_to include('Masquer la démarche')
+      expect(page.css('button').map { it.text.squish }).not_to include('Masquer')
     end
 
     it 'garde les intégrations et les vocabulaires d’un autre bloc quand on enregistre un bloc' do
@@ -3434,13 +3615,14 @@ RSpec.describe 'Administration' do
       expect(response).to redirect_to("/admin/demarches/#{demarche.id}/edit")
     end
 
-    it 'rouvre la fenêtre de l’en-tête sur un nom vide, le message sous le champ' do
+    it 'signale un nom vide en haut de la fiche et sous le champ, sans ouvrir de fenêtre' do
       demarche.update!(visible: false)
-      patch "/admin/demarches/#{demarche.id}", params: { onglet: 'fiche', demarche: { nom: '' } }
+      patch "/admin/demarches/#{demarche.id}", params: { demarche: { nom: '' } }
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(page.css('dialog[data-controller="fenetre-rouverte"]').pluck('id')).to eq(['fenetre-entete'])
-      expect(fenetre('entete').at_css('.fr-input-group--error').text).to include('Nom', 'doit être rempli')
+      expect(page.at_css('.fr-alert--error a')['href']).to eq('#demarche_nom')
+      expect(page.at_css('.fr-input-group--error:has(#demarche_nom)').text).to include('Nom', 'doit être rempli')
+      expect(page.css('dialog[data-controller="fenetre-rouverte"]')).to be_empty
     end
   end
 
@@ -3455,9 +3637,9 @@ RSpec.describe 'Administration' do
     def fiche = get("/admin/demarches/#{demarche.id}/edit").then { page }
     def encadre = page.at_css('section[aria-labelledby="a-la-publication"]')
     def lignes = encadre.css('li a.fr-link').map { [it.text.squish, it['href']] }
-    def barre = page.at_css('section[aria-label="État de la démarche"]')
+    def barre = page.at_css('#etat-de-la-demarche')
 
-    it 'liste chaque bloc changé dans l’ordre de la fiche, chacun lié à son bloc, avec les actions du brouillon à la place de la barre' do
+    it 'liste chaque bloc changé dans l’ordre de la fiche, chacun lié à son champ, au-dessus des actions du brouillon' do
       Recommandation.create!(demarche:, solution: api, niveau: :niveau_1)
       integration = Integration.create!(integratrice: Solution.create!(nom: 'Logiciel'), integree: api, type_integration: 'consomme')
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau', slug: 'aides-sociales', nom: 'Aides sociales', integration_ids: ['', integration.id] } }
@@ -3465,14 +3647,15 @@ RSpec.describe 'Administration' do
 
       expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 4 changements partiront')
       expect(lignes).to eq([
-        ['En-tête modifié', '#titre-de-la-demarche'],
-        ['Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche', '#titre-de-la-demarche'],
-        ['Contexte modifié', '#bloc-contexte'],
+        ['En-tête modifié', '#demarche_nom'],
+        ['Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche', '#demarche_slug'],
+        ['Contexte modifié', '#demarche_contexte'],
         ['Intégrations modifiées', '#bloc-solutions-recommandees']
       ])
       expect(lignes.map { |_libelle, ancre| page.at_css(ancre) }).to all(be_present)
-      expect(encadre.css('a.fr-btn, button').map { it.text.squish }).to eq(['Publier ces 4 changements', 'Prévisualiser le brouillon - nouvelle fenêtre', 'Abandonner le brouillon'])
-      expect(barre.css('a, button')).to be_empty
+      expect(barre.css('a.fr-btn, button:not([hidden])').map { it.text.squish }).to eq(
+        ['Masquer', 'Enregistrer', 'Publier le brouillon', 'Abandonner le brouillon', 'Supprimer cette démarche']
+      )
     end
 
     it 'nomme un seul changement au singulier, et range un vocabulaire dans le bloc qui le montre' do
@@ -3481,12 +3664,12 @@ RSpec.describe 'Administration' do
       fiche
 
       expect(encadre.at_css('#a-la-publication').text.squish).to eq('À la publication, 1 changement partira')
-      expect(lignes).to eq([['Vocabulaires modifiés', '#bloc-vocabulaires']])
-      expect(encadre.at_css('button').text.squish).to eq('Publier ce changement')
+      expect(lignes).to eq([['Vocabulaires modifiés', '#demarche_vocabulaire_ids']])
+      expect(barre.at_css('button[name="demarche[visible]"][value="1"]').text.squish).to eq('Publier le brouillon')
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { vocabulaire_ids: ['', publics.id] } }
       fiche
-      expect(lignes).to eq([['En-tête modifié', '#titre-de-la-demarche']])
+      expect(lignes).to eq([['En-tête modifié', '#demarche_nom']])
     end
 
     it 'nomme le bloc de chaque champ de la fiche' do
@@ -3584,27 +3767,10 @@ RSpec.describe 'Administration' do
       expect(flux.at_css('form:has(button:contains("Abandonner"))')['data-turbo-confirm']).to include('« Aides »')
     end
 
-    it 'garde les filtres de la liste dans « Publier » après une recommandation ajoutée sur place' do
-      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } },
-        headers: { 'Referer' => "http://www.example.com/admin/demarches/#{demarche.id}/edit?q=Aides&etat=brouillon" }
-      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
-      publier = flux.at_css('form:has(button:contains("Publier"))')
-
-      expect(publier.css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
-
+    it 'répond à un déplacement de carte même avec un Referer illisible' do
+      post '/admin/recommandations', params: { ligne: 1, recommandation: { demarche_id: demarche.id, solution_id: api.id, niveau: 'niveau_2' } }
       patch "/admin/recommandations/#{Recommandation.last.id}", params: { ligne: 1, recommandation: { ordre: '2' } }, headers: { 'Referer' => 'http://www.example.com/admin?q=%zz' }
       expect(response).to have_http_status(:ok)
-    end
-
-    it 'garde les filtres de la liste dans « Publier » après une carte déplacée' do
-      cartes = %w[A B].map { Recommandation.create!(demarche:, solution: Solution.create!(nom: it, categorie: 'api'), niveau: :niveau_2, visible: true) }
-      fiche
-      deplacement = page.at_css("form#deplacement_recommandation_#{cartes.last.id}")
-      patch deplacement['action'], params: deplacement.css('input[type=hidden]').to_h { [it['name'], it['value']] }.merge('position' => '1'),
-        headers: { 'Referer' => "http://www.example.com/admin/demarches/#{demarche.id}/edit?q=Aides&etat=brouillon" }
-      flux = Nokogiri::HTML5.fragment(response.body).css('turbo-stream').find { it['target'] == 'etat-de-la-demarche' }
-
-      expect(flux.at_css('form:has(button:contains("Publier"))').css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'Aides', 'etat' => 'brouillon')
     end
 
     it 'propose d’abandonner un brouillon qui ne fait que déplacer des cartes publiées, et remet chaque carte à sa place' do
@@ -3613,7 +3779,7 @@ RSpec.describe 'Administration' do
       deplacement = page.at_css("form#deplacement_recommandation_#{cartes.last.id}")
       patch deplacement['action'], params: deplacement.css('input[type=hidden]').to_h { [it['name'], it['value']] }.merge('position' => '1')
       fiche
-      abandon = encadre.at_css('form:has(button:contains("Abandonner le brouillon"))')
+      abandon = barre.at_css('form:has(button:contains("Abandonner le brouillon"))')
 
       patch abandon['action']
       fiche
@@ -3621,11 +3787,12 @@ RSpec.describe 'Administration' do
       expect(cartes.map { it.reload.brouillon }).to eq([nil, nil])
     end
 
-    it 'publie depuis l’encadré' do
+    it 'publie depuis la colonne « État et actions », en envoyant le formulaire de la fiche' do
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
       fiche
-      formulaire = encadre.at_css('form:has(button:contains("Publier"))')
-      patch formulaire['action'], params: formulaire.css('input[type=hidden]').to_h { [it['name'], it['value']] }
+      bouton = barre.at_css('button[name="demarche[visible]"][value="1"]')
+      expect([bouton['form'], bouton['value']]).to eq(%w[formulaire-fiche 1])
+      patch page.at_css('#formulaire-fiche')['action'], params: { bouton['name'] => bouton['value'] }
 
       expect(demarche.reload.slice(:contexte, :brouillon)).to eq('contexte' => 'Nouveau', 'brouillon' => nil)
     end
@@ -3633,7 +3800,7 @@ RSpec.describe 'Administration' do
     it 'ne paraît pas sans brouillon ni sur une démarche masquée' do
       fiche
       expect(encadre).to be_nil
-      expect(barre.css('button').map(&:text)).to eq(['Publier'])
+      expect(barre.css('button:not([hidden])').map(&:text)).to eq(['Masquer', 'Enregistrer', 'Supprimer cette démarche'])
 
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { contexte: 'Nouveau' } }
       patch "/admin/demarches/#{demarche.id}", params: { demarche: { visible: '0' } }

@@ -28,6 +28,14 @@ RSpec.describe DsfrFormBuilder, type: :helper do
     end
   end
 
+  it 'accole un bouton à droite du champ' do
+    bouton = helper.button_tag('Modifier', type: 'button', class: 'fr-btn')
+    champ = rendu(builder(Demarche.new).dsfr_text_field(:slug, bouton_accole: bouton))
+
+    expect(champ.at_css('.fr-input-wrap.fr-input-wrap--action').children.map(&:name)).to eq(%w[input button])
+    expect(champ.at_css('input')['bouton_accole']).to be_nil
+  end
+
   it 'reprend l’aide de activerecord.hints dans le libellé' do
     champ = rendu(builder(Demarche.new).dsfr_text_area(:contexte))
 

@@ -10,7 +10,7 @@ RSpec.describe 'SEO' do
 
       get demarche_path('cantine')
 
-      expect(response.body).to include('<title>Cas d&#39;usage - Cantine à 1€ | Simplifions.data.gouv.fr</title>')
+      expect(response.body).to include('<title>Démarche - Cantine à 1€ | Simplifions.data.gouv.fr</title>')
       expect(response.body).to include('<meta name="description" content="Communes, simplifiez.">')
     end
 
@@ -70,6 +70,20 @@ RSpec.describe 'SEO' do
       expect(response.body).to include('<title>Logiciel de crèche Babily</title>')
       expect(response.parsed_body.at_css('h1').text.strip).to eq('Babily')
     end
+
+    it 'annonce dans l’aide de l’administration le titre donné à une fiche sans title SEO' do
+      demarche = Demarche.create!(nom: 'Cantine', slug: 'cantine', visible: true)
+      solution = Solution.create!(nom: 'Babily', slug: 'babily', visible: true, categorie: 'brique_logicielle')
+      sign_in Admin.create!(email: 'admin@example.fr', password: 'motdepasse-solide-2026')
+
+      [[demarche, demarche_path('cantine')], [solution, solution_path('babily')]].each do |fiche, page|
+        get page
+        titre = response.parsed_body.at_css('title').text.delete_suffix(' | Simplifions.data.gouv.fr')
+        get "/admin/#{fiche.model_name.route_key}/#{fiche.id}/edit"
+        aide = response.parsed_body.at_css("label[for=#{fiche.model_name.param_key}_titre_seo] .fr-hint-text").text
+        expect(aide).to include("Vide : « #{titre.sub(fiche.nom, '<nom>')} »")
+      end
+    end
   end
 
   describe 'listes et pages statiques' do
@@ -91,7 +105,7 @@ RSpec.describe 'SEO' do
       get demarche_path('cantine')
 
       expect(response.body).to include('<link rel="canonical" href="http://www.example.com/demarches/cantine">')
-      expect(response.body).to include('<meta property="og:title" content="Cas d&#39;usage - Cantine à 1€ | Simplifions.data.gouv.fr">')
+      expect(response.body).to include('<meta property="og:title" content="Démarche - Cantine à 1€ | Simplifions.data.gouv.fr">')
       expect(response.body).to include('<meta property="og:description" content="Communes, simplifiez.">')
       expect(response.body).to include('<meta property="og:url" content="http://www.example.com/demarches/cantine">')
       expect(response.body).to include('<meta property="og:site_name" content="Simplifions.data.gouv.fr">')

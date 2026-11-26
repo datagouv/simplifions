@@ -1,4 +1,4 @@
-<%# locals: (lignes:) -%>
+<%# locals: (lignes:, categories: []) -%>
 <% une = modele.model_name.human.downcase %>
 <% des = modele.model_name.human(count: 2).downcase %>
 <div class="<%= conteneur_de_page %> fr-mb-6w">
@@ -6,14 +6,20 @@
     <nav class="fr-col-12 fr-col-md-4 fr-col-lg-3" aria-label="Liste des <%= des %>">
       <%= form_with url: url_for(action: :index), method: :get do |f| %>
         <div class="fr-search-bar" role="search">
-          <%= f.label :q, "Rechercher une #{une}", class: "fr-label" %>
+          <%= f.label :q, "Rechercher une #{une}", class: "fr-label fr-text--bold" %>
           <%= f.search_field :q, value: params[:q], class: "fr-input", placeholder: "Rechercher une #{une}" %>
           <button type="submit" class="fr-btn">Rechercher</button>
         </div>
         <div class="fr-select-group fr-mt-2w fr-mb-1w">
-          <%= f.label :etat, "État", class: "fr-label" %>
+          <%= f.label :etat, "État", class: "fr-label fr-text--bold" %>
           <%= f.select :etat, options_for_select([["Toutes", ""], %w[Publiées publiees], %w[Masquées masquees], ["En brouillon", "brouillons"]], params[:etat]), {}, class: "fr-select" %>
         </div>
+        <% if categories.any? %>
+          <div class="fr-select-group fr-mb-1w">
+            <%= f.label :categorie_filtree, modele.human_attribute_name(:categorie), class: "fr-label fr-text--bold" %>
+            <%= f.select :categorie_filtree, options_for_select([["Toutes", ""], *categories.map { [modele.human_attribute_name("categorie.#{it}"), it] }, ["Sans catégorie", "sans_categorie"]], params[:categorie_filtree]), {}, class: "fr-select" %>
+          </div>
+        <% end %>
         <button type="submit" class="fr-btn fr-btn--secondary fr-btn--sm fr-mb-2w">Filtrer</button>
       <% end %>
       <% if lignes.empty? && params[:q].present? %>

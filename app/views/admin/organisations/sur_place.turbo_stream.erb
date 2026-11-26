@@ -1,0 +1,13 @@
+<%= turbo_stream.replace "fenetre-nouvelle-organisation", partial: "admin/organisations/fenetre", locals: { organisation: @organisation.persisted? ? Organisation.new : @organisation } %>
+<% if @organisation.persisted? %>
+  <%= turbo_stream.append "solution_organisation_ids_cases" do %>
+    <%= fields :solution, model: Solution.new(organisation_ids: [@organisation.id]) do |f| %>
+      <%= f.collection_check_boxes :organisation_ids, [@organisation], :id, :nom, include_hidden: false do |b| %>
+        <%= render "admin/case_filtrable", b:, courte: Organisation.count <= 10, cochee: true, ajoutee: true %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <%= turbo_stream.update "organisation-absente" do %>
+    <p class="fr-valid-text fr-mb-1w">« <%= @organisation.nom %> » ajoutée à la liste Organisations et cochée : enregistrez la fiche pour la garder.</p>
+  <% end %>
+<% end %>

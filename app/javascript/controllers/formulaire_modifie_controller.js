@@ -32,11 +32,13 @@ export default class extends Controller {
     document.removeEventListener("turbo:before-visit", this.visiter)
     window.navigation?.removeEventListener("navigate", this.revenir)
     window.removeEventListener("beforeunload", this.decharger)
+    document.documentElement.removeAttribute("data-fiche-modifiee")
   }
 
   modifieValueChanged() {
-    const enregistrer = [...this.element.elements].find((champ) => champ.hasAttribute("data-enregistrer"))
-    if (enregistrer) enregistrer.disabled = !this.modifieValue
+    const enregistrer = [...this.element.elements].filter((champ) => champ.hasAttribute("data-enregistrer"))
+    enregistrer.forEach((bouton) => (bouton.disabled = !this.modifieValue))
+    document.documentElement.toggleAttribute("data-fiche-modifiee", this.modifieValue)
   }
 
   marquer(event) {

@@ -10,7 +10,11 @@ end
 def title_seo_publie(page, etape, chemin, saisie = nil)
   page.fill_in 'Title SEO', with: saisie if saisie
   Verify.evidence(DOSSIER, page, "#{etape}-saisie")
-  page.click_button 'Publier'
+  if saisie
+    page.find('aside.admin-panneau').click_button 'Enregistrer'
+    page.assert_text 'brouillon enregistré'
+  end
+  page.click_button 'Publier le brouillon'
   page.assert_text 'enregistré.'
   onglet, h1, partage = onglet_public(page, chemin)
   Verify.evidence(DOSSIER, page, etape, "onglet=#{onglet} h1=#{h1} og:title=#{partage}")
@@ -20,7 +24,7 @@ end
 
 def titre_par_defaut(page, nom, slug)
   avant = onglet_public(page, "/demarches/#{slug}")
-  raise "avant : #{avant}" unless avant.first == "Cas d'usage - #{nom} | Simplifions.data.gouv.fr"
+  raise "avant : #{avant}" unless avant.first == "Démarche - #{nom} | Simplifions.data.gouv.fr"
 
   Verify.evidence(DOSSIER, page, 'demarche-avant', "onglet=#{avant.first}")
   page.visit('/admin')
@@ -29,7 +33,7 @@ end
 
 def publier_sur_la_demarche(page, ctx, saisie)
   Verify.ouvrir_fiche(page, ctx[:nom])
-  Verify.modifier_dans_la_fenetre(page, 'Modifier le title SEO', 'Title SEO' => saisie)
+  Verify.modifier_la_fiche(page, 'Title SEO' => saisie)
   page.assert_text 'brouillon enregistré'
   title_seo_publie(page, saisie.empty? ? 'demarche-videe' : 'demarche-publiee', "/demarches/#{ctx[:slug]}")
 end

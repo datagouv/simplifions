@@ -19,6 +19,8 @@ RSpec.describe 'Liste à gauche de la fiche' do
   def page = response.parsed_body
   def liste = page.at_css('nav[aria-label="Liste des démarches"]')
   def lignes = liste.css('li').map { it.text.squish }
+  def invite = page.at_css('.liste-et-fiche__invite')
+  def ajout_de_l_invite(texte) = invite.css('a').find { it.text.squish == texte }['href']
 
   def noms(params = {})
     get('/admin/demarches', params:)
@@ -32,6 +34,7 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('[role=status]').text.squish).to eq('3 démarches')
       expect(liste.css('a').find { it.text.squish == 'Ajouter une démarche' }['href']).to eq('/admin/demarches/new')
       expect(page.css('main').text.squish).to include('Choisissez une démarche dans la liste')
+      expect(ajout_de_l_invite('Ajouter une démarche')).to eq('/admin/demarches/new')
       expect(page.at_css('table')).to be_nil
       expect(liste.at_css('[aria-hidden=true]').text).to eq('💧')
     end
@@ -44,6 +47,8 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(noms(etat: 'brouillons')).to eq(['Bourses'])
       expect(noms(etat: 'publiees', q: 'aides')).to eq(['💧 Aides'])
       expect(noms(etat: 'inconnu')).to eq(['💧 Aides', 'Bourses', 'Cantine'])
+      expect(noms(etat: 'publiees', q: 'aides')).to eq(['💧 Aides'])
+      expect(ajout_de_l_invite('Ajouter une démarche')).to eq('/admin/demarches/new?etat=publiees&q=aides')
     end
 
     it 'dit qu’une recherche ne trouve rien et propose de l’effacer' do
@@ -64,17 +69,13 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('input[name=q]')['value']).to eq('aides')
       expect(liste.at_css('a[aria-current=page]')['href']).to eq(lien)
       expect(page.at_css('h1').text.squish).to eq('💧 Aides')
-      expect(page.at_css('section[aria-label="État de la démarche"]')).to be_present
+      expect(page.at_css('aside #etat-de-la-demarche')).to be_present
     end
 
-    it 'garde la recherche et le filtre après l’enregistrement, la publication et à l’annulation' do
+    it 'garde la recherche et le filtre après l’enregistrement et la publication' do
       get "/admin/demarches/#{aides.id}/edit", params: { q: 'aides', etat: 'publiees' }
       expect(page.css('input[form=formulaire-fiche][type=hidden]').to_h { [it['name'], it['value']] }).to eq('q' => 'aides', 'etat' => 'publiees')
-      publier = page.css('form').find { it.at_css('button')&.text == 'Publier' }
-      expect(publier.css('input[type=hidden]').to_h { [it['name'], it['value']] }).to include('q' => 'aides', 'etat' => 'publiees')
-
-      get '/admin/demarches/new', params: { q: 'aides', etat: 'publiees' }
-      expect(page.css('a').find { it.text == 'Annuler' }['href']).to eq('/admin/demarches?etat=publiees&q=aides')
+      expect(page.at_css('#etat-de-la-demarche button[form=formulaire-fiche][name="demarche[visible]"]').text).to eq('Masquer')
 
       patch "/admin/demarches/#{aides.id}", params: { demarche: { nom: 'Aides locales' }, q: 'aides', etat: 'publiees' }
       expect(response).to redirect_to("/admin/demarches/#{aides.id}/edit?etat=publiees&q=aides")
@@ -89,6 +90,11 @@ RSpec.describe 'Liste à gauche de la fiche' do
   describe 'page Solutions' do
     def liste = page.at_css('nav[aria-label="Liste des solutions"]')
 
+    def lignes_filtrees(params)
+      get('/admin/solutions', params:)
+      lignes
+    end
+
     it 'liste les solutions avec leur catégorie et leur état, sans les démarches' do
       api_qf.update!(visible: true, brouillon: { 'nom' => 'API QF v2' })
       get '/admin/solutions'
@@ -96,6 +102,7 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('[role=status]').text.squish).to eq('2 solutions')
       expect(liste.css('a').find { it.text.squish == 'Ajouter une solution' }['href']).to eq('/admin/solutions/new')
       expect(page.css('main').text.squish).to include('Choisissez une solution dans la liste')
+      expect(ajout_de_l_invite('Ajouter une solution')).to eq('/admin/solutions/new')
     end
 
     it 'filtre par état et garde la liste à gauche de la fiche, la solution ouverte signalée' do
@@ -107,6 +114,35 @@ RSpec.describe 'Liste à gauche de la fiche' do
       expect(liste.at_css('a[aria-current=page]').text.squish).to eq('API Sirene API Masquée')
       expect(liste.at_css('select[name=etat] option[selected]').text).to eq('Masquées')
       expect(page.at_css('h1').text).to eq('API Sirene (API)')
+    end
+
+    it 'filtre par catégorie de solution, avec l’état et la recherche, et garde le filtre sur la fiche' do
+      Solution.create!(nom: 'API Cantine', categorie: 'brique_logicielle')
+      Solution.create!(nom: 'API Bourses')
+      api_qf.update!(visible: true)
+      get '/admin/solutions', params: { categorie_filtree: 'api' }
+      expect(lignes).to eq(['API QF API Publiée', 'API Sirene API Masquée'])
+      expect(liste.css('select[name=categorie_filtree] option').map(&:text)).to eq(['Toutes', 'Brique technique', 'API', 'Jeu de données', 'Portail de consultation', 'Logiciel métier', 'Sans catégorie'])
+      expect(liste.at_css('select[name=categorie_filtree] option[selected]').text).to eq('API')
+      expect(lignes_filtrees(categorie_filtree: 'api', etat: 'masquees', q: 'sirene')).to eq(['API Sirene API Masquée'])
+      expect(lignes_filtrees(categorie_filtree: 'sans_categorie')).to eq(['API Bourses Masquée'])
+      expect(lignes_filtrees(categorie_filtree: 'inconnue').size).to eq(4)
+
+      get '/admin/solutions', params: { categorie_filtree: 'brique_logicielle' }
+      get liste.at_css('li a')['href']
+      expect(lignes).to eq(['API Cantine Brique technique Masquée'])
+      expect(liste.at_css('select[name=categorie_filtree] option[selected]').text).to eq('Brique technique')
+    end
+
+    it 'n’affiche pas le filtre par catégorie sur les démarches' do
+      get '/admin/demarches'
+      expect(page.at_css('select[name=categorie_filtree]')).to be_nil
+    end
+
+    it 'garde la recherche et le filtre après le choix de la catégorie' do
+      get '/admin/solutions/new', params: { q: 'api', etat: 'masquees' }
+      expect(page.at_css('form#formulaire-fiche')['action']).to eq('/admin/solutions/new')
+      expect(page.css('input[form=formulaire-fiche][type=hidden]').to_h { [it['name'], it['value']] }).to eq('q' => 'api', 'etat' => 'masquees')
     end
   end
 end

@@ -24,7 +24,7 @@ end
 def modifier(page, demarche, nom)
   creation = demarche.cree_le
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => nom)
+  Verify.modifier_la_fiche(page, 'Nom' => nom)
   page.assert_text "« #{nom} » enregistré."
   demarche.reload
   raise "modification non datee #{demarche.modifie_le.inspect}" unless demarche.modifie_le > creation && demarche.cree_le == creation
@@ -34,7 +34,7 @@ end
 
 def supprimer(page, demarche, nom)
   page.visit("/admin/demarches/#{demarche.id}/edit")
-  page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer la démarche' }
+  page.accept_confirm("Supprimer « #{nom} » ?") { page.click_button 'Supprimer cette démarche' }
   page.assert_text "« #{nom} » supprimé."
   reste = ActiveRecord::Base.uncached { Demarche.where(id: demarche.id).count }
   raise "#{reste} ligne(s) restée(s) en base" unless reste.zero?

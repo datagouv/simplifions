@@ -33,14 +33,14 @@ def publier_la_demarche(page, demarche, brouillons)
   page.assert_text "« #{demarche.nom} » enregistré."
 end
 
-def enregistrer_le_nom(page, nom) = Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => nom)
+def enregistrer_le_nom(page, nom) = Verify.modifier_la_fiche(page, 'Nom' => nom)
 
 def brouillon_de_demarche(page, demarche)
   Verify.ouvrir_fiche(page, demarche.nom)
   enregistrer_le_nom(page, "#{demarche.nom} brouillon")
   page.assert_text "« #{demarche.nom} » : brouillon enregistré, non publié."
   page.assert_selector Verify::BARRE_DEMARCHE, text: DRAFT_BADGE
-  page.assert_selector Verify::BARRE_DEMARCHE, text: %r{Brouillon du \d\d/\d\d/\d{4} à \d\d:\d\d}
+  page.assert_selector Verify::BARRE_DEMARCHE, text: %r{depuis le \d\d/\d\d/\d{4} à \d\d:\d\d}
   base = lu { demarche.reload.slice(:nom, :visible) }
   raise "brouillon : base #{base}" unless base == { 'nom' => demarche.nom, 'visible' => true }
 
@@ -98,7 +98,7 @@ def ce_qui_partira(page, demarche, nom)
   ajoutee = Solution.create!(nom: "#{nom} g", categorie: 'api')
   page.visit("/admin/demarches/#{demarche.id}/edit")
   page.assert_no_selector ENCADRE
-  Verify.modifier_dans_la_fenetre(page, 'Modifier le contexte', 'Contexte' => 'Vérif ce qui partira')
+  Verify.modifier_la_fiche(page, 'Contexte' => 'Vérif ce qui partira')
   lignes = lignes_de_l_encadre(page, 'À la publication, 1 changement partira')
   raise "encadré après le contexte : #{lignes}" unless lignes == ['Contexte modifié']
 
@@ -108,11 +108,11 @@ def ce_qui_partira(page, demarche, nom)
 
   page.find(ENCADRE).click_link 'Contexte modifié'
   ancre = page.document.synchronize do
-    page.evaluate_script('location.hash').tap { raise Capybara::ExpectationNotMet, "lien du contexte : #{it}" unless it == '#bloc-contexte' }
+    page.evaluate_script('location.hash').tap { raise Capybara::ExpectationNotMet, "lien du contexte : #{it}" unless it == '#demarche_contexte' }
   end
 
   Verify.evidence(DOSSIER, page, 'ce-qui-partira', "lignes=#{lignes} ancre=#{ancre}")
-  page.find(ENCADRE).click_button 'Publier ces 2 changements'
+  page.find(Verify::BARRE_DEMARCHE).click_button 'Publier le brouillon'
   page.assert_text "« #{demarche.nom} » enregistré."
   page.assert_no_selector ENCADRE
   base = lu { [demarche.reload.slice(:contexte, :brouillon), demarche.recommandations.find_by!(solution: ajoutee).visible] }
@@ -155,7 +155,7 @@ end
 def panneau_du_retrait(page, reco)
   page.visit("/admin/recommandations/#{reco.id}/edit")
   panneau = page.find(PANNEAU)
-  vu = [panneau.all('.fr-badge').map { it.text.squish.downcase }, panneau.has_text?('Brouillon du'), panneau.has_button?('Abandonner le brouillon')]
+  vu = [panneau.all('.fr-badge').map { it.text.squish.downcase }, panneau.has_text?(/depuis le \d\d\//), panneau.has_button?('Abandonner le brouillon')]
   raise "panneau de la recommandation retirée : #{vu}" unless vu == [['publiée', 'retirée · à publier'], true, true]
 
   Verify.evidence(DOSSIER, page, 'retrait-panneau', "panneau=#{vu}")
@@ -174,7 +174,7 @@ end
 
 def retrait_publie(page, demarche, reco)
   retirer_la_carte(page, demarche, reco)
-  page.find(ENCADRE).click_button 'Publier ce changement'
+  page.find(Verify::BARRE_DEMARCHE).click_button 'Publier le brouillon'
   page.assert_text "« #{demarche.nom} » enregistré."
   page.assert_no_selector "#recommandation_#{reco.id}"
   publique = cartes_publiques(page, demarche.slug).join
@@ -201,7 +201,7 @@ def lignes_dans_l_ordre_des_cartes(page, demarche, nom)
   raise "encadré après #{deuxieme.nom} puis #{premiere.nom} : #{lignes}" unless lignes == attendu
 
   Verify.evidence(DOSSIER, page, 'lignes-dans-l-ordre-des-cartes', "enregistrees=#{[deuxieme, premiere].map(&:nom)} lignes=#{lignes}")
-  page.accept_confirm { page.find(ENCADRE).click_button 'Abandonner le brouillon' }
+  page.accept_confirm { page.find(Verify::BARRE_DEMARCHE).click_button 'Abandonner le brouillon' }
   page.assert_no_selector ENCADRE
 end
 
@@ -319,7 +319,7 @@ end
 def abandon_d_une_reco_publiee(page, demarche, nom)
   reco = reco_publiee_modifiee(page, demarche, nom)
   question = "Abandonner le brouillon de « #{demarche.nom} » ? Les modifications non publiées seront perdues."
-  page.accept_confirm(question) { page.find(ENCADRE).click_button 'Abandonner le brouillon' }
+  page.accept_confirm(question) { page.find(Verify::BARRE_DEMARCHE).click_button 'Abandonner le brouillon' }
   page.assert_text "Brouillon de « #{demarche.nom} » abandonné."
   page.assert_no_selector ENCADRE
   page.visit("/admin/recommandations/#{reco.id}/edit")
@@ -407,9 +407,9 @@ def brouillon_type_choisi(page, demarche, nom)
   end
 end
 
-PANNEAU = "aside[aria-labelledby='etat-et-actions'], #{Verify::BARRE_DEMARCHE}".freeze
+PANNEAU = "aside[aria-labelledby='etat-et-actions']".freeze
 
-def phrase_du_panneau(page) = page.find(PANNEAU).all('p').map { it.text.squish }.include?(SANS_BROUILLON)
+def phrase_du_panneau(page) = page.find(PANNEAU).all('p', visible: :all).map { it.text(:all).squish }.include?(SANS_BROUILLON)
 
 def panneau_sans_brouillon(page, etape, chemin, attendu)
   page.visit(chemin)
@@ -426,7 +426,7 @@ def phrase_des_onglets_d_integrations(page, solution)
   page.visit("/admin/solutions/#{solution.id}/edit")
   ONGLETS_D_INTEGRATIONS.each do |onglet, libelle|
     Verify.onglet(page, libelle)
-    texte = page.find("#onglet-#{onglet}-panneau").text.squish
+    texte = page.find("#onglet-#{onglet}-panneau", text: SANS_BROUILLON).text.squish
     raise "onglet #{libelle} : #{texte.first(120)}" unless texte.start_with?("#{SANS_BROUILLON} #{libelle}")
 
     Verify.evidence(DOSSIER, page, "sans-brouillon-onglet-#{onglet}", "début=#{texte.first(100)}")

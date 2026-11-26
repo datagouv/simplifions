@@ -10,6 +10,10 @@ export default class extends Controller {
     this.filtrer()
   }
 
+  elementTargetConnected() {
+    if (this.hasCompteTarget) this.compter()
+  }
+
   ouvrir() {
     this.ouvert = true
     this.filtrer()

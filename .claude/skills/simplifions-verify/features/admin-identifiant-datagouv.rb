@@ -4,10 +4,16 @@ DOSSIER = 'admin-identifiant-datagouv'.freeze
 MELODI = '6661e09c7230a8fc3b1ec229'.freeze
 SIRENE = '672cf6aece89cb14e31f0fba'.freeze
 
-def nouvelle_api(page, nom, uid)
+def nouvelle_fiche_d_api(page)
   page.visit('/admin/solutions/new')
+  page.find('label[for=choix-categorie-api]').click
+  page.click_button 'Continuer'
+  page.assert_text 'Catégorie de solution : API'
+end
+
+def nouvelle_api(page, nom, uid)
+  nouvelle_fiche_d_api(page)
   page.fill_in 'Nom', with: nom
-  page.select 'API', from: 'Catégorie de solution'
   page.check 'API', allow_label_click: true
   page.fill_in 'Identifiant data.gouv', with: uid
   page.click_button 'Enregistrer'
@@ -63,9 +69,9 @@ def doublon(page, nom)
   Verify.evidence(DOSSIER, page, 'doublon', "refusé, fiches avec #{SIRENE} : #{doublons} (#{sirene.libelle_admin})")
 end
 
-def saisir_identifiant(page, uid)
+def saisir_identifiant(page, uid, touche: nil)
   page.fill_in 'Identifiant data.gouv', with: uid
-  page.find_field('Nom').click
+  touche ? page.find_field('Identifiant data.gouv').send_keys(touche) : page.click_button('Récupérer les infos data.gouv')
 end
 
 def titre_apercu(page, ancien = nil)
@@ -92,30 +98,121 @@ def attente_annoncee(page)
   page.assert_no_selector('[role=status]', text: ATTENTE)
 end
 
+def nom_tape_garde(page, nom, melodi)
+  page.fill_in 'Nom', with: "#{nom} tapé"
+  saisir_identifiant(page, MELODI, touche: :enter)
+  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
+  page.assert_selector(:field, 'Nom', with: "#{nom} tapé")
+end
+
+def rien_enregistre(page, melodi)
+  raise "#{MELODI} enregistré par l’aperçu" if ActiveRecord::Base.uncached { Solution.exists?(uid_datagouv: MELODI) }
+
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence(DOSSIER, page, 'apercu', "titre=#{melodi} nom gardé=#{page.find_field('Nom').value} rien enregistré")
+end
+
+def organisation_cochee(page)
+  organisation = Solution.find_by!(uid_datagouv: SIRENE).organisation_de_datagouv || raise('aucune organisation de la liste pour Sirene')
+  bloc_datagouv(page).assert_text "correspond à « #{organisation.nom} » de la liste Organisations"
+  page.assert_selector(:checkbox, organisation.nom, exact_text: true, checked: true, visible: :all)
+  page.assert_selector('[role=status]', text: 'Nom et organisation repris de data.gouv.fr : enregistrez la fiche pour les garder.')
+  page.scroll_to(bloc_datagouv(page), align: :center)
+  Verify.evidence(DOSSIER, page, 'organisation', "organisation data.gouv=#{organisation.nom} cochée")
+end
+
 def apercu(page, nom)
-  page.visit('/admin/solutions/new')
-  page.select 'API', from: 'Catégorie de solution'
+  nouvelle_fiche_d_api(page)
   noter_les_annonces(page)
   saisir_identifiant(page, MELODI)
   melodi = titre_apercu(page)
   attente_annoncee(page)
   page.assert_selector(:field, 'Nom', with: melodi)
+  page.assert_selector('#organisation-absente', text: /\Adata\.gouv\.fr indique l’organisation « .+ », absente de la liste Organisations\.\z/)
   saisir_identifiant(page, SIRENE)
   page.assert_selector(:field, 'Nom', with: titre_apercu(page, melodi))
-  page.fill_in 'Nom', with: "#{nom} tapé"
-  saisir_identifiant(page, MELODI)
-  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
-  page.assert_selector(:field, 'Nom', with: "#{nom} tapé")
-  page.select 'Logiciel métier', from: 'Catégorie de solution'
-  page.assert_no_selector('h2', text: 'Repris de data.gouv.fr')
-  page.select 'API', from: 'Catégorie de solution'
-  page.assert_selector('#repris-datagouv li', exact_text: "Titre : #{melodi}", wait: 40)
-  raise "#{MELODI} enregistré par l’aperçu" if ActiveRecord::Base.uncached { Solution.exists?(uid_datagouv: MELODI) }
+  organisation_cochee(page)
+  nom_tape_garde(page, nom, melodi)
+  rien_enregistre(page, melodi)
+  revenir_a_la_liste(page)
+end
 
-  page.scroll_to(bloc_datagouv(page), align: :center)
-  Verify.evidence(DOSSIER, page, 'apercu', "titre=#{melodi} nom gardé=#{page.find_field('Nom').value} rien enregistré")
-  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.click_on 'Annuler' }
+def revenir_a_la_liste(page)
+  page.accept_confirm('Quitter sans enregistrer les modifications ?') { page.within('nav[aria-label="vous êtes ici :"]') { page.click_link 'Solutions' } }
   page.assert_text 'Choisissez une solution dans la liste'
+end
+
+def hauteur_du_bloc(page) = page.evaluate_script('document.getElementById("repris-datagouv").offsetHeight')
+
+def api_avec_organisation
+  Solution.sur_datagouv.where.not(datagouv_titre: nil).joins(:organisations).first || raise('aucune API reprise de data.gouv avec une organisation')
+end
+
+def bloc_garde_au_survol(page, api)
+  avant = hauteur_du_bloc(page)
+  page.first(:link, 'Voir la fiche').hover
+  sleep 1
+  bloc_datagouv(page).assert_text "Titre : #{api.datagouv_titre}"
+  raise "bloc data.gouv de #{avant} px à #{hauteur_du_bloc(page)} px au survol" unless hauteur_du_bloc(page) == avant
+
+  avant
+end
+
+def survol_sans_saut(page)
+  api = api_avec_organisation
+  page.visit("/admin/solutions/#{api.id}/edit")
+  bloc_datagouv(page).assert_text "Titre : #{api.datagouv_titre}"
+  hauteur = bloc_garde_au_survol(page, api)
+  Verify.evidence(DOSSIER, page, 'survol', "fiche=#{api.libelle_admin} bloc=#{hauteur} px avant et après le survol de « Voir la fiche »")
+end
+
+def organisation_de_melodi(page)
+  nouvelle_fiche_d_api(page)
+  saisir_identifiant(page, MELODI)
+  page.find('#organisation-absente', text: 'absente de la liste Organisations', wait: 40).text[/« (.+) »/, 1]
+end
+
+def fenetre_d_organisation(page, nom)
+  page.click_button 'Ajouter une organisation'
+  fenetre = page.find('dialog#fenetre-nouvelle-organisation[open]')
+  raise "nom prérempli #{fenetre.find_field('organisation[nom]').value.inspect}" unless fenetre.find_field('organisation[nom]').value == nom
+
+  fenetre
+end
+
+def nom_manquant(page, nom)
+  fenetre_d_organisation(page, nom).fill_in 'organisation[nom]', with: ''
+  page.within('dialog#fenetre-nouvelle-organisation') { page.click_button 'Enregistrer' }
+  page.find('dialog#fenetre-nouvelle-organisation[open]').assert_text 'Nom doit être rempli'
+  page.within('dialog#fenetre-nouvelle-organisation') { page.click_button 'Annuler' }
+  page.assert_no_selector('dialog#fenetre-nouvelle-organisation[open]')
+end
+
+def organisation_ajoutee(page, nom)
+  page.scroll_to(page.find('#organisation-absente'), align: :center)
+  Verify.evidence(DOSSIER, page, 'organisation-absente', "organisation data.gouv=#{nom} absente")
+  fenetre_d_organisation(page, nom)
+  Verify.evidence(DOSSIER, page, 'fenetre-organisation', "nom prérempli=#{nom}")
+  page.within('dialog#fenetre-nouvelle-organisation') { page.click_button 'Enregistrer' }
+  page.assert_selector('#organisation-absente', text: "« #{nom} » ajoutée à la liste Organisations et cochée : enregistrez la fiche pour la garder.")
+end
+
+def ajout_d_organisation(page)
+  nom = organisation_de_melodi(page)
+  raise "#{nom} déjà en base" if Organisation.exists?(nom:)
+
+  organisation_ajoutee(page, nom)
+  page.assert_selector(:checkbox, nom, exact_text: true, checked: true, visible: :all)
+  page.assert_text "1 coché sur #{Organisation.count}"
+  page.assert_selector('button.fr-btn[form=formulaire-fiche][data-enregistrer]:not([disabled])', text: 'Enregistrer')
+  nom_manquant(page, '')
+  creees = ActiveRecord::Base.uncached { Organisation.where(nom:).count }
+  raise "#{creees} organisations #{nom}" unless creees == 1
+
+  page.scroll_to(page.find('#organisation-absente'), align: :center)
+  Verify.evidence(DOSSIER, page, 'organisation-ajoutee', "organisation=#{nom} créée et cochée")
+  revenir_a_la_liste(page)
+  nom
 end
 
 def quitter(page)
@@ -125,12 +222,16 @@ end
 
 Verify.drive(__FILE__) do |page|
   nom = "Vérif verify-map #{Verify.browser}"
+  debut = Time.current
   Verify.login(page)
   Verify.check('Aperçu') { apercu(page, nom) }
+  Verify.check('Ajout d’organisation') { ajout_d_organisation(page) }
   api = Verify.check('Creation') { creer(page, nom) }
   Verify.check('Inconnu') { identifiant_inconnu(page, api, nom) }
+  Verify.check('Survol') { survol_sans_saut(page) }
   Verify.check('Doublon') { doublon(page, nom) }
   Verify.check('Proof') { quitter(page) }
 ensure
   ActiveRecord::Base.uncached { Solution.where('nom LIKE ?', "#{nom}%").destroy_all }
+  ActiveRecord::Base.uncached { Organisation.where(grist_id: nil, created_at: debut..).destroy_all }
 end

@@ -5,7 +5,7 @@ class Admin::SolutionsController < Admin::BaseController
   def index; end
 
   def new
-    @solution = Solution.new
+    @solution = Solution.new(categorie: params.fetch(:categorie, nil).presence_in(Solution.categories.keys))
   end
 
   def edit
@@ -14,6 +14,7 @@ class Admin::SolutionsController < Admin::BaseController
 
   def create
     @solution = Solution.new(solution_params.merge(%i[cree_le modifie_le].index_with(Time.current)))
+    @solution.assign_attributes(changement_de_categorie)
     if @solution.save(context: :admin)
       @solution.rafraichir_datagouv! if @solution.nouvel_identifiant_datagouv?
       redirige_vers_la_fiche(@solution)
@@ -24,7 +25,7 @@ class Admin::SolutionsController < Admin::BaseController
 
   def update
     retrait = params.dig(:solution, :retirer_image) == '1' ? { image: nil } : {}
-    if @solution.enregistrer(solution_params.merge(modifie_le: Time.current, **retrait), contexte: :admin)
+    if @solution.enregistrer(solution_params.merge(modifie_le: Time.current, **retrait, **changement_de_categorie), contexte: :admin)
       @solution.rafraichir_datagouv! if @solution.nouvel_identifiant_datagouv?
       redirige_vers_la_fiche(@solution)
     else
@@ -47,8 +48,12 @@ class Admin::SolutionsController < Admin::BaseController
   private
 
   def charger_la_liste
-    @solutions = liste(Solution).par_libelle_admin
+    @solutions = liste(Solution).de_la_categorie(params[:categorie_filtree]).par_libelle_admin
     @en_brouillon = Solution.en_brouillon.ids.to_set
+  end
+
+  def changement_de_categorie
+    @solution.changement_de_categorie(params[:changer_de_categorie] ? params[:nouvelle_categorie] : solution_params[:categorie])
   end
 
   def reprendre_sans_erreur(apercu)

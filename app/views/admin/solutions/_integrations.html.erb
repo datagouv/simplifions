@@ -6,8 +6,6 @@
     <thead>
       <tr>
         <th scope="col"><%= Integration.human_attribute_name(:"#{colonne_de_la_liste(liste)}_id") %> (obligatoire)</th>
-        <th scope="col"><%= liste == :integratrices ? "#{Integration.human_attribute_name(:type_integration)} (obligatoire) et statut" : "Statut" %></th>
-        <th scope="col">Actions</th>
       </tr>
     </thead>
     <%= tag.tbody id: "lignes-#{liste}", data: ({ controller: "rangement" } if liste == :fournies) do %>

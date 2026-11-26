@@ -1,0 +1,21 @@
+<%# locals: (nom:, legende:, aide:, choisie: nil, refusee: ->(_) { false }, erreur: nil) -%>
+<% id = "choix-#{nom.dasherize}" %>
+<%= tag.fieldset class: ["fr-fieldset", ("fr-fieldset--error" if erreur)], id:, aria: { labelledby: "#{id}-legende#{" #{id}-erreur" if erreur}" } do %>
+  <legend class="fr-fieldset__legend" id="<%= id %>-legende"><%= legende %></legend>
+  <% options_traduites(Solution, :categorie).each do |libelle, categorie| %>
+    <div class="fr-fieldset__element">
+      <div class="fr-radio-group">
+        <%= radio_button_tag nom, categorie, categorie == choisie, id: "#{id}-#{categorie}", disabled: refusee.call(categorie) %>
+        <label class="fr-label" for="<%= id %>-<%= categorie %>">
+          <%= libelle %>
+          <span class="fr-hint-text"><%= aide.call(categorie) %></span>
+        </label>
+      </div>
+    </div>
+  <% end %>
+  <% if erreur %>
+    <div class="fr-messages-group" id="<%= id %>-erreur" aria-live="polite">
+      <p class="fr-message fr-message--error"><%= erreur %></p>
+    </div>
+  <% end %>
+<% end %>

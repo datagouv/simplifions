@@ -8,38 +8,46 @@
 <% solution = :"#{colonne_de_la_liste(liste)}_id" %>
 <% rangee = liste == :fournies && ligne.persisted? %>
 <%= tag.tr id:, data: ({ deplacement: dom_id(ligne, :deplacement) } if rangee) do %>
-  <%= fields model: ligne, namespace: id do |f| %>
-    <td>
-      <div class="ligne-rangee">
-        <% if rangee %>
-          <span class="poignee fr-icon-drag-move-2-line" aria-hidden="true" title="Glisser pour déplacer" data-poignee></span>
-        <% end %>
-        <%= f.label solution, "#{Integration.human_attribute_name(solution)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
-        <%= f.select solution, choix_de_solutions, { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
-      </div>
-    </td>
-    <td>
-      <% if liste == :integratrices %>
-        <%= f.label :type_integration, "#{Integration.human_attribute_name(:type_integration)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
-        <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select fr-mb-1w", form: formulaire, aria: { required: true, **invalide } %>
-      <% end %>
-      <%= f.label :statut, "Statut de #{nom}", class: "fr-sr-only" %>
-      <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", form: formulaire, aria: invalide %>
-    </td>
-  <% end %>
   <td>
-    <%= tag.button type: "submit", form: formulaire, id: "enregistrer_#{id}", class: "fr-btn fr-btn--sm", aria: { describedby: invalide[:describedby] } do %><%= ligne.persisted? ? "Enregistrer" : "Ajouter" %><span class="fr-sr-only"> <%= nom %></span><% end %>
-    <% if rangee %>
-      <%= tag.button "Monter #{nom}", type: "submit", form: dom_id(ligne, :deplacement), name: "sens", value: "monter", title: "Monter #{nom}", autofocus: focus == "monter",
-            class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-arrow-up-line" %>
-      <%= tag.button "Descendre #{nom}", type: "submit", form: dom_id(ligne, :deplacement), name: "sens", value: "descendre", title: "Descendre #{nom}", autofocus: focus == "descendre",
-            class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-arrow-down-line" %>
+    <%= fields model: ligne, namespace: id do |f| %>
+      <div class="ligne-integration">
+        <div class="champs-de-la-ligne">
+          <div class="ligne-rangee fr-mb-1w">
+            <% if rangee %>
+              <span class="poignee fr-icon-drag-move-2-line" aria-hidden="true" title="Glisser pour déplacer" data-poignee></span>
+            <% end %>
+            <%= f.label solution, "#{Integration.human_attribute_name(solution)} de #{nom} (obligatoire)", class: "fr-sr-only" %>
+            <%= f.select solution, choix_de_solutions, { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
+          </div>
+          <div>
+            <% if liste == :integratrices %>
+              <div class="fr-select-group fr-mb-1w">
+                <%= f.label :type_integration, class: "fr-label" do %><%= Integration.human_attribute_name(:type_integration) %><span class="fr-sr-only"> de <%= nom %></span> (obligatoire)<% end %>
+                <%= f.select :type_integration, options_traduites(Integration, :type_integration), { include_blank: true }, class: "fr-select", form: formulaire, aria: { required: true, **invalide } %>
+              </div>
+            <% end %>
+            <div class="fr-select-group fr-mb-1w">
+              <%= f.label :statut, class: "fr-label" do %>Statut<span class="fr-sr-only"> de <%= nom %></span><% end %>
+              <%= f.select :statut, Integration::STATUTS, { include_blank: true }, class: "fr-select", form: formulaire, aria: invalide %>
+            </div>
+          </div>
+        </div>
+      </div>
     <% end %>
-    <% if ligne.persisted? %>
-      <%= link_to edit_admin_integration_path(ligne), class: "fr-link fr-link--sm" do %>Modifier<span class="fr-sr-only"> <%= nom %></span><% end %>
-      <% supprimer = "Supprimer #{nom}" %>
-      <%= tag.button supprimer, type: "submit", form: "suppression_#{id}", title: supprimer, class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line", data: { turbo_confirm: ["#{supprimer} ?", (t("admin.suppression.immediate") if [en_base.integratrice, en_base.integree].any?(&:visible?))].compact.join(" ") } %>
-    <% end %>
+    <div class="ligne-rangee fr-grid-row--right">
+      <%= tag.button type: "submit", form: formulaire, id: "enregistrer_#{id}", class: "fr-btn fr-btn--sm", aria: { describedby: invalide[:describedby] } do %><%= ligne.persisted? ? "Enregistrer" : "Ajouter" %><span class="fr-sr-only"> <%= nom %></span><% end %>
+      <% if rangee %>
+        <%= tag.button "Monter #{nom}", type: "submit", form: dom_id(ligne, :deplacement), name: "sens", value: "monter", title: "Monter #{nom}", autofocus: focus == "monter",
+              class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-arrow-up-line" %>
+        <%= tag.button "Descendre #{nom}", type: "submit", form: dom_id(ligne, :deplacement), name: "sens", value: "descendre", title: "Descendre #{nom}", autofocus: focus == "descendre",
+              class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-arrow-down-line" %>
+      <% end %>
+      <% if ligne.persisted? %>
+        <%= link_to edit_admin_integration_path(ligne), class: "fr-link fr-link--sm" do %>Modifier<span class="fr-sr-only"> <%= nom %></span><% end %>
+        <% supprimer = "Supprimer #{nom}" %>
+        <%= tag.button supprimer, type: "submit", form: "suppression_#{id}", title: supprimer, class: "fr-btn fr-btn--sm fr-btn--tertiary-no-outline fr-icon-delete-line", data: { turbo_confirm: ["#{supprimer} ?", (t("admin.suppression.immediate") if [en_base.integratrice, en_base.integree].any?(&:visible?))].compact.join(" ") } %>
+      <% end %>
+    </div>
     <% if ligne.errors.any? %>
       <p id="<%= erreurs %>" class="fr-error-text"><%= ligne.errors.full_messages.to_sentence %></p>
     <% end %>

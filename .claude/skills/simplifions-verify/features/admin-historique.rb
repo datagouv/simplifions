@@ -6,7 +6,7 @@ ADMIN_EMAIL = Verify::ADMIN[:email]
 def evenements(demarche) = ActiveRecord::Base.uncached { demarche.versions.reload.map(&:event) }
 
 def premiere_version_de_l_historique(page, demarche, nom, (etape, titre))
-  page.click_link 'Historique de la démarche'
+  page.find(Verify::BARRE_DEMARCHE).click_link 'Voir l’historique'
   page.assert_current_path("/admin/historique/demarches/#{demarche.id}")
   version = page.first('main section')
   titre_lu = version.find('h2').text
@@ -16,7 +16,7 @@ def premiere_version_de_l_historique(page, demarche, nom, (etape, titre))
 
   Verify.evidence(DOSSIER, page, etape, "titre=#{titre_lu} ligne=#{ligne} evenements=#{evenements(demarche)}")
   page.click_link 'Retour à la fiche'
-  page.assert_selector :button, 'Modifier l’en-tête'
+  page.assert_selector :field, 'Nom'
   page.assert_no_selector 'html[data-turbo-preview]'
 end
 
@@ -29,7 +29,7 @@ def creee_par_l_import(page, nom)
 end
 
 def renommee_par_l_admin(page, demarche, renommee)
-  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => renommee)
+  Verify.modifier_la_fiche(page, 'Nom' => renommee)
   page.assert_text "« #{renommee} » enregistré."
   page.assert_selector Verify::BARRE_DEMARCHE, text: /Modifiée par #{ADMIN_EMAIL} le/
   auteurs = ActiveRecord::Base.uncached { demarche.versions.reload.map(&:whodunnit) }
@@ -47,7 +47,7 @@ def titres_de_l_historique(page)
 end
 
 def page_historique(page, demarche, nom, renommee)
-  page.click_link 'Historique de la démarche'
+  page.find(Verify::BARRE_DEMARCHE).click_link 'Voir l’historique'
   page.assert_current_path("/admin/historique/demarches/#{demarche.id}")
   titres = titres_de_l_historique(page)
   ligne = page.first('main section tbody tr').all('th, td').map(&:text)
@@ -74,19 +74,20 @@ end
 def brouillon(page, demarche, nom)
   demarche.update!(slug: "verif-verify-map-historique-#{Verify.browser}", visible: true)
   page.refresh
-  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => "#{nom} brouillon")
+  Verify.modifier_la_fiche(page, 'Nom' => "#{nom} brouillon")
   page.assert_text 'brouillon enregistré'
   premiere_version_de_l_historique(page, demarche, nom, ['brouillon', 'Modification en brouillon'])
 end
 
 def publication(page, demarche, nom)
   page.click_button 'Publier'
-  page.assert_text "« #{nom} brouillon » enregistré."
+  page.assert_no_selector Verify::BARRE_DEMARCHE, text: /Brouillon non publié/i
+  page.assert_selector 'h1', exact_text: "#{nom} brouillon"
   premiere_version_de_l_historique(page, demarche, nom, ['publication', 'Publication du brouillon'])
 end
 
 def abandon(page, demarche, nom)
-  Verify.modifier_dans_la_fenetre(page, 'Modifier l’en-tête', 'Nom' => nom)
+  Verify.modifier_la_fiche(page, 'Nom' => nom)
   page.accept_confirm { page.click_button 'Abandonner le brouillon' }
   page.assert_text 'abandonné'
   premiere_version_de_l_historique(page, demarche, nom, ['abandon', 'Abandon du brouillon'])

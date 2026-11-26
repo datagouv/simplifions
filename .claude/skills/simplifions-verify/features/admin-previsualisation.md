@@ -20,7 +20,7 @@ Drive: `features/admin-previsualisation.rb` (SKILL.md § Drive).
 
 Creates its own published démarche and solution `Vérif verify-map <browser>`, plus for the integrating solution an API, a bouquet (on a public organisation), a portail and their intégrations (recommandations of the démarche, API niveau 1, bouquet niveau 2), and deletes them. Preconditions: logged in.
 
-- **Démarche.** No `Prévisualiser` before the draft; `Modifier l’en-tête`, `Nom` `<nom> brouillon`, `Enregistrer`, `Prévisualiser` in a new window: H1 the draft name, the notice; at 640 px wide (200 % zoom) no horizontal scroll.
+- **Démarche.** No `Prévisualiser` before the draft; `Nom` `<nom> brouillon`, the column's `Enregistrer`, `Prévisualiser` in a new window: H1 the draft name, the notice; at 640 px wide (200 % zoom) no horizontal scroll.
 - **Public page unchanged.** `/demarches/<slug>` H1 the published name, no notice; base `nom` unchanged.
 - **Solution image.** Attach `app/assets/images/articles/api-franceconnectees-donnees-personnelles.png`, `Enregistrer`, `Prévisualiser`: the image shows, base image still not attached.
 - **Integrating solution.** Intégration `consomme` `✅ en production` of the portail on the API, not yet linked to the démarche; `Ajouter une intégration à <bouquet>` on the bouquet's card in the fiche (`/admin/demarches/:id/edit`; the bouquet provides the API), check it, `Enregistrer` (`brouillon enregistré, non publié.`), `Prévisualiser`: no error, the portail's name in the bouquet's `.reco-card` and in `#solutions-integratrices`; base `integration_ids` still empty; `/demarches/<slug>` shows it nowhere.

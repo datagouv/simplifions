@@ -1,0 +1,14 @@
+<%# locals: (b:, courte:, cochee:, mots_cles: nil, referentiel: false, largeur: "fr-col-12 fr-col-sm-6 fr-col-lg-4", ajoutee: false) -%>
+<% mots = b.object.public_send(mots_cles).join(" ") if mots_cles %>
+<%= tag.div class: class_names("fr-fieldset__element", "#{largeur} fr-grid-row fr-grid-row--middle case-avec-aide" => referentiel),
+      data: { **({ liste_filtrable_target: "element", liste_filtrable_mots_cles: mots } unless courte), **({ controller: "case-ajoutee" } if ajoutee) } do %>
+  <div class="fr-checkbox-group">
+    <%= b.check_box data: ({ action: "change->liste-filtrable#compter" } unless courte) %>
+    <%= b.label(class: "fr-label") %>
+  </div>
+  <% if referentiel %>
+    <%= lien_d_aide(b.object, b.text) %>
+  <% elsif cochee %>
+    <%= lien_vers_la_fiche(b.object, b.text) %>
+  <% end %>
+<% end %>

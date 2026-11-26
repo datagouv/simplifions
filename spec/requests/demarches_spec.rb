@@ -505,7 +505,7 @@ RSpec.describe 'Demarches' do
     end
 
     it 'montre l’icône du titre sans la faire lire : titre de la page, h1 et fil d’Ariane' do
-      titre = 'Cas d\'usage - Tarification cantine scolaire à 1€ | Simplifions.data.gouv.fr'
+      titre = 'Démarche - Tarification cantine scolaire à 1€ | Simplifions.data.gouv.fr'
       expect(response.parsed_body.at_css('title').text).to eq(titre)
       expect(response.parsed_body.at_css('meta[property="og:title"]')['content']).to eq(titre)
       [response.parsed_body.at_css('h1'), response.parsed_body.at_css('.fr-breadcrumb [aria-current=page]')].each do |noeud|

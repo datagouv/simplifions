@@ -1,14 +1,14 @@
 module AdminHelper
   BLOCS_DE_LA_DEMARCHE = {
-    'En-tête modifié' => ['titre-de-la-demarche', %w[icone nom description_courte publics]],
-    'Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche' => ['titre-de-la-demarche', %w[slug]],
-    'Contexte modifié' => ['bloc-contexte', %w[contexte]],
-    'Cadre juridique modifié' => ['bloc-cadre-juridique', %w[cadre_juridique]],
+    'En-tête modifié' => ['demarche_nom', %w[icone nom description_courte publics]],
+    'Adresse de la page modifiée : l’ancienne adresse ne mènera plus à la démarche' => ['demarche_slug', %w[slug]],
+    'Contexte modifié' => ['demarche_contexte', %w[contexte]],
+    'Cadre juridique modifié' => ['demarche_cadre_juridique', %w[cadre_juridique]],
     'Intégrations modifiées' => ['bloc-solutions-recommandees', %w[integration_ids]],
-    'Title SEO modifié' => ['bloc-titre-seo', %w[titre_seo]],
-    'Mots-clés modifiés' => ['bloc-mots-clefs', %w[mots_clefs]],
-    'Fournisseurs de services modifiés' => ['bloc-fournisseurs', %w[type_acteur_ids]],
-    'Vocabulaires modifiés' => ['bloc-vocabulaires', %w[vocabulaires]]
+    'Title SEO modifié' => ['demarche_titre_seo', %w[titre_seo]],
+    'Mots-clés modifiés' => ['demarche_mots_clefs', %w[mots_clefs]],
+    'Fournisseurs de services modifiés' => ['demarche_type_acteur_ids', %w[type_acteur_ids]],
+    'Vocabulaires modifiés' => ['demarche_vocabulaire_ids', %w[vocabulaires]]
   }.freeze
   ORDRES = {
     'niveau_2' => ['Ordre des solutions recommandées modifié', 'bloc-solutions-recommandees'],
@@ -33,6 +33,35 @@ module AdminHelper
   def fenetre_des_donnees_utiles(carte) = "donnees-utiles-#{carte ? dom_id(carte) : 'rattachees-a-aucune-solution'}"
 
   def nom_de_la_recommandation(recommandation, nom) = recommandation.retiree? ? tag.s(nom, class: 'fr-text-mention--grey') : nom
+
+  def texte_sans_brouillon(ligne)
+    return t('admin.sans_brouillon') unless ligne.has_attribute?(:brouillon)
+
+    t(ligne.passe_par_un_brouillon? ? 'admin.aucun_brouillon' : 'admin.fiche_masquee')
+  end
+
+  def adresse_de_la_page(ligne)
+    return if ligne.try(:fiche?) == false
+
+    slug = ligne.brouillon.to_h.fetch('slug', ligne.slug)
+    return 'Slug de la page : à choisir' if slug.blank?
+
+    public_send("#{ligne.model_name.singular_route_key}_url", slug).delete_prefix(request.protocol)
+  end
+
+  def organisation_absente_de_la_liste(solution)
+    solution.datagouv_organisation.presence unless solution.uid_datagouv_changed? || solution.organisation_de_datagouv
+  end
+
+  def message_d_organisation_absente(nom) = "data.gouv.fr indique l’organisation « #{nom} », absente de la liste Organisations."
+
+  def effet_du_changement_de_categorie(solution, categorie)
+    return 'Catégorie actuelle.' if categorie == solution.categorie
+    return 'Masquez d’abord la solution pour la transformer en API ou en jeu de données.' unless solution.categorie_possible?(categorie)
+
+    effaces = solution.champs_effaces_par(categorie).map { Solution.human_attribute_name(it) }
+    effaces.any? ? "Efface : #{effaces.join(', ')}." : 'Rien n’est effacé.'
+  end
 
   def changements_a_publier(demarche)
     return [] unless demarche.visible?

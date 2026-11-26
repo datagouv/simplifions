@@ -21,8 +21,8 @@ Drive: `features/admin-dates.rb` (SKILL.md § Drive).
 Preconditions: logged in. The drive creates its own démarche `Vérif verify-map <browser>` (not visible) and deletes it.
 
 - **Create.** `/admin/demarches/new`: no input named `demarche[cree_le]` or `demarche[modifie_le]`. Fill `Nom`, save: `« <nom> » enregistré.` and the page stays on the démarche's edit form, read back `cree_le` within the last minute and `modifie_le` set.
-- **Edit.** `Modifier l’en-tête`, rename to `<nom> modifiée`, `Enregistrer`: `modifie_le` later than the creation, `cree_le` unchanged.
-- **Delete.** From the edit page, `Supprimer la démarche`, `« <nom> modifiée » supprimé.`, read back 0 rows.
+- **Edit.** Rename to `<nom> modifiée` in `Nom`, the column's `Enregistrer`: `modifie_le` later than the creation, `cree_le` unchanged.
+- **Delete.** From the edit page, `Supprimer cette démarche`, `« <nom> modifiée » supprimé.`, read back 0 rows.
 - **Proof.** Screenshots and `read-back.txt` in `tmp/verify/admin-dates/`.
 
 ## Gotchas

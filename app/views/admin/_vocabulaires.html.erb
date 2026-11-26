@@ -1,13 +1,14 @@
-<%# locals: (f:, categories: Vocabulaire.categories.keys, legende: "Vocabulaires") -%>
-<fieldset class="fr-fieldset">
-  <legend class="fr-fieldset__legend"><%= legende %></legend>
-  <% options_traduites(Vocabulaire, :categorie).each do |legende_de_categorie, categorie| %>
-    <% next unless categorie.in?(categories) %>
-    <div class="fr-fieldset__element">
+<%# locals: (f:, categories: Vocabulaire.categories.keys, legende: "Vocabulaires", legendes: {}, id: f.field_id(:vocabulaire_ids), largeur: "fr-col-12 fr-col-sm-6 fr-col-lg-4") -%>
+<%= content_tag (legende ? :fieldset : :div), class: ("fr-fieldset" if legende), id: do %>
+  <% if legende %>
+    <legend class="fr-fieldset__legend"><%= legende %></legend>
+  <% end %>
+  <% categories.each do |categorie| %>
+    <%= tag.div class: ("fr-fieldset__element" if legende) do %>
       <fieldset class="fr-fieldset">
-        <legend class="fr-fieldset__legend fr-text--regular"><%= legende_de_categorie %></legend>
+        <legend class="fr-fieldset__legend <%= "fr-text--regular" if legende %>"><%= legendes[categorie] || Vocabulaire.human_attribute_name("categorie.#{categorie}") %></legend>
         <%= f.collection_check_boxes :vocabulaire_ids, Vocabulaire.where(categorie:).order(:id), :id, :nom do |b| %>
-          <div class="fr-fieldset__element fr-col-12 fr-col-sm-6 fr-col-lg-4 fr-grid-row fr-grid-row--middle case-avec-aide">
+          <div class="fr-fieldset__element <%= largeur %> fr-grid-row fr-grid-row--middle case-avec-aide">
             <div class="fr-checkbox-group">
               <%= b.check_box %>
               <%= b.label(class: "fr-label") %>
@@ -16,6 +17,6 @@
           </div>
         <% end %>
       </fieldset>
-    </div>
+    <% end %>
   <% end %>
-</fieldset>
+<% end %>
