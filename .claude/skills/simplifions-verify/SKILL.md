@@ -25,17 +25,17 @@ Everything runs in Docker: Docker Desktop on a Mac (Apple silicon or Intel), Doc
 
    ```sh
    until [ ! -r /proc/meminfo ] || awk '/MemAvailable/ { exit !($2 >= 3145728) }' /proc/meminfo; do sleep 30; done
-   docker compose --profile verify up -d --wait chrome firefox
+   docker compose --profile verify up -d --wait firefox
    ```
 
    The same `until` line goes before each drive started while other checkouts drive too.
 
-   It returns once both browsers accept sessions. `selenium/standalone-chromium` and `selenium/standalone-firefox` are published for arm64 and amd64: `uname -m` may print `arm64` or `x86_64`, the same command works. The first pull downloads about 2 GB.
+   It returns once the browser accepts sessions. A change that touches JavaScript or CSS, and the whole map, add `chrome` after `firefox`. `selenium/standalone-chromium` and `selenium/standalone-firefox` are published for arm64 and amd64: `uname -m` may print `arm64` or `x86_64`, the same command works. The first pull downloads about 2 GB.
 3. Database schema up to date: `docker compose run --rm web bin/rails db:prepare`.
 4. A drive runs in a one-off `web` container: `bin/rails runner` loads the app, Capybara starts its own server inside that container on port 3101 (this checkout's code, the dev database), and the browser container opens it at the container's address. No server to start or stop, port 3000 and `make start` are left alone.
 
    ```sh
-   docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb
+   docker compose run --rm -e VERIFY_BROWSER=firefox web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb
    ```
 
 From a worktree made by `bin/setup_worktree.sh`, the commands run as written from the worktree: it has its own Compose stack and its own database, empty at first. Run `make import` there once before the first drive, otherwise drives that need catalogue rows fail (`Données utiles`).
@@ -45,9 +45,9 @@ No `.env` and no `config/master.key` are needed in development (the only credent
 ## Doctor
 
 - `make check` is silent: Docker is installed and running (otherwise it says what to do, in French).
-- `docker compose --profile verify ps chrome firefox` shows both `healthy`; otherwise Launch step 2.
+- `docker compose --profile verify ps` shows each browser started `healthy`; otherwise Launch step 2.
 - `docker compose run --rm web bin/rails runner 'puts ActiveRecord::Base.connection.current_database, Demarche.visibles.count'` → `simplifions_development`, then a number above zero; zero → `make import` (needs network, a few minutes).
-- `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb` prints only `PASS` lines, then `evidence tmp/verify/catalogue-cas-usages/`: the harness and the browser work.
+- `docker compose run --rm -e VERIFY_BROWSER=firefox web bin/rails runner .claude/skills/simplifions-verify/features/catalogue-cas-usages.rb` prints only `PASS` lines, then `evidence tmp/verify/catalogue-cas-usages/`: the harness and the browser work.
 
 ## Enter
 
@@ -76,10 +76,10 @@ Login path: footer link `Espace administrateur` → `/admin/connexion`, fields `
   docker compose run --rm -e VERIFY_BROWSER=chrome web sh -c 'for f in .claude/skills/simplifions-verify/features/*.rb; do bin/rails runner "$f"; done'
   ```
 
-- A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join('.claude/skills/simplifions-verify/harness.rb')` and `page = Verify.session`, run with `docker compose run --rm -e VERIFY_BROWSER=chrome web bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
+- A new or one-off drive: a scratch script under `tmp/verify/` that starts with `require Rails.root.join('.claude/skills/simplifions-verify/harness.rb')` and `page = Verify.session`, run with `docker compose run --rm -e VERIFY_BROWSER=firefox web bin/rails runner tmp/verify/<file>.rb`, so read-backs use Active Record directly.
 - A `bin/rails …` command in a feature file runs the same way, `docker compose run --rm web bin/rails …`. The features on a throwaway database spell out each command in full, guarded by `test "$DATABASE_URL" = …`; copy them as they are, never drop the `-e` or the guard.
 - Steps follow the feature files: accessible names only (`click_link "Vocabulaires"`, `fill_in "Rechercher"`, the tag `Entreprises (N)` under the heading `Démarches à destination des`). The catalogue filter tags apply on click; the tri select waits for the `Trier` button; the search field needs the `Rechercher` button.
-- Both browsers, every time a change is proven (a review's drive takes one): the users browse with Firefox, CI and Capybara defaults lean on Chrome.
+- A change is proven in Firefox, the users' browser; in Chrome too when it touches JavaScript or CSS, where CI and Capybara defaults lean on Chrome. A review's drive takes Firefox.
 
 ## Evidence
 
