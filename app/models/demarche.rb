@@ -94,10 +94,14 @@ class Demarche < ApplicationRecord
   def integratrices = Solution.where(id: recommandations_publiees.flat_map { it.solutions_integratrices.ids }).includes(:organisations)
 
   def integratrices_par_categorie
-    nombres = integratrices.index_with { couverture(it).first }.select { |_solution, nombre| nombre.positive? }
-    nombres.keys.sort_by { [-nombres[it], I18n.transliterate(it.nom).downcase] }
-      .group_by(&:categorie).slice(*Solution::CATEGORIES_INTEGRATRICES).transform_keys(&:to_sym)
+    @integratrices_par_categorie ||= begin
+      nombres = integratrices.index_with { couverture(it).first }.select { |_solution, nombre| nombre.positive? }
+      nombres.keys.sort_by { [-nombres[it], I18n.transliterate(it.nom).downcase] }
+        .group_by(&:categorie).slice(*Solution::CATEGORIES_INTEGRATRICES).transform_keys(&:to_sym)
+    end
   end
+
+  def tableau_comparatif_utile? = donnees_utiles.size > 1 && integratrices_par_categorie.values.sum(&:size) > 1
 
   def self.rattachement(cartes, elements)
     fournies = cartes.index_with { it.solution.fournies.map(&:id) }

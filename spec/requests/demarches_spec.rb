@@ -1046,6 +1046,58 @@ RSpec.describe 'Demarches' do
       expect(page).to have_no_css('nav.fr-summary a[href="#solutions-integratrices"]')
       expect(page).to have_css('nav.fr-summary a[href="#donnees-disponibles"]', text: 'Données disponibles et utiles')
     end
+
+    describe 'encadré en fin d’onglet Données disponibles' do
+      let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+      let(:bio) { Solution.create!(nom: 'API professionnels BIO', categorie: 'api') }
+      let(:encadre) { page.find('#donnees-disponibles .fiche-page > :last-child') }
+
+      def lien(texte) = encadre.find_link(texte, href: '#solutions-integratrices')
+      def zone_matomo(element) = element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']
+
+      it 'mène au tableau comparatif sur ordinateur et aux cartes sur téléphone quand le tableau est utile' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc, bio)
+        integratrice('Brique marchés', 'brique_logicielle', bio)
+
+        get demarche_path('marches-publics')
+
+        expect(encadre).to have_text('Quelles solutions intègrent déjà ces données ?')
+        expect(lien('Tableau comparatif des 3 solutions')[:class].split).to include('fr-hidden', 'fr-unhidden-md')
+        expect(lien('Voir les 3 solutions')[:class].split).to include('fr-hidden-md')
+        expect([zone_matomo(lien('Voir les 3 solutions'))] + encadre.all('a').map { [it['data-matomo-action'], it['data-matomo-nom']] })
+          .to eq(["Cas d'usage › Fin des données disponibles",
+                  ['Afficher les solutions', 'Tableau comparatif'], ['Afficher les solutions', 'Cartes']])
+      end
+
+      it 'mène aux cartes sur tous les écrans avec une seule donnée, le tableau n’ayant qu’une colonne' do
+        recommande(bodacc)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc)
+
+        get demarche_path('marches-publics')
+
+        expect(encadre.all('a').map { [it.text, it[:class].split.grep(/hidden/)] }).to eq([['Voir les 2 solutions', []]])
+      end
+
+      it 'dit « Voir la solution » quand une seule solution a intégré les données' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc, bio)
+
+        get demarche_path('marches-publics')
+
+        expect(encadre.all('a').map { [it.text, it[:class].split.grep(/hidden/)] }).to eq([['Voir la solution', []]])
+      end
+
+      it 'n’apparaît pas quand aucune solution n’a intégré les données' do
+        recommande(bodacc)
+
+        get demarche_path('marches-publics')
+
+        expect(page).to have_no_text('Quelles solutions intègrent déjà ces données ?')
+      end
+    end
   end
 
   describe 'accès direct à la donnée recommandée' do

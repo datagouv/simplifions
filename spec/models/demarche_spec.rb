@@ -209,6 +209,45 @@ RSpec.describe Demarche do
     end
   end
 
+  describe '#tableau_comparatif_utile?' do
+    let(:demarche) { described_class.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true) }
+    let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+    let(:bio) { Solution.create!(nom: 'API professionnels BIO', categorie: 'api') }
+
+    def recommande(*apis) = apis.each { Recommandation.create!(demarche:, solution: it, niveau: :niveau_2, visible: true) }
+
+    def integratrice(nom, *apis)
+      solution = Solution.create!(nom:, categorie: 'logiciel_metier_cle_en_main', visible: true, slug: nom.parameterize)
+      apis.each do |api|
+        Integration.create!(integratrice: solution, integree: api, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+      end
+    end
+
+    it 'est vrai avec plus d’une donnée et plus d’une solution à comparer' do
+      recommande(bodacc, bio)
+      integratrice('Acheteza', bodacc)
+      integratrice('Zeta', bio)
+
+      expect(demarche).to be_tableau_comparatif_utile
+    end
+
+    it 'est faux avec une seule donnée : le tableau n’aurait qu’une colonne' do
+      recommande(bodacc)
+      integratrice('Acheteza', bodacc)
+      integratrice('Zeta', bodacc)
+
+      expect(demarche).not_to be_tableau_comparatif_utile
+    end
+
+    it 'est faux avec une seule solution ayant intégré une donnée utile : rien à comparer' do
+      recommande(bodacc, bio)
+      integratrice('Acheteza', bodacc, bio)
+      integratrice('Sans donnée utile')
+
+      expect(demarche).not_to be_tableau_comparatif_utile
+    end
+  end
+
   describe 'brouillon' do
     let(:particuliers) { Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
     let!(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }

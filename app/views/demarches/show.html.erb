@@ -79,6 +79,19 @@
         <h2 class="fr-sr-only"><%= onglets[0][1] %></h2>
         <%= render partial: 'demarches/recommandation', collection: @demarche.recommandations_publiees, as: :recommandation,
               locals: { lien_modification:, demarche: @demarche } %>
+        <% if (nombre = onglets[1][2]).positive? %>
+          <% tableau_utile = @demarche.tableau_comparatif_utile? %>
+          <div class="fr-background-alt--grey fr-p-3w fr-mb-4w fr-grid-row fr-grid-row--middle"
+            <%= tag.attributes(data: matomo_zone("Cas d'usage › Fin des données disponibles")) %>>
+            <p class="fr-col-12 fr-col-md fr-text--lg fr-text--bold fr-mb-2w fr-mb-md-0">Quelles solutions intègrent déjà ces données ?</p>
+            <% if tableau_utile %>
+              <a href="#solutions-integratrices" class="fr-btn fr-btn--icon-left fr-icon-table-line fr-hidden fr-unhidden-md"
+                data-matomo-action="Afficher les solutions" data-matomo-nom="Tableau comparatif">Tableau comparatif des <%= nombre %> solutions</a>
+            <% end %>
+            <a href="#solutions-integratrices" class="fr-btn fr-btn--icon-right fr-icon-arrow-right-line <%= 'fr-hidden-md' if tableau_utile %>"
+              data-matomo-action="Afficher les solutions" data-matomo-nom="Cartes"><%= nombre == 1 ? 'Voir la solution' : "Voir les #{nombre} solutions" %></a>
+          </div>
+        <% end %>
       </div>
     </div>
     <div id="solutions-integratrices" class="fr-tabs__panel fr-background-alt--blue-france" role="tabpanel"
