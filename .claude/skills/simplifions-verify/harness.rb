@@ -93,7 +93,7 @@ module Verify
 
   def self.logout(page)
     page.click_button 'Se déconnecter'
-    page.assert_selector :link, 'Se connecter'
+    page.assert_no_selector :button, 'Se déconnecter'
   end
 
   def self.evidence(feature, page, name, read_back = nil)

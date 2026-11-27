@@ -1,6 +1,6 @@
 # Se connecter à l'administration
 
-An admin signs in from the header, lands on the administration dashboard, and signs out back to the public site.
+An admin signs in from the footer link `Espace administrateur`, lands on the administration dashboard, and signs out back to the public site.
 
 ## Sub-features
 
@@ -11,7 +11,7 @@ An admin signs in from the header, lands on the administration dashboard, and si
 
 ## How to get to it (user POV)
 
-- Header button `Se connecter` (visitors) → `/admin/connexion`.
+- Footer bottom link `Espace administrateur`, gear icon → `/admin/connexion` for visitors, `/admin` for admins. The header shows no login button.
 - Header buttons `Administration` and `Se déconnecter` (admins).
 - URL `/admin` when logged out shows `Vous devez vous connecter pour accéder à cette page.`
 
@@ -25,8 +25,9 @@ Preconditions:
 - The dev-only admin exists (`Verify.ensure_admin`, SKILL.md § Enter).
 
 - **Guard.** `visit "/admin"` → text `Vous devez vous connecter pour accéder à cette page.`
-- **Log in.** `Verify.login(page)`: fill `Adresse e-mail`, `Mot de passe`, `click_button "Se connecter"`. Alert `Connecté.`, H1 `Bonjour`, header link `Administration`.
-- **Log out.** `click_button "Se déconnecter"`. Header link `Se connecter` is back; `visit "/admin"` lands on `/admin/connexion`.
+- **Enter.** `visit "/"`: the header has no `Espace administrateur` link; `click_link "Espace administrateur"` in the footer → `/admin/connexion`.
+- **Log in.** `Verify.login(page)`: fill `Adresse e-mail`, `Mot de passe`, `click_button "Se connecter"`. Alert `Connecté.`, H1 `Bonjour`, header link `Administration`, footer link `Espace administrateur` → `/admin`.
+- **Log out.** `click_button "Se déconnecter"`. Header button `Se déconnecter` is gone; `visit "/admin"` lands on `/admin/connexion`.
 - **Proof.** Screenshot of the dashboard and of the guard after logout; read-back of `current_path` at both points.
 
 ## Gotchas
