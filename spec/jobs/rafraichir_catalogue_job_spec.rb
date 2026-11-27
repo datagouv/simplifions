@@ -1,32 +1,33 @@
 require 'rails_helper'
 
 RSpec.describe RafraichirCatalogueJob do
+  let!(:solution) { Solution.create!(nom: 'API Particulier', uid_datagouv: 'api-particulier') }
+
   before do
-    stub_grist_tables
     stub_request(:get, %r{data\.gouv\.fr/api/})
       .to_return(status: 200, body: { title: 'Titre data.gouv', access_type: 'open' }.to_json)
   end
 
-  it 'importe le catalogue Grist puis rafraîchit les métadonnées data.gouv' do
+  it "garde une démarche créée dans l'admin, sans identifiant Grist" do
+    demarche = Demarche.create!(nom: "Créée dans l'admin")
+
     described_class.perform_now
 
-    expect(Solution.sur_datagouv.pluck(:datagouv_titre).uniq).to eq(['Titre data.gouv'])
+    expect(Demarche.exists?(demarche.id)).to be(true)
   end
 
-  it 'signe ses changements « Import Grist » puis « data.gouv », sans version quand rien ne change' do
+  it "ne recopie plus le Grist : aucune requête n'y part" do
     described_class.perform_now
-    solution = Solution.sur_datagouv.first
 
-    expect(solution.versions.map(&:whodunnit)).to eq(['Import Grist', 'data.gouv'])
-    expect(solution.versions.last.changeset).to include('datagouv_titre' => [nil, 'Titre data.gouv'])
+    expect(a_request(:get, /#{Regexp.escape(Grist::FetchTables::DOC_URL)}/o)).not_to have_been_made
+  end
+
+  it 'rafraîchit les métadonnées data.gouv, signées « data.gouv », sans version quand rien ne change' do
+    described_class.perform_now
+
+    expect(solution.reload.datagouv_titre).to eq('Titre data.gouv')
+    expect(solution.versions.last).to have_attributes(whodunnit: 'data.gouv')
     expect { described_class.perform_now }.not_to change(PaperTrail::Version, :count)
-  end
-
-  it "laisse sortir l'échec de l'import Grist sans appeler data.gouv" do
-    stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_return(status: 500)
-
-    expect { described_class.perform_now }.to raise_error(RuntimeError, /Solutions/)
-    expect(a_request(:get, %r{data\.gouv\.fr/api/})).not_to have_been_made
   end
 
   describe 'journal JSON' do
@@ -38,19 +39,16 @@ RSpec.describe RafraichirCatalogueJob do
       described_class.perform_now
 
       expect(logstash_lines.pluck('event_type')).to eq(%w[rafraichissement_demarre rafraichissement_termine])
-      expect(logstash_lines.last).to include(
-        'demarches' => Demarche.count, 'solutions' => Solution.count,
-        'quarantaine' => a_kind_of(Integer), 'notes' => a_kind_of(Integer),
-        'datagouv_en_echec' => Solution.sur_datagouv.count
-      )
+      expect(logstash_lines.last).to include('demarches' => Demarche.count, 'solutions' => 1, 'datagouv_en_echec' => 1)
     end
 
     it "écrit le type d'erreur d'un passage en échec, jamais son message" do
-      stub_request(:get, "#{Grist::FetchTables::DOC_URL}/tables/Solutions/records").to_return(status: 500)
+      allow(Solution).to receive(:rafraichir_datagouv).and_raise(ActiveRecord::ConnectionNotEstablished, 'base injoignable')
 
-      expect { described_class.perform_now }.to raise_error(RuntimeError)
-      expect(logstash_lines.last).to include('event_type' => 'rafraichissement_echoue', 'error_class' => 'RuntimeError')
-      expect(logstash_io.string).not_to include('Solutions')
+      expect { described_class.perform_now }.to raise_error(ActiveRecord::ConnectionNotEstablished)
+      expect(logstash_lines.last).to include('event_type' => 'rafraichissement_echoue',
+        'error_class' => 'ActiveRecord::ConnectionNotEstablished')
+      expect(logstash_io.string).not_to include('base injoignable')
     end
   end
 

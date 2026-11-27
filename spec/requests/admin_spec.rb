@@ -174,18 +174,13 @@ RSpec.describe 'Administration' do
 
     before { sign_in admin }
 
-    it 'prévient sur la page que l’import remplace les saisies et supprime les fiches créées ici' do
+    it 'propose de rafraîchir depuis data.gouv, sans plus parler du Grist ni demander de confirmation' do
       get admin_root_path
-      import = response.parsed_body.at_css('section[aria-labelledby=import]')
-      expect(import.at_css('h2').text).to eq('Import depuis Grist et data.gouv')
-      expect(import.at_css('.fr-alert--warning').text.squish)
-        .to eq('L’import remplace les modifications faites ici par le contenu du Grist et supprime les fiches créées ici.')
-    end
-
-    it 'propose de rafraîchir en prévenant que le Grist remplace les saisies' do
-      get admin_root_path
-      assert_select 'button:not([disabled])', text: 'Rafraîchir depuis Grist et data.gouv'
-      expect(response.body).to include('Le contenu du Grist remplacera les modifications faites dans l’administration.')
+      encadre = response.parsed_body.at_css('section[aria-labelledby=import]')
+      expect(encadre.at_css('h2').text).to eq('Rafraîchissement depuis data.gouv')
+      expect(encadre.at_css('button:not([disabled])').text).to eq('Rafraîchir depuis data.gouv')
+      expect(encadre.at_css('[data-turbo-confirm]')).to be_nil
+      expect(encadre.text).not_to include('Grist')
     end
 
     it 'signale l’absence de passage récent' do
@@ -203,7 +198,7 @@ RSpec.describe 'Administration' do
       passage
       get admin_root_path
       assert_select 'button[disabled]', text: 'Rafraîchissement en cours…'
-      assert_select 'button:not([disabled])', text: 'Rafraîchir depuis Grist et data.gouv', count: 0
+      assert_select 'button:not([disabled])', text: 'Rafraîchir depuis data.gouv', count: 0
     end
 
     it 'donne l’heure de Paris d’un passage terminé' do
@@ -213,9 +208,9 @@ RSpec.describe 'Administration' do
     end
 
     it 'donne le message d’un passage échoué' do
-      passage.failed_with(RuntimeError.new('Grist injoignable'))
+      passage.failed_with(RuntimeError.new('data.gouv injoignable'))
       get admin_root_path
-      expect(response.body).to include('Dernier rafraîchissement : échoué (Grist injoignable).')
+      expect(response.body).to include('Dernier rafraîchissement : échoué (data.gouv injoignable).')
     end
   end
 
