@@ -923,7 +923,7 @@ RSpec.describe 'Demarches' do
         expect(bouton.first('span', visible: :all)[:class]).to include('fr-icon-arrow-down-s-fill')
         expect(onglet_solutions).to have_css("##{bouton[:'aria-controls']}:not([hidden]) .solution-integratrice-card", visible: :all)
         expect(onglet_solutions).to have_no_css('.fr-accordion, .fr-collapse', visible: :all)
-        expect(onglet_solutions[:class]).to include('fr-background-alt--blue-france')
+        expect(onglet_solutions[:class]).to include('fr-background-alt--beige-gris-galet')
       end
 
       it 'badge le titre de chaque catégorie de son nombre de solutions, « Sans développement » hors briques' do
@@ -1063,8 +1063,8 @@ RSpec.describe 'Demarches' do
 
         get demarche_path('marches-publics')
 
-        expect(encadre).to have_text('Quelles solutions intègrent déjà ces données ?')
-        expect(lien('Tableau comparatif des 3 solutions')[:class].split).to include('fr-hidden', 'fr-unhidden-md')
+        expect(encadre).to have_text('Tableau comparatif des 3 solutions')
+        expect(lien('Consulter le tableau comparatif')[:class].split).to include('fr-hidden', 'fr-unhidden-md')
         expect(lien('Voir les 3 solutions')[:class].split).to include('fr-hidden-md')
         expect([zone_matomo(lien('Voir les 3 solutions'))] + encadre.all('a').map { [it['data-matomo-action'], it['data-matomo-nom']] })
           .to eq(["Cas d'usage › Fin des données disponibles",
@@ -1095,7 +1095,7 @@ RSpec.describe 'Demarches' do
 
         get demarche_path('marches-publics')
 
-        expect(page).to have_no_text('Quelles solutions intègrent déjà ces données ?')
+        expect(page).to have_no_css(%([data-matomo-zone="Cas d'usage › Fin des données disponibles"]))
       end
     end
 

@@ -82,12 +82,27 @@
               locals: { lien_modification:, demarche: @demarche } %>
         <% if (nombre = onglets[1][2]).positive? %>
           <% tableau_utile = @demarche.tableau_comparatif_utile? %>
-          <div class="fr-background-alt--grey fr-p-3w fr-mb-4w fr-grid-row fr-grid-row--middle"
+          <div class="fr-background-alt--grey fr-p-3w fr-mb-4w fr-grid-row fr-grid-row--middle fr-grid-row-gutters"
             <%= tag.attributes(data: matomo_zone("Cas d'usage › Fin des données disponibles")) %>>
-            <p class="fr-col-12 fr-col-md fr-text--lg fr-text--bold fr-mb-2w fr-mb-md-0">Quelles solutions intègrent déjà ces données ?</p>
+            <p class="fr-col-12 fr-col-md fr-mb-2w fr-mb-md-0">
+              <span class="fr-text--lg fr-text--bold">
+                <% if tableau_utile %>
+                  Tableau comparatif des <%= nombre %> solutions
+                <% else %>
+                  <%= nombre == 1 ? 'Solution référencée' : "#{nombre} solutions référencées" %>
+                <% end %>
+              </span>
+              <br>
+              <% if tableau_utile %>
+                Comparez la liste des données intégrées par les <%= nombre %> solutions déjà référencées
+              <% else %>
+                <%= nombre == 1 ? 'Consultez la solution déjà référencée' : "Consultez les #{nombre} solutions déjà référencées" %>
+              <% end %>
+              pour cette démarche.
+            </p>
             <% if tableau_utile %>
               <a href="#solutions-integratrices" class="fr-btn fr-btn--icon-left fr-icon-table-line fr-hidden fr-unhidden-md"
-                data-matomo-action="Afficher les solutions" data-matomo-nom="Tableau comparatif">Tableau comparatif des <%= nombre %> solutions</a>
+                data-matomo-action="Afficher les solutions" data-matomo-nom="Tableau comparatif">Consulter le tableau comparatif</a>
             <% end %>
             <a href="#solutions-integratrices" class="fr-btn fr-btn--icon-right fr-icon-arrow-right-line <%= 'fr-hidden-md' if tableau_utile %>"
               data-matomo-action="Afficher les solutions" data-matomo-nom="Cartes"><%= nombre == 1 ? 'Voir la solution' : "Voir les #{nombre} solutions" %></a>
@@ -95,7 +110,7 @@
         <% end %>
       </div>
     </div>
-    <div id="solutions-integratrices" class="fr-tabs__panel fr-background-alt--blue-france" role="tabpanel"
+    <div id="solutions-integratrices" class="fr-tabs__panel fr-background-alt--beige-gris-galet" role="tabpanel"
       aria-labelledby="onglet-solutions-integratrices" tabindex="0">
       <div class="fr-container fiche-page">
         <h2 class="fr-sr-only"><%= onglets[1][1] %></h2>
