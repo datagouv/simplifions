@@ -1,7 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["liste"]
+  static targets = ["liste", "tableau"]
+  static values = { tableauUtile: Boolean }
+
+  connect() {
+    if (this.tableauUtileValue && matchMedia("(min-width: 48em)").matches) this.tableauTarget.checked = true
+  }
 
   trier({ target: { value } }) {
     const comparer = value === "titre" ?
