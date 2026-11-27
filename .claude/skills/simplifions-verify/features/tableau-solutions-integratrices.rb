@@ -31,7 +31,7 @@ def vue_cochee(panneau) = ['Cartes', 'Tableau comparatif'].find { panneau.find_f
 def ouvrir_l_onglet(page, demarche, largeur)
   page.current_window.resize_to(largeur, 1024)
   page.visit("/demarches/#{demarche.slug}")
-  page.find('[role=tab][aria-controls=solutions-integratrices]').click
+  Verify.onglet(page, 'Solutions ayant intégré ces données')
   page.find('#solutions-integratrices.fr-tabs__panel--selected')
 end
 

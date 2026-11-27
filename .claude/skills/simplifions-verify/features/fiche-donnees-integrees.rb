@@ -14,8 +14,11 @@ JS
 
 Fenetre = Struct.new(:demarche, :oeil, :carte, :modale)
 
-def demarche_avec_integratrices
-  Demarche.visibles.order(:id).find { it.donnees_utiles.any? && it.recommandations_publiees.any? { |reco| reco.solutions_integratrices.exists? } }
+def demarche_avec_integratrices(tableau_utile: nil)
+  Demarche.visibles.order(:id).find do |demarche|
+    demarche.donnees_utiles.any? && demarche.recommandations_publiees.any? { it.solutions_integratrices.exists? } &&
+      (tableau_utile.nil? || demarche.tableau_comparatif_utile? == tableau_utile)
+  end
 end
 
 def ouvrir_la_fenetre(page, demarche)
@@ -85,6 +88,55 @@ def fermer_au_clavier(page, fenetre)
   Verify.evidence(DOSSIER, page, 'modale-fermee', "focus=#{focus}")
 end
 
+def etat_des_onglets(page)
+  page.evaluate_script(<<~JS)
+    [document.querySelector('[role=tab][aria-selected=true]').id, document.querySelector('input[name=affichage-solutions]:checked').value,
+     document.querySelectorAll('dialog[open]').length, document.body.dataset.verifMemePage === 'oui']
+  JS
+end
+
+def comparer_depuis_la_fenetre(page, modale, etape)
+  page.execute_script("document.body.dataset.verifMemePage = 'oui'")
+  modale.click_link('Comparer avec les autres solutions')
+  page.assert_no_selector('dialog[open]')
+  page.assert_selector('#solutions-integratrices.fr-tabs__panel--selected table')
+  etat = etat_des_onglets(page)
+  raise "après Comparer : #{etat}" unless etat == ['onglet-solutions-integratrices', 'tableau', 0, true]
+
+  Verify.evidence(DOSSIER, page, etape, "onglet=#{etat[0]} vue=#{etat[1]} fenetres_ouvertes=#{etat[2]} meme_page=#{etat[3]}")
+end
+
+def comparer_depuis_les_donnees(page)
+  page.current_window.resize_to(500, 1024)
+  fenetre = ouvrir_la_fenetre(page, demarche_avec_integratrices(tableau_utile: true))
+  comparer_depuis_la_fenetre(page, fenetre.modale, 'comparer-depuis-donnees')
+end
+
+def ouvrir_depuis_les_cartes(page)
+  Verify.onglet(page, 'Solutions ayant intégré ces données')
+  panneau = page.find('#solutions-integratrices.fr-tabs__panel--selected')
+  panneau.choose('Cartes', allow_label_click: true)
+  oeil = panneau.first('.solution-integratrice-card button.fr-icon-eye-line')
+  page.scroll_to(oeil, align: :center)
+  oeil.click
+  page.find("dialog##{oeil['aria-controls']}[open]")
+end
+
+def comparer_depuis_les_cartes(page)
+  page.current_window.resize_to(1280, 1024)
+  Verify.onglet(page, 'Données disponibles et utiles')
+  comparer_depuis_la_fenetre(page, ouvrir_depuis_les_cartes(page), 'comparer-depuis-cartes')
+end
+
+def sans_comparer_quand_le_tableau_n_est_pas_utile(page)
+  demarche = demarche_avec_integratrices(tableau_utile: false)
+  page.visit("/demarches/#{demarche.slug}")
+  modale = ouvrir_depuis_les_cartes(page)
+  raise 'Comparer proposé sans tableau utile' if modale.has_link?('Comparer avec les autres solutions', wait: 0)
+
+  Verify.evidence(DOSSIER, page, 'sans-comparer', "slug=#{demarche.slug} solution=#{modale.find('h2').text.inspect} lien_comparer=absent")
+end
+
 def grilles_de_cartes(page)
   Demarche.visibles.order(:id).flat_map do |demarche|
     page.visit("/demarches/#{demarche.slug}")
@@ -119,5 +171,8 @@ Verify.drive(__FILE__) do |page|
   Verify.check('Proof') { prouver_les_totaux(page, fenetre) }
   Verify.check('Detail') { montrer_puis_masquer_le_detail(page, fenetre.modale) }
   Verify.check('Close') { fermer_au_clavier(page, fenetre) }
+  Verify.check('Compare from the data') { comparer_depuis_les_donnees(page) }
+  Verify.check('Compare from the cards') { comparer_depuis_les_cartes(page) }
+  Verify.check('No compare without a useful table') { sans_comparer_quand_le_tableau_n_est_pas_utile(page) }
   Verify.check('Order') { verifier_l_ordre(page) }
 end

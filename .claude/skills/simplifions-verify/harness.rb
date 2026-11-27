@@ -194,7 +194,12 @@ module Verify
     def cartes_de_la_fiche(page) = page.all('.cartes-recommandees li[id^="recommandation_"]')
 
     def onglet(page, libelle)
-      page.find('[role=tab]', text: /\A#{libelle}/).click
+      bouton = page.find('[role=tab]', text: /\A#{libelle}/)
+      3.times do
+        page.scroll_to(bouton, align: :center)
+        bouton.click
+        break if page.has_selector?('[role=tab][aria-selected=true]', text: /\A#{libelle}/, wait: 1)
+      end
       page.assert_selector '[role=tab][aria-selected=true]', text: /\A#{libelle}/
     end
 
