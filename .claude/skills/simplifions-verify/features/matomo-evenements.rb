@@ -143,25 +143,25 @@ def onglet_lu(page, libelle)
 end
 
 def lecture_vues_quittees(page)
-  demarche = Demarche.visibles.find { it.integratrices_par_categorie.any? } || raise('aucune démarche avec des solutions intégratrices')
+  demarche = Demarche.visibles.order(:id).find(&:tableau_comparatif_utile?) || raise('aucune démarche où le tableau comparatif est utile')
   page.visit("/demarches/#{demarche.slug}")
   vider(page)
   descendre(page)
   sleep 5
   onglet_lu(page, 'Solutions ayant intégré ces données')
   sleep 5
-  vue(page, 'Tableau comparatif')
-  vues = attendre_lecture(page, 'Lire une fiche démarche › Solutions (tableau)')
+  vue(page, 'Cartes')
+  vues = attendre_lecture(page, 'Lire une fiche démarche › Solutions (cartes)')
   raise "une vue quittée avant 30 s a été comptée : #{evenements(page)}" if vues > 1
 end
 
 def lecture_vues_restantes(page)
-  vue(page, 'Cartes')
-  attendre_lecture(page, 'Lire une fiche démarche › Solutions (cartes)')
+  vue(page, 'Tableau comparatif')
+  attendre_lecture(page, 'Lire une fiche démarche › Solutions (tableau)')
   onglet_lu(page, 'Données disponibles et utiles')
   attendre_lecture(page, 'Lire une fiche démarche › Données disponibles')
   Verify.onglet(page, 'Solutions ayant intégré ces données')
-  vue(page, 'Tableau comparatif')
+  vue(page, 'Cartes')
   sleep 32
   raise "une vue déjà lue a été recomptée : #{evenements(page)}" if nombre_de_lectures(page).positive?
 end

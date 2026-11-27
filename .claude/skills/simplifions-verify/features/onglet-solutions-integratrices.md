@@ -22,7 +22,7 @@ Drive: `features/onglet-solutions-integratrices.rb` (SKILL.md § Drive).
 
 Preconditions: a visible démarche with `Demarche#integratrices_par_categorie` not empty.
 
-- **Open.** Click `[role=tab][aria-controls=solutions-integratrices]`; `#solutions-integratrices.fr-tabs__panel--selected` appears, `#donnees-disponibles` goes hidden.
+- **Open.** Click `[role=tab][aria-controls=solutions-integratrices]`; `#solutions-integratrices.fr-tabs__panel--selected` appears, `#donnees-disponibles` goes hidden. On a desktop the tab may open on « Tableau comparatif » ([`tableau-solutions-integratrices.md`](tableau-solutions-integratrices.md)): choose `Cartes`.
 - **Proof.** Tab label count and card names, in order, against `integratrices_par_categorie` (flattened); category titles in order (`h3 > .section-depliable__bouton`), the panel's computed background blue and as wide as the window.
 - **Titles.** Each category title is plural (« Logiciels métier « clé en main » », « Briques logicielles à intégrer », « Sites de consultation »), followed by a blue badge with its number of solutions (« 12 logiciels ») and, except for briques, « Sans développement »; a one-line description opens its content. At 1280 and 375 px the title line stays inside the window, badges wrapping under the title.
 - **Category.** Click the first category title (`.section-depliable__bouton`, arrow on its left, not the DSFR accordion): its description and cards hide (`aria-expanded=false`, arrow turned right); Enter on the focused title: they show, focus stays on the title.

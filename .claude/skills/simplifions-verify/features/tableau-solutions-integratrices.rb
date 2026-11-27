@@ -26,17 +26,34 @@ def trier_par(page, panneau, choix, attendu, etape)
   Verify.evidence(DOSSIER, page, etape, "tri=#{choix.inspect} listes=#{en_lignes(affichees)}")
 end
 
-def arrivee(page, demarche)
-  page.current_window.resize_to(1280, 1024)
+def vue_cochee(panneau) = ['Cartes', 'Tableau comparatif'].find { panneau.find_field(it, visible: :all).checked? }
+
+def ouvrir_l_onglet(page, demarche, largeur)
+  page.current_window.resize_to(largeur, 1024)
   page.visit("/demarches/#{demarche.slug}")
   page.find('[role=tab][aria-controls=solutions-integratrices]').click
-  panneau = page.find('#solutions-integratrices.fr-tabs__panel--selected')
-  raise 'Cartes non coché' unless panneau.find_field('Cartes', visible: :all).checked?
+  page.find('#solutions-integratrices.fr-tabs__panel--selected')
+end
+
+def arrivee(page, demarche)
+  panneau = ouvrir_l_onglet(page, demarche, 1280)
+  raise "vue à l’arrivée : #{vue_cochee(panneau)}" unless vue_cochee(panneau) == 'Tableau comparatif'
   raise 'tri par défaut' unless panneau.find_field('Trier par :').value == 'integrees'
   raise 'phrase d’ordre encore là' if panneau.has_text?('Les solutions sont classées', wait: 0)
 
+  page.assert_selector('#solutions-integratrices table')
+  page.assert_no_selector('#solutions-integratrices .solution-integratrice-card')
+  Verify.evidence(DOSSIER, page, 'arrivee-ordinateur', "slug=#{demarche.slug} vue=#{vue_cochee(panneau)} utile_base=#{demarche.tableau_comparatif_utile?}")
+end
+
+def arrivee_en_cartes(page, demarche, largeur, etape)
+  panneau = ouvrir_l_onglet(page, demarche, largeur)
+  raise "vue à l’arrivée : #{vue_cochee(panneau)}" unless vue_cochee(panneau) == 'Cartes'
+
+  page.assert_selector('#solutions-integratrices .solution-integratrice-card')
   page.assert_no_selector('#solutions-integratrices table')
-  panneau
+  largeur_vue = page.evaluate_script('document.documentElement.clientWidth')
+  Verify.evidence(DOSSIER, page, etape, "slug=#{demarche.slug} largeur=#{largeur_vue} vue=#{vue_cochee(panneau)} utile_base=#{demarche.tableau_comparatif_utile?}")
 end
 
 def passer_en_tableau(page, panneau, servi)
@@ -126,9 +143,13 @@ ensure
 end
 
 Verify.drive(__FILE__) do |page|
-  demarche = Demarche.visibles.order(:id).find { it.integratrices_par_categorie.any? }
+  demarche = Demarche.visibles.order(:id).find(&:tableau_comparatif_utile?)
+  sans_tableau = Demarche.visibles.order(:id).find { it.integratrices_par_categorie.any? && !it.tableau_comparatif_utile? }
   servi = demarche.integratrices_par_categorie.values.map { |solutions| solutions.map(&:nom) }
-  panneau = Verify.check('Arrival') { arrivee(page, demarche) }
+  Verify.check('Arrival') { arrivee(page, demarche) }
+  Verify.check('Arrival on a phone') { arrivee_en_cartes(page, demarche, 375, 'arrivee-telephone') }
+  Verify.check('Arrival without a useful table') { arrivee_en_cartes(page, sans_tableau, 1280, 'arrivee-sans-tableau') }
+  panneau = ouvrir_l_onglet(page, demarche, 1280).tap { it.choose('Cartes', allow_label_click: true) }
   Verify.check('Sort cards') do
     trier_par(page, panneau, DONNEES, servi, 'cartes-donnees')
     trier_par(page, panneau, 'Titre', par_titre(servi), 'cartes-titre')
