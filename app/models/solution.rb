@@ -99,12 +99,7 @@ class Solution < ApplicationRecord
 
   def fournies = [self, *exposees]
 
-  def donnees_affichees
-    if consommees.any?(&:affichee_sur_les_fiches?) then :integrees
-    elsif exposees.any?(&:affichee_sur_les_fiches?) then :fournies
-    end
-  end
-
+  def donnees_affichees = { integrees: consommees, fournies: exposees }.find { |_, apis| apis.any?(&:affichee_sur_les_fiches?) }&.first
   def affichee_sur_les_fiches? = visible? && uid_datagouv.present?
 
   def api_fournies_dans_l_ordre
