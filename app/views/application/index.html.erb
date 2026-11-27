@@ -5,8 +5,11 @@
    total = @catalogue.total_count
    requete = @filtres.to_h.compact_blank
    tout = @catalogue.klass.catalogue({}).count
-   facettes = [['target-users', 'Démarches à destination des', Vocabulaire.categorie_usager.choix],
-               ['fournisseurs-de-service', 'Démarches gérées par', TypeActeur::FILTRES.to_a],
+   titres_publics = { Demarche => ['Démarches à destination des', 'Démarches gérées par'],
+                      Solution => ['Solutions avec données des', 'Solutions à destination des'] }
+   titre_usagers, titre_acteurs = titres_publics.fetch(@catalogue.klass)
+   facettes = [['target-users', titre_usagers, Vocabulaire.categorie_usager.choix],
+               ['fournisseurs-de-service', titre_acteurs, TypeActeur::FILTRES.to_a],
                ['categorie-de-solution', 'Solution recherchée', Vocabulaire.categorie_solution.choix],
                ['types-de-simplification', 'Type de simplification des démarches', Vocabulaire.categorie_type_simplification.choix]] %>
 <div class="fr-container">
@@ -49,12 +52,12 @@
         <% *principales, (nom_plus, label_plus, options_plus) = facettes %>
         <% principales.each do |nom, label, options| %>
           <%= f.hidden_field nom, value: @filtres[nom], id: nil if @filtres[nom].present? %>
-          <%= render "facette_tags", f:, id: nom, label: "#{label} :", tags: tags_du_catalogue(@filtres, @catalogue.klass, nom, label, options) %>
+          <%= render "facette_tags", f:, id: nom, label: "#{label}\u00A0:", tags: tags_du_catalogue(@filtres, @catalogue.klass, nom, label, options) %>
         <% end %>
         <%= tag.details class: "filtres-depliables", open: @filtres[nom_plus].present? do %>
           <summary class="fr-link fr-icon-arrow-down-s-line fr-link--icon-right fr-mb-2w">Plus de filtres</summary>
           <%= f.hidden_field nom_plus, value: @filtres[nom_plus], id: nil if @filtres[nom_plus].present? %>
-          <%= render "facette_tags", f:, id: nom_plus, label: "#{label_plus} :", tags: tags_du_catalogue(@filtres, @catalogue.klass, nom_plus, label_plus, options_plus) %>
+          <%= render "facette_tags", f:, id: nom_plus, label: "#{label_plus}\u00A0:", tags: tags_du_catalogue(@filtres, @catalogue.klass, nom_plus, label_plus, options_plus) %>
         <% end %>
       </div>
 

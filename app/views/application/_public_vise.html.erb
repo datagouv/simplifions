@@ -1,10 +1,9 @@
 <% if usagers.present? %>
   <div class="fr-card__detail">
-    <p class="fr-mb-1w white-space-normal"><%= local_assigns.fetch(:intro_usagers, "Pour simplifier les démarches des") %> <%= liste_humaine(usagers) %></p>
+    <p class="fr-mb-1w white-space-normal"><%= intro_usagers %> <%= liste_humaine(usagers) %></p>
   </div>
 <% end %>
 <% if acteurs.present? %>
-  <% intro_acteurs = local_assigns.fetch(:intro_acteurs, { tous: "À destination de", autres: "À destination des" }) %>
   <div class="fr-card__detail fr-text--right">
     <p class="fr-mb-1w white-space-normal"><%= acteurs.first.start_with?("Tou") ? intro_acteurs[:tous] : intro_acteurs[:autres] %> <%= liste_humaine(acteurs) %></p>
   </div>

@@ -37,7 +37,7 @@ end
 def tabulation_etiquettes(page)
   page.visit('/demarches')
   debut = origine(page)
-  groupe = page.find(:xpath, "//p[normalize-space()='Démarches à destination des :']/following-sibling::ul[1]")
+  groupe = page.find(:xpath, "//p[normalize-space()='Démarches à destination des\u00A0:']/following-sibling::ul[1]")
   groupe.all('button').first.send_keys(:tab)
   vise = page.evaluate_script('document.activeElement.textContent.trim()')
   raise "Tab : focus=#{vise.inspect}, rechargée=#{origine(page) != debut}" unless vise == groupe.all('button')[1].text && origine(page) == debut

@@ -96,7 +96,7 @@ RSpec.describe 'Demarches' do
       page = Capybara.string(response.body)
 
       groupe = page.find('ul.fr-tags-group', text: 'Entreprises')
-      expect(page.find("##{groupe['aria-labelledby']}").text).to eq('Démarches à destination des :')
+      expect(page.find("##{groupe['aria-labelledby']}").text).to eq("Démarches à destination des\u00A0:")
       choisi = groupe.find_button('Particuliers (1)')
       expect([choisi['aria-pressed'], choisi[:name], choisi[:value]]).to eq(['true', 'target-users', ''])
       ajout = groupe.find_button('Entreprises (1)')
@@ -148,7 +148,7 @@ RSpec.describe 'Demarches' do
       expect([plus.find('summary').text, plus[:open]]).to eq(['Plus de filtres', nil])
       expect(plus).to have_button('Dites-le nous une fois (0)', visible: :hidden, disabled: true)
       expect(page.all('p[id^=titre-]', visible: :all).map(&:text))
-        .to eq(['Démarches à destination des :', 'Démarches gérées par :', 'Solution recherchée :', 'Type de simplification des démarches :'])
+        .to eq(["Démarches à destination des\u00A0:", "Démarches gérées par\u00A0:", "Solution recherchée\u00A0:", "Type de simplification des démarches\u00A0:"])
 
       get demarches_path('types-de-simplification' => 'dlnuf')
       expect(Capybara.string(response.body).find('details[open]', text: 'Plus de filtres')).to have_css('button[aria-pressed=true]')

@@ -120,6 +120,8 @@ class Solution < ApplicationRecord
 
   def fournies = [self, *exposees]
 
+  def donnees_affichees = { integrees: consommees, fournies: exposees }.find { |_, apis| apis.any? { it.visible? && it.uid_datagouv.present? } }&.first
+
   def api_fournies_dans_l_ordre
     exposees.order(Integration.ordre_public)
   end

@@ -160,6 +160,33 @@ RSpec.describe Solution do
     end
   end
 
+  describe '#donnees_affichees' do
+    let(:bouquet) { described_class.create!(nom: 'Bouquet', categorie: 'brique_logicielle') }
+
+    def relier(type_integration, visible: true, uid_datagouv: 'uid', statut: '✅ en production')
+      api = described_class.create!(nom: "API #{type_integration}", categorie: 'api', visible:, uid_datagouv:)
+      Integration.create!(integratrice: bouquet, integree: api, type_integration:, statut:)
+    end
+
+    it 'répond « intégrées » quand elle intègre des données publiées, même si elle en fournit' do
+      relier('expose')
+      relier('consomme')
+      expect(bouquet.donnees_affichees).to eq(:integrees)
+    end
+
+    it 'répond « fournies » quand elle fournit des données publiées sans en intégrer' do
+      relier('expose')
+      relier('consomme', statut: '⚙️ en développement')
+      expect(bouquet.donnees_affichees).to eq(:fournies)
+    end
+
+    it 'ne répond rien quand ce qu’elle intègre ou fournit n’est pas affiché sur sa fiche' do
+      relier('expose', visible: false)
+      relier('consomme', uid_datagouv: nil)
+      expect(bouquet.donnees_affichees).to be_nil
+    end
+  end
+
   describe '#demarches_simplifiables' do
     it 'liste les démarches visibles recommandant la solution, ou qu’elle intègre en production via une reco visible' do
       bouquet = described_class.create!(nom: 'Bouquet API Particulier', categorie: 'brique_logicielle', organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])

@@ -83,14 +83,45 @@ RSpec.describe 'Solutions' do
         vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
         types_acteurs: [TypeActeur.create!(nom: 'Communes')])
       bouquet.image.attach(io: StringIO.new('img'), filename: 'swagger.png', content_type: 'image/png')
+      Integration.create!(integratrice: bouquet, type_integration: 'consomme', statut: '✅ en production',
+        integree: Solution.create!(nom: 'API QF', categorie: 'api', visible: true, uid_datagouv: 'qf'))
 
       get solutions_path
 
       expect(response.body).to include('Solution publique | <b>DINUM</b>')
       expect(response.body).to include('Les données des particuliers.')
-      expect(response.body).to include('Pour simplifier les démarches des <b>Particuliers</b>')
-      expect(response.body).to include('À destination des <b>Communes</b>')
+      expect(response.body).to include('Solution intégrant des données des <b>Particuliers</b>')
+      expect(response.body).to include('Solution à destination des <b>Communes</b>')
       expect(response.body).to include('swagger.png')
+    end
+
+    it 'dit « fournissant des données » sur la tuile d’une solution qui en fournit sans en intégrer' do
+      particuliers = Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', slug: 'bouquet', visible: true,
+        vocabulaires: [particuliers])
+      Integration.create!(integratrice: bouquet, type_integration: 'expose',
+        integree: Solution.create!(nom: 'API QF', categorie: 'api', visible: true, uid_datagouv: 'qf'))
+
+      get solutions_path
+
+      expect(response.body).to include('Solution fournissant des données des <b>Particuliers</b>')
+    end
+
+    it 'dit « pour les » sur la tuile d’une solution qui n’intègre ni ne fournit de données affichées' do
+      Solution.create!(nom: 'NC Connect', categorie: 'brique_logicielle', slug: 'nc-connect', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')])
+
+      get solutions_path
+
+      expect(response.body).to include('Solution pour les <b>Particuliers</b>')
+      expect(response.body).not_to include('Solution intégrant des données des')
+    end
+
+    it 'titre les filtres de public avec les mots des solutions, pas ceux des démarches' do
+      get solutions_path
+      titres = Capybara.string(response.body).all('p[id^=titre-]', visible: :all).map(&:text)
+
+      expect(titres.first(2)).to eq(["Solutions avec données des\u00A0:", "Solutions à destination des\u00A0:"])
     end
   end
 
@@ -335,6 +366,40 @@ RSpec.describe 'Solutions' do
 
       expect(response.body).not_to include('Solutions intégrant')
       expect(response.parsed_body.at_css('main').to_html).not_to include('#solutions-integratices')
+    end
+
+    it 'dit, comme les filtres, de qui elle intègre les données et à qui elle est destinée' do
+      cantine = Solution.create!(nom: 'Cantine', slug: 'cantine', categorie: 'brique_logicielle', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')],
+        types_acteurs: [TypeActeur.create!(nom: 'Tous les acteurs publics')])
+      Integration.create!(integratrice: cantine, type_integration: 'consomme', statut: '✅ en production',
+        integree: Solution.create!(nom: 'API QF', categorie: 'api', visible: true, uid_datagouv: 'qf'))
+
+      get solution_path('cantine')
+
+      expect(response.body).to include('Solution intégrant des données des <b>Particuliers</b>')
+      expect(response.body).to include('Solution à destination de <b>Tous les acteurs publics</b>')
+    end
+
+    it 'dit « fournissant des données » sur la fiche d’une solution qui en fournit sans en intégrer' do
+      bouquet = Solution.create!(nom: 'Bouquet', categorie: 'brique_logicielle', slug: 'bouquet', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')])
+      Integration.create!(integratrice: bouquet, type_integration: 'expose',
+        integree: Solution.create!(nom: 'API QF', categorie: 'api', visible: true, uid_datagouv: 'qf'))
+
+      get solution_path('bouquet')
+
+      expect(response.body).to include('Solution fournissant des données des <b>Particuliers</b>')
+    end
+
+    it 'dit « pour les » sur la fiche d’une solution qui n’intègre ni ne fournit de données affichées' do
+      Solution.create!(nom: 'NC Connect', categorie: 'brique_logicielle', slug: 'nc-connect', visible: true,
+        vocabulaires: [Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager')])
+
+      get solution_path('nc-connect')
+
+      expect(response.body).to include('Solution pour les <b>Particuliers</b>')
+      expect(response.body).not_to include('Solution intégrant des données des')
     end
 
     it 'renvoie 404 pour une solution non visible' do

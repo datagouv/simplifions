@@ -220,15 +220,15 @@ RSpec.describe 'Articles' do
       spotlights = response.parsed_body.css('.spotlight')
       expect(spotlights.text).to include('FranceConnect est une solution d’identification')
       expect(spotlights.text).to include('API distribuant les données des particuliers')
-      expect(spotlights.text).not_to include('Pour simplifier les démarches')
+      expect(spotlights.text).not_to include('Solution intégrant des données')
       expect(response.body).not_to include('Chapo de la fiche')
 
       get article_path('guide-base-petites-collectivites')
       page = response.parsed_body
       marches = page.css('.spotlight').find { |spotlight| spotlight.text.include?('Marchés publics') }
       expect(marches.css('.fr-card__detail')).to be_empty
-      expect(page.css('.carousel-track').text).to include('Pour simplifier les démarches')
-      expect(page.css('.carousel-track').text).not_to include('À destination')
+      expect(page.css('.carousel-track').text).to include('Solution pour les Particuliers')
+      expect(page.css('.carousel-track').text).not_to include('Solution à destination')
     end
 
     it 'reprend dans le guide des mairies les mots que les agents cherchent sur Google' do
