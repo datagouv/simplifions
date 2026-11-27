@@ -9,7 +9,8 @@
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                *onglets.first(par_categorie.any? ? 2 : 1).map { it.first(2) }]
    lien_modification = contact_path("modifier-cas-usage", demarche: @demarche.slug) %>
-<div data-controller="affichage-personnalise" <%= tag.attributes(data: matomo_zone("Cas d'usage", @demarche.nom)) %>>
+<div data-controller="affichage-personnalise tri-solutions" data-tri-solutions-tableau-utile-value="<%= @demarche.tableau_comparatif_utile? %>"
+  <%= tag.attributes(data: matomo_zone("Cas d'usage", @demarche.nom)) %>>
   <div data-affichage-personnalise-target="haut"></div>
   <div class="affichage-personnalise__entete" data-affichage-personnalise-target="entete">
     <div class="fr-container fr-pt-1v affichage-personnalise__fil">
@@ -102,9 +103,9 @@
       </div>
     </div>
   </div>
-</div>
 
-<%= yield :modales_integrations %>
+  <%= yield :modales_integrations %>
+</div>
 
 <%= render "avis_page", page: "Démarche : #{@demarche.nom}", lien: contact_path("donner-son-avis", demarche: @demarche.slug) %>
 

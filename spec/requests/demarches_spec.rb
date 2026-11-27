@@ -467,7 +467,7 @@ RSpec.describe 'Demarches' do
     it 'prépare pour Matomo l’ouverture de l’accès direct, l’étiquette API et les sorties vers data.gouv' do
       page = Capybara.string(response.body)
 
-      expect(page.find('[data-controller="affichage-personnalise"]')['data-matomo-contexte']).to eq('Tarification cantine scolaire à 1€')
+      expect(page.find('[data-controller~="affichage-personnalise"]')['data-matomo-contexte']).to eq('Tarification cantine scolaire à 1€')
       acces_direct = page.find_button("Par l'API directement")
       expect(zone_matomo(acces_direct)).to eq("Cas d'usage › Recommandation")
       expect(acces_direct['data-matomo-action']).to eq("Ouvrir l'accès direct")
@@ -1096,6 +1096,41 @@ RSpec.describe 'Demarches' do
         get demarche_path('marches-publics')
 
         expect(page).to have_no_text('Quelles solutions intègrent déjà ces données ?')
+      end
+    end
+
+    describe 'fenêtre des données intégrées' do
+      let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+      let(:bio) { Solution.create!(nom: 'API professionnels BIO', categorie: 'api') }
+
+      def zone_matomo(element) = element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']
+
+      def lien_de_comparaison(modale)
+        lien = modale.find_link('Comparer avec les autres solutions', href: '#solutions-integratrices', visible: :all)
+        [modale.find('h2', visible: :all).text(:all).squish, zone_matomo(lien), lien['data-matomo-action'], lien['data-matomo-nom']]
+      end
+
+      it 'propose de comparer avec les autres solutions quand le tableau est utile' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc, bio)
+
+        get demarche_path('marches-publics')
+
+        zone = "Cas d'usage › Modale données intégrées"
+        expect(page.all('dialog', visible: :all).map { lien_de_comparaison(it) }.uniq)
+          .to contain_exactly(['Acheteza', zone, 'Comparer avec les autres solutions', 'Acheteza'],
+            ['Zeta', zone, 'Comparer avec les autres solutions', 'Zeta'])
+      end
+
+      it 'ne propose pas de comparer quand une seule solution a intégré les données' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc, bio)
+
+        get demarche_path('marches-publics')
+
+        expect(page).to have_css('dialog', visible: :all)
+        expect(page).to have_no_link('Comparer avec les autres solutions', visible: :all)
       end
     end
   end
