@@ -1,6 +1,6 @@
 # Asked versus built
 
-Code review checks whether the change is sound; this pass checks whether it is the change that was asked for. A PR can pass every review round and still miss a behaviour the issue promised.
+Code review checks whether the change is sound; this pass checks whether it is the change that was asked for. A PR can pass its review and still miss a behaviour the issue promised.
 
 1. **Find the ask.** The issue as the user pasted it, `.notes/sim-<n>-*/issue.md` ([`simplifions-work` § Linear](../simplifions-work/SKILL.md#linear)): named in the prompt, or found from the SIM number of the PR body's `Closes` / `Suite de` link. The PR body itself is a claim to verify, never a source for the checklist. No issue → skip the pass and write `Ask: no source found` in the report. An issue with no file: a session the user talks to asks them to paste it; a subagent writes `Ask: not run — issue not pasted`, and the `Note:` says the change was not checked against its issue.
 2. **Write the ask as a checklist** before reading the diff: every behaviour the issue promises, every limit it states (« does not », « stays »), every acceptance line. From the issue's words, not the plan's: the plan is the author's reading, the same one the diff came from.

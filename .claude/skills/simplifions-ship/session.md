@@ -8,19 +8,20 @@ Started: YYYY-MM-DD HH:MM
 Status: in-progress
 Phase: implement
 Plan step: 3/5
-Review round: 0
 
 ## Pull request
 
 ## Notes
 ```
 
-Status: `in-progress`, `shipped` (branch pushed, review loop finished clean or cap reported), `skipped` (the plan has questions or a `Flag:`), `blocked` (no proof, or a design that does not hold; reason in Notes), `failed` (error, reason in Notes).
+Status: `in-progress`, `shipped` (branch pushed, PR opened or its text ready), `skipped` (the plan has questions or a `Flag:`), `blocked` (no proof, or a design that does not hold; reason in Notes), `failed` (error, reason in Notes).
 
-Phases: `setup` → `implement` → `push-pr` → `review` → `done`
+Phases: `setup` → `implement` → `prove` → `review` → `push-pr` → `done`
 
 ## Resumption
 
 `/simplifions-ship` with no args: scan `.notes/*/ship-session.md` for Status `in-progress`. Several: report the list and stop; the user picks one and reruns `/simplifions-ship <issue>`. One: switch to its branch and continue from its Phase:
 - `implement`: from its Plan step
-- `review`: read the latest `.notes/<branch_name>/review-round-N.md`; open findings (`review-loop.md`) → resume the fix cycle; none → spawn the next review subagent
+- `prove`: drive again from the start of phase 3
+- `review`: `.notes/<branch_name>/review-report.md` there → resume the fix cycle from its `## Triage`; absent → spawn the review subagent
+- `push-pr`: from the autosquash

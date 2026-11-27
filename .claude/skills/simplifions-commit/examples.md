@@ -41,7 +41,7 @@ marquée pour paraître avec elle.
 
 The « after » lines are real subjects; the « before » lines are the drafts they replace.
 
-Three commits for one behaviour, the review loop showing through, become one after autosquash:
+Three commits for one behaviour, the review showing through, become one after autosquash:
 ```
 Admin : afficher la colonne d'état
 Admin : corriger la colonne d'état

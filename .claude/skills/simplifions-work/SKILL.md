@@ -12,7 +12,7 @@ The session the user talks to. It gets the Linear issue from the user (§ Linear
 ```
 bug report ──> reproduce ──> Linear issue ──> challenge ──> plan ──> user approves ──> ship ──> PR reviewed ──> merge
                                                 │             │                         │
-                                                │             │                         └─ review loop: fresh /simplifions-review, 3 rounds max
+                                                │             │                         └─ one /simplifions-review subagent, before the push
                                                 │             └─ technical go-ahead needed → comment on the issue for Thomas, stop
                                                 └─ RESHAPE / DROP → the user
 ```
@@ -66,7 +66,7 @@ The user is the only link to Linear: they read and write it in their browser. Ev
 
 ## Notes folder
 
-Plans, session files and review rounds live in `.notes/` at the repo root, ignored by git. For Thomas it is a symlink to his own notes; for anyone else a plain folder, created on first use (`mkdir -p .notes`). Never commit it.
+Plans, session files and reviews live in `.notes/` at the repo root, ignored by git. For Thomas it is a symlink to his own notes; for anyone else a plain folder, created on first use (`mkdir -p .notes`). Never commit it.
 
 ## Rules
 
