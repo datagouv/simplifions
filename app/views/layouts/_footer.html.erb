@@ -112,6 +112,11 @@
         <li class="fr-footer__bottom-item">
           <a class="fr-footer__bottom-link" href="<%= accessibility_path %>">Accessibilité : non conforme</a>
         </li>
+        <li class="fr-footer__bottom-item">
+          <%= link_to "Espace administrateur", admin_signed_in? ? admin_root_path : new_admin_session_path,
+                class: "fr-footer__bottom-link fr-link--icon-left fr-icon-settings-5-line",
+                data: { matomo_action: "Espace administrateur (pied de page)" } %>
+        </li>
       </ul>
       <div class="fr-footer__bottom-copy">
         <p>

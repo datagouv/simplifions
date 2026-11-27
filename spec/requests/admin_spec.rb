@@ -251,10 +251,19 @@ RSpec.describe 'Administration' do
   end
 
   describe 'outils de l’en-tête' do
-    it 'propose la connexion aux visiteurs' do
+    it 'ne montre aucun bouton de connexion aux visiteurs' do
       get root_path
-      expect(Capybara.string(response.body).find_link('Se connecter')[:href]).to eq('/admin/connexion')
+      entete = Capybara.string(response.body).find('header')
+      expect(entete).to have_no_link('Se connecter')
+      expect(entete).to have_no_link('Espace administrateur')
       expect(response.body).not_to include('Se déconnecter')
+    end
+
+    it 'mène les visiteurs à la connexion depuis le pied de page' do
+      get root_path
+      lien = Capybara.string(response.body).find('.fr-footer__bottom').find_link('Espace administrateur')
+      expect(lien[:href]).to eq('/admin/connexion')
+      expect(lien[:class]).to include('fr-icon-settings-5-line')
     end
 
     it 'propose l’administration et la déconnexion aux admins connectés' do
@@ -264,6 +273,13 @@ RSpec.describe 'Administration' do
       expect(response.parsed_body.at_css('form.button_to[method=post][action="/admin/deconnexion"]')).to be_present
       expect(response.body).to include('<button class="fr-btn fr-icon-logout-box-r-line" type="submit">Se déconnecter</button>')
       expect(response.body).not_to include('Se connecter')
+    end
+
+    it 'mène les admins connectés à l’administration depuis le pied de page' do
+      sign_in admin
+      get admin_root_path
+      lien = Capybara.string(response.body).find('.fr-footer__bottom').find_link('Espace administrateur')
+      expect(lien[:href]).to eq('/admin')
     end
 
     it 'ferme la session et ramène à l’accueil' do

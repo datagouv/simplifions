@@ -68,7 +68,7 @@ end
 
 def quitter(page)
   page.accept_confirm(QUESTION) { page.click_button 'Se déconnecter' }
-  page.assert_selector :link, 'Se connecter'
+  page.assert_no_selector :button, 'Se déconnecter'
 end
 
 Verify.drive(__FILE__) do |page|
