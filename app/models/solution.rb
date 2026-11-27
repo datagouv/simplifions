@@ -188,10 +188,10 @@ class Solution < ApplicationRecord
     end
   end
 
-  def demarches_simplifiables
-    ordre = recommandations.visibles.order(:id).pluck(:demarche_id) + demarche_ids_integres
-    Demarche.visibles.where(id: ordre).sort_by { |demarche| ordre.index(demarche.id) }
-  end
+  def demarche_ids_recommandantes = @demarche_ids_recommandantes ||= recommandations.visibles.order(:id).pluck(:demarche_id)
+
+  def ordre_des_demarches = @ordre_des_demarches ||= demarche_ids_recommandantes + demarche_ids_integres
+  def demarches_simplifiables = Demarche.visibles.where(id: ordre_des_demarches).includes(:vocabulaires, :types_acteurs).sort_by { ordre_des_demarches.index(it.id) }
 
   def types_solution=(valeur)
     super(Array(valeur).compact_blank)

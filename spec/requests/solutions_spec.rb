@@ -202,7 +202,7 @@ RSpec.describe 'Solutions' do
       expect([zone_matomo(site), site['data-matomo-action'], site['data-matomo-nom']])
         .to eq(['Solution › En-tête', 'Ouvrir le site de la solution', 'Bouquet API Particulier [API, publique]'])
       expect(page.find_link('Demande d’accès')['data-matomo-action']).to eq('Demander un accès')
-      cas_usage = page.find_link('🥣 Tarification cantine scolaire à 1€')
+      cas_usage = page.find_link('Consulter la démarche Tarification cantine scolaire à 1€')
       expect([zone_matomo(cas_usage), cas_usage['data-matomo-action'], cas_usage['data-matomo-nom']])
         .to eq(["Solution › Cas d'usages simplifiables", "Ouvrir un cas d'usage", 'Tarification cantine scolaire à 1€'])
       expect(page.all('#solutions-integratices select').pluck('data-matomo-action'))
@@ -245,12 +245,11 @@ RSpec.describe 'Solutions' do
       expect(response.body).to include('le revenu fiscal de référence')
     end
 
-    it 'liste les cas d’usages simplifiables en tuiles' do
-      lien = response.parsed_body.at_css('.fr-tile__title a')
-      expect(lien.at_css('[aria-hidden=true]').text).to eq('🥣')
-      expect(lu_a_voix_haute(lien)).to eq('Tarification cantine scolaire à 1€')
+    it 'liste les cas d’usages simplifiables en cartes' do
+      titre = response.parsed_body.at_css('.demarche-card h3')
+      expect(titre.at_css('[aria-hidden=true]').text).to eq('🥣')
+      expect(lu_a_voix_haute(titre)).to eq('Tarification cantine scolaire à 1€')
       expect(response.body).to include('href="/demarches/tarification-cantine-scolaire-a-1eur"')
-      expect(response.body).to include('Communes, simplifiez le dispositif.')
     end
 
     it 'liste les données et API fournies et utilisées, visibles et référencées sur data.gouv seulement' do
@@ -422,6 +421,65 @@ RSpec.describe 'Solutions' do
       get solution_path('api-quotient-familial')
 
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'cartes des cas d’usages simplifiables' do
+    let(:bouquet) do
+      Solution.create!(nom: 'Bouquet API Entreprise', slug: 'bouquet-api-entreprise', categorie: 'brique_logicielle', visible: true,
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+    end
+    let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+    let(:acheteza) { Solution.create!(nom: 'Acheteza', slug: 'acheteza', categorie: 'logiciel_metier_cle_en_main', visible: true) }
+    let(:page) { Capybara.string(response.body) }
+
+    def demarche_recommandant_le_bouquet(nom)
+      demarche = Demarche.create!(nom:, visible: true, description_courte: "Description de #{nom}.")
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche:, solution: bodacc, niveau: :niveau_1, visible: true)
+      demarche
+    end
+
+    def zone_matomo(element) = element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']
+    def cartes = page.find(%([data-matomo-zone="Solution › Cas d'usages simplifiables"]))
+    def carte(nom) = cartes.find('.demarche-card', text: nom)
+
+    def liens_matomo(nom) = carte(nom).all('a').map { [zone_matomo(it), it['data-matomo-action'], it['data-matomo-nom']] }
+
+    before do
+      Integration.create!(integratrice: bouquet, integree: bodacc, type_integration: 'expose')
+      marches = demarche_recommandant_le_bouquet('Marchés publics')
+      Integration.create!(integratrice: acheteza, integree: bodacc, type_integration: 'consomme', statut: '✅ en production', demarches: [marches])
+      demarche_recommandant_le_bouquet('Cantine')
+    end
+
+    it 'mène à la démarche par « Consulter la démarche », sans description, la carte et son titre n’étant plus des liens' do
+      get solution_path('bouquet-api-entreprise')
+
+      expect(carte('Cantine')).to have_no_text('Description de Cantine.')
+      expect(carte('Cantine').all('a').map { [it.text.squish, it[:href]] }).to eq([['Consulter la démarche Cantine', '/demarches/cantine']])
+      expect(cartes).to have_no_css('.fr-enlarge-link')
+    end
+
+    it 'mène la source de données recommandée aux solutions qui intègrent ses données, sauf quand aucune ne l’a fait' do
+      get solution_path('bouquet-api-entreprise')
+
+      voir = carte('Marchés publics').find_link('Solutions intégrant "Bouquet API Entreprise" pour cette démarche')
+      expect(voir[:href]).to eq('/demarches/marches-publics#solutions-integratrices')
+      expect(carte('Marchés publics')).to have_no_link('Comparer avec les autres solutions')
+      expect(carte('Cantine').all('a').size).to eq(1)
+      expect(liens_matomo('Marchés publics').last)
+        .to eq(["Solution › Cas d'usages simplifiables", 'Solutions intégrant la source pour cette démarche', 'Marchés publics'])
+    end
+
+    it 'propose à la solution qui intègre les données de se comparer avec les autres solutions' do
+      get solution_path('acheteza')
+
+      comparer = carte('Marchés publics').find_link('Comparer avec les autres solutions')
+      expect(comparer[:href]).to eq('/demarches/marches-publics#solutions-integratrices')
+      expect(liens_matomo('Marchés publics'))
+        .to eq([["Solution › Cas d'usages simplifiables", "Ouvrir un cas d'usage", 'Marchés publics'],
+                ["Solution › Cas d'usages simplifiables", 'Comparer avec les autres solutions', 'Marchés publics']])
     end
   end
 

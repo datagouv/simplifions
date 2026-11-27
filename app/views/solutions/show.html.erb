@@ -8,6 +8,7 @@
    utilisees = @solution.consommees.visibles.sur_datagouv.includes(:organisations).load
    fournies = @solution.api_fournies_dans_l_ordre.visibles.sur_datagouv.includes(:organisations).load
    demarches = @solution.demarches_simplifiables
+   comparables = Demarche.avec_solutions_integratrices.where(id: demarches).ids
    couvertures = @solution.couvertures
    nb_apis = @solution.nb_donnees_integrees
    onglets = @solution.integratrices_par_categorie
@@ -86,19 +87,21 @@
 
   <%= render ArticleSectionComponent.new(id: 'cas-usages-simplifiables', label: "Cas d'usages simplifiables") do %>
     <% if demarches.any? %>
-      <div class="fr-grid-row fr-grid-row--gutters" <%= tag.attributes(data: matomo_zone("Solution › Cas d'usages simplifiables")) %>>
+      <div class="cartes-cas-usage" <%= tag.attributes(data: matomo_zone("Solution › Cas d'usages simplifiables")) %>>
         <% demarches.each do |demarche| %>
-          <div class="fr-col-12 fr-col-md-6 fr-col-lg-4 fr-mb-3w">
-            <div class="fr-tile fr-tile--horizontal fr-enlarge-link">
-              <div class="fr-tile__body">
-                <div class="fr-tile__content">
-                  <h3 class="fr-tile__title"><%= link_to titre_demarche(demarche), demarche_path(demarche.slug),
-                        data: { matomo_action: "Ouvrir un cas d'usage", matomo_nom: demarche.nom } %></h3>
-                  <p class="fr-tile__detail"><%= demarche.description_courte %></p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <%= render DemarcheCardComponent.pour(demarche, description: nil) do %>
+            <p class="fr-mb-1w">
+              <%= link_to demarche_path(demarche.slug), class: 'fr-link fr-link--icon-right fr-icon-arrow-right-line',
+                    data: { matomo_action: "Ouvrir un cas d'usage", matomo_nom: demarche.nom } do %>Consulter la démarche<span class="fr-sr-only"> <%= demarche.nom %></span><% end %>
+            </p>
+            <% if demarche.id.in?(comparables) %>
+              <% source = demarche.id.in?(@solution.demarche_ids_recommandantes) %>
+              <p class="fr-mb-0">
+                <%= link_to demarche_path(demarche.slug, anchor: 'solutions-integratrices'), class: 'fr-link fr-link--sm fr-link--icon-left fr-icon-table-line',
+                      data: { matomo_action: source ? 'Solutions intégrant la source pour cette démarche' : 'Comparer avec les autres solutions', matomo_nom: demarche.nom } do %><%= source ? %(Solutions intégrant "#{@solution.nom}" pour cette démarche) : 'Comparer avec les autres solutions' %><span class="fr-sr-only"> : <%= demarche.nom %></span><% end %>
+              </p>
+            <% end %>
+          <% end %>
         <% end %>
       </div>
     <% else %>

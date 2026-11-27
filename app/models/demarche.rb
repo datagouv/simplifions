@@ -18,6 +18,21 @@ class Demarche < ApplicationRecord
   validate { integrations_ecartees.each { errors.add(:base, :integration_hors_regle, libelle: it.libelle) } }
 
   scope :visibles, -> { where(visible: true) }
+  INTEGREE_ATTENDUE_PAR_LA_RECOMMANDATION = <<~SQL.squish.freeze
+    (integrations.integree_id = recommandations.solution_id AND recommandations.solution_id IN (SELECT id FROM solutions WHERE categorie IN (:hors_fiches)))
+    OR integrations.integree_id IN (SELECT exposees.integree_id FROM integrations exposees
+      WHERE exposees.type_integration = 'expose' AND exposees.integratrice_id = recommandations.solution_id
+      AND exposees.integree_id IN (SELECT utiles.solution_id FROM recommandations utiles
+        WHERE utiles.demarche_id = recommandations.demarche_id AND utiles.id IN (:utiles_parues)))
+  SQL
+  scope :avec_solutions_integratrices, lambda {
+    integrations = Integration.consomme.en_production.joins(:demarches)
+      .where(integratrice_id: Solution.visibles.where(categorie: Solution::CATEGORIES_INTEGRATRICES).select(:id))
+      .joins('INNER JOIN recommandations ON recommandations.demarche_id = demarches_integrations.demarche_id')
+      .merge(Recommandation.visibles.niveau_2)
+      .where(INTEGREE_ATTENDUE_PAR_LA_RECOMMANDATION, hors_fiches: Solution::HORS_FICHES, utiles_parues: Recommandation.niveau_1.parues.select(:id))
+    where(id: integrations.select('demarches_integrations.demarche_id'))
+  }
   scope :en_brouillon, -> { where.not(brouillon: nil).or(where(id: Recommandation.en_brouillon.select(:demarche_id))) }
   def page_publique? = visible? && slug.present?
   def titre = "#{icone} #{nom}".strip

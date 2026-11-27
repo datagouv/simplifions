@@ -248,6 +248,65 @@ RSpec.describe Demarche do
     end
   end
 
+  describe '.avec_solutions_integratrices' do
+    let(:demarche) { described_class.create!(nom: 'Marchés publics', slug: 'marches-publics', visible: true) }
+    let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+    let(:bouquet) do
+      Solution.create!(nom: 'Bouquet API Entreprise', categorie: 'brique_logicielle',
+        organisations: [Organisation.create!(nom: 'DINUM', public_ou_prive: 'Public')])
+    end
+
+    def integre(nom, categorie, api)
+      solution = Solution.create!(nom:, categorie:, visible: true, slug: (nom.parameterize unless categorie == 'api'))
+      Integration.create!(integratrice: solution, integree: api, type_integration: 'consomme', statut: '✅ en production', demarches: [demarche])
+    end
+
+    before do
+      Integration.create!(integratrice: bouquet, integree: bodacc, type_integration: 'expose')
+      Recommandation.create!(demarche:, solution: bouquet, niveau: :niveau_2, visible: true)
+      Recommandation.create!(demarche:, solution: bodacc, niveau: :niveau_1, visible: true)
+    end
+
+    it 'retient la démarche dont une solution a intégré une donnée recommandée, comme son onglet Solutions' do
+      integre('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+
+      expect(described_class.avec_solutions_integratrices).to eq([demarche])
+      expect(demarche.integratrices_par_categorie).not_to be_empty
+    end
+
+    it 'écarte la démarche dont la donnée intégrée n’est plus fournie par une solution recommandée, onglet grisé' do
+      integre('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+      Integration.where(integratrice: bouquet).destroy_all
+
+      expect(described_class.avec_solutions_integratrices).to be_empty
+      expect(demarche.integratrices_par_categorie).to be_empty
+    end
+
+    it 'retient la démarche qui recommande directement l’API intégrée, comme son onglet Solutions' do
+      Recommandation.destroy_all
+      Recommandation.create!(demarche:, solution: bodacc, niveau: :niveau_2, visible: true)
+      integre('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+
+      expect(described_class.avec_solutions_integratrices).to eq([demarche])
+      expect(demarche.integratrices_par_categorie).not_to be_empty
+    end
+
+    it 'écarte la démarche dont la donnée utile intégrée n’est encore qu’en brouillon, onglet grisé' do
+      integre('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+      Recommandation.find_by(solution: bodacc).update!(visible: false, brouillon: { 'visible' => '1' })
+
+      expect(described_class.avec_solutions_integratrices).to be_empty
+      expect(demarche.integratrices_par_categorie).to be_empty
+    end
+
+    it 'écarte la démarche dont seules des API ont intégré ses données, absentes de l’onglet' do
+      integre('API relais', 'api', bodacc)
+
+      expect(described_class.avec_solutions_integratrices).to be_empty
+      expect(demarche.integratrices_par_categorie).to be_empty
+    end
+  end
+
   describe 'brouillon' do
     let(:particuliers) { Vocabulaire.create!(nom: 'Particuliers', slug: 'particuliers', categorie: 'usager') }
     let!(:entreprises) { Vocabulaire.create!(nom: 'Entreprises', slug: 'entreprises', categorie: 'usager') }
