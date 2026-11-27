@@ -10,4 +10,4 @@ Each artefact has one reader, and its length is what that reader has time for.
 | Issue comment | the same readers, in a thread | a scope question needs an answer | one question, open or closed, whose answer splits, merges or bounds the issue; or the answer | a few lines | — |
 | Plan | Thomas, the coding agent | before and during `/simplifions-ship` | the steps, the diagram, the size cap | as long as it needs | stays in `.notes/`; its « For the reviewer » items reach the PR body |
 
-What does not go on Linear: shipping logs, review rounds, rebase notes, file counts, class names, and the plan. The issue's readers asked for none of it. The technical how lives in the code, which is meant to read at a glance.
+What does not go on Linear: shipping logs, review reports, rebase notes, file counts, class names, and the plan. The issue's readers asked for none of it. The technical how lives in the code, which is meant to read at a glance.

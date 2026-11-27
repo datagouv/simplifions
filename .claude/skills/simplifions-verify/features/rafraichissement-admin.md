@@ -30,7 +30,7 @@ The drive runs the same way (`… web bash -c 'test … && bin/rails runner tmp/
 - **Run.** `docker compose run -d --name simplifions-verify-worker -e DATABASE_URL=postgres:///simplifions_verify_rafraichir -e SKIP_TEST_DATABASE=1 web bash -c 'test "$DATABASE_URL" = postgres:///simplifions_verify_rafraichir && timeout -s INT 400 bin/rails solid_queue:start'` (no `bin/jobs` in the repo). The worker polls every 60 s; the job is claimed, then finishes in about a minute.
 - **During the run** (`claimed?`): reload `/admin`, the button is still disabled; the server-side discard of a second request is covered by `spec/jobs/rafraichir_catalogue_job_spec.rb`.
 - **Finished.** Reload `/admin`: `terminé le … à HH:MM`, Paris time of `finished_at`, button enabled again.
-- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/rafraichissement-admin/`, Chrome then Firefox.
+- **Proof.** Screenshots and `read-back.txt` in `tmp/verify/rafraichissement-admin/`, in Firefox.
 - **Cleanup.** `docker rm -f simplifions-verify-worker`, then `docker compose run --rm -e DATABASE_URL=postgres:///simplifions_verify_rafraichir -e SKIP_TEST_DATABASE=1 web bash -c 'test "$DATABASE_URL" = postgres:///simplifions_verify_rafraichir && bin/rails db:drop'`.
 
 ## Gotchas

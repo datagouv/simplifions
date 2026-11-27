@@ -33,4 +33,4 @@ Ask: "What's the public interface, and which seams should we test?"
 
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
-- **Refactoring follows `simplifions-ship/red-green-commit.md`**: step 5 of each cycle for the step's own code, the plan's Simplify step for the whole change, then `/simplifions-review`.
+- **Refactoring follows `simplifions-ship/red-green-commit.md`**: step 5 of each cycle for the step's own code, then `/simplifions-review` for the whole change.

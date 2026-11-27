@@ -9,7 +9,7 @@ Resuming SIM-124 (started YYYY-MM-DD), phase implement, step 3/5.
 
 ### When shipped:
 ```
-Shipped SIM-124 — review clean after 2 rounds — proof: tmp/verify/<feature>/
+Shipped SIM-124 — review clean — proof: tmp/verify/<feature>/
 Open the PR: <compare link>
 Title: <title>
 Body:
@@ -17,9 +17,9 @@ Body:
 (a large PR) In Linear, attach the file .notes/<branch_name>/review-guide.md to https://linear.app/pole-api/issue/SIM-124
 ```
 
-### When the review cap is hit:
+### When findings stay open:
 ```
-SIM-124 — 3 review rounds done, findings still open:
+SIM-124 — reviewed, findings still open:
   - [finding]
 Suspect: design | scope — [why]
 Open the PR for Thomas: <compare link>
