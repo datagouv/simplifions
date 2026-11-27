@@ -21,6 +21,6 @@ Phases: `setup` → `implement` → `push-pr` → `review` → `done`
 
 ## Resumption
 
-`/simplifions-ship` with no args: scan `.notes/*/ship-session.md` for Status `in-progress`. Several: report the list and stop; the session that spawned you reruns `/simplifions-ship <issue>`. One: switch to its branch and continue from its Phase:
+`/simplifions-ship` with no args: scan `.notes/*/ship-session.md` for Status `in-progress`. Several: report the list and stop; the user picks one and reruns `/simplifions-ship <issue>`. One: switch to its branch and continue from its Phase:
 - `implement`: from its Plan step
 - `review`: read the latest `.notes/<branch_name>/review-round-N.md`; open findings (`review-loop.md`) → resume the fix cycle; none → spawn the next review subagent
