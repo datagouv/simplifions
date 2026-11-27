@@ -9,6 +9,13 @@ RSpec.describe 'Pages' do
       expect(response.body).to include('fr-footer')
     end
 
+    it 'mène aux solutions référencées depuis l’accès rapide de l’en-tête' do
+      get about_path
+
+      outils = Capybara.string(response.body).find('.fr-header__tools-links')
+      expect(outils).to have_link('Solutions référencées', href: '/solutions')
+    end
+
     it 'mène au contenu par le premier lien de la page' do
       get root_path
 

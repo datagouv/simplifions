@@ -450,22 +450,6 @@ body:has(.bouton-proposer-modification) {
 
 /* Listes du catalogue (iso GlobalSearch de components-next) */
 
-.catalogue-types a {
-  background-image: none;
-  border-radius: 0.25rem;
-  min-height: 2.5rem;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .catalogue-types a:hover {
-    background-color: var(--background-alt-grey);
-  }
-}
-
-.catalogue-types__actif a {
-  background-color: var(--background-contrast-grey);
-}
-
 .filtres-depliables > summary {
   list-style: none;
   cursor: pointer;

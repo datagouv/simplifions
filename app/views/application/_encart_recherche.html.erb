@@ -1,0 +1,21 @@
+<% reinitialiser = local_assigns[:reinitialiser]
+   renvoi = local_assigns[:renvoi] %>
+<div class="catalogue-vide fr-grid-row fr-p-3w <%= 'fr-mt-2w' if reinitialiser %>">
+  <div class="fr-col-auto fr-mr-3w"><%= image_tag "simplifions/magnifying_glass.svg", alt: "", class: "catalogue-vide__loupe" %></div>
+  <div class="fr-col">
+    <% if reinitialiser %>
+      <p id="resultats" class="fr-text--bold fr-mb-1w" tabindex="-1" data-filtres-catalogue-target="compteur">Vous n'avez pas trouvé ce que vous cherchez ?</p>
+    <% end %>
+    <p class="fr-mb-2w <%= 'fr-text--bold' unless reinitialiser %>"><%= renvoi ? renvoi[:texte] : "Essayez de réinitialiser les filtres pour élargir votre recherche." %></p>
+    <ul class="fr-btns-group fr-btns-group--inline-sm fr-btns-group--sm fr-btns-group--icon-right">
+      <% if renvoi %>
+        <li><%= link_to renvoi[:bouton], renvoi[:chemin], class: "fr-btn fr-icon-arrow-right-line",
+                  data: { matomo_action: "Changer de catalogue", matomo_nom: renvoi[:matomo_nom] } %></li>
+      <% end %>
+      <% if reinitialiser %>
+        <li><%= link_to "Réinitialiser les filtres", reinitialiser, class: "fr-btn fr-btn--secondary",
+                  data: { matomo_action: "Réinitialiser les filtres" } %></li>
+      <% end %>
+    </ul>
+  </div>
+</div>

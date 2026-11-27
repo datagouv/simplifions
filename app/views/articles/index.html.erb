@@ -17,7 +17,7 @@
 
     <div class="fr-col-12 fr-col-lg-9">
       <% if @articles.empty? %>
-        <%= render "resultats_vides", chemin: articles_path %>
+        <%= render "encart_recherche", reinitialiser: articles_path %>
       <% else %>
         <%= render "compteur_de_resultats", total: @articles.size, tout: Article::ALL.size, mot: "article", classe: "fr-mb-2w" %>
         <div class="fr-grid-row fr-grid-row--gutters">
