@@ -38,17 +38,17 @@ end
 
 def libelle_des_solutions(page)
   page.visit('/solutions')
-  etiquettes(page, 'Solutions intégrant des données des')
+  etiquettes(page, 'Solutions avec données des')
   etiquettes(page, 'Solutions à destination des')
   page.assert_no_text('Démarches gérées par')
   page.assert_text('Solution à destination de')
   page.assert_text('Solution intégrant des données des')
-  Verify.evidence('catalogue-cas-usages', page, 'tuile-solution', 'page_demarche=gérée_par,démarche_à_destination filtres_solution=intégrant,à_destination tuile_solution=solution_à_destination,solution_intégrant')
+  Verify.evidence('catalogue-cas-usages', page, 'tuile-solution', 'page_demarche=gérée_par,démarche_à_destination filtres_solution=avec,à_destination tuile_solution=solution_à_destination,solution_intégrant')
   fiche_fournisseuse(page)
 end
 
 def fiche_fournisseuse(page)
-  fournisseuse = Solution.visibles.fiches.joins(:vocabulaires).where(vocabulaires: { categorie: 'usager' }).distinct.find(&:fournit_sans_integrer?)
+  fournisseuse = Solution.visibles.fiches.joins(:vocabulaires).where(vocabulaires: { categorie: 'usager' }).distinct.find { it.donnees_affichees == :fournies }
   page.visit("/solutions/#{fournisseuse.slug}")
   page.assert_text('Solution fournissant des données des')
   Verify.evidence('catalogue-cas-usages', page, 'fiche-solution-fournisseuse', "fiche=#{fournisseuse.slug} solution_fournissant")

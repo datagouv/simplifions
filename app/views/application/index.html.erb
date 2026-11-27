@@ -6,7 +6,7 @@
    requete = @filtres.to_h.compact_blank
    tout = @catalogue.klass.catalogue({}).count
    titres_publics = { Demarche => ['Démarches à destination des', 'Démarches gérées par'],
-                      Solution => ['Solutions intégrant des données des', 'Solutions à destination des'] }
+                      Solution => ['Solutions avec données des', 'Solutions à destination des'] }
    titre_usagers, titre_acteurs = titres_publics.fetch(@catalogue.klass)
    facettes = [['target-users', titre_usagers, Vocabulaire.categorie_usager.choix],
                ['fournisseurs-de-service', titre_acteurs, TypeActeur::FILTRES.to_a],

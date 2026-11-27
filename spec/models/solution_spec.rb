@@ -97,7 +97,7 @@ RSpec.describe Solution do
     end
   end
 
-  describe '#fournit_sans_integrer?' do
+  describe '#donnees_affichees' do
     let(:bouquet) { described_class.create!(nom: 'Bouquet', categorie: 'brique_logicielle') }
 
     def relier(type_integration, visible: true, uid_datagouv: 'uid', statut: '✅ en production')
@@ -105,22 +105,22 @@ RSpec.describe Solution do
       Integration.create!(integratrice: bouquet, integree: api, type_integration:, statut:)
     end
 
-    it 'répond oui quand elle fournit des données publiées sans en intégrer' do
-      relier('expose')
-      relier('consomme', statut: '⚙️ en développement')
-      expect(bouquet.fournit_sans_integrer?).to be(true)
-    end
-
-    it 'répond non quand elle intègre aussi des données publiées' do
+    it 'répond « intégrées » quand elle intègre des données publiées, même si elle en fournit' do
       relier('expose')
       relier('consomme')
-      expect(bouquet.fournit_sans_integrer?).to be(false)
+      expect(bouquet.donnees_affichees).to eq(:integrees)
     end
 
-    it 'répond non quand ce qu’elle fournit n’est pas affiché sur sa fiche' do
+    it 'répond « fournies » quand elle fournit des données publiées sans en intégrer' do
+      relier('expose')
+      relier('consomme', statut: '⚙️ en développement')
+      expect(bouquet.donnees_affichees).to eq(:fournies)
+    end
+
+    it 'ne répond rien quand ce qu’elle intègre ou fournit n’est pas affiché sur sa fiche' do
       relier('expose', visible: false)
-      relier('expose', uid_datagouv: nil)
-      expect(bouquet.fournit_sans_integrer?).to be(false)
+      relier('consomme', uid_datagouv: nil)
+      expect(bouquet.donnees_affichees).to be_nil
     end
   end
 

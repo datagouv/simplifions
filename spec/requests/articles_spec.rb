@@ -227,7 +227,7 @@ RSpec.describe 'Articles' do
       page = response.parsed_body
       marches = page.css('.spotlight').find { |spotlight| spotlight.text.include?('Marchés publics') }
       expect(marches.css('.fr-card__detail')).to be_empty
-      expect(page.css('.carousel-track').text).to include('Solution intégrant des données')
+      expect(page.css('.carousel-track').text).to include('Solution pour les Particuliers')
       expect(page.css('.carousel-track').text).not_to include('Solution à destination')
     end
 
