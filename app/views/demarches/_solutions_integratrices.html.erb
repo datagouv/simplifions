@@ -1,14 +1,14 @@
 <% filtres = { logiciel_metier_cle_en_main: %w[logiciels fr-icon-mac-fill],
                 brique_logicielle: %w[api fr-icon-code-box-fill],
                 site_de_consultation: %w[sites fr-icon-seo-fill] } %>
-<div data-controller="tri-solutions" <%= tag.attributes(data: matomo_zone("Cas d'usage › Solutions intégratrices")) %>>
+<div <%= tag.attributes(data: matomo_zone("Cas d'usage › Solutions intégratrices")) %>>
   <div class="fr-grid-row fr-grid-row--middle fr-mb-2w choix-affichage">
     <fieldset class="fr-segmented fr-segmented--sm fr-mr-2w" data-matomo-action="Changer de vue">
       <legend class="fr-segmented__legend fr-sr-only">Affichage des solutions</legend>
       <div class="fr-segmented__elements">
         <% [%w[cartes Cartes fr-icon-layout-grid-line], ['tableau', 'Tableau comparatif', 'fr-icon-table-line']].each do |valeur, libelle, icone| %>
           <div class="fr-segmented__element">
-            <input type="radio" id="affichage-solutions-<%= valeur %>" name="affichage-solutions" value="<%= valeur %>" autocomplete="off" <%= 'checked' if valeur == 'cartes' %>>
+            <input type="radio" id="affichage-solutions-<%= valeur %>" <%= 'data-tri-solutions-target=tableau' if valeur == 'tableau' %> name="affichage-solutions" value="<%= valeur %>" autocomplete="off" <%= 'checked' if valeur == 'cartes' %>>
             <label class="fr-label <%= icone %>" for="affichage-solutions-<%= valeur %>"><%= libelle %></label>
           </div>
         <% end %>

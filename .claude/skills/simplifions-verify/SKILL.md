@@ -108,6 +108,7 @@ Leave `tmp/verify/*/` in place. Each drive deletes what it creates, in its `ensu
 ## Gotchas
 
 - The dev database is shared with the site on port 3000 and with `make import`; never `db:reset`, never edit catalogue rows outside the rows a drive creates.
+- On a cas d'usage page, scrolling folds the `Affichage personnalisé` band and the page moves up: a click on a tab during the fold lands beside it, Firefox more often. `Verify::Etapes#onglet` scrolls to the tab and clicks again until it is selected; use it rather than a bare click.
 - `Vérif` appears in the row name on purpose: it sorts last and is greppable.
 - One browser session per container, held for the whole drive: a second drive started meanwhile waits 5 minutes, then fails on `session not created`. Run drives one after another.
 - After a click that submits a form, wait for a text that only the new page shows: a wait for a text the old page already shows passes at once, and the next `find` goes stale.

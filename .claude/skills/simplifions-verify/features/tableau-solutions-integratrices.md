@@ -1,10 +1,10 @@
 # Tableau comparatif des solutions ayant intégré les données
 
-In the cas d'usage tab « Solutions ayant intégré ces données », a « Cartes / Tableau comparatif » choice and a « Trier par » menu sit above the categories. « Tableau comparatif » shows, per category, one table: a row per solution with its counter, columns grouped by bouquet (then « Autres API et jeux de données »), one column per useful datum, a check or a dash per cell. « Trier par » (« Le plus de données intégrées » on arrival, or « Titre ») orders cards and tables alike.
+In the cas d'usage tab « Solutions ayant intégré ces données », a « Cartes / Tableau comparatif » choice and a « Trier par » menu sit above the categories. « Tableau comparatif » shows, per category, one table: a row per solution with its counter, columns grouped by bouquet (then « Autres API et jeux de données »), one column per useful datum, a check or a dash per cell. « Trier par » (« Le plus de données intégrées » on arrival, or « Titre ») orders cards and tables alike. On a desktop (48em and wider) the tab opens on « Tableau comparatif » when the table is useful (more than one datum and more than one solution, `Demarche#tableau_comparatif_utile?`); otherwise, and on a phone, on « Cartes ».
 
 ## Sub-features
 
-- `tableau-integratrices-arrivee` the tab opens on `Cartes`, sorted by « Le plus de données intégrées », no table.
+- `tableau-integratrices-arrivee` on a desktop the tab opens on `Tableau comparatif` when the table is useful, sorted by « Le plus de données intégrées », no card; on a phone, or with one datum or one solution, on `Cartes`.
 - `tableau-integratrices-tri` « Trier par » `Titre` or « Le plus de données intégrées » orders cards and tables alike.
 - `tableau-integratrices-tableau` « Tableau comparatif » shows one table per category, columns grouped by bouquet, one per useful datum.
 - `tableau-integratrices-annonce` each cell reads as solution, group, datum and `Intégrée` or `Non intégrée`.
@@ -20,9 +20,11 @@ In the cas d'usage tab « Solutions ayant intégré ces données », a « Cartes
 
 Drive: `features/tableau-solutions-integratrices.rb` (SKILL.md § Drive).
 
-Preconditions: a visible démarche with `Demarche#integratrices_par_categorie` not empty.
+Preconditions: a visible démarche where `Demarche#tableau_comparatif_utile?`, and one with solutions where it is not (today « Tarification d'accueil du jeune enfant… PSU », one datum).
 
-- **Arrival.** `Cartes` checked, `Trier par :` on `integrees`, no table visible, no « Les solutions sont classées » sentence.
+- **Arrival.** Window 1280 wide, the useful démarche: `Tableau comparatif` checked, `Trier par :` on `integrees`, tables shown, no card, no « Les solutions sont classées » sentence.
+- **Arrival on a phone.** Window 375 wide, the same démarche: `Cartes` checked, cards shown, no table.
+- **Arrival without a useful table.** Window 1280 wide, the other démarche: `Cartes` checked, cards shown, no table. The drive then reopens the useful démarche and chooses `Cartes` for the next steps.
 - **Sort cards.** `select 'Titre', from: 'Trier par :'`: every visible list (`[data-tri-solutions-target=liste]`, children `data-nom`) is in French alphabetical order; `Le plus de données intégrées`: back to the served order (`integratrices_par_categorie`).
 - **Table.** `choose('Tableau comparatif', allow_label_click: true)`: cards hide, one table per category, already in the order last chosen; sort back by data: served order.
 - **Columns.** `th[scope=colgroup]` texts equal `groupes_donnees_utiles` titles; `th[scope=col]` count minus two equals `donnees_utiles.size`; no sort button in the headers.

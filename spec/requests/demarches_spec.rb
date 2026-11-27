@@ -467,7 +467,7 @@ RSpec.describe 'Demarches' do
     it 'prépare pour Matomo l’ouverture de l’accès direct, l’étiquette API et les sorties vers data.gouv' do
       page = Capybara.string(response.body)
 
-      expect(page.find('[data-controller="affichage-personnalise"]')['data-matomo-contexte']).to eq('Tarification cantine scolaire à 1€')
+      expect(page.find('[data-controller~="affichage-personnalise"]')['data-matomo-contexte']).to eq('Tarification cantine scolaire à 1€')
       acces_direct = page.find_button("Par l'API directement")
       expect(zone_matomo(acces_direct)).to eq("Cas d'usage › Recommandation")
       expect(acces_direct['data-matomo-action']).to eq("Ouvrir l'accès direct")
@@ -923,7 +923,7 @@ RSpec.describe 'Demarches' do
         expect(bouton.first('span', visible: :all)[:class]).to include('fr-icon-arrow-down-s-fill')
         expect(onglet_solutions).to have_css("##{bouton[:'aria-controls']}:not([hidden]) .solution-integratrice-card", visible: :all)
         expect(onglet_solutions).to have_no_css('.fr-accordion, .fr-collapse', visible: :all)
-        expect(onglet_solutions[:class]).to include('fr-background-alt--blue-france')
+        expect(onglet_solutions[:class]).to include('fr-background-alt--beige-gris-galet')
       end
 
       it 'badge le titre de chaque catégorie de son nombre de solutions, « Sans développement » hors briques' do
@@ -1045,6 +1045,93 @@ RSpec.describe 'Demarches' do
       expect(page).to have_css('[role=tab][aria-controls=solutions-integratrices][disabled]', text: 'Solutions ayant intégré ces données (0)')
       expect(page).to have_no_css('nav.fr-summary a[href="#solutions-integratrices"]')
       expect(page).to have_css('nav.fr-summary a[href="#donnees-disponibles"]', text: 'Données disponibles et utiles')
+    end
+
+    describe 'encadré en fin d’onglet Données disponibles' do
+      let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+      let(:bio) { Solution.create!(nom: 'API professionnels BIO', categorie: 'api') }
+      let(:encadre) { page.find('#donnees-disponibles .fiche-page > :last-child') }
+
+      def lien(texte) = encadre.find_link(texte, href: '#solutions-integratrices')
+      def zone_matomo(element) = element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']
+
+      it 'mène au tableau comparatif sur ordinateur et aux cartes sur téléphone quand le tableau est utile' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc, bio)
+        integratrice('Brique marchés', 'brique_logicielle', bio)
+
+        get demarche_path('marches-publics')
+
+        expect(encadre).to have_text('Tableau comparatif des 3 solutions')
+        expect(lien('Consulter le tableau comparatif')[:class].split).to include('fr-hidden', 'fr-unhidden-md')
+        expect(lien('Voir les 3 solutions')[:class].split).to include('fr-hidden-md')
+        expect([zone_matomo(lien('Voir les 3 solutions'))] + encadre.all('a').map { [it['data-matomo-action'], it['data-matomo-nom']] })
+          .to eq(["Cas d'usage › Fin des données disponibles",
+                  ['Afficher les solutions', 'Tableau comparatif'], ['Afficher les solutions', 'Cartes']])
+      end
+
+      it 'mène aux cartes sur tous les écrans avec une seule donnée, le tableau n’ayant qu’une colonne' do
+        recommande(bodacc)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc)
+
+        get demarche_path('marches-publics')
+
+        expect(encadre.all('a').map { [it.text, it[:class].split.grep(/hidden/)] }).to eq([['Voir les 2 solutions', []]])
+      end
+
+      it 'dit « Voir la solution » quand une seule solution a intégré les données' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc, bio)
+
+        get demarche_path('marches-publics')
+
+        expect(encadre.all('a').map { [it.text, it[:class].split.grep(/hidden/)] }).to eq([['Voir la solution', []]])
+      end
+
+      it 'n’apparaît pas quand aucune solution n’a intégré les données' do
+        recommande(bodacc)
+
+        get demarche_path('marches-publics')
+
+        expect(page).to have_no_css(%([data-matomo-zone="Cas d'usage › Fin des données disponibles"]))
+      end
+    end
+
+    describe 'fenêtre des données intégrées' do
+      let(:bodacc) { Solution.create!(nom: 'API BODACC', categorie: 'api') }
+      let(:bio) { Solution.create!(nom: 'API professionnels BIO', categorie: 'api') }
+
+      def zone_matomo(element) = element.find(:xpath, 'ancestor::*[@data-matomo-zone][1]')['data-matomo-zone']
+
+      def lien_de_comparaison(modale)
+        lien = modale.find_link('Comparer avec les autres solutions', href: '#solutions-integratrices', visible: :all)
+        [modale.find('h2', visible: :all).text(:all).squish, zone_matomo(lien), lien['data-matomo-action'], lien['data-matomo-nom']]
+      end
+
+      it 'propose de comparer avec les autres solutions quand le tableau est utile' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc)
+        integratrice('Zeta', 'logiciel_metier_cle_en_main', bodacc, bio)
+
+        get demarche_path('marches-publics')
+
+        zone = "Cas d'usage › Modale données intégrées"
+        expect(page.all('dialog', visible: :all).map { lien_de_comparaison(it) }.uniq)
+          .to contain_exactly(['Acheteza', zone, 'Comparer avec les autres solutions', 'Acheteza'],
+            ['Zeta', zone, 'Comparer avec les autres solutions', 'Zeta'])
+      end
+
+      it 'ne propose pas de comparer quand une seule solution a intégré les données' do
+        recommande(bodacc, bio)
+        integratrice('Acheteza', 'logiciel_metier_cle_en_main', bodacc, bio)
+
+        get demarche_path('marches-publics')
+
+        expect(page).to have_css('dialog', visible: :all)
+        expect(page).to have_no_link('Comparer avec les autres solutions', visible: :all)
+      end
     end
   end
 

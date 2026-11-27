@@ -41,6 +41,7 @@ def ouvrir_l_onglet(page, demarche)
   onglet.click
   panneau = page.find('#solutions-integratrices.fr-tabs__panel--selected')
   page.assert_selector('#donnees-disponibles', visible: :hidden)
+  panneau.choose('Cartes', allow_label_click: true)
   [onglet, panneau]
 end
 

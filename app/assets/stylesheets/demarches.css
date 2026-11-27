@@ -322,6 +322,31 @@ body:has(.bouton-proposer-modification) {
 
 /* Page solution */
 
+.cartes-cas-usage {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 1.5rem;
+}
+
+@media (min-width: 48em) {
+  .cartes-cas-usage {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 62em) {
+  .cartes-cas-usage {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cartes-cas-usage > .demarche-card {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  margin-bottom: 1.5rem;
+}
+
 .solution-page .example-image {
   display: inline-block;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);

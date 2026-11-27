@@ -9,7 +9,8 @@
    sections = [['contexte-et-cadre-juridique', 'Contexte et cadre juridique'],
                *onglets.first(par_categorie.any? ? 2 : 1).map { it.first(2) }]
    lien_modification = contact_path("modifier-cas-usage", demarche: @demarche.slug) %>
-<div data-controller="affichage-personnalise" <%= tag.attributes(data: matomo_zone("Cas d'usage", @demarche.nom)) %>>
+<div data-controller="affichage-personnalise tri-solutions" data-tri-solutions-tableau-utile-value="<%= @demarche.tableau_comparatif_utile? %>"
+  <%= tag.attributes(data: matomo_zone("Cas d'usage", @demarche.nom)) %>>
   <div data-affichage-personnalise-target="haut"></div>
   <div class="affichage-personnalise__entete" data-affichage-personnalise-target="entete">
     <div class="fr-container fr-pt-1v affichage-personnalise__fil">
@@ -79,9 +80,37 @@
         <h2 class="fr-sr-only"><%= onglets[0][1] %></h2>
         <%= render partial: 'demarches/recommandation', collection: @demarche.recommandations_publiees, as: :recommandation,
               locals: { lien_modification:, demarche: @demarche } %>
+        <% if (nombre = onglets[1][2]).positive? %>
+          <% tableau_utile = @demarche.tableau_comparatif_utile? %>
+          <div class="fr-background-alt--grey fr-p-3w fr-mb-4w fr-grid-row fr-grid-row--middle fr-grid-row-gutters"
+            <%= tag.attributes(data: matomo_zone("Cas d'usage › Fin des données disponibles")) %>>
+            <p class="fr-col-12 fr-col-md fr-mb-2w fr-mb-md-0">
+              <span class="fr-text--lg fr-text--bold">
+                <% if tableau_utile %>
+                  Tableau comparatif des <%= nombre %> solutions
+                <% else %>
+                  <%= nombre == 1 ? 'Solution référencée' : "#{nombre} solutions référencées" %>
+                <% end %>
+              </span>
+              <br>
+              <% if tableau_utile %>
+                Comparez la liste des données intégrées par les <%= nombre %> solutions déjà référencées
+              <% else %>
+                <%= nombre == 1 ? 'Consultez la solution déjà référencée' : "Consultez les #{nombre} solutions déjà référencées" %>
+              <% end %>
+              pour cette démarche.
+            </p>
+            <% if tableau_utile %>
+              <a href="#solutions-integratrices" class="fr-btn fr-btn--icon-left fr-icon-table-line fr-hidden fr-unhidden-md"
+                data-matomo-action="Afficher les solutions" data-matomo-nom="Tableau comparatif">Consulter le tableau comparatif</a>
+            <% end %>
+            <a href="#solutions-integratrices" class="fr-btn fr-btn--icon-right fr-icon-arrow-right-line <%= 'fr-hidden-md' if tableau_utile %>"
+              data-matomo-action="Afficher les solutions" data-matomo-nom="Cartes"><%= nombre == 1 ? 'Voir la solution' : "Voir les #{nombre} solutions" %></a>
+          </div>
+        <% end %>
       </div>
     </div>
-    <div id="solutions-integratrices" class="fr-tabs__panel fr-background-alt--blue-france" role="tabpanel"
+    <div id="solutions-integratrices" class="fr-tabs__panel fr-background-alt--beige-gris-galet" role="tabpanel"
       aria-labelledby="onglet-solutions-integratrices" tabindex="0">
       <div class="fr-container fiche-page">
         <h2 class="fr-sr-only"><%= onglets[1][1] %></h2>
@@ -89,9 +118,9 @@
       </div>
     </div>
   </div>
-</div>
 
-<%= yield :modales_integrations %>
+  <%= yield :modales_integrations %>
+</div>
 
 <%= render "avis_page", page: "Démarche : #{@demarche.nom}", lien: contact_path("donner-son-avis", demarche: @demarche.slug) %>
 

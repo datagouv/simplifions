@@ -29,6 +29,12 @@
                 </p>
               </div>
             </div>
+            <% if demarche.tableau_comparatif_utile? %>
+              <p class="fr-mt-2w fr-mb-0">
+                <a href="#solutions-integratrices" class="fr-link fr-link--icon-left fr-icon-table-line" data-action="tri-solutions#comparer"
+                  data-matomo-action="Comparer avec les autres solutions" data-matomo-nom="<%= solution.nom %>">Comparer avec les autres solutions</a>
+              </p>
+            <% end %>
             <% demarche.groupes_donnees_utiles.each do |bouquet, utiles, recommandations| %>
               <% titre = titre_groupe_donnees(bouquet) %>
               <details class="donnees-integrees fr-mt-3w" <%= 'open' if recommandation.nil? || utiles.intersect?(recommandation.donnees_attendues) %>>

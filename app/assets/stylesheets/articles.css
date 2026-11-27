@@ -370,11 +370,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .demarche-card:hover {
+  .demarche-card.fr-enlarge-link:hover {
     background-color: var(--background-alt-grey);
   }
 
-  .demarche-card:hover .header-topic {
+  .demarche-card.fr-enlarge-link:hover .header-topic {
     background-color: var(--background-contrast-blue-cumulus-hover);
   }
 }
@@ -404,6 +404,18 @@
 
 .description-topic .card-arrow {
   padding: 0.5rem 0 0;
+}
+
+.demarche-card--liens .description-topic {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.demarche-card__liens {
+  margin-top: auto;
+  padding-top: 1rem;
+  text-align: right;
 }
 
 /* Bloc "Sont mentionnés dans cet article" */
